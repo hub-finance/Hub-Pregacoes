@@ -397,10 +397,27 @@
   background: color-mix(in srgb, var(--accent) 20%, transparent);
   box-shadow: inset 3px 0 0 var(--accent);
 }
-/* no celular a tela dividida vira só a mensagem: não há largura para as duas */
+/* Em tela estreita — celular, ou o tablet dividido com outro aplicativo — as
+   duas colunas não cabem lado a lado. Em vez de perder o recurso, a divisão
+   passa a ser horizontal: Bíblia em cima, mensagem embaixo. */
 @media (max-width: 899px) {
+  .preach-split.divided {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  }
   .preach-pane {
-    display: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .preach-pane-body {
+    padding: var(--sp-3) var(--sp-4) var(--sp-5);
+    font-size: 1rem;
+  }
+  .preach-stage.split {
+    padding: var(--sp-4);
+  }
+  .preach-stage.split .preach-text {
+    font-size: calc(clamp(1.05rem, calc(1.4vw + 0.85rem), 1.6rem) * var(--preach-scale));
   }
 }
 

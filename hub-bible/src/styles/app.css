@@ -273,14 +273,7 @@
   color: var(--accent-strong);
   background: var(--accent-soft);
 }
-.preach-split-toggle {
-  display: none;
-}
-@media (min-width: 900px) {
-  .preach-split-toggle {
-    display: inline-grid;
-  }
-}
+
 
 /* cartões */
 .card {

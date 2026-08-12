@@ -219,7 +219,7 @@ export default function PreachingPage() {
       style={{ '--preach-scale': settings.preachingScale } as React.CSSProperties}
     >
       <SermonTimer />
-      <div className="preach-split">
+      <div className={`preach-split${split && sermon.data ? ' divided' : ''}`}>
         {split && sermon.data && <ScripturePane reference={step.scripture?.reference} />}
         <div
           className={`preach-stage${split ? ' split' : ''}`}
