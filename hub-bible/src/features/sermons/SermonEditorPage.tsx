@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAsync } from '../../hooks';
 import { DocumentViewer } from '../common/DocumentViewer';
 import { getAttachment } from '../../core/data/attachments';
 import { EditorShell } from '../common/EditorShell';
 import { ScriptureField } from '../common/ScriptureField';
+import { SermonBlocksEditor } from './SermonBlocksEditor';
 import { useDocEditor } from '../common/useDocEditor';
 import { NotesPanel } from '../common/NotesPanel';
 import { SelectInput, Spinner, TagInput, TextArea, TextInput } from '../../components/ui';
@@ -11,14 +13,22 @@ import { useToast } from '../../components/Toast';
 import { Icon } from '../../components/Icon';
 import { CONTENT_CATEGORIES } from '../../core/categories';
 import { escapeHtml } from '../../core/backup';
-import type { Sermon } from '../../core/db/types';
+import {
+  blocksFromSermon,
+  blocksToHtml,
+  blocksToMarkdown,
+  newBlock,
+} from '../../core/data/sermonContent';
+import type { Sermon, SermonBlock } from '../../core/db/types';
 
 /**
  * Editor de sermão.
  *
- * Estrutura enxuta, a pedido: título · introdução · desenvolvimento ·
- * conclusão · aplicação. Sermões criados no formato antigo, em blocos de
- * tópico, continuam acessíveis e podem ser juntados ao desenvolvimento.
+ * O sermão escrito aqui é montado em blocos — seção, parágrafo, destaque,
+ * citação bíblica e lista — com formatação dentro de cada um, para chegar perto
+ * do que se faz no Word. Sermões antigos, escritos nos quatro campos de texto
+ * corrido, são convertidos em blocos na primeira abertura, sem perder nada.
+ * Sermão importado em PDF ou Word não é editado: aparece como veio.
  */
 export default function SermonEditorPage() {
   const { id } = useParams();
@@ -29,6 +39,22 @@ export default function SermonEditorPage() {
     () => (doc?.attachmentId ? getAttachment(doc.attachmentId) : Promise.resolve(undefined)),
     [doc?.attachmentId],
   );
+
+  // conversão do formato antigo: os quatro campos viram blocos e são esvaziados,
+  // porque o mesmo texto passa a viver em `content` — mantê-los duplicaria o
+  // sermão na busca e deixaria sobras ao editar
+  const needsSeed = !!doc && !doc.attachmentId && !doc.content;
+  useEffect(() => {
+    if (!doc || !needsSeed) return;
+    set({
+      content: blocksFromSermon(doc),
+      introduction: '',
+      development: '',
+      conclusion: '',
+      application: '',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc?.id, needsSeed]);
 
   if (loading) return <Spinner label="Abrindo sermão…" />;
   if (!doc) {
@@ -42,29 +68,36 @@ export default function SermonEditorPage() {
     );
   }
 
+  const content = doc.content ?? [];
+
   const legacyBlocks = (doc.blocks ?? []).filter(
     (b) => b.title || b.comment || b.application || b.scripture,
   );
   const hasLegacy = legacyBlocks.length > 0 || !!doc.appeal?.trim();
 
+  /** Traz o conteúdo do formato em tópicos para o fim do sermão, como blocos. */
   const mergeLegacy = () => {
-    const parts = legacyBlocks.map((b, i) =>
-      [
-        `${i + 1}. ${b.title || 'Ponto'}`,
-        b.scripture && `Texto: ${b.scripture}`,
-        b.comment,
-        b.application && `Aplicação: ${b.application}`,
-      ]
-        .filter(Boolean)
-        .join('\n'),
-    );
-    set({
-      development: [doc.development, ...parts].filter(Boolean).join('\n\n'),
-      application: [doc.application, doc.appeal].filter(Boolean).join('\n\n'),
-      blocks: [],
-      appeal: '',
+    const converted: SermonBlock[] = [];
+    legacyBlocks.forEach((b, i) => {
+      converted.push(newBlock('section', escapeHtml(`${i + 1}. ${b.title || 'Ponto'}`)));
+      if (b.scriptureText) {
+        const quote = newBlock('scripture', escapeHtml(b.scriptureText));
+        quote.reference = b.scripture;
+        converted.push(quote);
+      } else if (b.scripture) {
+        converted.push(newBlock('text', escapeHtml(`Texto: ${b.scripture}`)));
+      }
+      if (b.comment) converted.push(newBlock('text', escapeHtml(b.comment).replace(/\n/g, '<br>')));
+      if (b.application) {
+        converted.push(newBlock('highlight', escapeHtml(b.application).replace(/\n/g, '<br>')));
+      }
     });
-    notify('Conteúdo antigo juntado ao desenvolvimento.');
+    if (doc.appeal?.trim()) {
+      converted.push(newBlock('section', 'Apelo'));
+      converted.push(newBlock('text', escapeHtml(doc.appeal).replace(/\n/g, '<br>')));
+    }
+    set({ content: [...content, ...converted], blocks: [], appeal: '' });
+    notify('Conteúdo antigo trazido para os blocos.');
   };
 
   const toMarkdown = () =>
@@ -73,27 +106,20 @@ export default function SermonEditorPage() {
       doc.theme && `**Tema:** ${doc.theme}`,
       doc.mainText && `**Texto principal:** ${doc.mainText}`,
       doc.date && `**Data:** ${doc.date}`,
-      doc.introduction && `## Introdução\n\n${doc.introduction}`,
-      doc.development && `## Desenvolvimento\n\n${doc.development}`,
-      doc.conclusion && `## Conclusão\n\n${doc.conclusion}`,
-      doc.application && `## Aplicação\n\n${doc.application}`,
+      doc.attachmentId && '_Sermão importado — o conteúdo está no arquivo original._',
+      blocksToMarkdown(content),
       doc.notes && `## Observações\n\n${doc.notes}`,
     ]
       .filter(Boolean)
       .join('\n\n');
 
-  const toHtml = () => {
-    const p = (v: string) => `<p>${escapeHtml(v)}</p>`;
-    return [
+  const toHtml = () =>
+    [
       `<h1>${escapeHtml(doc.title || 'Sermão')}</h1>`,
       `<div class="meta">${escapeHtml([doc.theme, doc.mainText, doc.date].filter(Boolean).join(' · '))}</div>`,
-      doc.mainTextContent ? `<blockquote>${escapeHtml(doc.mainTextContent)}</blockquote>` : '',
-      doc.introduction ? `<h2>Introdução</h2>${p(doc.introduction)}` : '',
-      doc.development ? `<h2>Desenvolvimento</h2>${p(doc.development)}` : '',
-      doc.conclusion ? `<h2>Conclusão</h2>${p(doc.conclusion)}` : '',
-      doc.application ? `<h2>Aplicação</h2>${p(doc.application)}` : '',
+      doc.mainTextContent ? `<blockquote class="s-scripture">${escapeHtml(doc.mainTextContent)}<cite>${escapeHtml(doc.mainText)}</cite></blockquote>` : '',
+      blocksToHtml(content),
     ].join('');
-  };
 
   return (
     <EditorShell
@@ -152,35 +178,7 @@ export default function SermonEditorPage() {
         />
 
         {!doc.attachmentId && (
-          <>
-        <TextArea
-          label="Introdução"
-          value={doc.introduction}
-          onChange={(introduction) => set({ introduction })}
-          rows={6}
-          placeholder="Como você vai conduzir a igreja ao texto?"
-        />
-        <TextArea
-          label="Desenvolvimento"
-          value={doc.development}
-          onChange={(development) => set({ development })}
-          rows={16}
-          placeholder="O corpo da mensagem — os pontos, o texto, os comentários."
-        />
-        <TextArea
-          label="Conclusão"
-          value={doc.conclusion}
-          onChange={(conclusion) => set({ conclusion })}
-          rows={6}
-        />
-        <TextArea
-          label="Aplicação"
-          value={doc.application}
-          onChange={(application) => set({ application })}
-          rows={6}
-          placeholder="O que a igreja leva para a semana?"
-        />
-          </>
+          <SermonBlocksEditor blocks={content} onChange={(next) => set({ content: next })} />
         )}
 
         {hasLegacy && (
@@ -190,8 +188,8 @@ export default function SermonEditorPage() {
             </summary>
             <div className="stack" style={{ marginTop: 'var(--sp-3)' }}>
               <p className="small muted">
-                Este sermão foi escrito na estrutura antiga, em blocos. Nada foi perdido — junte
-                tudo ao desenvolvimento quando quiser.
+                Este sermão foi escrito na estrutura antiga, em tópicos. Nada foi perdido — traga
+                tudo para os blocos quando quiser.
               </p>
               {legacyBlocks.map((b, i) => (
                 <div key={b.id} className="notice" style={{ display: 'block' }}>
@@ -214,7 +212,7 @@ export default function SermonEditorPage() {
                 </div>
               )}
               <button className="btn btn-sm" onClick={mergeLegacy}>
-                Juntar ao desenvolvimento
+                Trazer para os blocos
               </button>
             </div>
           </details>

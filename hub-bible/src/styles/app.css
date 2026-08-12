@@ -910,3 +910,209 @@
   color: var(--text);
   box-shadow: var(--shadow-1);
 }
+
+/* ==================== montagem do sermão em blocos ======================== */
+/* A referência visual é o sermão que o pastor já escreve no Word: subtítulo
+   com filete, parágrafo justificado, quadro de destaque, citação recuada. */
+
+.sermon-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* barra de formatação — acompanha a rolagem, logo abaixo da barra do topo */
+.format-bar {
+  position: sticky;
+  top: calc(var(--topbar-h) + env(safe-area-inset-top));
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  padding: 4px;
+  margin-bottom: var(--sp-2);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: saturate(1.4) blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+  transition: opacity var(--dur) var(--ease);
+}
+.format-bar.idle {
+  opacity: 0.55;
+}
+.format-btn {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  font-size: 1.02rem;
+}
+.format-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.format-color .color-dot {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border-strong);
+}
+.format-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  margin: 0 4px;
+}
+.format-hint {
+  display: none;
+  padding-right: var(--sp-2);
+}
+@media (min-width: 760px) {
+  .format-hint {
+    display: inline;
+  }
+}
+
+/* ------------------------------- o bloco --------------------------------- */
+.sermon-block {
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  padding: var(--sp-2) var(--sp-3);
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.sermon-block.active {
+  border-color: var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+.sermon-block-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  opacity: 0.4;
+  transition: opacity var(--dur) var(--ease);
+}
+.sermon-block:hover .sermon-block-bar,
+.sermon-block.active .sermon-block-bar,
+.sermon-block-bar:focus-within {
+  opacity: 1;
+}
+.block-type {
+  min-height: var(--tap);
+  padding: 0 var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.scripture-ref-row {
+  margin-bottom: var(--sp-2);
+}
+.input-sm {
+  min-height: var(--tap);
+  padding: 6px var(--sp-3);
+  font-size: 0.9rem;
+}
+.block-add {
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px dashed var(--border);
+}
+.block-add .btn {
+  gap: 6px;
+}
+
+/* --------------------------- o texto de dentro ---------------------------- */
+.sb-input {
+  position: relative;
+  outline: none;
+  min-height: 1.7em;
+  padding: 4px 2px;
+  font-family: var(--font-reader);
+  font-size: 1.03rem;
+  line-height: 1.72;
+  color: var(--text);
+  overflow-wrap: break-word;
+}
+.sb-input[data-empty]::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  left: 2px;
+  top: 4px;
+  right: 2px;
+  color: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* seção: o subtítulo com o filete dourado por baixo */
+.sb-section .sb-input {
+  font-family: var(--font-ui);
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--accent-strong);
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--accent);
+  margin-top: var(--sp-3);
+}
+.sb-text .sb-input {
+  text-align: justify;
+  hyphens: auto;
+}
+.sb-highlight .sb-input {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: var(--sp-3);
+}
+.sb-scripture .sb-input {
+  font-style: italic;
+  color: var(--text-2);
+  border-left: 3px solid var(--accent);
+  padding-left: var(--sp-3);
+}
+.sb-scripture-ref {
+  margin-top: 4px;
+  text-align: right;
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+/* a base do aplicativo tira os marcadores de toda lista; aqui eles voltam,
+   porque numa lista de sermão o marcador é o que separa um ponto do outro */
+.sb-list .sb-input ul,
+.sb-list .sb-input ol {
+  margin: 0;
+  padding-left: 1.4em;
+  list-style: disc;
+}
+.sb-list .sb-input ol {
+  list-style: decimal;
+}
+.sb-list .sb-input li::marker {
+  color: var(--accent);
+}
+.sb-list .sb-input li {
+  margin-bottom: 0.35em;
+}
+.sb-input a {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}

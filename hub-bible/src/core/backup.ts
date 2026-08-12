@@ -112,11 +112,23 @@ export function exportAsPdf(title: string, html: string): void {
 <style>
   @page { margin: 22mm 18mm; }
   body { font: 12pt/1.6 Georgia, 'Times New Roman', serif; color: #14120f; }
-  h1 { font-size: 20pt; margin: 0 0 4pt; }
+  h1 { font-size: 20pt; margin: 0 0 4pt; color: #1f4e79; border-bottom: 2pt solid #8a6a2f; padding-bottom: 6pt; }
   h2 { font-size: 13pt; margin: 18pt 0 6pt; color: #6f5423; text-transform: uppercase; letter-spacing: .06em; }
   p { margin: 0 0 8pt; white-space: pre-wrap; }
   blockquote { margin: 8pt 0; padding: 6pt 12pt; border-left: 3px solid #8a6a2f; background: #faf6ee; }
   .meta { font-size: 10pt; color: #6b645b; margin-bottom: 16pt; font-family: system-ui, sans-serif; }
+  /* sermão montado em blocos: no papel, o mesmo desenho que se vê ao escrever */
+  .s-section { font-size: 13.5pt; margin: 16pt 0 7pt; color: #1f4e79; text-transform: none;
+    letter-spacing: 0; border-bottom: 1pt solid #8a6a2f; padding-bottom: 3pt; page-break-after: avoid; }
+  .s-text { white-space: normal; text-align: justify; }
+  .s-highlight { margin: 10pt 0; padding: 8pt 12pt; background: #eef3f9; border-left: 3pt solid #1f4e79;
+    page-break-inside: avoid; }
+  .s-scripture { font-style: italic; }
+  .s-scripture cite { display: block; margin-top: 4pt; text-align: right; font-style: normal;
+    font-family: system-ui, sans-serif; font-size: 9pt; letter-spacing: .08em; text-transform: uppercase; color: #6f5423; }
+  .s-list { margin: 0 0 8pt; }
+  .s-list ul, .s-list ol { margin: 0; padding-left: 18pt; }
+  .s-list li { margin-bottom: 3pt; }
   footer { margin-top: 24pt; font-size: 9pt; color: #8a837a; font-family: system-ui, sans-serif; }
 </style></head><body>${html}<footer>Gerado pelo Hub Bible</footer></body></html>`);
   win.document.close();

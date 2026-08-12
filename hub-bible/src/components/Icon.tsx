@@ -13,7 +13,8 @@ export type IconName =
   | 'share' | 'copy' | 'trash' | 'edit' | 'download' | 'upload' | 'print'
   | 'sun' | 'moon' | 'sepia' | 'highlighter' | 'clock' | 'play' | 'pause'
   | 'reset' | 'swap' | 'text' | 'offline' | 'lock' | 'filter' | 'duplicate'
-  | 'flame' | 'folder' | 'split' | 'warning' | 'info';
+  | 'flame' | 'folder' | 'split' | 'warning' | 'info'
+  | 'list' | 'quote' | 'arrow-up' | 'arrow-down';
 
 const PATHS: Record<IconName, string> = {
   home: 'M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5M9.5 20v-6h5v6',
@@ -63,6 +64,10 @@ const PATHS: Record<IconName, string> = {
   split: 'M4 5h16v14H4zM12 5v14',
   warning: 'M12 4 2.5 20.5h19zM12 10v4.5M12 17.5h.01',
   info: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18M12 11v5.5M12 7.5h.01',
+  list: 'M4 6.5h.01M4 12h.01M4 17.5h.01M8.5 6.5H20M8.5 12H20M8.5 17.5H20',
+  quote: 'M9.5 6.5C7 7.5 5.5 9.8 5.5 12.5v5h5v-5h-3c0-2 .8-3.4 2.6-4.2zM19 6.5c-2.5 1-4 3.3-4 6v5h5v-5h-3c0-2 .8-3.4 2.6-4.2z',
+  'arrow-up': 'M12 20V4.5M6 10.5 12 4.5l6 6',
+  'arrow-down': 'M12 4v15.5M6 13.5l6 6 6-6',
 };
 
 interface IconProps {

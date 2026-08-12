@@ -1,5 +1,6 @@
 import { db, now, today, uid } from '../db/db';
 import { normalize } from '../bible/canon';
+import { htmlToPlain } from './sermonContent';
 import {
   LOCAL_USER,
   type Devotional,
@@ -202,6 +203,7 @@ export async function loadLibrary(): Promise<LibraryEntry[]> {
       searchBlob: blob(
         s.title, s.theme, s.mainText, s.introduction, s.development, s.conclusion,
         s.application, s.appeal, s.tags,
+        (s.content ?? []).map((b) => `${htmlToPlain(b.html)} ${b.reference ?? ''}`),
         (s.blocks ?? []).map((b) => `${b.title} ${b.comment} ${b.application} ${b.scripture}`),
       ),
     })),

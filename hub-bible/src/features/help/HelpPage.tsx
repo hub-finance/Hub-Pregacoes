@@ -70,10 +70,16 @@ const TOPICS: Topic[] = [
     icon: 'sermon',
     title: 'Preparar um sermão',
     steps: [
-      'A estrutura é simples: título, introdução, desenvolvimento, conclusão e aplicação.',
+      'O sermão é montado em blocos, como se monta no Word: Seção (o subtítulo com o filete), Parágrafo, Destaque (o quadro que chama a atenção), Citação bíblica e Lista.',
+      'Todo sermão novo já abre com Introdução, Desenvolvimento, Conclusão e Aplicação prontas — apague, renomeie ou acrescente as suas.',
+      'A barra no alto formata o trecho que você selecionou: negrito, itálico, sublinhado e cor. O botão de girar limpa a formatação.',
+      'Cada bloco tem os seus botões: trocar o tipo, subir, descer, inserir outro abaixo e excluir. No fim da página, a barra acrescenta um bloco novo do tipo que você escolher.',
+      'No bloco Citação bíblica, escreva a referência e toque em "Trazer texto": o versículo vem do próprio aplicativo, com a referência por baixo. O texto bíblico nunca é digitado pelo sistema.',
+      'Enter abre um bloco novo; Shift+Enter quebra a linha dentro do mesmo bloco.',
       'No campo "Texto principal" digite a referência e o texto bíblico aparece embaixo, carregado do próprio aplicativo.',
       'O sermão salva sozinho enquanto você escreve — não existe botão de salvar.',
-      'No menu "…" você exporta em Markdown, TXT ou PDF, compartilha, ou exclui.',
+      'No menu "…" você exporta em Markdown, TXT ou PDF, compartilha, ou exclui. O PDF sai com o mesmo desenho da tela: título, filetes, destaques e citações.',
+      'No Modo Pregação, cada Seção vira um passo, e o destaque continua destacado no púlpito.',
     ],
   },
   {

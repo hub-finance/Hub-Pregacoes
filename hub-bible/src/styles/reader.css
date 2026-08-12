@@ -295,6 +295,10 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  /* uma seção longa não cabe centralizada: sem `safe`, o começo do texto fica
+     acima da área rolável e some. Navegador que não conhece `safe` ignora a
+     linha e fica com a de cima. */
+  justify-content: safe center;
   padding: var(--sp-6) clamp(var(--sp-4), 6vw, var(--sp-7));
 }
 .preach {
@@ -699,4 +703,80 @@
   .doc-viewer-host .docx-wrapper > section.docx {
     padding: var(--sp-4) !important;
   }
+}
+
+/* ---------------- sermão em blocos dentro do Modo Pregação ---------------- */
+/* O sermão é pregado com a formatação com que foi escrito: o destaque continua
+   destacado no púlpito, e a citação continua separada do corpo. */
+
+.preach-blocks {
+  max-width: min(36em, 96%);
+  margin: 0 auto;
+  text-align: left;
+}
+.preach-blocks p,
+.preach-blocks .pb-highlight,
+.preach-blocks .pb-list {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+.preach-blocks h2 {
+  text-align: left;
+  color: var(--accent-strong);
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: var(--sp-2);
+}
+.pb-highlight {
+  background: var(--accent-soft);
+  border-left: 4px solid var(--accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-4);
+  font-size: calc(clamp(1.1rem, 1.6vw, 1.7rem) * var(--preach-scale));
+  line-height: 1.6;
+  color: var(--text);
+}
+.pb-list {
+  margin-bottom: var(--sp-4);
+  font-size: calc(clamp(1.1rem, 1.6vw, 1.7rem) * var(--preach-scale));
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.pb-list ul,
+.pb-list ol {
+  margin: 0;
+  padding-left: 1.3em;
+  list-style: disc;
+}
+.pb-list ol {
+  list-style: decimal;
+}
+.pb-list li::marker {
+  color: var(--accent);
+}
+.pb-list li {
+  margin-bottom: 0.4em;
+}
+.pb-scripture {
+  font-family: var(--font-reader);
+  font-style: italic;
+  border-left: 4px solid var(--accent);
+  padding-left: var(--sp-4);
+  margin: 0 0 var(--sp-4);
+  font-size: calc(clamp(1.15rem, 1.8vw, 1.9rem) * var(--preach-scale));
+  line-height: 1.55;
+  color: var(--text);
+}
+.pb-scripture cite {
+  display: block;
+  margin-top: var(--sp-2);
+  text-align: right;
+  font-style: normal;
+  font-family: var(--font-ui);
+  font-size: 0.5em;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
 }

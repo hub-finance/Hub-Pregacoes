@@ -148,6 +148,33 @@ Já verificado em navegador headless a 390px, 1024px e 2000px. Falta o uso real:
 - [ ] Modo Pregação com um sermão real, do início ao apelo
 - [ ] Instalação na tela inicial e funcionamento em modo avião
 - [ ] Baixar todas as traduções para uso offline e conferir o espaço ocupado
+- [ ] Escrever um sermão inteiro no editor de blocos, com o teclado do tablet
+- [ ] Colar um trecho do Word dentro de um bloco e ver se o negrito veio junto
+
+---
+
+## 6. iPhone e iPad — ainda não verificado
+
+O aplicativo é um PWA e o Safari do iOS suporta PWA desde a versão 11.3, então
+a expectativa é de que funcione. Mas **isto ainda não foi verificado em aparelho
+Apple nenhum** — toda a verificação até aqui foi feita em Chromium.
+
+Pontos que precisam de conferência no iOS, por serem onde o Safari costuma
+divergir:
+
+- Instalação: no iPhone é Compartilhar › "Adicionar à Tela de Início" (não há
+  aviso automático de instalação como no Chrome).
+- IndexedDB: o Safari apaga os dados de sites sem uso por 7 dias. Um aplicativo
+  *instalado na tela de início* está isento dessa limpeza, mas convém confirmar
+  — é o que guarda sermões, anotações e as Bíblias baixadas.
+- `contenteditable` no editor de blocos: a seleção e a barra de formatação
+  precisam ser testadas com o teclado virtual do iOS.
+- `execCommand('foreColor')` e o comportamento do Enter dentro dos blocos.
+- Wake Lock (manter a tela acesa no Modo Pregação): o Safari só passou a
+  suportar na versão 16.4; em iOS mais antigo a tela apaga durante a pregação.
+- `env(safe-area-inset-*)` no iPhone com entalhe — já usamos, falta ver.
+- Impressão/PDF pelo `window.open` — o bloqueio de pop-up do Safari é mais
+  rígido.
 
 ---
 

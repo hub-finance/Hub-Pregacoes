@@ -48,8 +48,11 @@ node scripts/generate-icons.mjs   # regenera os ícones do PWA
 - **Marcações** em 11 categorias (Promessas, Fé, Cura, Santidade, Espírito Santo, Liderança,
   Família, Salvação, Graça, Amor, Ministério) + categorias personalizadas com cor própria.
 - **Anotações** vinculadas a versículo, capítulo, livro, sermão, estudo ou devocional.
-- **Sermões** com título, tema, texto principal, data, categoria, introdução, pontos
-  (texto bíblico + comentário + aplicação), conclusão, apelo e observações.
+- **Sermões** montados em blocos — Seção, Parágrafo, Destaque, Citação bíblica e Lista —
+  com negrito, itálico, sublinhado e cor dentro de cada bloco, na mesma liberdade de um
+  documento do Word. Blocos se inserem, movem, trocam de tipo e são excluídos; a citação
+  bíblica traz o texto do próprio aplicativo. Sermão já pronto pode ser **importado em PDF
+  ou .docx** e é exibido com a formatação original.
 - **Estudos** com introdução, desenvolvimento, versículos relacionados, comentários,
   aplicações e conclusão.
 - **Devocionais** com texto bíblico, reflexão, aplicação e oração.
