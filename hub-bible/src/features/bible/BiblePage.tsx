@@ -9,6 +9,7 @@ import { VerseActionBar } from './VerseActionBar';
 import { ShareSheet } from '../share/ShareSheet';
 import { Sheet } from '../../components/Sheet';
 import { Spinner, TextArea } from '../../components/ui';
+import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
 import { useAsync } from '../../hooks';
 import { useSettings } from '../../core/settings/SettingsContext';
@@ -296,19 +297,19 @@ export default function BiblePage() {
             style={{ width: `${Math.round(readingProgress * 100)}%` }}
           />
         </button>
-        <button className="chip" onClick={() => setTranslationPicker(true)} aria-label="Trocar tradução">
-          ⇄
+        <button className="chip icon-only" onClick={() => setTranslationPicker(true)} aria-label="Trocar tradução">
+          <Icon name="swap" size={18} />
         </button>
         <div className="spacer" />
         <button className="icon-btn" onClick={() => setReaderSettings(true)} aria-label="Ajustes de leitura">
-          Aa
+          <span style={{ fontWeight: 700, fontSize: '0.92rem', letterSpacing: '-0.02em' }}>Aa</span>
         </button>
         <button
           className="icon-btn"
           onClick={() => navigate(`/pregacao?ref=${encodeURIComponent(`${book} ${chapter}`)}`)}
           aria-label="Modo pregação"
         >
-          🕮
+          <Icon name="preach" />
         </button>
       </div>
 
@@ -369,12 +370,12 @@ export default function BiblePage() {
                   {text}
                   {favoriteVerses.has(verse) && (
                     <span className="verse-mark" title="Favorito" aria-label="Favorito">
-                      ⭐
+                      <Icon name="star" size={11} filled style={{ display: 'inline', color: 'var(--accent)' }} />
                     </span>
                   )}
                   {notedVerses.has(verse) && (
                     <span className="verse-mark" title="Com anotação" aria-label="Com anotação">
-                      📝
+                      <Icon name="note" size={11} style={{ display: 'inline', color: 'var(--text-3)' }} />
                     </span>
                   )}{' '}
                   {settings.compareTranslation && compareText.data?.[index] && (
@@ -420,21 +421,21 @@ export default function BiblePage() {
             setPickingHighlight(false);
           }}
           actions={[
-            { id: 'hl', icon: '🖍️', label: 'Destacar', onClick: () => setPickingHighlight(true) },
-            { id: 'fav', icon: '⭐', label: 'Favoritar', onClick: toggleFavorites },
-            { id: 'note', icon: '📝', label: 'Anotar', onClick: () => setNoteOpen(true) },
-            { id: 'share', icon: '📤', label: 'Compartilhar', onClick: () => setShareOpen(true) },
+            { id: 'hl', icon: 'highlighter', label: 'Destacar', onClick: () => setPickingHighlight(true) },
+            { id: 'fav', icon: 'star', label: 'Favoritar', onClick: toggleFavorites },
+            { id: 'note', icon: 'note', label: 'Anotar', onClick: () => setNoteOpen(true) },
+            { id: 'share', icon: 'share', label: 'Compartilhar', onClick: () => setShareOpen(true) },
             {
               id: 'copy',
-              icon: '📋',
+              icon: 'copy',
               label: 'Copiar',
               onClick: async () => {
                 const ok = await copyToClipboard(`${selectionText}\n— ${selectionReference} (${translationLabel})`);
                 notify(ok ? 'Copiado.' : 'Não foi possível copiar.', ok ? 'default' : 'error');
               },
             },
-            { id: 'study', icon: '📚', label: 'Estudo', onClick: () => createFromSelection('study') },
-            { id: 'sermon', icon: '🎙️', label: 'Sermão', onClick: () => createFromSelection('sermon') },
+            { id: 'study', icon: 'study', label: 'Estudo', onClick: () => createFromSelection('study') },
+            { id: 'sermon', icon: 'sermon', label: 'Sermão', onClick: () => createFromSelection('sermon') },
           ]}
         />
       )}

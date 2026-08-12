@@ -9,7 +9,7 @@ export default function DevotionalsPage() {
       kind="devotional"
       title="Devocionais"
       lead="Registre o que Deus tem falado, dia após dia."
-      icon="🙏"
+      icon="pray"
       route="/devocionais"
       create={newDevotional}
       subtitleOf={(d) => [d.date, d.scripture].filter(Boolean).join(' · ')}

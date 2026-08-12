@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { Icon } from '../../components/Icon';
 import { EditorShell } from '../common/EditorShell';
 import { ScriptureField } from '../common/ScriptureField';
 import { useDocEditor } from '../common/useDocEditor';
@@ -94,7 +95,7 @@ export default function SermonEditorPage() {
       toHtml={toHtml}
       extraActions={
         <button className="btn btn-sm btn-primary" onClick={() => navigate(`/pregacao/${doc.id}`)}>
-          🕮 Modo Pregação
+          Modo Pregação
         </button>
       }
     >
@@ -138,7 +139,7 @@ export default function SermonEditorPage() {
           <div className="section-head">
             <h2 className="section-title">Pontos da mensagem</h2>
             <button className="btn btn-sm" onClick={() => set({ blocks: [...doc.blocks, emptyBlock()] })}>
-              ＋ Adicionar ponto
+              Adicionar ponto
             </button>
           </div>
 
@@ -157,7 +158,7 @@ export default function SermonEditorPage() {
                   aria-label={`Remover ponto ${index + 1}`}
                   onClick={() => set({ blocks: doc.blocks.filter((b) => b.id !== block.id) })}
                 >
-                  🗑️
+                  <Icon name="trash" size={18} />
                 </button>
               </div>
               <ScriptureField

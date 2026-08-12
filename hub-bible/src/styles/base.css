@@ -19,7 +19,9 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
-  font-size: 16px;
+  /* 17px: um passo acima do padrão da web — o app é lido em tablet, muitas
+     vezes à distância de braço e em pé */
+  font-size: 17px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

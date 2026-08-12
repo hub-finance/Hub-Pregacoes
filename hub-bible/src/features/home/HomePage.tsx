@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { NAV_ITEMS } from '../../app/navigation';
 import { ShareSheet } from '../share/ShareSheet';
 import { EmptyState, ProgressBar } from '../../components/ui';
+import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
 import { useAsync } from '../../hooks';
 import { useSettings } from '../../core/settings/SettingsContext';
@@ -52,16 +53,14 @@ export default function HomePage() {
             to={`/biblia/${position.book}/${position.chapter}`}
             style={{ gap: 'var(--sp-4)' }}
           >
-            <span aria-hidden="true" style={{ fontSize: '1.6rem' }}>
-              📖
-            </span>
+            <Icon name="book" size={26} style={{ color: 'var(--accent)' }} />
             <span style={{ flex: 1, minWidth: 0 }}>
               <span className="card-title" style={{ display: 'block' }}>
                 {bookName(position.book)} {position.chapter}
               </span>
               <span className="small dim">{meta.data?.name ?? position.translation}</span>
             </span>
-            <span className="dim">›</span>
+            <Icon name="chevron-right" size={18} className="dim" />
           </Link>
         </section>
       )}
@@ -73,8 +72,8 @@ export default function HomePage() {
         <div className="grid grid-quick">
           {quickItems.map((item) => (
             <Link key={item.to} to={item.to} className="quick">
-              <span className="ico" aria-hidden="true">
-                {item.icon}
+              <span className="ico">
+                <Icon name={item.icon} size={24} />
               </span>
               <span>{item.label}</span>
             </Link>
@@ -93,7 +92,7 @@ export default function HomePage() {
             <p className="verse-hero-ref">{daily.data.reference}</p>
             <div className="row row-wrap" style={{ marginTop: 'var(--sp-4)' }}>
               <button className="btn btn-sm" onClick={() => setShareOpen(true)}>
-                📤 Compartilhar
+                <Icon name="share" size={16} /> Compartilhar
               </button>
               <button
                 className="btn btn-sm"
@@ -112,7 +111,7 @@ export default function HomePage() {
                   notify('Adicionado aos favoritos.');
                 }}
               >
-                ⭐ Favoritar
+                Favoritar
               </button>
               <button
                 className="btn btn-sm"
@@ -131,7 +130,7 @@ export default function HomePage() {
                   navigate('/anotacoes');
                 }}
               >
-                📝 Anotar
+                Anotar
               </button>
               <button
                 className="btn btn-sm btn-ghost"
@@ -147,7 +146,7 @@ export default function HomePage() {
         {!daily.loading && !daily.data && (
           <div className="card">
             <EmptyState
-              icon="📖"
+              icon="book"
               title="Texto ainda não disponível"
               description="Abra a Bíblia uma vez para baixar o texto e o versículo do dia aparecerá aqui."
               action={

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Icon } from '../../components/Icon';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useToast } from '../../components/Toast';
 import { createNote, listNotesFor, removeNote } from '../../core/data/notes';
@@ -58,7 +59,7 @@ export function NotesPanel({
             <span className="list-meta">{new Date(note.createdAt).toLocaleString('pt-BR')}</span>
           </span>
           <button className="icon-btn" aria-label="Excluir anotação" onClick={() => removeNote(note.id)}>
-            🗑️
+            <Icon name="trash" size={18} />
           </button>
         </div>
       ))}

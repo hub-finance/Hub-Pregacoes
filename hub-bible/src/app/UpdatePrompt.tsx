@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Icon } from '../components/Icon';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
 /**
@@ -24,7 +25,7 @@ export function UpdatePrompt() {
   return (
     <div className="toast-wrap top">
       <div className="toast">
-        <span aria-hidden="true">{needRefresh ? '⬇️' : '📴'}</span>
+        <Icon name={needRefresh ? 'download' : 'offline'} size={18} />
         <span style={{ flex: 1 }}>
           {needRefresh
             ? 'Nova versão disponível.'
@@ -46,7 +47,7 @@ export function UpdatePrompt() {
             aria-label="Depois"
             onClick={() => setNeedRefresh(false)}
           >
-            ✕
+            <Icon name="close" size={16} />
           </button>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Icon } from '../../components/Icon';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { EmptyState, PageHeader } from '../../components/ui';
@@ -13,7 +14,7 @@ import {
   type LibraryEntry,
 } from '../../core/data/documents';
 
-const KIND_ICON = { sermon: '🎙️', study: '📚', devotional: '🙏', doc: '📄' } as const;
+const KIND_ICON = { sermon: 'sermon', study: 'study', devotional: 'pray', doc: 'note' } as const;
 
 /** Biblioteca Ministerial — tudo o que foi preparado, em um só lugar (seção 15). */
 export default function LibraryPage() {
@@ -61,14 +62,14 @@ export default function LibraryPage() {
           >
             <div className="stat-value">{counts.get(kind) ?? 0}</div>
             <div className="stat-label">
-              {KIND_ICON[kind]} {DOC_LABEL[kind]}
+              {DOC_LABEL[kind]}
             </div>
           </button>
         ))}
       </div>
 
       <div className="search-field" style={{ marginBottom: 'var(--sp-3)' }}>
-        <span aria-hidden="true">🔎</span>
+        <Icon name="search" size={18} className="dim" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -87,7 +88,7 @@ export default function LibraryPage() {
 
       {!filtered.length ? (
         <EmptyState
-          icon="📂"
+          icon="library"
           title="Sua biblioteca está vazia"
           description="Tudo o que você criar em sermões, estudos, devocionais e materiais aparece aqui, com busca e filtros."
           action={
@@ -112,7 +113,7 @@ export default function LibraryPage() {
               }
             >
               <span className="row" style={{ gap: 'var(--sp-2)' }}>
-                <span aria-hidden="true">{KIND_ICON[entry.kind]}</span>
+                <Icon name={KIND_ICON[entry.kind]} size={17} className="dim" />
                 <span className="badge">{entry.category}</span>
                 <span className="spacer" />
                 <span className="small dim">{new Date(entry.updatedAt).toLocaleDateString('pt-BR')}</span>

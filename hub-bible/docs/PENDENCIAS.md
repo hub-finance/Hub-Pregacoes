@@ -27,11 +27,25 @@ Não há `<s>`, que é a tag USFX de título de seção. As outras três traduç
 (`pt_blivre`, `pt_tb`, `pt_alm1911`) vêm em JSON de array canônico, que também
 não carrega títulos.
 
-**O que fazer:** procurar uma fonte livre com `<s>` preservado. Candidatos a
-investigar no eBible.org/USFX ou em módulos Zefania XML — o Zefania tem
-`<CAPTION>` para títulos de seção, e `damarals/biblias` publica em Zefania.
-Vale baixar o `BLIVRE.xml` (Zefania) e conferir se traz `<CAPTION>`; se trouxer,
-é a via mais curta, porque a Bíblia Livre já é domínio público e já está no app.
+**Pista do Zefania: descartada em 13/08/2026.** Baixei os três XML Zefania de
+domínio público de `damarals/biblias` e contei as tags. Nenhum traz títulos:
+
+| Arquivo | `<CAPTION>` | `<NOTE>` | `<STYLE>` |
+|---|---|---|---|
+| `BLIVRE.xml` | 0 | 0 | 0 |
+| `TB.xml` | 0 | 0 | 0 |
+| `ALM1911.xml` | 0 | 0 | 0 |
+
+Os três contêm apenas `XMLBIBLE > BIBLEBOOK > CHAPTER > VERS`. O
+`por-almeida.usfx.xml` também não tem `<s>`. Ou seja: **nenhuma das quatro
+traduções em português embutidas tem títulos de perícope na origem.**
+
+**Obstáculo estrutural, não só de disponibilidade.** Títulos de perícope são
+trabalho editorial — quem os escreveu detém direitos sobre eles, mesmo quando o
+texto bíblico embaixo está em domínio público. Os títulos do leitor de
+referência pertencem àquela edição. Portanto isto não se resolve "achando o
+arquivo certo": ou se encontra uma edição cujos títulos estejam comprovadamente
+livres, ou se obtém autorização, ou o recurso não entra.
 
 **Impacto no código:** o payload de livro ganharia um campo opcional
 `headings: Array<{ chapter, verse, text }>`, gerado por
@@ -48,9 +62,24 @@ hebraico/grego (Strong). Aparecem na *Bíblia Almeida Strong*.
 **Situação:** precisa de um texto com marcação palavra a palavra. Nenhuma das
 cinco traduções embutidas tem isso.
 
-**O que fazer:** localizar um Almeida com Strong em domínio público e conferir a
-licença antes de qualquer coisa (ver `LICENCAS-BIBLIA.md`). Além do texto,
-seria preciso o dicionário Strong em português.
+**Varredura de 13/08/2026 — nada em português.** Nas fontes alcançáveis, texto
+com números de Strong só existe em inglês e francês:
+
+| Catálogo | Com Strong | Idioma |
+|---|---|---|
+| `scrollmapper/bible_databases` | KJV, KJVA, RLT | inglês |
+| `scrollmapper/bible_databases` | FreJND (Darby) | francês |
+| `seven1m/open-bibles` | nenhum em português | — |
+
+Os números de Strong em si são de 1890 e estão em domínio público. O que não
+existe livre é o **mapeamento** desses números sobre um texto em português —
+isso é trabalho editorial de quem fez, com direitos próprios.
+
+**Caminho viável hoje:** aplicar Strong sobre a **KJV**, que já está embutida e
+tem versão com Strong em domínio público. Daria o recurso de palavra clicável
+com o original hebraico/grego — em inglês, servindo como ferramenta de estudo
+ao lado do texto em português. Vale confirmar com o usuário se resolve, antes
+de investir no trabalho.
 
 **Impacto no código — o ponto mais importante desta lista.** Hoje um versículo
 é uma `string` simples:

@@ -36,7 +36,12 @@ export default function App() {
           path="/pregacao/*"
           element={
             <Suspense fallback={<Spinner />}>
-              <PreachingPage />
+              {/* rotas aninhadas: sem elas `/pregacao/:id` casa apenas com o
+                  coringa e o parâmetro `id` chega vazio ao Modo Pregação */}
+              <Routes>
+                <Route path="" element={<PreachingPage />} />
+                <Route path=":id" element={<PreachingPage />} />
+              </Routes>
             </Suspense>
           }
         />

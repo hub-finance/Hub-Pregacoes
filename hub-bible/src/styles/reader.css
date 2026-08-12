@@ -146,7 +146,7 @@
   align-items: center;
   gap: var(--sp-2);
   padding: 8px var(--sp-4);
-  min-height: 40px;
+  min-height: var(--tap);
   border-radius: var(--r-full);
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -230,7 +230,10 @@
   font-weight: 550;
 }
 .verse-action .ico {
-  font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
 }
 .verse-action:hover {
   background: var(--surface-hover);
@@ -325,6 +328,79 @@
   margin: 0 auto var(--sp-4);
   color: var(--text-2);
 }
+/* com a Bíblia ao lado, a mensagem tem metade da largura: o corpo do texto
+   precisa acompanhar, senão estoura a coluna */
+.preach-stage.split .preach-text {
+  font-size: clamp(1.15rem, calc(0.9vw + 0.85rem), 2rem);
+}
+.preach-stage.split .preach-topic h2 {
+  font-size: clamp(1.25rem, calc(1.1vw + 0.8rem), 1.9rem);
+}
+.preach-stage.split .preach-topic p {
+  font-size: clamp(1rem, calc(0.6vw + 0.8rem), 1.35rem);
+}
+.preach-stage.split {
+  padding: var(--sp-5) clamp(var(--sp-4), 3vw, var(--sp-6));
+}
+
+/* ------------------------- tela dividida na pregação ---------------------- */
+.preach-split {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 900px) {
+  /* Bíblia à esquerda, mensagem à direita — a ordem que o pregador espera */
+  .preach-split {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+}
+.preach-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+.preach-pane-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--border);
+}
+.preach-pane-ref {
+  flex: 1;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 650;
+  text-align: center;
+}
+.preach-pane-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-4) var(--sp-5) var(--sp-7);
+  font-family: var(--font-reader);
+  font-size: clamp(1rem, calc(0.5vw + 0.9rem), 1.35rem);
+  line-height: 1.7;
+}
+.pane-verse {
+  margin-bottom: 0.5em;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+.pane-verse.target {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+/* no celular a tela dividida vira só a mensagem: não há largura para as duas */
+@media (max-width: 899px) {
+  .preach-pane {
+    display: none;
+  }
+}
+
 /* cronômetro da mensagem — fica acima do conteúdo, discreto e legível de longe */
 .preach-timer {
   position: relative;
@@ -355,7 +431,7 @@
   color: var(--text-3);
 }
 .preach-timer-btn {
-  min-height: 36px;
+  min-height: var(--tap);
   padding: 0 var(--sp-3);
   border-radius: var(--r-full);
   border: 1px solid var(--border);
@@ -464,7 +540,7 @@
   font-size: 0.75rem;
   color: var(--text-3);
   white-space: nowrap;
-  min-height: 34px;
+  min-height: var(--tap);
 }
 .preach-step.active {
   background: var(--accent-soft);

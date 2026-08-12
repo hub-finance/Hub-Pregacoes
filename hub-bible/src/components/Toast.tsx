@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { Icon } from './Icon';
 
 interface ToastItem {
   id: number;
@@ -38,7 +39,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         <div className="toast-wrap" role="status" aria-live="polite">
           {items.map((t) => (
             <div key={t.id} className={`toast${t.tone === 'error' ? ' error' : ''}`}>
-              <span aria-hidden="true">{t.tone === 'error' ? '⚠️' : '✓'}</span>
+              <Icon name={t.tone === 'error' ? 'warning' : 'check'} size={18} />
               <span>{t.message}</span>
             </div>
           ))}

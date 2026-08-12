@@ -1,4 +1,5 @@
 import { Sheet } from '../../components/Sheet';
+import { Icon, type IconName } from '../../components/Icon';
 import { RangeInput, SelectInput } from '../../components/ui';
 import { MEASURE_PRESETS, useSettings, type ThemeChoice } from '../../core/settings/SettingsContext';
 
@@ -6,11 +7,11 @@ import { MEASURE_PRESETS, useSettings, type ThemeChoice } from '../../core/setti
 export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { settings, update } = useSettings();
 
-  const themes: Array<{ id: ThemeChoice; label: string; icon: string }> = [
-    { id: 'light', label: 'Claro', icon: '☀️' },
-    { id: 'sepia', label: 'Sépia', icon: '📜' },
-    { id: 'dark', label: 'Escuro', icon: '🌙' },
-    { id: 'system', label: 'Sistema', icon: '🖥️' },
+  const themes: Array<{ id: ThemeChoice; label: string; icon: IconName }> = [
+    { id: 'light', label: 'Claro', icon: 'sun' as const },
+    { id: 'sepia', label: 'Sépia', icon: 'sepia' as const },
+    { id: 'dark', label: 'Escuro', icon: 'moon' as const },
+    { id: 'system', label: 'Sistema', icon: 'settings' as const },
   ];
 
   return (
@@ -31,8 +32,8 @@ export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose:
               }}
               onClick={() => update({ theme: t.id })}
             >
-              <span className="ico" aria-hidden="true">
-                {t.icon}
+              <span className="ico">
+                <Icon name={t.icon} size={22} />
               </span>
               <span>{t.label}</span>
             </button>

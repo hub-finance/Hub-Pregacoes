@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Icon } from '../../components/Icon';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { EmptyState, PageHeader, ProgressBar } from '../../components/ui';
 import { useSettings } from '../../core/settings/SettingsContext';
@@ -86,7 +87,7 @@ export default function SearchPage() {
       />
 
       <div className="search-field" style={{ marginBottom: 'var(--sp-3)' }}>
-        <span aria-hidden="true">🔎</span>
+        <Icon name="search" size={18} className="dim" />
         <input
           autoFocus
           value={query}
@@ -97,7 +98,7 @@ export default function SearchPage() {
         />
         {query && (
           <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => setQuery('')} aria-label="Limpar">
-            ✕
+            <Icon name="close" size={16} />
           </button>
         )}
       </div>
@@ -121,7 +122,7 @@ export default function SearchPage() {
               abrir a passagem no leitor
             </span>
           </span>
-          <span className="dim">›</span>
+          <Icon name="chevron-right" size={18} className="dim" />
         </button>
       )}
 
@@ -182,7 +183,7 @@ export default function SearchPage() {
 
       {!query.trim() && (
         <EmptyState
-          icon="🔎"
+          icon="search"
           title="O que você quer encontrar hoje?"
           description='Digite uma palavra ("graça"), uma expressão entre aspas ("não temas") ou uma referência (João 3:16).'
         />
