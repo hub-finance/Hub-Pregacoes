@@ -53,6 +53,27 @@ outra:
 
 ---
 
+## Trazer de outra instalação do Hub Bible
+
+Se você tem outro aplicativo montado sobre este mesmo projeto, o texto está
+servido em `/bible/<traducao>/<LIVRO>.json` — 66 arquivos separados. A tela de
+importação espera **um arquivo só**, então há um script que junta tudo:
+
+```bash
+# descubra os ids disponíveis abrindo no navegador:
+#   https://seu-app.vercel.app/bible/catalog.json
+
+node scripts/preparar-importacao.mjs https://seu-app.vercel.app pt_ara ara.json
+```
+
+O resultado é um `ara.json` pronto para escolher em *Configurações › Traduções ›
+Importar*. Passe o arquivo para o tablet por Google Drive, e-mail ou cabo.
+
+> **O arquivo gerado é para o seu dispositivo.** Se a tradução tem direitos
+> autorais, ele não pode ser publicado, repassado a outras pessoas nem incluído
+> no build de um aplicativo que outros instalem. Ter o aplicativo de origem não
+> é ter a licença do texto.
+
 ## Formatos de arquivo aceitos
 
 O arquivo precisa ser **JSON**, em um destes três formatos. A conversão está em
