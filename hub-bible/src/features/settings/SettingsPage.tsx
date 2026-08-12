@@ -101,7 +101,7 @@ export default function SettingsPage() {
             label="Largura do texto"
             value={settings.measure}
             min={28}
-            max={62}
+            max={100}
             step={1}
             suffix="rem"
             onChange={(measure) => update({ measure })}
@@ -122,6 +122,24 @@ export default function SettingsPage() {
             options={[
               { value: 'paragraph', label: 'Texto corrido' },
               { value: 'lines', label: 'Um por linha' },
+            ]}
+          />
+          <SelectInput
+            label="Alinhamento do texto"
+            value={settings.textAlign}
+            onChange={(v) => update({ textAlign: v as 'left' | 'justify' })}
+            options={[
+              { value: 'left', label: 'À esquerda' },
+              { value: 'justify', label: 'Justificado' },
+            ]}
+          />
+          <SelectInput
+            label="Capitular do capítulo"
+            value={settings.dropCap ? 'on' : 'off'}
+            onChange={(v) => update({ dropCap: v === 'on' })}
+            options={[
+              { value: 'on', label: 'Ativada' },
+              { value: 'off', label: 'Desativada' },
             ]}
           />
           <div className="reader" style={{ padding: 0, margin: 0 }}>

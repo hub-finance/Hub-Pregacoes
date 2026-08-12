@@ -1,6 +1,6 @@
 import { Sheet } from '../../components/Sheet';
 import { RangeInput, SelectInput } from '../../components/ui';
-import { useSettings, type ThemeChoice } from '../../core/settings/SettingsContext';
+import { MEASURE_PRESETS, useSettings, type ThemeChoice } from '../../core/settings/SettingsContext';
 
 /** Ajustes de leitura (seção 6): fonte, espaçamento, largura, tema e layout. */
 export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -57,11 +57,27 @@ export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose:
         step={0.05}
         onChange={(v) => update({ leading: v })}
       />
+      <div className="field">
+        <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-2)' }}>
+          Largura do texto
+        </span>
+        <div className="row row-wrap" style={{ gap: 'var(--sp-2)' }}>
+          {MEASURE_PRESETS.map((preset) => (
+            <button
+              key={preset.value}
+              className={`chip${settings.measure === preset.value ? ' active' : ''}`}
+              onClick={() => update({ measure: preset.value })}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      </div>
       <RangeInput
-        label="Largura do texto"
+        label="Ajuste fino da largura"
         value={settings.measure}
         min={28}
-        max={62}
+        max={100}
         step={1}
         suffix="rem"
         onChange={(v) => update({ measure: v })}
@@ -83,6 +99,24 @@ export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose:
         options={[
           { value: 'paragraph', label: 'Texto corrido (parágrafo)' },
           { value: 'lines', label: 'Um versículo por linha' },
+        ]}
+      />
+      <SelectInput
+        label="Alinhamento do texto"
+        value={settings.textAlign}
+        onChange={(v) => update({ textAlign: v as 'left' | 'justify' })}
+        options={[
+          { value: 'left', label: 'À esquerda (margem irregular)' },
+          { value: 'justify', label: 'Justificado' },
+        ]}
+      />
+      <SelectInput
+        label="Capitular do capítulo"
+        value={settings.dropCap ? 'on' : 'off'}
+        onChange={(v) => update({ dropCap: v === 'on' })}
+        options={[
+          { value: 'on', label: 'Número grande abrindo o texto' },
+          { value: 'off', label: 'Sem capitular' },
         ]}
       />
       <SelectInput

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { SermonTimer } from './SermonTimer';
 import { EmptyState, Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
 import { useSettings } from '../../core/settings/SettingsContext';
@@ -193,6 +194,7 @@ export default function PreachingPage() {
 
   return (
     <div className="preach">
+      <SermonTimer />
       <div className="preach-stage" onClick={(e) => (e.detail === 2 ? go(1) : undefined)}>
         {step.scripture ? (
           <>
