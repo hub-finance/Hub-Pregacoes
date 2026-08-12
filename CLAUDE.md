@@ -2,13 +2,6 @@
 
 Guidance for Claude Code and other AI assistants working in this repository.
 
-> **⚠️ Status: scaffold, not a description of real code.**
-> As of 2026-08-11 this repository is **empty** — no commits, no branches, no
-> source files. Nothing below describes actual code, because there is none yet.
-> The sections marked **TODO** are questions to be answered by the first session
-> that lands real code. Do not treat unanswered TODOs as facts, and do not guess
-> at them.
-
 ---
 
 ## Repository
@@ -16,15 +9,15 @@ Guidance for Claude Code and other AI assistants working in this repository.
 | | |
 |---|---|
 | Remote | `https://github.com/hub-finance/Hub-Pregacoes` |
-| Organization | `hub-finance` |
+| Owner | `hub-finance` |
 | Visibility | Public |
-| Default branch | Not yet established (repo has no commits) |
-| State | Empty as of 2026-08-11 |
+| Contents | A single application, **Hub Bible**, under `hub-bible/` |
+| Deploy | Vercel (static), configured by `vercel.json` at the repository root |
 
-The name suggests a Portuguese-language project ("pregações" = sermons /
-preaching). Identifiers, UI copy, and docs may therefore be in Portuguese —
-confirm the intended language before establishing a convention, and record the
-answer under [Conventions](#conventions).
+**Language convention: Portuguese (pt-BR).** UI copy, code comments, commit
+messages and documentation are written in Portuguese. Identifiers (variables,
+functions, types) are in English, which is the pattern already established
+throughout `hub-bible/src`. Keep both sides of that split.
 
 ---
 
@@ -35,12 +28,8 @@ useful if it stays true.
 
 1. **Verify before documenting.** Every command, path, and convention recorded
    below must be something you actually ran or read in the repo — not something
-   inferred from a framework's usual layout or from this file's own prompts.
-2. **Replace TODOs, don't accumulate them.** When you learn the answer to a
-   TODO, replace the whole block with the real content and delete the prompt.
-3. **Delete the status banner** at the top once the repo has real code and the
-   core sections are filled in. Leaving it in place after that is misleading.
-4. **Keep it short.** Prefer a few accurate, load-bearing facts over exhaustive
+   inferred from a framework's usual layout.
+2. **Keep it short.** Prefer a few accurate, load-bearing facts over exhaustive
    description. If something is discoverable in one obvious command, link to the
    command rather than transcribing its output.
 
@@ -48,104 +37,114 @@ useful if it stays true.
 
 ## Project overview
 
-**TODO.** Answer when the code lands:
+**Hub Bible** — a Bible app that doubles as a ministry workspace: reading,
+search, highlights, notes, devotionals, studies, sermons, a ministry library,
+reading plans and a full-screen preaching mode.
 
-- What does this project do, in one or two sentences?
-- Who uses it — public visitors, an internal team, a congregation, an admin?
-- Is it an application, a service, a static site, a content repository, or a
-  library?
-- Is anything deployed, and where?
+- **Users:** pastors, leaders and members — personal study and sermon prep.
+- **Type:** installable PWA (client-side only). No backend, no accounts, no
+  telemetry. All user data lives in the browser's IndexedDB on the device.
+- **Deployed** as a static site on Vercel; the built output is `hub-bible/dist`.
+
+Read `hub-bible/README.md` first — it is the functional description of the app.
 
 ---
 
 ## Tech stack
 
-**TODO.** Record only what is actually present in the repo:
+- **React 18 + TypeScript 5.6**, bundled by **Vite 5** (`hub-bible/vite.config.ts`).
+- **Dexie 4** over IndexedDB — the only datastore. Schema in
+  `hub-bible/src/core/db/db.ts`; bump the Dexie version and add a migration when
+  changing it.
+- **React Router 6** with `HashRouter` — deliberate, so the build works from a
+  subdirectory and inside an Android WebView without server rewrites.
+- **vite-plugin-pwa** (Workbox) for the service worker and manifest.
+- **No UI framework.** Styling is hand-written CSS with design tokens in
+  `hub-bible/src/styles/tokens.css`.
+- Package manager: **npm**; `hub-bible/package-lock.json` is authoritative.
+  `engines.node >= 18`.
 
-- Language(s) and version constraints (e.g. `.nvmrc`, `.python-version`,
-  `go.mod`, `engines` in `package.json`).
-- Framework(s) and the manifest that pins them.
-- Package manager — and which lockfile is authoritative (`package-lock.json`,
-  `pnpm-lock.yaml`, `yarn.lock`, `uv.lock`, …). Note it explicitly; using the
-  wrong one is a common and costly mistake.
-- Datastore, if any, and how schema changes are applied (migrations?).
-- Third-party services the code talks to.
+No environment variables are required — the app has no secrets and makes no
+authenticated network calls.
 
 ---
 
 ## Repository structure
 
-**TODO.** Once there are directories worth explaining, map the ones a newcomer
-would not guess — not every folder. For each, say what belongs in it and what
-does not. Example shape:
-
 ```
-src/            # ...
-  <subdir>/     # ...
-tests/          # ...
-scripts/        # ...
+vercel.json          # build config; points Vercel at hub-bible/
+hub-bible/
+  public/bible/      # scripture as static JSON, one file per book per translation
+  scripts/           # ETL that generates public/bible/ and the PWA icons
+  src/
+    core/            # business logic; must not import from features/
+      bible/         # canon, reference parsing, repository, search
+      data/          # CRUD per domain (favorites, notes, documents, plans…)
+      db/            # Dexie schema and types
+      ai/ sync/      # contracts for future features; no provider registered
+    features/        # one folder per screen
+    components/      # shared UI primitives
+    styles/          # tokens, base, layout, reader
+  docs/              # licensing, architecture, deploy
 ```
 
-Skip entries that are self-explanatory (`node_modules/`, `.git/`).
+The dependency rule is one-way: `features → core`, never the reverse.
+
+`hub-bible/public/bible/` is **generated** — edit `scripts/build-bible-data.mjs`
+and re-run it rather than hand-editing the JSON.
 
 ---
 
 ## Commands
 
-**TODO.** Fill in with commands you have actually executed successfully in this
-repo. Delete rows that do not apply rather than inventing a plausible command.
+Run from `hub-bible/` (or use `npm --prefix hub-bible <script>` from the root).
 
 | Purpose | Command |
 |---|---|
-| Install dependencies | _TODO_ |
-| Run locally (dev) | _TODO_ |
-| Build | _TODO_ |
-| Run tests | _TODO_ |
-| Run a single test | _TODO_ |
-| Lint | _TODO_ |
-| Format | _TODO_ |
-| Type-check | _TODO_ |
+| Install dependencies | `npm ci` |
+| Run locally (dev) | `npm run dev` |
+| Build | `npm run build` |
+| Serve the build | `npm run preview` |
+| Type-check | `npx tsc --noEmit` |
+| Regenerate scripture data | `npm run bible:build` |
+| Regenerate PWA icons | `node scripts/generate-icons.mjs` |
 
-Also record:
+There is **no automated test suite and no linter configured.** Verification so
+far has been type-checking plus driving the built app in a headless browser
+(Playwright) across mobile, tablet and desktop widths. If you add tests, record
+the command here.
 
-- Required environment variables and where to get them. **Never commit secrets
-  or real credential values** — document the variable *names* and point to
-  `.env.example` or the secret store.
-- Any setup step that is not obvious from the manifest (services that must be
-  running, seed data, generated files).
+`npm run build` runs `tsc -b` before Vite, so a type error fails the build.
 
 ---
 
 ## Conventions
 
-**TODO.** Record only conventions that are actually established and observable
-in the codebase, plus any the maintainer explicitly states:
-
-- Naming and file layout for new modules.
-- Language for identifiers, comments, commit messages, and user-facing copy
-  (see the note under [Repository](#repository)).
-- Formatting and lint rules, and the config file that enforces them — prefer
-  pointing at the config over restating its contents.
-- Testing expectations: framework, where tests live, whether new code is
-  expected to ship with tests.
-- Error handling, logging, and any patterns the codebase deliberately avoids.
+- **Scripture licensing is a hard rule.** Never add a copyrighted translation to
+  `public/bible/`. Only public-domain or explicitly redistributable texts ship
+  with the app; protected ones (ARA, NVI, NTLH, KJA, NAA, ACF) exist only as
+  locked catalog entries that the user fills from a licensed copy of their own.
+  Read `hub-bible/docs/LICENCAS-BIBLIA.md` before touching translations.
+- **AI output must never be presented as scripture.** The contract in
+  `src/core/ai/provider.ts` requires biblical text to come from the local
+  repository and model output to be labelled `ai-comment`.
+- New business logic goes in `src/core/`, not in a component. Screens stay thin.
+- User-facing strings are Portuguese; keep the reverent, sober tone already used.
+- Accessibility is load-bearing: minimum 44px touch targets, visible focus
+  states, `aria-label` on icon-only buttons, no horizontal scroll at any width.
+- Comments explain *why*, and only where the reason is not obvious from the code.
 
 ---
 
 ## Git workflow
 
-These apply now, before any code exists.
-
 - **Branching.** Claude Code sessions work on a designated branch, typically
-  `claude/<topic>-<session-id>`, created from the default branch. Each session
-  is told its branch; develop and push there, and never push to a different
-  branch without explicit permission.
+  `claude/<topic>-<session-id>`. Each session is told its branch; develop and
+  push there, and never push to a different branch without explicit permission.
 - **Never commit directly to the default branch.**
-- **Pushing.** Use `git push -u origin <branch-name>`. On network failure,
-  retry with exponential backoff (2s, 4s, 8s, 16s).
-- **Pull requests.** Only open a PR when the user explicitly asks for one. If a
-  PR template is added to the repo (`.github/pull_request_template.md` or
-  equivalent), mirror its headings and fill them in from the actual diff.
+- **Pushing.** Use `git push -u origin <branch-name>`. On network failure, retry
+  with exponential backoff (2s, 4s, 8s, 16s).
+- **Pull requests.** Only open a PR when the user explicitly asks for one.
 - **Merged PRs are final.** For follow-up work, restart the branch from the
   latest default branch rather than stacking commits on merged history.
 - **Commit messages.** Explain why the change was made, not just what changed.
@@ -155,13 +154,10 @@ These apply now, before any code exists.
 
 ## Working agreements for AI assistants
 
-- **Do not fabricate.** If this file does not answer a question and the repo
-  does not either, say so and ask — do not fill the gap with what a typical
-  project of this kind would do. This whole file exists because the repo was
-  empty; inventing a plausible architecture would have been worse than useless.
-- **Read before editing.** Confirm the current contents of a file before
-  changing it.
-- **Report faithfully.** If tests fail, show the output. If a step was skipped,
-  say which and why.
+- **Do not fabricate.** If this file does not answer a question and the repo does
+  not either, say so and ask.
+- **Read before editing.** Confirm the current contents of a file before changing it.
+- **Report faithfully.** If a check fails, show the output. If a step was
+  skipped, say which and why.
 - **Keep this file current.** When you add a build step, change a command, or
   establish a convention, update the relevant section in the same change.

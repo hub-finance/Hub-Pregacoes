@@ -1,0 +1,180 @@
+[
+  {
+    "id": "pt_almeida",
+    "name": "Almeida (Domínio Público)",
+    "shortName": "ALMEIDA",
+    "abbrev": "AL",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "year": 1911,
+    "license": "Domínio público",
+    "licenseUrl": "https://github.com/seven1m/open-bibles",
+    "publisher": "João Ferreira de Almeida — revisão em domínio público",
+    "sourceUrl": "https://raw.githubusercontent.com/seven1m/open-bibles/master/por-almeida.usfx.xml",
+    "bundled": true,
+    "default": true,
+    "stats": {
+      "books": 66,
+      "chapters": 1189,
+      "verses": 31098
+    }
+  },
+  {
+    "id": "pt_blivre",
+    "name": "Bíblia Livre",
+    "shortName": "BLIVRE",
+    "abbrev": "BL",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "year": 2018,
+    "license": "Domínio público",
+    "licenseUrl": "https://github.com/damarals/biblias",
+    "publisher": "Projeto Bíblia Livre — texto dedicado ao domínio público",
+    "sourceUrl": "https://github.com/damarals/biblias/releases/latest/download/BLIVRE.json",
+    "bundled": true,
+    "default": false,
+    "stats": {
+      "books": 66,
+      "chapters": 1189,
+      "verses": 31102
+    }
+  },
+  {
+    "id": "pt_tb",
+    "name": "Tradução Brasileira",
+    "shortName": "TB",
+    "abbrev": "TB",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "year": 1917,
+    "license": "Domínio público",
+    "licenseUrl": "https://github.com/damarals/biblias",
+    "publisher": "Tradução Brasileira (1917) — usa \"Jeová\" para o Nome divino",
+    "sourceUrl": "https://github.com/damarals/biblias/releases/latest/download/TB.json",
+    "bundled": true,
+    "default": false,
+    "stats": {
+      "books": 66,
+      "chapters": 1189,
+      "verses": 31100
+    }
+  },
+  {
+    "id": "pt_alm1911",
+    "name": "Almeida 1911",
+    "shortName": "ALM1911",
+    "abbrev": "1911",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "year": 1911,
+    "license": "Domínio público",
+    "licenseUrl": "https://github.com/damarals/biblias",
+    "publisher": "João Ferreira de Almeida, edição de 1911 (grafia da época)",
+    "sourceUrl": "https://github.com/damarals/biblias/releases/latest/download/ALM1911.json",
+    "bundled": true,
+    "default": false,
+    "stats": {
+      "books": 66,
+      "chapters": 1189,
+      "verses": 31101
+    }
+  },
+  {
+    "id": "en_kjv",
+    "name": "King James Version",
+    "shortName": "KJV",
+    "abbrev": "KJV",
+    "language": "en",
+    "languageLabel": "Inglês",
+    "year": 1769,
+    "license": "Domínio público",
+    "licenseUrl": "https://github.com/bibleapi/bibleapi-bibles-json",
+    "publisher": "Authorized King James Version (1611/1769)",
+    "sourceUrl": "https://raw.githubusercontent.com/bibleapi/bibleapi-bibles-json/master/kjv.json",
+    "bundled": true,
+    "default": false,
+    "stats": {
+      "books": 66,
+      "chapters": 1189,
+      "verses": 31103
+    }
+  },
+  {
+    "id": "pt_ara",
+    "name": "Almeida Revista e Atualizada",
+    "shortName": "ARA",
+    "abbrev": "ARA",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "publisher": "Sociedade Bíblica do Brasil",
+    "license": "Direitos reservados — requer licença",
+    "bundled": false,
+    "default": false,
+    "requiresLicense": true
+  },
+  {
+    "id": "pt_nvi",
+    "name": "Nova Versão Internacional",
+    "shortName": "NVI",
+    "abbrev": "NVI",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "publisher": "Biblica / Editora Vida",
+    "license": "Direitos reservados — requer licença",
+    "bundled": false,
+    "default": false,
+    "requiresLicense": true
+  },
+  {
+    "id": "pt_ntlh",
+    "name": "Nova Tradução na Linguagem de Hoje",
+    "shortName": "NTLH",
+    "abbrev": "NTLH",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "publisher": "Sociedade Bíblica do Brasil",
+    "license": "Direitos reservados — requer licença",
+    "bundled": false,
+    "default": false,
+    "requiresLicense": true
+  },
+  {
+    "id": "pt_kja",
+    "name": "King James Atualizada",
+    "shortName": "KJA",
+    "abbrev": "KJA",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "publisher": "Abba Press / BV Books",
+    "license": "Direitos reservados — requer licença",
+    "bundled": false,
+    "default": false,
+    "requiresLicense": true
+  },
+  {
+    "id": "pt_naa",
+    "name": "Nova Almeida Atualizada",
+    "shortName": "NAA",
+    "abbrev": "NAA",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "publisher": "Sociedade Bíblica do Brasil (2017)",
+    "license": "Direitos reservados — requer licença",
+    "bundled": false,
+    "default": false,
+    "requiresLicense": true
+  },
+  {
+    "id": "pt_acf",
+    "name": "Almeida Corrigida Fiel",
+    "shortName": "ACF",
+    "abbrev": "ACF",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "publisher": "Sociedade Bíblica Trinitariana do Brasil",
+    "license": "Direitos reservados — requer licença",
+    "bundled": false,
+    "default": false,
+    "requiresLicense": true
+  }
+]

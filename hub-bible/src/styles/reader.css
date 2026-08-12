@@ -1,0 +1,326 @@
+/* =========================================================================
+   Leitor bíblico — a Bíblia é o elemento principal da tela.
+   Tipografia serifada, medida de linha controlada, ruído visual mínimo.
+   ========================================================================= */
+
+.reader {
+  width: 100%;
+  max-width: var(--reader-measure);
+  margin: 0 auto;
+  padding: var(--sp-4) var(--sp-4) var(--sp-7);
+  font-family: var(--font-reader);
+  font-size: var(--reader-size);
+  line-height: var(--reader-leading);
+  color: var(--text);
+  scroll-behavior: smooth;
+}
+
+.reader-head {
+  margin: var(--sp-4) 0 var(--sp-5);
+  text-align: center;
+}
+.reader-book {
+  font-size: calc(1.45rem * var(--reader-scale));
+  font-weight: 620;
+  letter-spacing: -0.015em;
+}
+.reader-chapter-label {
+  margin-top: 4px;
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* modo parágrafo x modo versículo por linha */
+.reader-verses.paragraph {
+  text-align: justify;
+  hyphens: auto;
+}
+.reader-verses.lines .verse {
+  display: block;
+  margin-bottom: 0.55em;
+}
+
+.verse {
+  transition: background 200ms var(--ease);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 1px 2px;
+  margin: 0 -2px;
+}
+.verse:hover {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.verse.selected {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.verse-num {
+  font-family: var(--font-ui);
+  font-size: 0.68em;
+  font-weight: 700;
+  color: var(--accent);
+  vertical-align: super;
+  margin-right: 0.32em;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+.verse.highlighted {
+  background: color-mix(in srgb, var(--hl-color, var(--accent)) 26%, transparent);
+  box-shadow: inset 0 -0.42em 0 color-mix(in srgb, var(--hl-color, var(--accent)) 18%, transparent);
+}
+.verse-mark {
+  font-family: var(--font-ui);
+  font-size: 0.6em;
+  vertical-align: super;
+  margin-left: 0.2em;
+  opacity: 0.85;
+}
+
+/* navegação entre capítulos */
+.reader-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  max-width: var(--reader-measure);
+  margin: var(--sp-5) auto 0;
+  padding: 0 var(--sp-4);
+  font-family: var(--font-ui);
+}
+
+/* barra de ação de versículos selecionados */
+.verse-actions {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + var(--sp-3));
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-2);
+  width: max-content;
+  max-width: min(96vw, 620px);
+  overflow-x: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-full);
+  box-shadow: var(--shadow-3);
+  font-family: var(--font-ui);
+  animation: slide-up 200ms var(--ease);
+  scrollbar-width: none;
+}
+.verse-actions::-webkit-scrollbar {
+  display: none;
+}
+@media (min-width: 900px) {
+  .verse-actions {
+    bottom: var(--sp-5);
+  }
+}
+.verse-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 62px;
+  padding: 6px 8px;
+  border-radius: var(--r-md);
+  font-size: 0.64rem;
+  color: var(--text-2);
+  font-weight: 550;
+}
+.verse-action .ico {
+  font-size: 1.05rem;
+}
+.verse-action:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+/* resultados de busca */
+.hit {
+  display: block;
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  text-align: left;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.hit:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+.hit-ref {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  margin-bottom: 4px;
+}
+.hit-text {
+  font-family: var(--font-reader);
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.hit mark {
+  background: color-mix(in srgb, var(--accent) 34%, transparent);
+  color: var(--text);
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: 600;
+}
+
+/* =========================== MODO PREGAÇÃO =============================== */
+.preach {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+.preach-stage {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--sp-6) clamp(var(--sp-4), 6vw, var(--sp-7));
+}
+.preach-text {
+  font-family: var(--font-reader);
+  font-size: clamp(1.5rem, calc(2.1vw + 1.1rem), 3.2rem);
+  line-height: 1.5;
+  max-width: 46rem;
+  margin: 0 auto;
+}
+.preach-text .verse-num {
+  font-size: 0.5em;
+}
+.preach-ref {
+  margin-top: var(--sp-5);
+  text-align: center;
+  font-size: clamp(0.9rem, 1.2vw, 1.15rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 650;
+}
+.preach-topic h2 {
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  margin-bottom: var(--sp-4);
+  text-align: center;
+}
+.preach-topic p {
+  font-size: clamp(1.1rem, 1.6vw, 1.7rem);
+  line-height: 1.6;
+  max-width: 46rem;
+  margin: 0 auto var(--sp-4);
+  color: var(--text-2);
+}
+.preach-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+.preach-steps {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  flex: 1;
+  scrollbar-width: none;
+}
+.preach-steps::-webkit-scrollbar {
+  display: none;
+}
+.preach-step {
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text-3);
+  white-space: nowrap;
+  min-height: 34px;
+}
+.preach-step.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+/* ============================ imagem de compartilhamento ================= */
+.share-preview {
+  width: 100%;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-2);
+}
+
+/* ============================== editor rico simples ====================== */
+.doc-editor .field textarea {
+  font-family: var(--font-ui);
+}
+.outline-block {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.outline-block-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.outline-index {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: var(--r-sm);
+  display: grid;
+  place-content: center;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.doc-view {
+  max-width: 44rem;
+}
+.doc-view h2 {
+  font-size: 1.05rem;
+  margin: var(--sp-5) 0 var(--sp-2);
+  color: var(--accent-strong);
+  letter-spacing: 0.02em;
+}
+.doc-view p {
+  white-space: pre-wrap;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+.doc-view blockquote {
+  margin: var(--sp-3) 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  font-family: var(--font-reader);
+  line-height: 1.65;
+}

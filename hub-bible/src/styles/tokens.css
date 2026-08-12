@@ -1,0 +1,159 @@
+/* =========================================================================
+   Hub Bible — Design tokens
+   Paleta sóbria e ministerial: papel quente, tinta profunda, dourado discreto.
+   Três temas: light (papel), dark (noite), sepia (leitura prolongada).
+   ========================================================================= */
+
+:root {
+  /* tipografia */
+  --font-ui: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, 'Times New Roman', serif;
+  --font-reader: var(--font-serif);
+
+  /* leitura (controladas em Configurações) */
+  --reader-scale: 1;
+  --reader-leading: 1.75;
+  --reader-measure: 38rem;
+  --reader-size: calc(1.075rem * var(--reader-scale));
+
+  /* raio e elevação */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 26px;
+  --r-full: 999px;
+
+  /* espaçamento */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  /* chrome */
+  --bottom-nav-h: 62px;
+  --topbar-h: 58px;
+  --rail-w: 264px;
+  --tap: 44px;
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur: 180ms;
+}
+
+/* ---------------------------------- claro -------------------------------- */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #faf8f5;
+  --bg-elevated: #ffffff;
+  --bg-sunken: #f2eee8;
+  --surface: #ffffff;
+  --surface-2: #f6f3ee;
+  --surface-hover: #efeae2;
+  --border: #e5ded4;
+  --border-strong: #d5cabb;
+  --text: #1b1a17;
+  --text-2: #56514a;
+  --text-3: #8a837a;
+  --accent: #8a6a2f;
+  --accent-strong: #6f5423;
+  --accent-soft: #f3ead9;
+  --accent-contrast: #ffffff;
+  --danger: #b23a35;
+  --success: #2f7a56;
+  --info: #2d5f8a;
+  --shadow-1: 0 1px 2px rgba(24, 20, 14, 0.05), 0 1px 3px rgba(24, 20, 14, 0.05);
+  --shadow-2: 0 6px 20px rgba(24, 20, 14, 0.08);
+  --shadow-3: 0 18px 48px rgba(24, 20, 14, 0.14);
+  --overlay: rgba(20, 17, 12, 0.4);
+}
+
+/* ---------------------------------- escuro ------------------------------- */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f1115;
+  --bg-elevated: #171a20;
+  --bg-sunken: #0a0c0f;
+  --surface: #171a20;
+  --surface-2: #1e222a;
+  --surface-hover: #262b34;
+  --border: #262b34;
+  --border-strong: #363c48;
+  --text: #eceef2;
+  --text-2: #a8afbb;
+  --text-3: #757d8a;
+  --accent: #d7b174;
+  --accent-strong: #e6c68f;
+  --accent-soft: #241f16;
+  --accent-contrast: #16130d;
+  --danger: #e07a72;
+  --success: #6ec397;
+  --info: #7fb2e0;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 20px 56px rgba(0, 0, 0, 0.6);
+  --overlay: rgba(0, 0, 0, 0.62);
+}
+
+/* ---------------------------------- sépia -------------------------------- */
+:root[data-theme='sepia'] {
+  color-scheme: light;
+  --bg: #f3e9d8;
+  --bg-elevated: #fbf4e6;
+  --bg-sunken: #ebdfc9;
+  --surface: #fbf4e6;
+  --surface-2: #f2e6d1;
+  --surface-hover: #eadcc2;
+  --border: #e0d0b4;
+  --border-strong: #cdb894;
+  --text: #40331f;
+  --text-2: #6a5940;
+  --text-3: #93815f;
+  --accent: #8c5a24;
+  --accent-strong: #6f4718;
+  --accent-soft: #f0e0c6;
+  --accent-contrast: #fffaf0;
+  --danger: #a63e30;
+  --success: #4a7a4a;
+  --info: #3d6285;
+  --shadow-1: 0 1px 2px rgba(80, 60, 30, 0.08);
+  --shadow-2: 0 6px 20px rgba(80, 60, 30, 0.12);
+  --shadow-3: 0 18px 48px rgba(80, 60, 30, 0.2);
+  --overlay: rgba(60, 45, 20, 0.42);
+}
+
+/* ------------------------------ alto contraste --------------------------- */
+:root[data-contrast='high'][data-theme='dark'] {
+  --text: #ffffff;
+  --text-2: #dfe4ec;
+  --text-3: #b9c0cc;
+  --border: #4a515e;
+  --border-strong: #6b7382;
+  --accent: #ffd79a;
+}
+:root[data-contrast='high']:not([data-theme='dark']) {
+  --text: #000000;
+  --text-2: #2a2620;
+  --text-3: #4a443b;
+  --border: #9a8f7e;
+  --border-strong: #6d6355;
+  --accent: #5c4416;
+}
+
+/* ---------------------- categorias de marcação (grifos) ------------------- */
+:root {
+  --hl-promessas: #f2c14e;
+  --hl-fe: #4e9bf2;
+  --hl-cura: #4ec9a6;
+  --hl-santidade: #b98cf2;
+  --hl-espirito: #f28c4e;
+  --hl-lideranca: #6c8cf2;
+  --hl-familia: #f26c9b;
+  --hl-salvacao: #57c05a;
+  --hl-graca: #d6a75c;
+  --hl-amor: #ef5f5f;
+  --hl-ministerio: #58b6c9;
+  --hl-custom: #9aa0a6;
+}

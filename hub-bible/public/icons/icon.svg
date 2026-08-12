@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Hub Bible">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e7c78f"/><stop offset="1" stop-color="#8a6a2f"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#0f1115"/>
+  <path d="M102 189 248 166v193L102 341z" fill="url(#g)"/>
+  <path d="M410 189 264 166v193l146-18z" fill="url(#g)" opacity=".82"/>
+  <rect x="250" y="164" width="12" height="198" rx="6" fill="#e7c78f"/>
+</svg>
