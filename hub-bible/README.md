@@ -95,7 +95,9 @@ com o aplicativo.** Elas aparecem no catálogo como espaço reservado e podem se
 pelo próprio usuário, a partir de uma cópia licenciada, em *Configurações › Traduções ›
 Importar*. O texto importado fica apenas no dispositivo.
 
-Detalhes, formatos aceitos e o procedimento para incluir novas traduções:
+Passo a passo da importação e modelos de carta às editoras:
+[`docs/IMPORTAR-TRADUCOES.md`](docs/IMPORTAR-TRADUCOES.md).
+Procedência de cada texto e regras para incluir novas traduções:
 [`docs/LICENCAS-BIBLIA.md`](docs/LICENCAS-BIBLIA.md).
 
 ---
@@ -123,6 +125,7 @@ Passo a passo completo: [`docs/DEPLOY-VERCEL.md`](docs/DEPLOY-VERCEL.md).
 - [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) — camadas, banco de dados, PWA e caminho para o APK.
 - [`docs/LICENCAS-BIBLIA.md`](docs/LICENCAS-BIBLIA.md) — regras de licenciamento do texto bíblico.
 - [`docs/DEPLOY-VERCEL.md`](docs/DEPLOY-VERCEL.md) — publicação, atualizações e domínio próprio.
+- [`docs/IMPORTAR-TRADUCOES.md`](docs/IMPORTAR-TRADUCOES.md) — instalar ARA, NVI, NTLH, KJA, NAA ou ACF a partir de cópia licenciada.
 - [`docs/PENDENCIAS.md`](docs/PENDENCIAS.md) — o que falta, o que já foi investigado e por onde retomar.
 
 ## Stack
