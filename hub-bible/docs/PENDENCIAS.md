@@ -150,6 +150,11 @@ Já verificado em navegador headless a 390px, 1024px e 2000px. Falta o uso real:
 - [ ] Baixar todas as traduções para uso offline e conferir o espaço ocupado
 - [ ] Escrever um sermão inteiro no editor de blocos, com o teclado do tablet
 - [ ] Colar um trecho do Word dentro de um bloco e ver se o negrito veio junto
+- [ ] Importar as ~20 apostilas do Rhema Brasil e conferir o espaço ocupado
+      (verificado em Chromium com uma apostila de 56 páginas: só 2 a 4 páginas
+      ficam desenhadas por vez, 7 MB de memória; falta a medição no tablet real
+      com PDFs cheios de imagem)
+- [ ] Dar uma aula inteira no Modo Aula, com a Bíblia ao lado
 
 ---
 

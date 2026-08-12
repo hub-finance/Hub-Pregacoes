@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks';
 import { SermonTimer } from './SermonTimer';
 import { ScripturePane } from './ScripturePane';
-import { DocumentViewer } from '../common/DocumentViewer';
+import { DocumentStage } from '../common/DocumentStage';
 import { getAttachment } from '../../core/data/attachments';
 import { EmptyState, Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
@@ -254,34 +254,10 @@ export default function PreachingPage() {
   // documento importado ocupa o palco inteiro, com o cronômetro por cima
   if (attachment.data) {
     return (
-      <div
-        className="preach"
-        style={{ '--preach-scale': settings.preachingScale } as React.CSSProperties}
-      >
-        <SermonTimer />
-        <div className="preach-split">
-          {split && <ScripturePane />}
-          <div className="preach-stage split" style={{ justifyContent: 'flex-start' }}>
-            <DocumentViewer attachment={attachment.data} />
-          </div>
-        </div>
-        <div className="preach-bar">
-          <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Sair do modo pregação">
-            <Icon name="close" />
-          </button>
-          <span className="small dim truncate" style={{ flex: 1, padding: '0 var(--sp-2)' }}>
-            {sermon.data?.title || attachment.data.name}
-          </span>
-          <button
-            className={`icon-btn preach-split-toggle${split ? ' active' : ''}`}
-            onClick={() => setSplit((v) => !v)}
-            aria-label={split ? 'Fechar a Bíblia ao lado' : 'Abrir a Bíblia ao lado'}
-            aria-pressed={split}
-          >
-            <Icon name="split" />
-          </button>
-        </div>
-      </div>
+      <DocumentStage
+        title={sermon.data?.title ?? ''}
+        attachment={attachment.data}
+      />
     );
   }
 

@@ -53,8 +53,11 @@ node scripts/generate-icons.mjs   # regenera os ícones do PWA
   documento do Word. Blocos se inserem, movem, trocam de tipo e são excluídos; a citação
   bíblica traz o texto do próprio aplicativo. Sermão já pronto pode ser **importado em PDF
   ou .docx** e é exibido com a formatação original.
-- **Estudos** com introdução, desenvolvimento, versículos relacionados, comentários,
-  aplicações e conclusão.
+- **Rhema** — estudo bíblico com introdução, desenvolvimento, versículos relacionados,
+  comentários, aplicações e conclusão; e as **apostilas importadas em PDF ou .docx**, que
+  abrem no **Modo Aula**: Bíblia à esquerda, apostila à direita, cronômetro e tela que não
+  apaga. As páginas do PDF são desenhadas conforme a rolagem, então apostilas de dezenas
+  de páginas abrem sem pesar na memória do aparelho.
 - **Devocionais** com texto bíblico, reflexão, aplicação e oração.
 - **Biblioteca Ministerial** unificando tudo, com busca e as categorias da especificação
   (Liderança, GC, Discipulado, Escola de Líderes, Ministério, Evangelismo, Família, Vida cristã).

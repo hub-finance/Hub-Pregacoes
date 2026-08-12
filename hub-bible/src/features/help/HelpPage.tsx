@@ -96,13 +96,26 @@ const TOPICS: Topic[] = [
     ],
   },
   {
+    icon: 'study',
+    title: 'Rhema — estudos e apostilas',
+    steps: [
+      'A aba Rhema guarda duas coisas: os estudos que você escreve aqui dentro e as apostilas que você já tem prontas em PDF.',
+      'Rhema › Importar › escolha o arquivo. Cada apostila entra como um item da lista, com categoria e etiquetas suas.',
+      'A apostila é exibida exatamente como foi feita — fontes, imagens, quadros e quebras de página. Nada é convertido.',
+      'O botão "Modo Aula" abre a apostila em tela cheia com a Bíblia à esquerda e o material à direita: é a tela para dar aula. O botão de dividir fecha a Bíblia quando você quiser só estudar.',
+      'No Modo Aula há cronômetro, ajuste de letra e a tela não apaga sozinha, igual ao Modo Pregação.',
+      'Você pode escrever suas observações, vincular versículos e criar anotações sobre a apostila — o material continua intacto, o que é seu fica separado.',
+      'Formatos aceitos: PDF e Word .docx, até 25 MB cada. As páginas são desenhadas conforme você rola, então apostilas de 60 páginas abrem sem travar.',
+    ],
+  },
+  {
     icon: 'preach',
     title: 'Modo Pregação',
     steps: [
       'Serve para pregar com o tablet na mão: tela cheia, letra grande, poucos elementos.',
       'Abra por um sermão preparado (o caminho completo) ou direto de um capítulo, para projetar a leitura.',
       'O cronômetro fica no alto: escolha 30, 40, 45 ou 50 minutos, ou tempo livre. Fica verde dentro do tempo, âmbar nos últimos cinco minutos e vermelho quando passa, mostrando quanto passou.',
-      'Tela dividida: quando você está pregando um sermão, o botão de dividir coloca a Bíblia à esquerda e a mensagem à direita. O painel acompanha a referência do ponto e destaca o versículo. Esse botão só aparece com um sermão aberto e em tela larga — no celular não há espaço.',
+      'Tela dividida: o botão de dividir coloca a Bíblia à esquerda e a mensagem à direita. O painel acompanha a referência do ponto e destaca o versículo. No tablet as duas colunas ficam lado a lado; só no celular a Bíblia vai para cima e a mensagem para baixo, porque não cabem lado a lado.',
       'A- e A+ ajustam a letra só da pregação, sem mexer no tamanho do leitor.',
       'A tela não apaga sozinha enquanto o Modo Pregação estiver aberto.',
     ],

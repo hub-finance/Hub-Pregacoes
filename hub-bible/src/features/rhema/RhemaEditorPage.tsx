@@ -4,26 +4,40 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { EditorShell } from '../common/EditorShell';
 import { ScriptureField } from '../common/ScriptureField';
 import { NotesPanel } from '../common/NotesPanel';
+import { DocumentViewer } from '../common/DocumentViewer';
 import { useDocEditor } from '../common/useDocEditor';
+import { useAsync } from '../../hooks';
+import { getAttachment } from '../../core/data/attachments';
 import { SelectInput, Spinner, TagInput, TextArea, TextInput } from '../../components/ui';
 import { CONTENT_CATEGORIES } from '../../core/categories';
 import { escapeHtml } from '../../core/backup';
 import { formatReference, parseReference } from '../../core/bible/reference';
 import type { Study } from '../../core/db/types';
 
-/** Editor de estudo bíblico com vários versículos vinculados. */
-export default function StudyEditorPage() {
+/**
+ * Rhema — o estudo escrito no aplicativo ou a apostila importada em PDF.
+ *
+ * Quando há apostila, os campos de redação dão lugar a ela: o material já veio
+ * pronto do Rhema Brasil e reescrevê-lo seria trabalho perdido. O que continua
+ * valendo são as anotações, as etiquetas e os versículos vinculados — o que o
+ * aluno acrescenta ao material, e não o material em si.
+ */
+export default function RhemaEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { doc, loading, dirty, saving, set } = useDocEditor<Study>('study', id);
   const [verseDraft, setVerseDraft] = useState('');
+  const attachment = useAsync(
+    () => (doc?.attachmentId ? getAttachment(doc.attachmentId) : Promise.resolve(undefined)),
+    [doc?.attachmentId],
+  );
 
-  if (loading) return <Spinner label="Abrindo estudo…" />;
+  if (loading) return <Spinner label="Abrindo…" />;
   if (!doc) {
     return (
       <div className="page">
-        <p className="muted">Estudo não encontrado.</p>
-        <button className="btn" onClick={() => navigate('/estudos')}>
+        <p className="muted">Item do Rhema não encontrado.</p>
+        <button className="btn" onClick={() => navigate('/rhema')}>
           Voltar
         </button>
       </div>
@@ -42,7 +56,8 @@ export default function StudyEditorPage() {
 
   const toMarkdown = () =>
     [
-      `# ${doc.title || 'Estudo sem título'}`,
+      `# ${doc.title || 'Rhema sem título'}`,
+      doc.attachmentId && '_Apostila importada — o conteúdo está no arquivo original._',
       doc.theme && `**Tema:** ${doc.theme}`,
       doc.mainText && `**Texto principal:** ${doc.mainText}`,
       doc.introduction && `## Introdução\n\n${doc.introduction}`,
@@ -59,7 +74,7 @@ export default function StudyEditorPage() {
   const toHtml = () => {
     const p = (v: string) => `<p>${escapeHtml(v)}</p>`;
     return [
-      `<h1>${escapeHtml(doc.title || 'Estudo')}</h1>`,
+      `<h1>${escapeHtml(doc.title || 'Rhema')}</h1>`,
       `<div class="meta">${escapeHtml([doc.theme, doc.mainText].filter(Boolean).join(' · '))}</div>`,
       doc.introduction ? `<h2>Introdução</h2>${p(doc.introduction)}` : '',
       doc.development ? `<h2>Desenvolvimento</h2>${p(doc.development)}` : '',
@@ -76,15 +91,45 @@ export default function StudyEditorPage() {
     <EditorShell
       kind="study"
       title={doc.title}
-      backTo="/estudos"
+      backTo="/rhema"
       saving={saving}
       dirty={dirty}
       docId={doc.id}
       toMarkdown={toMarkdown}
       toHtml={toHtml}
+      extraActions={
+        doc.attachmentId ? (
+          <button
+            className="btn btn-sm btn-primary"
+            onClick={() => navigate(`/aula/${doc.id}`)}
+          >
+            Modo Aula
+          </button>
+        ) : undefined
+      }
     >
       <div className="stack doc-editor">
         <TextInput label="Título" value={doc.title} onChange={(title) => set({ title })} />
+
+        {/* Apostila importada: aparece como veio, e é dela que se ensina. */}
+        {doc.attachmentId && (
+          <section className="stack">
+            <div className="row row-wrap">
+              <button className="btn btn-primary" onClick={() => navigate(`/aula/${doc.id}`)}>
+                <Icon name="preach" size={17} /> Modo Aula — Bíblia ao lado
+              </button>
+            </div>
+            {attachment.loading && <p className="small dim">Carregando a apostila…</p>}
+            {attachment.data && <DocumentViewer attachment={attachment.data} />}
+            {!attachment.loading && !attachment.data && (
+              <div className="notice">
+                <Icon name="warning" size={20} style={{ flex: 'none' }} />
+                <span>O arquivo desta apostila não foi encontrado no aparelho.</span>
+              </div>
+            )}
+          </section>
+        )}
+
         <div className="grid grid-2">
           <TextInput label="Tema" value={doc.theme} onChange={(theme) => set({ theme })} />
           <SelectInput
@@ -95,8 +140,12 @@ export default function StudyEditorPage() {
           />
         </div>
         <ScriptureField label="Texto principal" value={doc.mainText} onChange={(mainText) => set({ mainText })} />
-        <TextArea label="Introdução" value={doc.introduction} onChange={(introduction) => set({ introduction })} rows={4} />
-        <TextArea label="Desenvolvimento" value={doc.development} onChange={(development) => set({ development })} rows={8} />
+        {!doc.attachmentId && (
+          <>
+            <TextArea label="Introdução" value={doc.introduction} onChange={(introduction) => set({ introduction })} rows={4} />
+            <TextArea label="Desenvolvimento" value={doc.development} onChange={(development) => set({ development })} rows={8} />
+          </>
+        )}
 
         <section className="stack">
           <div className="section-head">
@@ -141,12 +190,21 @@ export default function StudyEditorPage() {
           </div>
         </section>
 
-        <TextArea label="Comentários" value={doc.comments} onChange={(comments) => set({ comments })} rows={5} />
-        <TextArea label="Aplicações" value={doc.application} onChange={(application) => set({ application })} rows={4} />
-        <TextArea label="Conclusão" value={doc.conclusion} onChange={(conclusion) => set({ conclusion })} rows={4} />
+        <TextArea
+          label={doc.attachmentId ? 'Suas observações sobre a apostila' : 'Comentários'}
+          value={doc.comments}
+          onChange={(comments) => set({ comments })}
+          rows={5}
+        />
+        {!doc.attachmentId && (
+          <>
+            <TextArea label="Aplicações" value={doc.application} onChange={(application) => set({ application })} rows={4} />
+            <TextArea label="Conclusão" value={doc.conclusion} onChange={(conclusion) => set({ conclusion })} rows={4} />
+          </>
+        )}
         <TagInput label="Etiquetas" tags={doc.tags} onChange={(tags) => set({ tags })} />
 
-        <NotesPanel parentId={doc.id} targetType="study" contextLabel={doc.title || 'Estudo'} />
+        <NotesPanel parentId={doc.id} targetType="study" contextLabel={doc.title || 'Rhema'} />
       </div>
     </EditorShell>
   );

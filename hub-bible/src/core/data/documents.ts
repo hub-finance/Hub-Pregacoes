@@ -20,14 +20,14 @@ export type DocKind = 'sermon' | 'study' | 'devotional' | 'doc';
 
 export const DOC_LABEL: Record<DocKind, string> = {
   sermon: 'Sermão',
-  study: 'Estudo',
+  study: 'Rhema',
   devotional: 'Devocional',
   doc: 'Material',
 };
 
 export const DOC_ROUTE: Record<DocKind, string> = {
   sermon: '/sermoes',
-  study: '/estudos',
+  study: '/rhema',
   devotional: '/devocionais',
   doc: '/biblioteca',
 };
@@ -161,6 +161,19 @@ export async function duplicateDoc<T extends { id: string; title: string }>(
     createdAt: timestamp,
     updatedAt: timestamp,
   } as T;
+
+  // documento com arquivo importado leva a própria cópia do arquivo: se as duas
+  // apontassem para o mesmo, excluir uma deixaria a outra sem nada para exibir
+  const source = (doc as { attachmentId?: string }).attachmentId;
+  if (source) {
+    const original = await db.attachments.get(source);
+    if (original) {
+      const clone = { ...original, id: uid('att_'), docId: copy.id, createdAt: timestamp };
+      await db.attachments.put(clone);
+      (copy as { attachmentId?: string }).attachmentId = clone.id;
+    }
+  }
+
   await tableFor(kind).put(copy as never);
   return copy;
 }
@@ -210,8 +223,8 @@ export async function loadLibrary(): Promise<LibraryEntry[]> {
     ...studies.map((s) => ({
       id: s.id,
       kind: 'study' as const,
-      title: s.title || 'Estudo sem título',
-      category: s.category || 'Estudos',
+      title: s.title || 'Rhema sem título',
+      category: s.category || 'Rhema',
       subtitle: [s.theme, s.mainText].filter(Boolean).join(' · '),
       tags: s.tags,
       updatedAt: s.updatedAt,
@@ -253,7 +266,7 @@ export function filterLibrary(
   const q = normalize(query);
   return entries.filter((e) => {
     if (category && category !== 'Todos') {
-      const kindCategory = { sermon: 'Sermões', study: 'Estudos', devotional: 'Devocionais', doc: '' }[e.kind];
+      const kindCategory = { sermon: 'Sermões', study: 'Rhema', devotional: 'Devocionais', doc: '' }[e.kind];
       if (e.category !== category && kindCategory !== category) return false;
     }
     return !q || e.searchBlob.includes(q);

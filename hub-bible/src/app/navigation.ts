@@ -20,7 +20,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/favoritos', label: 'Favoritos', icon: 'star', quick: true, group: 'principal' },
   { to: '/anotacoes', label: 'Anotações', icon: 'note', quick: true, group: 'principal' },
   { to: '/devocionais', label: 'Devocional', icon: 'pray', quick: true, group: 'ministerio' },
-  { to: '/estudos', label: 'Estudos', icon: 'study', quick: true, group: 'ministerio' },
+  { to: '/rhema', label: 'Rhema', icon: 'study', quick: true, group: 'ministerio' },
   { to: '/sermoes', label: 'Sermões', icon: 'sermon', quick: true, group: 'ministerio' },
   { to: '/planos', label: 'Plano de leitura', icon: 'calendar', quick: true, group: 'ministerio' },
   {

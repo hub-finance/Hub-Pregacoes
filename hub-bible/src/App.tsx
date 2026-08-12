@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AppLayout } from './app/AppLayout';
 import { UpdatePrompt } from './app/UpdatePrompt';
 import { Spinner } from './components/ui';
@@ -15,8 +15,9 @@ const FavoritesPage = lazy(() => import('./features/favorites/FavoritesPage'));
 const NotesPage = lazy(() => import('./features/notes/NotesPage'));
 const SermonsPage = lazy(() => import('./features/sermons/SermonsPage'));
 const SermonEditorPage = lazy(() => import('./features/sermons/SermonEditorPage'));
-const StudiesPage = lazy(() => import('./features/studies/StudiesPage'));
-const StudyEditorPage = lazy(() => import('./features/studies/StudyEditorPage'));
+const RhemaPage = lazy(() => import('./features/rhema/RhemaPage'));
+const RhemaEditorPage = lazy(() => import('./features/rhema/RhemaEditorPage'));
+const RhemaClassPage = lazy(() => import('./features/rhema/RhemaClassPage'));
 const DevotionalsPage = lazy(() => import('./features/devotionals/DevotionalsPage'));
 const DevotionalEditorPage = lazy(() => import('./features/devotionals/DevotionalEditorPage'));
 const LibraryPage = lazy(() => import('./features/library/LibraryPage'));
@@ -27,6 +28,12 @@ const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const SettingsPage = lazy(() => import('./features/settings/SettingsPage'));
 const HelpPage = lazy(() => import('./features/help/HelpPage'));
 const PreachingPage = lazy(() => import('./features/preaching/PreachingPage'));
+
+/** `/estudos/:id` de antes do nome Rhema continua abrindo o mesmo documento. */
+function LegacyStudyRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/rhema/${id}`} replace />;
+}
 
 export default function App() {
   return (
@@ -46,6 +53,18 @@ export default function App() {
             </Suspense>
           }
         />
+        {/* Modo Aula — a apostila do Rhema em tela cheia, mesma regra. */}
+        <Route
+          path="/aula/*"
+          element={
+            <Suspense fallback={<Spinner />}>
+              <Routes>
+                <Route path=":id" element={<RhemaClassPage />} />
+                <Route path="*" element={<Navigate to="/rhema" replace />} />
+              </Routes>
+            </Suspense>
+          }
+        />
         <Route
           path="*"
           element={
@@ -60,8 +79,12 @@ export default function App() {
                   <Route path="/anotacoes" element={<NotesPage />} />
                   <Route path="/sermoes" element={<SermonsPage />} />
                   <Route path="/sermoes/:id" element={<SermonEditorPage />} />
-                  <Route path="/estudos" element={<StudiesPage />} />
-                  <Route path="/estudos/:id" element={<StudyEditorPage />} />
+                  <Route path="/rhema" element={<RhemaPage />} />
+                  <Route path="/rhema/:id" element={<RhemaEditorPage />} />
+                  {/* endereços antigos continuam abrindo: o módulo mudou de
+                      nome, não de conteúdo */}
+                  <Route path="/estudos" element={<Navigate to="/rhema" replace />} />
+                  <Route path="/estudos/:id" element={<LegacyStudyRedirect />} />
                   <Route path="/devocionais" element={<DevotionalsPage />} />
                   <Route path="/devocionais/:id" element={<DevotionalEditorPage />} />
                   <Route path="/biblioteca" element={<LibraryPage />} />

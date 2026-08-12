@@ -44,7 +44,7 @@ export default function LibraryPage() {
     <div className="page page-wide">
       <PageHeader
         title="Biblioteca Ministerial"
-        lead="Sermões, estudos, devocionais e materiais de liderança reunidos."
+        lead="Sermões, Rhema, devocionais e materiais de liderança reunidos."
         actions={
           <button className="btn btn-primary" onClick={createMaterial}>
             ＋ Novo material
@@ -90,7 +90,7 @@ export default function LibraryPage() {
         <EmptyState
           icon="library"
           title="Sua biblioteca está vazia"
-          description="Tudo o que você criar em sermões, estudos, devocionais e materiais aparece aqui, com busca e filtros."
+          description="Tudo o que você criar em sermões, Rhema, devocionais e materiais aparece aqui, com busca e filtros."
           action={
             <button className="btn btn-primary btn-sm" onClick={createMaterial}>
               Criar material

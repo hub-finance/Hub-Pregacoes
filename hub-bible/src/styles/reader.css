@@ -360,10 +360,15 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
 }
-@media (min-width: 900px) {
+@media (min-width: 600px) {
   /* Bíblia à esquerda, mensagem à direita — a ordem que o pregador espera.
      Só com a divisão ligada: sem isto, a mensagem sozinha ocuparia a primeira
-     coluna e a segunda ficaria vazia, jogando o texto para o canto. */
+     coluna e a segunda ficaria vazia, jogando o texto para o canto.
+
+     O limite era 900px, e por causa dele o tablet em pé caía no empilhado:
+     Bíblia em cima, mensagem embaixo. Lado a lado é o que se pede a uma tela
+     dividida, e a 600px cada coluna ainda tem 300px — estreito, mas legível.
+     Abaixo disso (celular) o empilhado continua sendo o único que serve. */
   .preach-split.divided {
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   }
@@ -406,10 +411,9 @@
   background: color-mix(in srgb, var(--accent) 20%, transparent);
   box-shadow: inset 3px 0 0 var(--accent);
 }
-/* Em tela estreita — celular, ou o tablet dividido com outro aplicativo — as
-   duas colunas não cabem lado a lado. Em vez de perder o recurso, a divisão
-   passa a ser horizontal: Bíblia em cima, mensagem embaixo. */
-@media (max-width: 899px) {
+/* Só no celular, onde duas colunas não cabem de jeito nenhum: em vez de perder
+   o recurso, a divisão passa a ser horizontal — Bíblia em cima, texto embaixo. */
+@media (max-width: 599px) {
   .preach-split.divided {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
@@ -418,6 +422,8 @@
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
+}
+@media (max-width: 899px) {
   .preach-pane-body {
     padding: var(--sp-3) var(--sp-4) var(--sp-5);
     font-size: 1rem;
@@ -668,13 +674,21 @@
   align-items: center;
   gap: var(--sp-3);
 }
-/* cada página do PDF é uma folha, com a sombra que ajuda a separá-las */
-.doc-viewer-host .doc-page {
-  display: block;
-  max-width: 100%;
+/* cada página do PDF é uma folha, com a sombra que ajuda a separá-las.
+   O lugar da folha existe antes do desenho: assim a barra de rolagem já mostra
+   o tamanho real do documento e não muda de tamanho enquanto se lê. */
+.doc-viewer-host .doc-page-slot {
+  margin: 0 auto var(--sp-3);
   background: #fff;
   box-shadow: var(--shadow-2);
   border-radius: 2px;
+  overflow: hidden;
+}
+.doc-viewer-host .doc-page {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  background: #fff;
 }
 
 /* Word: o docx-preview traz as folhas de estilo do próprio arquivo. Aqui só

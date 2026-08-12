@@ -24,7 +24,7 @@ export const HIGHLIGHT_CATEGORIES: HighlightCategory[] = [
 /** Categorias da Biblioteca Ministerial (seção 15 da especificação). */
 export const LIBRARY_CATEGORIES = [
   'Sermões',
-  'Estudos',
+  'Rhema',
   'Devocionais',
   'Liderança',
   'GC',

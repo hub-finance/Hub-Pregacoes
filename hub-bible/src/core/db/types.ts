@@ -143,6 +143,11 @@ export interface Sermon {
   appeal?: string;
 }
 
+/**
+ * Estudo bíblico. Na tela chama-se **Rhema**, e é onde vivem também as
+ * apostilas do Rhema Brasil importadas em PDF — o identificador `study`
+ * permanece porque é o nome da tabela desde a primeira versão do banco.
+ */
 export interface Study {
   id: ID;
   userId: ID;
@@ -161,6 +166,9 @@ export interface Study {
   favorite?: boolean;
   createdAt: number;
   updatedAt: number;
+  /** Apostila que chegou pronta em arquivo: exibida como veio, sem reescrever. */
+  attachmentId?: ID;
+  attachmentFormat?: 'pdf' | 'docx';
 }
 
 export interface Devotional {

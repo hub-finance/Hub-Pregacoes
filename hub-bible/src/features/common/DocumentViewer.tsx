@@ -12,6 +12,12 @@ import type { Attachment } from '../../core/db/types';
  * as folhas de estilo do próprio documento, preservando títulos, negritos,
  * listas, tabelas e quebras de página.
  *
+ * **As páginas são desenhadas só quando chegam perto da tela.** Uma apostila de
+ * 60 páginas desenhada de uma vez ocuparia mais de meio gigabyte de memória e
+ * derrubaria o aplicativo no tablet; aqui cada página vira imagem ao se
+ * aproximar e é liberada ao se afastar, com a altura preservada para a rolagem
+ * não saltar.
+ *
  * As duas bibliotecas são carregadas sob demanda: quem nunca abre um arquivo
  * importado não paga por elas no primeiro carregamento.
  */
@@ -30,6 +36,7 @@ export function DocumentViewer({ attachment }: { attachment: Attachment }) {
     host.innerHTML = '';
     setStatus('loading');
     setPages(0);
+    const cleanups: Array<() => void> = [];
 
     (async () => {
       try {
@@ -42,29 +49,84 @@ export function DocumentViewer({ attachment }: { attachment: Attachment }) {
 
           const buffer = await attachment.blob.arrayBuffer();
           const doc = await pdfjs.getDocument({ data: buffer }).promise;
-          if (cancelled) return;
+          if (cancelled) {
+            void doc.destroy();
+            return;
+          }
           setPages(doc.numPages);
+          cleanups.push(() => void doc.destroy());
 
           // largura disponível vira a escala: o documento ocupa a coluna toda
-          const available = host.clientWidth || 640;
+          const available = Math.max(240, (host.clientWidth || 640) - 24);
+          const width = available * zoom;
+          const first = await doc.getPage(1);
+          const base = first.getViewport({ scale: 1 });
+          // acima de 2 a nitidez não melhora a olho nu e a memória dobra
+          const density = Math.min(window.devicePixelRatio || 1, 2);
+          const drawing = new Set<number>();
 
+          const draw = async (slot: HTMLElement, n: number) => {
+            if (drawing.has(n) || slot.querySelector('canvas')) return;
+            drawing.add(n);
+            try {
+              const page = await doc.getPage(n);
+              const natural = page.getViewport({ scale: 1 });
+              const viewport = page.getViewport({ scale: (width / natural.width) * density });
+              const canvas = document.createElement('canvas');
+              canvas.className = 'doc-page';
+              canvas.width = viewport.width;
+              canvas.height = viewport.height;
+              canvas.style.width = '100%';
+              canvas.style.height = 'auto';
+              const ctx = canvas.getContext('2d');
+              if (!ctx) return;
+              await page.render({ canvasContext: ctx, viewport }).promise;
+              if (cancelled) return;
+              slot.replaceChildren(canvas);
+              slot.dataset.drawn = 'true';
+              page.cleanup();
+            } catch {
+              // uma página com problema não pode impedir a leitura das outras
+            } finally {
+              drawing.delete(n);
+            }
+          };
+
+          const release = (slot: HTMLElement) => {
+            const canvas = slot.querySelector('canvas');
+            if (!canvas) return;
+            // guarda a altura que a página tinha: sem isso a rolagem salta ao
+            // liberar uma página que ficou acima da tela
+            slot.style.minHeight = `${canvas.getBoundingClientRect().height}px`;
+            canvas.width = 0;
+            canvas.height = 0;
+            canvas.remove();
+            delete slot.dataset.drawn;
+          };
+
+          const observer = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                const slot = entry.target as HTMLElement;
+                const n = Number(slot.dataset.page);
+                if (entry.isIntersecting) void draw(slot, n);
+                else release(slot);
+              }
+            },
+            { rootMargin: '900px 0px' },
+          );
+          cleanups.push(() => observer.disconnect());
+
+          const placeholder = (width * base.height) / base.width;
           for (let n = 1; n <= doc.numPages; n++) {
-            if (cancelled) return;
-            const page = await doc.getPage(n);
-            const base = page.getViewport({ scale: 1 });
-            const scale = (available / base.width) * zoom * (window.devicePixelRatio || 1);
-            const viewport = page.getViewport({ scale });
-
-            const canvas = document.createElement('canvas');
-            canvas.className = 'doc-page';
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            canvas.style.width = `${available * zoom}px`;
-            canvas.style.height = 'auto';
-            host.appendChild(canvas);
-
-            const ctx = canvas.getContext('2d');
-            if (ctx) await page.render({ canvasContext: ctx, viewport }).promise;
+            const slot = document.createElement('div');
+            slot.className = 'doc-page-slot';
+            slot.dataset.page = String(n);
+            slot.style.width = `${width}px`;
+            slot.style.maxWidth = '100%';
+            slot.style.minHeight = `${placeholder}px`;
+            host.appendChild(slot);
+            observer.observe(slot);
           }
         } else {
           const { renderAsync } = await import('docx-preview');
@@ -89,6 +151,7 @@ export function DocumentViewer({ attachment }: { attachment: Attachment }) {
 
     return () => {
       cancelled = true;
+      cleanups.forEach((run) => run());
     };
   }, [attachment, zoom]);
 

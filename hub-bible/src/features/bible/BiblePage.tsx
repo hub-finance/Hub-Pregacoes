@@ -248,7 +248,7 @@ export default function BiblePage() {
     if (kind === 'study') {
       const study = { ...newStudy(), title: selectionReference, mainText: selectionReference, introduction: selectionText };
       await saveDoc('study', study);
-      navigate(`/estudos/${study.id}`);
+      navigate(`/rhema/${study.id}`);
     } else {
       const sermon = { ...newSermon(), title: selectionReference, mainText: selectionReference, mainTextContent: selectionText };
       await saveDoc('sermon', sermon);
@@ -434,7 +434,7 @@ export default function BiblePage() {
                 notify(ok ? 'Copiado.' : 'Não foi possível copiar.', ok ? 'default' : 'error');
               },
             },
-            { id: 'study', icon: 'study', label: 'Estudo', onClick: () => createFromSelection('study') },
+            { id: 'study', icon: 'study', label: 'Rhema', onClick: () => createFromSelection('study') },
             { id: 'sermon', icon: 'sermon', label: 'Sermão', onClick: () => createFromSelection('sermon') },
           ]}
         />
