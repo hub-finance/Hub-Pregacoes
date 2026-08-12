@@ -235,7 +235,9 @@
   background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
 .btn-sm {
-  min-height: 36px;
+  /* 44px é o mínimo de toque adotado no projeto; "sm" fica na densidade
+     horizontal e no corpo da fonte, não na altura */
+  min-height: var(--tap);
   padding: 0 var(--sp-3);
   font-size: 0.82rem;
   border-radius: var(--r-sm);
@@ -309,6 +311,14 @@
   justify-content: space-between;
   gap: var(--sp-3);
   margin-bottom: var(--sp-3);
+}
+/* links de apoio no cabeçalho da seção ("ver todos", "painel completo"):
+   o texto é pequeno, mas a área de toque não pode ser */
+.section-head a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0 var(--sp-1);
 }
 .section-title {
   font-size: 0.78rem;
@@ -386,7 +396,13 @@
   font-weight: 550;
   color: var(--text-2);
   white-space: nowrap;
-  min-height: 34px;
+  min-height: var(--tap);
+}
+/* chip só de ícone precisa de largura de toque também */
+.chip:empty,
+.chip.icon-only {
+  min-width: var(--tap);
+  justify-content: center;
 }
 .chip.active {
   background: var(--accent-soft);
@@ -824,7 +840,7 @@
   font-size: 0.85rem;
   font-weight: 550;
   color: var(--text-2);
-  min-height: 38px;
+  min-height: var(--tap);
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 .tab.active {

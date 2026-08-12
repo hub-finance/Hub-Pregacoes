@@ -296,7 +296,7 @@ export default function BiblePage() {
             style={{ width: `${Math.round(readingProgress * 100)}%` }}
           />
         </button>
-        <button className="chip" onClick={() => setTranslationPicker(true)} aria-label="Trocar tradução">
+        <button className="chip icon-only" onClick={() => setTranslationPicker(true)} aria-label="Trocar tradução">
           ⇄
         </button>
         <div className="spacer" />
