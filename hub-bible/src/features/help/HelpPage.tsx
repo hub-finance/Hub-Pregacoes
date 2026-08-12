@@ -77,6 +77,19 @@ const TOPICS: Topic[] = [
     ],
   },
   {
+    icon: 'upload',
+    title: 'Importar um sermão que já está pronto',
+    steps: [
+      'Serve para o sermão que você já escreveu em PDF ou no Word e não quer digitar de novo.',
+      'Sermões › botão Importar › escolha o arquivo. O título vem do nome do arquivo e pode ser trocado.',
+      'O documento é exibido exatamente como foi feito — fontes, negritos, títulos, tabelas e quebras de página. Nada é convertido para texto simples.',
+      'Ele entra na sua lista de sermões como qualquer outro: recebe categoria, etiquetas, anotações, e aparece na Biblioteca Ministerial.',
+      'No Modo Pregação, o documento ocupa a tela com o cronômetro por cima, e você ainda pode abrir a Bíblia ao lado.',
+      'Formatos aceitos: PDF e Word .docx, até 25 MB. O .doc antigo não abre — no Word, use "Salvar como" para .docx ou PDF.',
+      'O arquivo fica guardado no aparelho e funciona offline. Ao excluir o sermão, o arquivo vai junto.',
+    ],
+  },
+  {
     icon: 'preach',
     title: 'Modo Pregação',
     steps: [

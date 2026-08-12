@@ -144,6 +144,8 @@ export async function saveDoc<T extends { id: string; updatedAt: number }>(
 export async function removeDoc(kind: DocKind, id: string): Promise<void> {
   await tableFor(kind).delete(id);
   await db.notes.where('parentId').equals(id).delete();
+  // o arquivo importado não pode ficar órfão ocupando espaço no aparelho
+  await db.attachments.where('docId').equals(id).delete();
 }
 
 export async function duplicateDoc<T extends { id: string; title: string }>(

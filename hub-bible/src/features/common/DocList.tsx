@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ConfirmDialog, EmptyState, PageHeader } from '../../components/ui';
@@ -25,6 +25,9 @@ interface Props<T extends BaseDoc> {
   create: () => T;
   subtitleOf: (doc: T) => string;
   emptyDescription: string;
+  /** Quando presente, a tela oferece importar um arquivo pronto (PDF/Word). */
+  onImportFile?: (file: File) => Promise<void>;
+  importAccept?: string;
 }
 
 /**
@@ -41,6 +44,8 @@ export function DocList<T extends BaseDoc>({
   create,
   subtitleOf,
   emptyDescription,
+  onImportFile,
+  importAccept,
 }: Props<T>) {
   const navigate = useNavigate();
   const { notify } = useToast();
@@ -48,6 +53,8 @@ export function DocList<T extends BaseDoc>({
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Todas');
   const [removing, setRemoving] = useState<T | null>(null);
+  const [importing, setImporting] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const categories = useMemo(() => {
     const used = new Set((docs ?? []).map((d) => d.category).filter(Boolean));
@@ -79,11 +86,44 @@ export function DocList<T extends BaseDoc>({
         title={title}
         lead={lead}
         actions={
-          <button className="btn btn-primary" onClick={startNew}>
-            <Icon name="plus" size={17} /> Novo
-          </button>
+          <>
+            {onImportFile && (
+              <button
+                className="btn"
+                disabled={importing}
+                onClick={() => fileInput.current?.click()}
+              >
+                <Icon name="upload" size={17} /> {importing ? 'Importando…' : 'Importar'}
+              </button>
+            )}
+            <button className="btn btn-primary" onClick={startNew}>
+              <Icon name="plus" size={17} /> Novo
+            </button>
+          </>
         }
       />
+
+      {onImportFile && (
+        <input
+          ref={fileInput}
+          type="file"
+          accept={importAccept}
+          className="sr-only"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            e.target.value = '';
+            if (!file) return;
+            setImporting(true);
+            try {
+              await onImportFile(file);
+            } catch (err) {
+              notify((err as Error).message, 'error');
+            } finally {
+              setImporting(false);
+            }
+          }}
+        />
+      )}
 
       <div className="search-field" style={{ marginBottom: 'var(--sp-3)' }}>
         <Icon name="search" size={18} className="dim" />
