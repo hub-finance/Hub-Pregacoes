@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import type {
+  Attachment,
   CachedBook,
   Devotional,
   Favorite,
@@ -36,6 +37,7 @@ export class HubBibleDB extends Dexie {
   plans!: Table<ReadingPlan, string>;
   readingEvents!: Table<ReadingEvent, string>;
   books!: Table<CachedBook, string>;
+  attachments!: Table<Attachment, string>;
 
   constructor() {
     super('hub-bible');
@@ -52,6 +54,12 @@ export class HubBibleDB extends Dexie {
       plans: 'id, userId, templateId, updatedAt, archived',
       readingEvents: 'id, userId, day, at, [userId+day]',
       books: 'key, translation, savedAt',
+    });
+
+    // v2 — arquivos importados (sermões em PDF/Word). Acrescenta uma tabela
+    // nova; nenhuma tabela existente muda, então não há migração de dados.
+    this.version(2).stores({
+      attachments: 'id, userId, docId, createdAt',
     });
   }
 }
@@ -89,6 +97,7 @@ export async function clearUserData(): Promise<void> {
       db.libraryDocs,
       db.plans,
       db.readingEvents,
+      db.attachments,
     ],
     async () => {
       await Promise.all([
@@ -101,6 +110,7 @@ export async function clearUserData(): Promise<void> {
         db.libraryDocs.clear(),
         db.plans.clear(),
         db.readingEvents.clear(),
+        db.attachments.clear(),
       ]);
     },
   );

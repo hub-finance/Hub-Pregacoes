@@ -13,7 +13,7 @@ import { getChapter, getMeta } from '../../core/bible/repository';
  * tópico com outro texto, o painel muda de capítulo sozinho — mas o pregador
  * pode navegar livremente sem perder o passo do sermão.
  */
-export function ScripturePane({ reference }: { reference?: string }) {
+export function ScripturePane({ reference }: { reference?: string } = {}) {
   const { settings } = useSettings();
   const [book, setBook] = useState('JHN');
   const [chapter, setChapter] = useState(1);

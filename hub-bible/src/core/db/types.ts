@@ -104,6 +104,9 @@ export interface Sermon {
   favorite?: boolean;
   createdAt: number;
   updatedAt: number;
+  /** Sermão que chegou pronto num arquivo: exibido como veio, sem reescrever. */
+  attachmentId?: ID;
+  attachmentFormat?: 'pdf' | 'docx';
   /**
    * Estrutura antiga, em blocos de tópico. Mantida somente para não perder o
    * que já foi escrito: o editor a exibe quando tem conteúdo e oferece juntar
@@ -208,6 +211,20 @@ export interface ReadingEvent {
 export interface KeyValue<T = unknown> {
   key: string;
   value: T;
+}
+
+/** Arquivo importado pelo usuário (sermão em PDF ou Word), guardado no aparelho. */
+export interface Attachment {
+  id: ID;
+  userId: ID;
+  /** Documento a que pertence (sermão, estudo, material…). */
+  docId: ID;
+  name: string;
+  mime: string;
+  size: number;
+  format: 'pdf' | 'docx';
+  blob: Blob;
+  createdAt: number;
 }
 
 /** Texto bíblico armazenado localmente (offline). */

@@ -1,10 +1,14 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAsync } from '../../hooks';
+import { DocumentViewer } from '../common/DocumentViewer';
+import { getAttachment } from '../../core/data/attachments';
 import { EditorShell } from '../common/EditorShell';
 import { ScriptureField } from '../common/ScriptureField';
 import { useDocEditor } from '../common/useDocEditor';
 import { NotesPanel } from '../common/NotesPanel';
 import { SelectInput, Spinner, TagInput, TextArea, TextInput } from '../../components/ui';
 import { useToast } from '../../components/Toast';
+import { Icon } from '../../components/Icon';
 import { CONTENT_CATEGORIES } from '../../core/categories';
 import { escapeHtml } from '../../core/backup';
 import type { Sermon } from '../../core/db/types';
@@ -21,6 +25,10 @@ export default function SermonEditorPage() {
   const navigate = useNavigate();
   const { notify } = useToast();
   const { doc, loading, dirty, saving, set } = useDocEditor<Sermon>('sermon', id);
+  const attachment = useAsync(
+    () => (doc?.attachmentId ? getAttachment(doc.attachmentId) : Promise.resolve(undefined)),
+    [doc?.attachmentId],
+  );
 
   if (loading) return <Spinner label="Abrindo sermão…" />;
   if (!doc) {
@@ -111,6 +119,21 @@ export default function SermonEditorPage() {
           placeholder="A videira verdadeira"
         />
 
+        {/* Sermão importado: o documento aparece como foi escrito, e os campos
+            de redação dão lugar a ele — reescrever seria trabalho perdido. */}
+        {doc.attachmentId && (
+          <section className="stack">
+            {attachment.loading && <p className="small dim">Carregando o arquivo…</p>}
+            {attachment.data && <DocumentViewer attachment={attachment.data} />}
+            {!attachment.loading && !attachment.data && (
+              <div className="notice">
+                <Icon name="warning" size={20} style={{ flex: 'none' }} />
+                <span>O arquivo deste sermão não foi encontrado no aparelho.</span>
+              </div>
+            )}
+          </section>
+        )}
+
         <div className="grid grid-2">
           <TextInput label="Tema" value={doc.theme} onChange={(theme) => set({ theme })} placeholder="Permanência" />
           <SelectInput
@@ -128,6 +151,8 @@ export default function SermonEditorPage() {
           onResolve={(text) => set({ mainTextContent: text })}
         />
 
+        {!doc.attachmentId && (
+          <>
         <TextArea
           label="Introdução"
           value={doc.introduction}
@@ -155,6 +180,8 @@ export default function SermonEditorPage() {
           rows={6}
           placeholder="O que a igreja leva para a semana?"
         />
+          </>
+        )}
 
         {hasLegacy && (
           <details className="card">

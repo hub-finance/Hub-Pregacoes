@@ -635,3 +635,68 @@
   font-family: var(--font-reader);
   line-height: 1.65;
 }
+
+
+/* ===================== documentos importados (PDF / Word) ================= */
+.doc-viewer {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.doc-viewer-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-ui);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.doc-viewer-host {
+  padding: var(--sp-3);
+  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
+/* cada página do PDF é uma folha, com a sombra que ajuda a separá-las */
+.doc-viewer-host .doc-page {
+  display: block;
+  max-width: 100%;
+  background: #fff;
+  box-shadow: var(--shadow-2);
+  border-radius: 2px;
+}
+
+/* Word: o docx-preview traz as folhas de estilo do próprio arquivo. Aqui só
+   ajustamos a moldura — mexer na tipografia destruiria a fidelidade. */
+.doc-viewer-host.is-docx {
+  align-items: stretch;
+}
+.doc-viewer-host .docx-wrapper {
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.doc-viewer-host .docx-wrapper > section.docx {
+  box-shadow: var(--shadow-2);
+  border-radius: 2px;
+  max-width: 100%;
+  /* o documento traz a própria largura de página; em telas estreitas ele
+     precisa poder encolher sem cortar o conteúdo */
+  width: auto !important;
+  min-width: 0;
+}
+@media (max-width: 700px) {
+  .doc-viewer-host .docx-wrapper > section.docx {
+    padding: var(--sp-4) !important;
+  }
+}
