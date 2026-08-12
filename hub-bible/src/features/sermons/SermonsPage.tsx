@@ -5,6 +5,7 @@ import {
   ACCEPTED_EXTENSIONS,
   ACCEPTED_MIME,
   detectFormat,
+  extractTitle,
   saveAttachment,
 } from '../../core/data/attachments';
 import type { Sermon } from '../../core/db/types';
@@ -18,8 +19,10 @@ export default function SermonsPage() {
    * exibido como está. O título nasce do nome do arquivo e pode ser trocado.
    */
   const importFile = async (file: File) => {
-    const { baseName } = detectFormat(file);
-    const sermon: Sermon = { ...newSermon(), title: baseName || file.name };
+    const { baseName, format } = detectFormat(file);
+    // o título de dentro do documento vence o nome do arquivo
+    const title = (await extractTitle(file, format)) || baseName || file.name;
+    const sermon: Sermon = { ...newSermon(), title };
     const attachment = await saveAttachment(sermon.id, file);
     await saveDoc('sermon', {
       ...sermon,
