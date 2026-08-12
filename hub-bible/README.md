@@ -123,6 +123,7 @@ Passo a passo completo: [`docs/DEPLOY-VERCEL.md`](docs/DEPLOY-VERCEL.md).
 - [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) — camadas, banco de dados, PWA e caminho para o APK.
 - [`docs/LICENCAS-BIBLIA.md`](docs/LICENCAS-BIBLIA.md) — regras de licenciamento do texto bíblico.
 - [`docs/DEPLOY-VERCEL.md`](docs/DEPLOY-VERCEL.md) — publicação, atualizações e domínio próprio.
+- [`docs/PENDENCIAS.md`](docs/PENDENCIAS.md) — o que falta, o que já foi investigado e por onde retomar.
 
 ## Stack
 
