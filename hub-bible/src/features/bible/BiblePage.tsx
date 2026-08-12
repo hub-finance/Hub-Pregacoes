@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { BookPicker } from './BookPicker';
 import { TranslationPicker } from './TranslationPicker';
 import { ReaderSettingsSheet } from './ReaderSettingsSheet';
+import { ReaderScrollbar, useReadingProgress } from './ReaderScrollbar';
 import { VerseActionBar } from './VerseActionBar';
 import { ShareSheet } from '../share/ShareSheet';
 import { Sheet } from '../../components/Sheet';
@@ -94,6 +95,7 @@ export default function BiblePage() {
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
   const readerRef = useRef<HTMLDivElement>(null);
+  const readingProgress = useReadingProgress();
 
   const bookInfo = meta.data?.books.find((b) => b.osis === book);
   const totalChapters = bookInfo?.chapters ?? 1;
@@ -279,11 +281,23 @@ export default function BiblePage() {
   return (
     <>
       <div className="row" style={{ padding: 'var(--sp-3) var(--sp-4) 0', gap: 'var(--sp-2)' }}>
-        <button className="chip" onClick={() => setBookPicker(true)} style={{ fontWeight: 650 }}>
-          📖 {bookName(book)} {chapter}
+        {/* pílula de referência: livro, capítulo e tradução, com a linha de
+            progresso da leitura do capítulo — como nos leitores bíblicos */}
+        <button className="reader-pill" onClick={() => setBookPicker(true)}>
+          {bookName(book)} {chapter}
+          <span className="dim" style={{ fontWeight: 500 }}>
+            {translationLabel}
+          </span>
+          <span className="reader-pill-caret" aria-hidden="true">
+            ▾
+          </span>
+          <span
+            className="reader-pill-progress"
+            style={{ width: `${Math.round(readingProgress * 100)}%` }}
+          />
         </button>
-        <button className="chip" onClick={() => setTranslationPicker(true)}>
-          {translationLabel}
+        <button className="chip" onClick={() => setTranslationPicker(true)} aria-label="Trocar tradução">
+          ⇄
         </button>
         <div className="spacer" />
         <button className="icon-btn" onClick={() => setReaderSettings(true)} aria-label="Ajustes de leitura">
@@ -309,7 +323,21 @@ export default function BiblePage() {
         {chapterText.loading ? (
           <Spinner label="Carregando capítulo…" />
         ) : (
-          <div className={`reader-verses ${settings.verseLayout}`}>
+          <div
+            className={[
+              'reader-verses',
+              settings.verseLayout,
+              `align-${settings.textAlign}`,
+              settings.dropCap && settings.verseLayout === 'paragraph' ? 'has-drop-cap' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            {settings.dropCap && settings.verseLayout === 'paragraph' && verses.length > 0 && (
+              <span className="chapter-drop-cap" aria-hidden="true">
+                {chapter}
+              </span>
+            )}
             {verses.map((text, index) => {
               const verse = index + 1;
               const category = highlightByVerse.get(verse);
@@ -432,6 +460,8 @@ export default function BiblePage() {
         onSelect={(id) => update({ defaultTranslation: id })}
         onCompare={(id) => update({ compareTranslation: id })}
       />
+
+      <ReaderScrollbar />
 
       <ReaderSettingsSheet open={readerSettings} onClose={() => setReaderSettings(false)} />
 

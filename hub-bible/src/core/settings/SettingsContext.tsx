@@ -29,6 +29,10 @@ export interface AppSettings {
   measure: number;
   readerFont: 'serif' | 'sans';
   verseLayout: 'paragraph' | 'lines';
+  /** Alinhamento do texto bíblico. */
+  textAlign: 'left' | 'justify';
+  /** Capitular: número do capítulo em corpo grande no início do texto. */
+  dropCap: boolean;
   defaultTranslation: string;
   compareTranslation: string | null;
   customCategories: HighlightCategory[];
@@ -47,6 +51,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   measure: 38,
   readerFont: 'serif',
   verseLayout: 'paragraph',
+  textAlign: 'left',
+  dropCap: true,
   defaultTranslation: 'pt_almeida',
   compareTranslation: null,
   customCategories: [],

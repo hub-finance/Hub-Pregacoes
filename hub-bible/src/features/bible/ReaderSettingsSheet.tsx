@@ -86,6 +86,24 @@ export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose:
         ]}
       />
       <SelectInput
+        label="Alinhamento do texto"
+        value={settings.textAlign}
+        onChange={(v) => update({ textAlign: v as 'left' | 'justify' })}
+        options={[
+          { value: 'left', label: 'À esquerda (margem irregular)' },
+          { value: 'justify', label: 'Justificado' },
+        ]}
+      />
+      <SelectInput
+        label="Capitular do capítulo"
+        value={settings.dropCap ? 'on' : 'off'}
+        onChange={(v) => update({ dropCap: v === 'on' })}
+        options={[
+          { value: 'on', label: 'Número grande abrindo o texto' },
+          { value: 'off', label: 'Sem capitular' },
+        ]}
+      />
+      <SelectInput
         label="Contraste"
         value={settings.contrast}
         onChange={(v) => update({ contrast: v as 'normal' | 'high' })}
