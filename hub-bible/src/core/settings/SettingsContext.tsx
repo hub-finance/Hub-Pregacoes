@@ -40,7 +40,20 @@ export interface AppSettings {
   onboarded: boolean;
   /** Duração alvo da mensagem, em minutos. `null` = tempo livre. */
   preachingMinutes: number | null;
+  /** Versão das preferências — permite reaplicar padrões melhores em quem já usa. */
+  settingsVersion: number;
 }
+
+/** Larguras de leitura, em rem. "Cheia" aproveita quase toda a tela do tablet. */
+export const MEASURE_PRESETS = [
+  { label: 'Estreita', value: 38 },
+  { label: 'Média', value: 48 },
+  { label: 'Larga', value: 58 },
+  { label: 'Cheia', value: 76 },
+] as const;
+
+/** Versão atual das preferências. Ao subir, `migrate` reaplica o que mudou. */
+const SETTINGS_VERSION = 2;
 
 const STORAGE_KEY = 'hub-bible:appearance';
 
@@ -50,7 +63,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   contrast: 'normal',
   fontScale: 1,
   leading: 1.75,
-  measure: 38,
+  measure: 58,
   readerFont: 'serif',
   verseLayout: 'paragraph',
   textAlign: 'left',
@@ -61,13 +74,30 @@ export const DEFAULT_SETTINGS: AppSettings = {
   lastPosition: null,
   onboarded: false,
   preachingMinutes: 40,
+  settingsVersion: SETTINGS_VERSION,
 };
+
+/**
+ * Aplica melhorias de padrão a quem já usava o app.
+ * v2 — a largura de leitura padrão era estreita demais em tablets: quem nunca
+ * mexeu no ajuste (ficou nos 38rem antigos) passa a usar a largura nova.
+ */
+function migrate(merged: AppSettings, storedVersion: number): AppSettings {
+  let next = merged;
+  if (storedVersion < 2) {
+    // 38rem era o padrão antigo: quem está nele nunca ajustou a largura
+    next = { ...next, measure: next.measure === 38 ? DEFAULT_SETTINGS.measure : next.measure };
+  }
+  return { ...next, settingsVersion: SETTINGS_VERSION };
+}
 
 function read(): AppSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<AppSettings>) };
+    const parsed = JSON.parse(raw) as Partial<AppSettings>;
+    // a versão precisa vir do que estava gravado, antes de misturar com os padrões
+    return migrate({ ...DEFAULT_SETTINGS, ...parsed }, parsed.settingsVersion ?? 1);
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -108,7 +138,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     root.dataset.contrast = settings.contrast;
     root.style.setProperty('--reader-scale', String(settings.fontScale));
     root.style.setProperty('--reader-leading', String(settings.leading));
-    root.style.setProperty('--reader-measure', `${settings.measure}rem`);
+    // o limite em vw garante que a coluna nunca estoure a tela do celular
+    root.style.setProperty('--reader-measure', `min(${settings.measure}rem, 94vw)`);
     root.style.setProperty(
       '--font-reader',
       settings.readerFont === 'serif' ? 'var(--font-serif)' : 'var(--font-ui)',

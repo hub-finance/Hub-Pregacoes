@@ -101,7 +101,7 @@ export default function SettingsPage() {
             label="Largura do texto"
             value={settings.measure}
             min={28}
-            max={62}
+            max={100}
             step={1}
             suffix="rem"
             onChange={(measure) => update({ measure })}
