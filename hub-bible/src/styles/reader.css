@@ -304,7 +304,10 @@
   font-family: var(--font-reader);
   font-size: calc(clamp(1.5rem, calc(2.1vw + 1.1rem), 3.2rem) * var(--preach-scale));
   line-height: 1.5;
-  max-width: 46rem;
+  /* medida em `em`: acompanha o corpo da letra. Em `rem` a coluna ficava presa
+     a uma largura fixa e, com a fonte grande da pregação, sobravam três
+     palavras por linha. */
+  max-width: min(30em, 94%);
   margin: 0 auto;
 }
 .preach-text .verse-num {
@@ -327,7 +330,7 @@
 .preach-topic p {
   font-size: calc(clamp(1.1rem, 1.6vw, 1.7rem) * var(--preach-scale));
   line-height: 1.6;
-  max-width: 46rem;
+  max-width: min(34em, 94%);
   margin: 0 auto var(--sp-4);
   color: var(--text-2);
 }
@@ -354,8 +357,10 @@
   grid-template-columns: minmax(0, 1fr);
 }
 @media (min-width: 900px) {
-  /* Bíblia à esquerda, mensagem à direita — a ordem que o pregador espera */
-  .preach-split {
+  /* Bíblia à esquerda, mensagem à direita — a ordem que o pregador espera.
+     Só com a divisão ligada: sem isto, a mensagem sozinha ocuparia a primeira
+     coluna e a segunda ficaria vazia, jogando o texto para o canto. */
+  .preach-split.divided {
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   }
 }
