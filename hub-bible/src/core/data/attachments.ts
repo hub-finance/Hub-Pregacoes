@@ -90,6 +90,55 @@ export async function removeAttachmentsOf(docId: string): Promise<void> {
   await db.attachments.where('docId').equals(docId).delete();
 }
 
+/**
+ * Descobre o título dentro do próprio documento.
+ *
+ * O nome do arquivo costuma vir com sublinhados, numeração e sem acento
+ * ("O_Coracao_Pastoral_de_Deus_1"). O título de verdade está na primeira linha
+ * do documento, escrito como o autor quis — é ele que vale.
+ *
+ * Devolve `null` quando nada aproveitável é encontrado; nesse caso o nome do
+ * arquivo continua servindo.
+ */
+export async function extractTitle(file: File, format: AttachmentFormat): Promise<string | null> {
+  try {
+    const first =
+      format === 'pdf' ? await firstLineOfPdf(file) : await firstLineOfDocx(file);
+    const clean = (first ?? '').replace(/\s+/g, ' ').trim();
+    // linhas de filete, numeração solta e frases longas demais não são título
+    if (clean.length < 3 || clean.length > 120) return null;
+    if (!/[\p{L}]/u.test(clean)) return null;
+    return clean;
+  } catch {
+    return null;
+  }
+}
+
+async function firstLineOfPdf(file: File): Promise<string | null> {
+  const pdfjs = await import('pdfjs-dist');
+  const workerUrl = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
+  pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+  const doc = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
+  const content = await doc.getPage(1).then((page) => page.getTextContent());
+  for (const item of content.items) {
+    const text = (item as { str?: string }).str?.trim();
+    if (text && /[\p{L}]/u.test(text) && text.length >= 3) return text;
+  }
+  return null;
+}
+
+async function firstLineOfDocx(file: File): Promise<string | null> {
+  const JSZip = (await import('jszip')).default;
+  const zip = await JSZip.loadAsync(await file.arrayBuffer());
+  const xml = await zip.file('word/document.xml')?.async('string');
+  if (!xml) return null;
+  for (const match of xml.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)) {
+    const text = match[1].trim();
+    if (text && /[\p{L}]/u.test(text) && text.length >= 3) return text;
+  }
+  return null;
+}
+
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
