@@ -91,7 +91,7 @@ const TOPICS: Topic[] = [
       'O documento é exibido exatamente como foi feito — fontes, negritos, títulos, tabelas e quebras de página. Nada é convertido para texto simples.',
       'Ele entra na sua lista de sermões como qualquer outro: recebe categoria, etiquetas, anotações, e aparece na Biblioteca Ministerial.',
       'No Modo Pregação, o documento ocupa a tela com o cronômetro por cima, e você ainda pode abrir a Bíblia ao lado.',
-      'Formatos aceitos: PDF e Word .docx, até 25 MB. O .doc antigo não abre — no Word, use "Salvar como" para .docx ou PDF.',
+      'Formatos aceitos: PDF e Word .docx, até 35 MB. O .doc antigo não abre — no Word, use "Salvar como" para .docx ou PDF.',
       'O arquivo fica guardado no aparelho e funciona offline. Ao excluir o sermão, o arquivo vai junto.',
     ],
   },
@@ -105,7 +105,7 @@ const TOPICS: Topic[] = [
       'O botão "Modo Aula" abre a apostila em tela cheia com a Bíblia à esquerda e o material à direita: é a tela para dar aula. O botão de dividir fecha a Bíblia quando você quiser só estudar.',
       'No Modo Aula há cronômetro, ajuste de letra e a tela não apaga sozinha, igual ao Modo Pregação.',
       'Você pode escrever suas observações, vincular versículos e criar anotações sobre a apostila — o material continua intacto, o que é seu fica separado.',
-      'Formatos aceitos: PDF e Word .docx, até 25 MB cada. As páginas são desenhadas conforme você rola, então apostilas de 60 páginas abrem sem travar.',
+      'Formatos aceitos: PDF e Word .docx, até 35 MB cada. As páginas são desenhadas conforme você rola, então apostilas de 60 páginas abrem sem travar.',
     ],
   },
   {

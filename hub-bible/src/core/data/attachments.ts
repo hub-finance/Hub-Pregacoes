@@ -14,8 +14,15 @@ export const ACCEPTED_MIME = [
 
 export const ACCEPTED_EXTENSIONS = '.pdf,.docx';
 
-/** Limite por arquivo. Acima disso o IndexedDB do Android começa a sofrer. */
-export const MAX_FILE_BYTES = 25 * 1024 * 1024;
+/**
+ * Limite por arquivo.
+ *
+ * Era 25 MB, pensado no sermão avulso. As apostilas do Rhema Brasil pesam
+ * perto de 3 MB cada, e uma edição cheia de imagem pode passar bem disso — 35
+ * MB dá folga sem chegar perto do ponto em que o IndexedDB do Android começa a
+ * engasgar ao gravar um único registro.
+ */
+export const MAX_FILE_BYTES = 35 * 1024 * 1024;
 
 export type AttachmentFormat = 'pdf' | 'docx';
 
