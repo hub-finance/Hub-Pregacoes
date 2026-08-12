@@ -38,6 +38,8 @@ export interface AppSettings {
   customCategories: HighlightCategory[];
   lastPosition: ReadingPosition | null;
   onboarded: boolean;
+  /** Duração alvo da mensagem, em minutos. `null` = tempo livre. */
+  preachingMinutes: number | null;
 }
 
 const STORAGE_KEY = 'hub-bible:appearance';
@@ -58,6 +60,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   customCategories: [],
   lastPosition: null,
   onboarded: false,
+  preachingMinutes: 40,
 };
 
 function read(): AppSettings {
