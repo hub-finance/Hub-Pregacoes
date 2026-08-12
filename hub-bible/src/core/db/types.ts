@@ -76,6 +76,26 @@ export interface Note {
   updatedAt: number;
 }
 
+/**
+ * Bloco de conteúdo do sermão escrito dentro do aplicativo.
+ *
+ * O sermão deixou de ser quatro caixas de texto corrido e passou a ser uma
+ * sequência de blocos, do jeito que se monta um sermão no Word: um subtítulo,
+ * parágrafos, um quadro de destaque, uma citação bíblica, uma lista. Dentro de
+ * cada bloco o texto guarda a formatação que o autor deu (negrito, itálico,
+ * sublinhado e cor) — daí o conteúdo ser HTML, e não texto puro.
+ */
+export type SermonBlockType = 'section' | 'text' | 'highlight' | 'scripture' | 'list';
+
+export interface SermonBlock {
+  id: ID;
+  type: SermonBlockType;
+  /** HTML restrito — ver `core/sanitizeHtml.ts` para o que é aceito. */
+  html: string;
+  /** Só em `scripture`: a referência exibida sob a citação. */
+  reference?: string;
+}
+
 /** Bloco de um sermão/estudo (ponto, tópico). */
 export interface OutlineBlock {
   id: ID;
@@ -104,6 +124,12 @@ export interface Sermon {
   favorite?: boolean;
   createdAt: number;
   updatedAt: number;
+  /**
+   * Conteúdo montado em blocos. Quando existe, é ele que vale: os campos
+   * `introduction`/`development`/`conclusion`/`application` acima ficam como
+   * estavam, apenas para não perder nada de quem escreveu antes.
+   */
+  content?: SermonBlock[];
   /** Sermão que chegou pronto num arquivo: exibido como veio, sem reescrever. */
   attachmentId?: ID;
   attachmentFormat?: 'pdf' | 'docx';
@@ -117,6 +143,11 @@ export interface Sermon {
   appeal?: string;
 }
 
+/**
+ * Estudo bíblico. Na tela chama-se **Rhema**, e é onde vivem também as
+ * apostilas do Rhema Brasil importadas em PDF — o identificador `study`
+ * permanece porque é o nome da tabela desde a primeira versão do banco.
+ */
 export interface Study {
   id: ID;
   userId: ID;
@@ -135,6 +166,9 @@ export interface Study {
   favorite?: boolean;
   createdAt: number;
   updatedAt: number;
+  /** Apostila que chegou pronta em arquivo: exibida como veio, sem reescrever. */
+  attachmentId?: ID;
+  attachmentFormat?: 'pdf' | 'docx';
 }
 
 export interface Devotional {

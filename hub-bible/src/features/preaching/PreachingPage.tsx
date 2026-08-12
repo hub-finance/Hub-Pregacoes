@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks';
 import { SermonTimer } from './SermonTimer';
 import { ScripturePane } from './ScripturePane';
-import { DocumentViewer } from '../common/DocumentViewer';
+import { DocumentStage } from '../common/DocumentStage';
 import { getAttachment } from '../../core/data/attachments';
 import { EmptyState, Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
@@ -13,14 +13,45 @@ import { bookName } from '../../core/bible/canon';
 import { parseReference } from '../../core/bible/reference';
 import { getChapter } from '../../core/bible/repository';
 import { getDoc, listDocs } from '../../core/data/documents';
-import type { Sermon } from '../../core/db/types';
+import { groupBlocks, htmlToPlain } from '../../core/data/sermonContent';
+import { sanitizeHtml } from '../../core/sanitizeHtml';
+import type { Sermon, SermonBlock } from '../../core/db/types';
 
 interface Step {
   label: string;
   title?: string;
   scripture?: { text: string; reference: string };
   paragraphs: string[];
+  /** Sermão montado em blocos: prega-se com a formatação com que foi escrito. */
+  blocks?: SermonBlock[];
 }
+
+/**
+ * Um bloco do sermão na tela de pregação, com a formatação com que foi escrito.
+ * O HTML já foi limpo ao ser gravado; passa pelo `sanitizeHtml` de novo aqui
+ * porque exibir conteúdo guardado sem conferir é como não ter conferido nunca.
+ */
+function PreachBlock({ block }: { block: SermonBlock }) {
+  const html = { __html: sanitizeHtml(block.html) };
+  if (block.type === 'scripture') {
+    return (
+      <blockquote className="pb-scripture">
+        <span dangerouslySetInnerHTML={html} />
+        {block.reference && <cite>{block.reference}</cite>}
+      </blockquote>
+    );
+  }
+  if (block.type === 'highlight') return <div className="pb-highlight" dangerouslySetInnerHTML={html} />;
+  if (block.type === 'list') return <div className="pb-list" dangerouslySetInnerHTML={html} />;
+  return <p dangerouslySetInnerHTML={html} />;
+}
+
+/** Rótulo curto para a barra de passos — o subtítulo inteiro não cabe. */
+const shortLabel = (value: string, fallback: string) => {
+  const text = value.trim();
+  if (!text) return fallback;
+  return text.length > 22 ? `${text.slice(0, 21)}…` : text;
+};
 
 /**
  * MODO PREGAÇÃO — tela cheia, poucos elementos, texto grande.
@@ -73,6 +104,20 @@ export default function PreachingPage() {
           ? { text: doc.mainTextContent, reference: doc.mainText }
           : undefined,
       });
+      // sermão montado em blocos: cada seção é um passo, com o que vem sob ela
+      groupBlocks(doc.content ?? []).forEach((part, i) => {
+        const scripture = part.blocks.find((b) => b.type === 'scripture' && b.reference);
+        list.push({
+          label: shortLabel(part.title, `Parte ${i + 1}`),
+          title: part.title || undefined,
+          paragraphs: [],
+          blocks: part.blocks,
+          scripture: scripture
+            ? { text: htmlToPlain(scripture.html), reference: scripture.reference ?? '' }
+            : undefined,
+        });
+      });
+
       if (doc.introduction) list.push({ label: 'Introdução', title: 'Introdução', paragraphs: [doc.introduction] });
 
       // o desenvolvimento é um texto só: quebra em parágrafos vira um passo cada,
@@ -209,34 +254,10 @@ export default function PreachingPage() {
   // documento importado ocupa o palco inteiro, com o cronômetro por cima
   if (attachment.data) {
     return (
-      <div
-        className="preach"
-        style={{ '--preach-scale': settings.preachingScale } as React.CSSProperties}
-      >
-        <SermonTimer />
-        <div className="preach-split">
-          {split && <ScripturePane />}
-          <div className="preach-stage split" style={{ justifyContent: 'flex-start' }}>
-            <DocumentViewer attachment={attachment.data} />
-          </div>
-        </div>
-        <div className="preach-bar">
-          <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Sair do modo pregação">
-            <Icon name="close" />
-          </button>
-          <span className="small dim truncate" style={{ flex: 1, padding: '0 var(--sp-2)' }}>
-            {sermon.data?.title || attachment.data.name}
-          </span>
-          <button
-            className={`icon-btn preach-split-toggle${split ? ' active' : ''}`}
-            onClick={() => setSplit((v) => !v)}
-            aria-label={split ? 'Fechar a Bíblia ao lado' : 'Abrir a Bíblia ao lado'}
-            aria-pressed={split}
-          >
-            <Icon name="split" />
-          </button>
-        </div>
-      </div>
+      <DocumentStage
+        title={sermon.data?.title ?? ''}
+        attachment={attachment.data}
+      />
     );
   }
 
@@ -271,7 +292,14 @@ export default function PreachingPage() {
           className={`preach-stage${split ? ' split' : ''}`}
           onClick={(e) => (e.detail === 2 ? go(1) : undefined)}
         >
-        {step.scripture ? (
+        {step.blocks ? (
+          <div className="preach-topic preach-blocks">
+            {step.title && <h2>{step.title}</h2>}
+            {step.blocks.map((block) => (
+              <PreachBlock key={block.id} block={block} />
+            ))}
+          </div>
+        ) : step.scripture ? (
           <>
             <p className="preach-text">{step.scripture.text}</p>
             <p className="preach-ref">{step.scripture.reference}</p>
