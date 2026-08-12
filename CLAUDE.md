@@ -47,6 +47,8 @@ reading plans and a full-screen preaching mode.
 - **Deployed** as a static site on Vercel; the built output is `hub-bible/dist`.
 
 Read `hub-bible/README.md` first — it is the functional description of the app.
+**Picking up work in a new session: start from `hub-bible/docs/PENDENCIAS.md`**,
+which records what is left, what was already investigated, and why.
 
 ---
 
