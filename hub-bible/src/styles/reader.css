@@ -297,9 +297,12 @@
   justify-content: center;
   padding: var(--sp-6) clamp(var(--sp-4), 6vw, var(--sp-7));
 }
+.preach {
+  --preach-scale: 1;
+}
 .preach-text {
   font-family: var(--font-reader);
-  font-size: clamp(1.5rem, calc(2.1vw + 1.1rem), 3.2rem);
+  font-size: calc(clamp(1.5rem, calc(2.1vw + 1.1rem), 3.2rem) * var(--preach-scale));
   line-height: 1.5;
   max-width: 46rem;
   margin: 0 auto;
@@ -317,12 +320,12 @@
   font-weight: 650;
 }
 .preach-topic h2 {
-  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  font-size: calc(clamp(1.6rem, 3vw, 2.6rem) * var(--preach-scale));
   margin-bottom: var(--sp-4);
   text-align: center;
 }
 .preach-topic p {
-  font-size: clamp(1.1rem, 1.6vw, 1.7rem);
+  font-size: calc(clamp(1.1rem, 1.6vw, 1.7rem) * var(--preach-scale));
   line-height: 1.6;
   max-width: 46rem;
   margin: 0 auto var(--sp-4);
@@ -331,7 +334,7 @@
 /* com a Bíblia ao lado, a mensagem tem metade da largura: o corpo do texto
    precisa acompanhar, senão estoura a coluna */
 .preach-stage.split .preach-text {
-  font-size: clamp(1.15rem, calc(0.9vw + 0.85rem), 2rem);
+  font-size: calc(clamp(1.15rem, calc(0.9vw + 0.85rem), 2rem) * var(--preach-scale));
 }
 .preach-stage.split .preach-topic h2 {
   font-size: clamp(1.25rem, calc(1.1vw + 0.8rem), 1.9rem);

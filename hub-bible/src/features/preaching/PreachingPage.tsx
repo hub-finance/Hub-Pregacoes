@@ -64,7 +64,23 @@ export default function PreachingPage() {
           : undefined,
       });
       if (doc.introduction) list.push({ label: 'Introdução', title: 'Introdução', paragraphs: [doc.introduction] });
-      doc.blocks.forEach((block, i) => {
+
+      // o desenvolvimento é um texto só: quebra em parágrafos vira um passo cada,
+      // para o pregador avançar no ritmo da fala
+      doc.development
+        ?.split(/\n{2,}/)
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .forEach((part, i, all) => {
+          list.push({
+            label: all.length > 1 ? `Desenv. ${i + 1}` : 'Desenvolvimento',
+            title: i === 0 ? 'Desenvolvimento' : undefined,
+            paragraphs: [part],
+          });
+        });
+
+      // sermões do formato antigo continuam pregáveis
+      (doc.blocks ?? []).forEach((block, i) => {
         if (!block.title && !block.comment && !block.scripture) return;
         list.push({
           label: `${i + 1}. ${block.title || 'Ponto'}`,
@@ -75,7 +91,9 @@ export default function PreachingPage() {
           paragraphs: [block.comment, block.application].filter(Boolean),
         });
       });
+
       if (doc.conclusion) list.push({ label: 'Conclusão', title: 'Conclusão', paragraphs: [doc.conclusion] });
+      if (doc.application) list.push({ label: 'Aplicação', title: 'Aplicação', paragraphs: [doc.application] });
       if (doc.appeal) list.push({ label: 'Apelo', title: 'Apelo', paragraphs: [doc.appeal] });
       return list;
     }
@@ -196,10 +214,13 @@ export default function PreachingPage() {
   }
 
   return (
-    <div className="preach">
+    <div
+      className="preach"
+      style={{ '--preach-scale': settings.preachingScale } as React.CSSProperties}
+    >
       <SermonTimer />
       <div className="preach-split">
-        {split && <ScripturePane reference={step.scripture?.reference} />}
+        {split && sermon.data && <ScripturePane reference={step.scripture?.reference} />}
         <div
           className={`preach-stage${split ? ' split' : ''}`}
           onClick={(e) => (e.detail === 2 ? go(1) : undefined)}
@@ -255,6 +276,7 @@ export default function PreachingPage() {
         >
           <Icon name="chevron-right" />
         </button>
+        {sermon.data && (
         <button
           className={`icon-btn preach-split-toggle${split ? ' active' : ''}`}
           onClick={() => setSplit((v) => !v)}
@@ -263,16 +285,17 @@ export default function PreachingPage() {
         >
           <Icon name="split" />
         </button>
+        )}
         <button
           className="icon-btn"
-          onClick={() => update({ fontScale: Math.max(0.8, settings.fontScale - 0.1) })}
+          onClick={() => update({ preachingScale: Math.max(0.6, settings.preachingScale - 0.1) })}
           aria-label="Diminuir fonte"
         >
           A-
         </button>
         <button
           className="icon-btn"
-          onClick={() => update({ fontScale: Math.min(2.4, settings.fontScale + 0.1) })}
+          onClick={() => update({ preachingScale: Math.min(2, settings.preachingScale + 0.1) })}
           aria-label="Aumentar fonte"
         >
           A+

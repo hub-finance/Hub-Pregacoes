@@ -40,6 +40,8 @@ export interface AppSettings {
   onboarded: boolean;
   /** Duração alvo da mensagem, em minutos. `null` = tempo livre. */
   preachingMinutes: number | null;
+  /** Corpo do texto no Modo Pregação, independente do tamanho do leitor. */
+  preachingScale: number;
   /** Versão das preferências — permite reaplicar padrões melhores em quem já usa. */
   settingsVersion: number;
 }
@@ -74,6 +76,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   lastPosition: null,
   onboarded: false,
   preachingMinutes: 40,
+  preachingScale: 1,
   settingsVersion: SETTINGS_VERSION,
 };
 

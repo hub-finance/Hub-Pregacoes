@@ -840,6 +840,53 @@
   color: var(--accent-strong);
 }
 
+/* ajuda — acordeão de tópicos */
+.help-topic {
+  padding: 0;
+}
+.help-topic > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  cursor: pointer;
+  list-style: none;
+  min-height: var(--tap);
+}
+.help-topic > summary::-webkit-details-marker {
+  display: none;
+}
+.help-topic-icon {
+  display: inline-flex;
+  color: var(--accent);
+  flex: none;
+}
+.help-topic > summary .card-title {
+  flex: 1;
+}
+.help-topic[open] .help-topic-caret {
+  transform: rotate(180deg);
+}
+.help-topic-caret {
+  transition: transform var(--dur) var(--ease);
+  flex: none;
+}
+.help-steps {
+  list-style: decimal;
+  padding: 0 var(--sp-5) var(--sp-4) calc(var(--sp-5) + var(--sp-4));
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  color: var(--text-2);
+  line-height: 1.6;
+  font-size: 0.94rem;
+}
+.help-steps li::marker {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 /* abas */
 .tabs {
   display: flex;
