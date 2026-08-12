@@ -82,7 +82,7 @@ export function ShareSheet({ open, onClose, reference, text, translationLabel, t
             notify(result === 'shared' ? 'Compartilhado.' : result === 'copied' ? 'Texto copiado.' : 'Não foi possível compartilhar.', result === 'failed' ? 'error' : 'default');
           }}
         >
-          📤 Compartilhar texto
+          Compartilhar texto
         </button>
         <button
           className="btn"
@@ -93,7 +93,7 @@ export function ShareSheet({ open, onClose, reference, text, translationLabel, t
             notify(result === 'shared' ? 'Compartilhado.' : 'Imagem salva no dispositivo.');
           }}
         >
-          🖼️ Compartilhar imagem
+          Compartilhar imagem
         </button>
         <button
           className="btn btn-ghost"
@@ -101,7 +101,7 @@ export function ShareSheet({ open, onClose, reference, text, translationLabel, t
             notify((await copyToClipboard(plain)) ? 'Copiado.' : 'Não foi possível copiar.', 'default');
           }}
         >
-          📋 Copiar
+          Copiar
         </button>
       </div>
     </Sheet>

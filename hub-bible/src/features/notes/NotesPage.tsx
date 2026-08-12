@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Icon } from '../../components/Icon';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Sheet } from '../../components/Sheet';
@@ -79,13 +80,13 @@ export default function NotesPage() {
         lead={`${notes?.length ?? 0} anotação(ões).`}
         actions={
           <button className="btn btn-primary" onClick={openNew}>
-            ＋ Nova anotação
+            Nova anotação
           </button>
         }
       />
 
       <div className="search-field" style={{ marginBottom: 'var(--sp-4)' }}>
-        <span aria-hidden="true">🔎</span>
+        <Icon name="search" size={18} className="dim" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -96,7 +97,7 @@ export default function NotesPage() {
 
       {!filtered.length ? (
         <EmptyState
-          icon="📝"
+          icon="note"
           title="Nenhuma anotação ainda"
           description="Selecione um versículo na leitura e toque em Anotar, ou crie uma anotação livre."
           action={
@@ -136,10 +137,10 @@ export default function NotesPage() {
               )}
               <div className="row row-wrap">
                 <button className="btn btn-sm btn-ghost" onClick={() => openEdit(note)}>
-                  ✏️ Editar
+                  Editar
                 </button>
                 <button className="btn btn-sm btn-ghost" onClick={() => setRemoving(note)}>
-                  🗑️ Excluir
+                  Excluir
                 </button>
               </div>
             </article>

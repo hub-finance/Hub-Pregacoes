@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Icon } from '../../components/Icon';
 import { useNavigate, useParams } from 'react-router-dom';
 import { EditorShell } from '../common/EditorShell';
 import { ScriptureField } from '../common/ScriptureField';
@@ -131,7 +132,7 @@ export default function StudyEditorPage() {
                     aria-label={`Remover ${reference}`}
                     onClick={() => set({ relatedVerses: doc.relatedVerses.filter((v) => v !== reference) })}
                   >
-                    ✕
+                    <Icon name="close" size={14} />
                   </button>
                 </span>
               );

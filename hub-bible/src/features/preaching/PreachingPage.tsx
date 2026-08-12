@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Icon } from '../../components/Icon';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { SermonTimer } from './SermonTimer';
+import { ScripturePane } from './ScripturePane';
 import { EmptyState, Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
 import { useSettings } from '../../core/settings/SettingsContext';
@@ -29,6 +31,7 @@ export default function PreachingPage() {
   const navigate = useNavigate();
   const { settings, update } = useSettings();
   const [index, setIndex] = useState(0);
+  const [split, setSplit] = useState(false);
 
   const refParam = params.get('ref');
   const parsed = refParam ? parseReference(refParam) : null;
@@ -139,7 +142,7 @@ export default function PreachingPage() {
             <div className="stack" style={{ marginTop: 'var(--sp-5)' }}>
               {(sermons ?? []).length === 0 && (
                 <EmptyState
-                  icon="🎙️"
+                  icon="sermon"
                   title="Nenhum sermão preparado"
                   description="Crie um sermão e ele aparecerá aqui pronto para pregar."
                   action={
@@ -155,7 +158,7 @@ export default function PreachingPage() {
                     <span className="list-title">{s.title || 'Sermão sem título'}</span>
                     <span className="list-meta">{[s.theme, s.mainText].filter(Boolean).join(' · ')}</span>
                   </span>
-                  <span className="dim">›</span>
+                  <Icon name="chevron-right" size={18} className="dim" />
                 </Link>
               ))}
             </div>
@@ -178,7 +181,7 @@ export default function PreachingPage() {
       <div className="preach">
         <div className="preach-stage">
           <EmptyState
-            icon="🕮"
+            icon="preach"
             title="Nada para exibir"
             description="Este sermão ainda não tem conteúdo, ou a passagem não foi encontrada."
             action={
@@ -195,7 +198,12 @@ export default function PreachingPage() {
   return (
     <div className="preach">
       <SermonTimer />
-      <div className="preach-stage" onClick={(e) => (e.detail === 2 ? go(1) : undefined)}>
+      <div className="preach-split">
+        {split && <ScripturePane reference={step.scripture?.reference} />}
+        <div
+          className={`preach-stage${split ? ' split' : ''}`}
+          onClick={(e) => (e.detail === 2 ? go(1) : undefined)}
+        >
         {step.scripture ? (
           <>
             <p className="preach-text">{step.scripture.text}</p>
@@ -216,14 +224,15 @@ export default function PreachingPage() {
             ))}
           </div>
         )}
+        </div>
       </div>
 
       <div className="preach-bar">
         <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Sair do modo pregação">
-          ✕
+          <Icon name="close" />
         </button>
         <button className="icon-btn" onClick={() => go(-1)} aria-label="Anterior" disabled={index === 0}>
-          ‹
+          <Icon name="chevron-left" />
         </button>
         <div className="preach-steps" role="tablist">
           {steps.map((s, i) => (
@@ -244,7 +253,15 @@ export default function PreachingPage() {
           aria-label="Próximo"
           disabled={index >= steps.length - 1}
         >
-          ›
+          <Icon name="chevron-right" />
+        </button>
+        <button
+          className={`icon-btn preach-split-toggle${split ? ' active' : ''}`}
+          onClick={() => setSplit((v) => !v)}
+          aria-label={split ? 'Fechar a Bíblia ao lado' : 'Abrir a Bíblia ao lado'}
+          aria-pressed={split}
+        >
+          <Icon name="split" />
         </button>
         <button
           className="icon-btn"

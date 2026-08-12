@@ -1,5 +1,6 @@
 import type { ChangeEvent, ReactNode } from 'react';
 import { Sheet } from './Sheet';
+import { Icon, type IconName } from './Icon';
 
 /* ------------------------------- cabeçalho ------------------------------- */
 
@@ -26,20 +27,20 @@ export function PageHeader({
 /* ------------------------------ estado vazio ----------------------------- */
 
 export function EmptyState({
-  icon = '📭',
+  icon = 'note',
   title,
   description,
   action,
 }: {
-  icon?: string;
+  icon?: IconName;
   title: string;
   description?: string;
   action?: ReactNode;
 }) {
   return (
     <div className="empty">
-      <span className="ico" aria-hidden="true">
-        {icon}
+      <span className="ico">
+        <Icon name={icon} size={40} />
       </span>
       <h3>{title}</h3>
       {description && <p className="small" style={{ maxWidth: '38ch' }}>{description}</p>}

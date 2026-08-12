@@ -1,8 +1,9 @@
 import { useSettings } from '../../core/settings/SettingsContext';
+import { Icon, type IconName } from '../../components/Icon';
 
 export interface VerseAction {
   id: string;
-  icon: string;
+  icon: IconName;
   label: string;
   onClick: () => void;
   active?: boolean;
@@ -28,8 +29,8 @@ export function VerseActionBar({
     return (
       <div className="verse-actions" role="toolbar" aria-label="Escolher categoria de marcação">
         <button className="verse-action" onClick={() => onPickHighlight(null)}>
-          <span className="ico" aria-hidden="true">
-            🚫
+          <span className="ico">
+            <Icon name="close" size={19} />
           </span>
           <span>Remover</span>
         </button>
@@ -57,15 +58,15 @@ export function VerseActionBar({
       </span>
       {actions.map((a) => (
         <button key={a.id} className="verse-action" onClick={a.onClick}>
-          <span className="ico" aria-hidden="true">
-            {a.icon}
+          <span className="ico">
+            <Icon name={a.icon} size={19} />
           </span>
           <span>{a.label}</span>
         </button>
       ))}
       <button className="verse-action" onClick={onClear}>
-        <span className="ico" aria-hidden="true">
-          ✕
+        <span className="ico">
+          <Icon name="close" size={19} />
         </span>
         <span>Fechar</span>
       </button>

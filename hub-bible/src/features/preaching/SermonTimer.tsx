@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Icon } from '../../components/Icon';
 import { useSettings } from '../../core/settings/SettingsContext';
 
 /** Durações alvo mais usadas em uma mensagem. */
@@ -74,7 +75,7 @@ export function SermonTimer() {
         aria-label={running ? 'Pausar cronômetro' : 'Iniciar cronômetro'}
         title={running ? 'Pausar' : 'Iniciar'}
       >
-        <span aria-hidden="true">{running ? '⏸' : '▶'}</span>
+        <Icon name={running ? "pause" : "play"} size={20} />
         <span className="mono-num">{formatClock(elapsed)}</span>
       </button>
 
@@ -96,7 +97,7 @@ export function SermonTimer() {
         {settings.preachingMinutes ? `${settings.preachingMinutes} min` : 'livre'} ▾
       </button>
       <button className="preach-timer-btn" onClick={reset} aria-label="Zerar cronômetro">
-        ↺
+        <Icon name="reset" size={19} />
       </button>
 
       {limitMs !== null && (

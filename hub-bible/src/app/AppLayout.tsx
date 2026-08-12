@@ -4,6 +4,7 @@ import { BOTTOM_NAV, GROUP_LABEL, NAV_ITEMS, type NavItem } from './navigation';
 import { useOnline } from '../hooks';
 import { useSettings } from '../core/settings/SettingsContext';
 import { Sheet } from '../components/Sheet';
+import { Icon } from '../components/Icon';
 
 const groups: NavItem['group'][] = ['principal', 'ministerio', 'sistema'];
 
@@ -47,8 +48,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 end={item.to === '/'}
                 className={({ isActive }) => `rail-item${isActive ? ' active' : ''}`}
               >
-                <span className="ico" aria-hidden="true">
-                  {item.icon}
+                <span className="ico">
+                  <Icon name={item.icon} />
                 </span>
                 <span className="truncate">{item.label}</span>
               </NavLink>
@@ -58,8 +59,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
         <div className="spacer" />
         <button className="rail-item" onClick={cycleTheme}>
-          <span className="ico" aria-hidden="true">
-            {resolvedTheme === 'dark' ? '🌙' : resolvedTheme === 'sepia' ? '📜' : '☀️'}
+          <span className="ico">
+            <Icon name={resolvedTheme === 'dark' ? 'moon' : resolvedTheme === 'sepia' ? 'sepia' : 'sun'} />
           </span>
           <span>
             Tema: {resolvedTheme === 'dark' ? 'escuro' : resolvedTheme === 'sepia' ? 'sépia' : 'claro'}
@@ -70,7 +71,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <div className="app-main">
         {!online && (
           <div className="net-banner" role="status">
-            <span aria-hidden="true">📴</span>
+            <Icon name="offline" size={18} />
             <span>
               Você está offline. Seus dados e o texto já baixado continuam disponíveis.
             </span>
@@ -80,7 +81,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <header className="topbar">
           {/* no tablet/desktop o menu lateral já está visível */}
           <button className="icon-btn menu-toggle" onClick={() => setMenuOpen(true)} aria-label="Abrir menu">
-            ☰
+            <Icon name="menu" size={22} />
           </button>
           <div className="brand" style={{ flex: 1, minWidth: 0 }}>
             <span className="topbar-title truncate">
@@ -90,14 +91,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </span>
           </div>
           <button className="icon-btn" onClick={() => navigate('/busca')} aria-label="Buscar">
-            🔎
+            <Icon name="search" />
           </button>
           <button
             className="icon-btn"
             onClick={cycleTheme}
             aria-label={`Alternar tema (atual: ${resolvedTheme})`}
           >
-            {resolvedTheme === 'dark' ? '🌙' : resolvedTheme === 'sepia' ? '📜' : '☀️'}
+            <Icon name={resolvedTheme === 'dark' ? 'moon' : resolvedTheme === 'sepia' ? 'sepia' : 'sun'} />
           </button>
         </header>
 
@@ -112,15 +113,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
             end={item.to === '/'}
             className={({ isActive }) => `bottom-nav-item${isActive ? ' active' : ''}`}
           >
-            <span className="ico" aria-hidden="true">
-              {item.icon}
+            <span className="ico">
+              <Icon name={item.icon} size={22} />
             </span>
             <span>{item.shortLabel ?? item.label}</span>
           </NavLink>
         ))}
         <button className="bottom-nav-item" onClick={() => setMenuOpen(true)}>
-          <span className="ico" aria-hidden="true">
-            ⋯
+          <span className="ico">
+            <Icon name="more" size={22} />
           </span>
           <span>Mais</span>
         </button>
@@ -136,13 +137,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
               className="list-item"
               onClick={() => setMenuOpen(false)}
             >
-              <span aria-hidden="true" style={{ fontSize: '1.15rem' }}>
-                {item.icon}
-              </span>
+              <Icon name={item.icon} size={22} />
               <span className="list-body">
                 <span className="list-title">{item.label}</span>
               </span>
-              <span className="dim">›</span>
+              <Icon name="chevron-right" size={18} className="dim" />
             </NavLink>
           ))}
         </div>

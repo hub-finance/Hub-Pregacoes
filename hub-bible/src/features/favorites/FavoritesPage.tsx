@@ -77,7 +77,7 @@ export default function FavoritesPage() {
 
       {!filtered.length ? (
         <EmptyState
-          icon="⭐"
+          icon="star"
           title="Nenhum favorito por aqui"
           description="Na leitura, toque em um versículo e escolha Favoritar para guardá-lo nesta área."
           action={
@@ -119,13 +119,13 @@ export default function FavoritesPage() {
 
               <div className="row row-wrap">
                 <button className="btn btn-sm btn-ghost" onClick={() => openEditor(favorite)}>
-                  ✏️ Editar
+                  Editar
                 </button>
                 <button className="btn btn-sm btn-ghost" onClick={() => setSharing(favorite)}>
-                  📤 Compartilhar
+                  Compartilhar
                 </button>
                 <button className="btn btn-sm btn-ghost" onClick={() => setRemoving(favorite)}>
-                  🗑️ Excluir
+                  Excluir
                 </button>
                 <div className="spacer" />
                 <span className="small dim">

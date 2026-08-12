@@ -51,7 +51,7 @@ export function EditorShell({
           {saving ? 'Salvando…' : dirty ? 'Alterações pendentes' : 'Salvo'}
         </span>
         <button className="icon-btn" onClick={() => setMenu((v) => !v)} aria-label="Mais ações">
-          ⋯
+          …
         </button>
       </div>
 
@@ -66,13 +66,13 @@ export function EditorShell({
                 notify(result === 'shared' ? 'Compartilhado.' : 'Conteúdo copiado.');
               }}
             >
-              📤 Compartilhar
+              Compartilhar
             </button>
             <button className="btn btn-sm" onClick={() => exportAsMarkdown(safeName, toMarkdown())}>
-              ⬇️ Markdown
+              Markdown
             </button>
             <button className="btn btn-sm" onClick={() => exportAsText(safeName, toMarkdown())}>
-              ⬇️ TXT
+              TXT
             </button>
             <button
               className="btn btn-sm"
@@ -84,10 +84,10 @@ export function EditorShell({
                 }
               }}
             >
-              🖨️ PDF
+              PDF
             </button>
             <button className="btn btn-sm btn-danger" onClick={() => setRemoving(true)}>
-              🗑️ Excluir
+              Excluir
             </button>
           </div>
         </div>

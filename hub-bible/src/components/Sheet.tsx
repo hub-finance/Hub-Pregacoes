@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { Icon } from './Icon';
 
 interface SheetProps {
   open: boolean;
@@ -54,7 +55,7 @@ export function Sheet({ open, title, onClose, children, footer, size = 'md' }: S
         <header className="sheet-head">
           <h2 className="sheet-title truncate">{title}</h2>
           <button className="icon-btn" onClick={onClose} aria-label="Fechar">
-            ✕
+            <Icon name="close" />
           </button>
         </header>
         <div className="sheet-body">{children}</div>

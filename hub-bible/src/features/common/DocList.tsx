@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ConfirmDialog, EmptyState, PageHeader } from '../../components/ui';
+import { Icon, type IconName } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
 import { normalize } from '../../core/bible/canon';
 import { CONTENT_CATEGORIES } from '../../core/categories';
@@ -19,7 +20,7 @@ interface Props<T extends BaseDoc> {
   kind: DocKind;
   title: string;
   lead: string;
-  icon: string;
+  icon: IconName;
   route: string;
   create: () => T;
   subtitleOf: (doc: T) => string;
@@ -79,13 +80,13 @@ export function DocList<T extends BaseDoc>({
         lead={lead}
         actions={
           <button className="btn btn-primary" onClick={startNew}>
-            ＋ Novo
+            <Icon name="plus" size={17} /> Novo
           </button>
         }
       />
 
       <div className="search-field" style={{ marginBottom: 'var(--sp-3)' }}>
-        <span aria-hidden="true">🔎</span>
+        <Icon name="search" size={18} className="dim" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}

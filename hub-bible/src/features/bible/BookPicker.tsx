@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Icon } from '../../components/Icon';
 import { Sheet } from '../../components/Sheet';
 import { normalize } from '../../core/bible/canon';
 import type { BookMeta } from '../../core/db/types';
@@ -51,7 +52,7 @@ export function BookPicker({ open, books, book, chapter, onClose, onSelect }: Pr
       {!showChapters && (
         <>
           <div className="search-field">
-            <span aria-hidden="true">🔎</span>
+            <Icon name="search" size={18} className="dim" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -60,7 +61,7 @@ export function BookPicker({ open, books, book, chapter, onClose, onSelect }: Pr
             />
             {query && (
               <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => setQuery('')} aria-label="Limpar">
-                ✕
+                <Icon name="close" size={16} />
               </button>
             )}
           </div>

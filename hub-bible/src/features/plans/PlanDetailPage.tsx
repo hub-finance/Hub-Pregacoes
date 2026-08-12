@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Icon } from '../../components/Icon';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ProgressBar, Spinner } from '../../components/ui';
 import { useToast } from '../../components/Toast';
@@ -86,10 +87,10 @@ export default function PlanDetailPage() {
             <p className="card-title">{dayLabel(today)}</p>
             <div className="row row-wrap">
               <button className="btn btn-primary" onClick={() => openDay(today)}>
-                📖 Ler agora
+                Ler agora
               </button>
               <button className="btn" onClick={() => mark(today.day)}>
-                ✓ Marcar como lido
+                Marcar como lido
               </button>
             </div>
           </>
@@ -120,7 +121,7 @@ export default function PlanDetailPage() {
                   onClick={() => mark(day.day)}
                   style={{ color: done ? 'var(--success)' : 'var(--text-3)' }}
                 >
-                  {done ? '☑' : '☐'}
+                  <Icon name={done ? 'check' : 'plus'} size={20} style={done ? undefined : { opacity: 0.35 }} />
                 </button>
                 <button className="list-body" style={{ textAlign: 'left' }} onClick={() => openDay(day)}>
                   <span className="list-title" style={{ opacity: done ? 0.6 : 1 }}>

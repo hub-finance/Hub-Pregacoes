@@ -9,7 +9,7 @@ export default function StudiesPage() {
       kind="study"
       title="Estudos"
       lead="Aprofunde temas e organize o ensino."
-      icon="📚"
+      icon="study"
       route="/estudos"
       create={newStudy}
       subtitleOf={(s) => [s.theme, s.mainText].filter(Boolean).join(' · ')}

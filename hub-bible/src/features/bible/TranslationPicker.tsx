@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Icon } from '../../components/Icon';
 import { Sheet } from '../../components/Sheet';
 import type { TranslationInfo } from '../../core/db/types';
 
@@ -49,7 +50,7 @@ export function TranslationPicker({
                 {t.imported ? ' · importada' : ''}
               </span>
             </span>
-            {current === t.id && <span style={{ color: 'var(--accent-strong)' }}>✓</span>}
+            {current === t.id && <Icon name="check" size={18} style={{ color: 'var(--accent-strong)' }} />}
           </button>
         ))}
       </div>
@@ -89,7 +90,7 @@ export function TranslationPicker({
                   <span className="list-title">{t.name}</span>
                   <span className="list-meta">{t.publisher}</span>
                 </span>
-                <span aria-hidden="true">🔒</span>
+                <Icon name="lock" size={17} className="dim" />
               </div>
             ))}
           </div>

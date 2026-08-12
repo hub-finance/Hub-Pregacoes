@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Icon } from '../../components/Icon';
 import { TranslationManager } from './TranslationManager';
 import { Sheet } from '../../components/Sheet';
 import {
@@ -180,7 +181,7 @@ export default function SettingsPage() {
         <div className="section-head">
           <h2 className="section-title">Categorias de marcação</h2>
           <button className="btn btn-sm" onClick={() => setCategorySheet(true)}>
-            ＋ Nova
+            Nova categoria
           </button>
         </div>
         <div className="card">
@@ -196,7 +197,7 @@ export default function SettingsPage() {
                       update({ customCategories: settings.customCategories.filter((x) => x.id !== c.id) })
                     }
                   >
-                    ✕
+                    <Icon name="close" size={14} />
                   </button>
                 )}
               </span>
@@ -223,10 +224,10 @@ export default function SettingsPage() {
                 notify('Backup exportado.');
               }}
             >
-              ⬇️ Exportar meus dados
+              Exportar meus dados
             </button>
             <button className="btn" onClick={() => restoreInput.current?.click()}>
-              ⬆️ Restaurar backup
+              Restaurar backup
             </button>
             <button
               className="btn btn-ghost"
@@ -235,10 +236,10 @@ export default function SettingsPage() {
                 notify('Texto bíblico local removido. Ele será baixado novamente quando necessário.');
               }}
             >
-              🧹 Limpar texto bíblico baixado
+              Limpar texto bíblico baixado
             </button>
             <button className="btn btn-danger" onClick={() => setConfirmWipe(true)}>
-              🗑️ Excluir todos os meus dados
+              Excluir todos os meus dados
             </button>
           </div>
           <input

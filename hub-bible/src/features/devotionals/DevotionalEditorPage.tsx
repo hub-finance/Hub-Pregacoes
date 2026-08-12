@@ -67,7 +67,7 @@ export default function DevotionalEditorPage() {
       toHtml={toHtml}
       extraActions={
         <button className="btn btn-sm" onClick={() => setSharing(true)} disabled={!doc.scriptureText}>
-          🖼️ Imagem do texto
+          Imagem do texto
         </button>
       }
     >

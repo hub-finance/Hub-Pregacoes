@@ -9,7 +9,7 @@ export default function SermonsPage() {
       kind="sermon"
       title="Sermões"
       lead="Prepare, organize e pregue com clareza."
-      icon="🎙️"
+      icon="sermon"
       route="/sermoes"
       create={newSermon}
       subtitleOf={(s) => [s.theme, s.mainText].filter(Boolean).join(' · ')}

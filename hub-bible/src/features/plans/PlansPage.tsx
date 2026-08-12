@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Icon } from '../../components/Icon';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Sheet } from '../../components/Sheet';
@@ -131,7 +132,7 @@ export default function PlansPage() {
 
       {!(plans ?? []).length && (
         <EmptyState
-          icon="📅"
+          icon="calendar"
           title="Nenhum plano em andamento"
           description="Escolha um dos planos acima e acompanhe seu progresso dia a dia."
         />
@@ -200,7 +201,7 @@ export default function PlansPage() {
 
         {preview && (
           <div className="notice notice-accent">
-            <span aria-hidden="true">📊</span>
+            <Icon name="chart" size={20} style={{ flex: "none" }} />
             <span>
               {preview.total} capítulos em {preview.dayCount} dias — cerca de {preview.perDay} capítulos por dia.
             </span>

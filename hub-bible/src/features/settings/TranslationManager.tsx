@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Icon } from '../../components/Icon';
 import { ProgressBar } from '../../components/ui';
 import { useToast } from '../../components/Toast';
 import { useAsync } from '../../hooks';
@@ -111,7 +112,7 @@ export function TranslationManager() {
               <div className="row row-wrap">
                 {installed < 66 && (
                   <button className="btn btn-sm" disabled={busy} onClick={() => download(t)}>
-                    ⬇️ Baixar para uso offline
+                    Baixar para uso offline
                   </button>
                 )}
                 {installed > 0 && (
@@ -148,7 +149,7 @@ export function TranslationManager() {
       {licensed.length > 0 && (
         <>
           <div className="notice notice-accent">
-            <span aria-hidden="true">⚖️</span>
+            <Icon name="lock" size={20} style={{ flex: "none" }} />
             <span>
               As traduções abaixo são protegidas por direitos autorais e <strong>não acompanham</strong> o
               aplicativo. Se você tem autorização do detentor dos direitos (ou um arquivo licenciado),
