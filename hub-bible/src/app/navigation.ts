@@ -34,6 +34,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/pregacao', label: 'Modo Pregação', icon: 'preach', quick: true, group: 'ministerio' },
   { to: '/painel', label: 'Minha vida ministerial', icon: 'chart', group: 'sistema' },
   { to: '/config', label: 'Configurações', icon: 'settings', group: 'sistema' },
+  { to: '/ajuda', label: 'Ajuda', icon: 'info', group: 'sistema' },
 ];
 
 export const GROUP_LABEL: Record<NavItem['group'], string> = {

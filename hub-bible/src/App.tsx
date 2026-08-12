@@ -25,6 +25,7 @@ const PlansPage = lazy(() => import('./features/plans/PlansPage'));
 const PlanDetailPage = lazy(() => import('./features/plans/PlanDetailPage'));
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const SettingsPage = lazy(() => import('./features/settings/SettingsPage'));
+const HelpPage = lazy(() => import('./features/help/HelpPage'));
 const PreachingPage = lazy(() => import('./features/preaching/PreachingPage'));
 
 export default function App() {
@@ -69,6 +70,7 @@ export default function App() {
                   <Route path="/planos/:id" element={<PlanDetailPage />} />
                   <Route path="/painel" element={<DashboardPage />} />
                   <Route path="/config" element={<SettingsPage />} />
+                  <Route path="/ajuda" element={<HelpPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>

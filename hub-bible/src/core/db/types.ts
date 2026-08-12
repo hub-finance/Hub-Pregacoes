@@ -96,14 +96,22 @@ export interface Sermon {
   date: string; // ISO yyyy-mm-dd
   category: string;
   introduction: string;
-  blocks: OutlineBlock[];
+  development: string;
   conclusion: string;
-  appeal: string;
+  application: string;
   notes: string;
   tags: string[];
   favorite?: boolean;
   createdAt: number;
   updatedAt: number;
+  /**
+   * Estrutura antiga, em blocos de tópico. Mantida somente para não perder o
+   * que já foi escrito: o editor a exibe quando tem conteúdo e oferece juntar
+   * ao Desenvolvimento.
+   */
+  blocks?: OutlineBlock[];
+  /** Campo antigo "Apelo", hoje substituído por Aplicação. */
+  appeal?: string;
 }
 
 export interface Study {
