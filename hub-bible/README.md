@@ -78,12 +78,19 @@ node scripts/generate-icons.mjs   # regenera os ícones do PWA
 
 ## Texto bíblico e direitos autorais
 
-O aplicativo acompanha **duas traduções livres**:
+O aplicativo acompanha **cinco traduções livres — quatro em português**:
 
-- **Almeida (domínio público)** — português;
-- **King James Version (1611/1769)** — inglês.
+| Sigla | Tradução | Idioma | Observação |
+|---|---|---|---|
+| **AL** | Almeida (domínio público) | Português | padrão do app |
+| **BL** | Bíblia Livre (2018) | Português | grafia atual, texto dedicado ao domínio público |
+| **TB** | Tradução Brasileira (1917) | Português | usa "Jeová" para o Nome divino |
+| **1911** | Almeida 1911 | Português | grafia da época ("fructo", "n'elle") |
+| **KJV** | King James Version (1611/1769) | Inglês | referência para estudo |
 
-**ARA, NVI, NTLH, KJA e ACF são protegidas por direitos autorais e não são distribuídas
+Cada uma traz os 66 livros, 1.189 capítulos e cerca de 31.100 versículos.
+
+**ARA, NVI, NTLH, KJA, NAA e ACF são protegidas por direitos autorais e não são distribuídas
 com o aplicativo.** Elas aparecem no catálogo como espaço reservado e podem ser instaladas
 pelo próprio usuário, a partir de uma cópia licenciada, em *Configurações › Traduções ›
 Importar*. O texto importado fica apenas no dispositivo.

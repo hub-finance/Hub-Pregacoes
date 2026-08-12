@@ -20,6 +20,66 @@
     }
   },
   {
+    "id": "pt_blivre",
+    "name": "Bíblia Livre",
+    "shortName": "BLIVRE",
+    "abbrev": "BL",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "year": 2018,
+    "license": "Domínio público",
+    "licenseUrl": "https://github.com/damarals/biblias",
+    "publisher": "Projeto Bíblia Livre — texto dedicado ao domínio público",
+    "sourceUrl": "https://github.com/damarals/biblias/releases/latest/download/BLIVRE.json",
+    "bundled": true,
+    "default": false,
+    "stats": {
+      "books": 66,
+      "chapters": 1189,
+      "verses": 31102
+    }
+  },
+  {
+    "id": "pt_tb",
+    "name": "Tradução Brasileira",
+    "shortName": "TB",
+    "abbrev": "TB",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "year": 1917,
+    "license": "Domínio público",
+    "licenseUrl": "https://github.com/damarals/biblias",
+    "publisher": "Tradução Brasileira (1917) — usa \"Jeová\" para o Nome divino",
+    "sourceUrl": "https://github.com/damarals/biblias/releases/latest/download/TB.json",
+    "bundled": true,
+    "default": false,
+    "stats": {
+      "books": 66,
+      "chapters": 1189,
+      "verses": 31100
+    }
+  },
+  {
+    "id": "pt_alm1911",
+    "name": "Almeida 1911",
+    "shortName": "ALM1911",
+    "abbrev": "1911",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "year": 1911,
+    "license": "Domínio público",
+    "licenseUrl": "https://github.com/damarals/biblias",
+    "publisher": "João Ferreira de Almeida, edição de 1911 (grafia da época)",
+    "sourceUrl": "https://github.com/damarals/biblias/releases/latest/download/ALM1911.json",
+    "bundled": true,
+    "default": false,
+    "stats": {
+      "books": 66,
+      "chapters": 1189,
+      "verses": 31101
+    }
+  },
+  {
     "id": "en_kjv",
     "name": "King James Version",
     "shortName": "KJV",
@@ -86,6 +146,19 @@
     "language": "pt-BR",
     "languageLabel": "Português",
     "publisher": "Abba Press / BV Books",
+    "license": "Direitos reservados — requer licença",
+    "bundled": false,
+    "default": false,
+    "requiresLicense": true
+  },
+  {
+    "id": "pt_naa",
+    "name": "Nova Almeida Atualizada",
+    "shortName": "NAA",
+    "abbrev": "NAA",
+    "language": "pt-BR",
+    "languageLabel": "Português",
+    "publisher": "Sociedade Bíblica do Brasil (2017)",
     "license": "Direitos reservados — requer licença",
     "bundled": false,
     "default": false,

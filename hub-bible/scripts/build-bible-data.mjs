@@ -51,6 +51,54 @@ const SOURCES = [
     default: true,
   },
   {
+    id: 'pt_blivre',
+    name: 'Bíblia Livre',
+    shortName: 'BLIVRE',
+    abbrev: 'BL',
+    language: 'pt-BR',
+    languageLabel: 'Português',
+    year: 2018,
+    license: 'Domínio público',
+    licenseUrl: 'https://github.com/damarals/biblias',
+    publisher: 'Projeto Bíblia Livre — texto dedicado ao domínio público',
+    sourceUrl: 'https://github.com/damarals/biblias/releases/latest/download/BLIVRE.json',
+    file: 'BLIVRE.json',
+    format: 'canon-array',
+    default: false,
+  },
+  {
+    id: 'pt_tb',
+    name: 'Tradução Brasileira',
+    shortName: 'TB',
+    abbrev: 'TB',
+    language: 'pt-BR',
+    languageLabel: 'Português',
+    year: 1917,
+    license: 'Domínio público',
+    licenseUrl: 'https://github.com/damarals/biblias',
+    publisher: 'Tradução Brasileira (1917) — usa "Jeová" para o Nome divino',
+    sourceUrl: 'https://github.com/damarals/biblias/releases/latest/download/TB.json',
+    file: 'TB.json',
+    format: 'canon-array',
+    default: false,
+  },
+  {
+    id: 'pt_alm1911',
+    name: 'Almeida 1911',
+    shortName: 'ALM1911',
+    abbrev: '1911',
+    language: 'pt-BR',
+    languageLabel: 'Português',
+    year: 1911,
+    license: 'Domínio público',
+    licenseUrl: 'https://github.com/damarals/biblias',
+    publisher: 'João Ferreira de Almeida, edição de 1911 (grafia da época)',
+    sourceUrl: 'https://github.com/damarals/biblias/releases/latest/download/ALM1911.json',
+    file: 'ALM1911.json',
+    format: 'canon-array',
+    default: false,
+  },
+  {
     id: 'en_kjv',
     name: 'King James Version',
     shortName: 'KJV',
@@ -112,6 +160,16 @@ const LICENSED_SLOTS = [
     language: 'pt-BR',
     languageLabel: 'Português',
     publisher: 'Abba Press / BV Books',
+    license: 'Direitos reservados — requer licença',
+  },
+  {
+    id: 'pt_naa',
+    name: 'Nova Almeida Atualizada',
+    shortName: 'NAA',
+    abbrev: 'NAA',
+    language: 'pt-BR',
+    languageLabel: 'Português',
+    publisher: 'Sociedade Bíblica do Brasil (2017)',
     license: 'Direitos reservados — requer licença',
   },
   {
@@ -198,11 +256,34 @@ function parseBibleApi(raw) {
   return books;
 }
 
+/** Lista de livros na ordem canônica: [{ abbrev, chapters: [[...]] }] */
+function parseCanonArray(raw) {
+  const entries = JSON.parse(raw);
+  if (!Array.isArray(entries)) throw new Error('Esperava uma lista de livros.');
+  const books = {};
+  entries.forEach((entry, index) => {
+    const meta = CANON[index];
+    if (!meta || !Array.isArray(entry?.chapters)) return;
+    books[meta.osis] = entry.chapters.map((chapter) =>
+      chapter.map((verse) => String(verse ?? '').replace(/\s+/g, ' ').trim()),
+    );
+  });
+  return books;
+}
+
+const PARSERS = {
+  usfx: parseUsfx,
+  bibleapi: parseBibleApi,
+  'canon-array': parseCanonArray,
+};
+
 async function buildTranslation(source) {
   console.log(`\n▶ ${source.id} — ${source.name}`);
   const file = await download(source);
   const raw = fs.readFileSync(file, 'utf8').replace(/^﻿/, '');
-  const parsed = source.format === 'usfx' ? parseUsfx(raw) : parseBibleApi(raw);
+  const parser = PARSERS[source.format];
+  if (!parser) throw new Error(`Formato desconhecido: ${source.format}`);
+  const parsed = parser(raw);
 
   const dir = path.join(OUT, source.id);
   fs.rmSync(dir, { recursive: true, force: true });
