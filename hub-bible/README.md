@@ -102,10 +102,20 @@ a qualquer momento.
 
 ---
 
+## Publicar
+
+O repositório traz `vercel.json` na raiz, já configurado para construir o app a partir de
+`hub-bible/`. Basta importar o repositório em [vercel.com/new](https://vercel.com/new) e clicar
+em *Deploy* — nenhuma opção precisa ser alterada no painel. Cada `git push` gera um novo deploy.
+
+Com a URL HTTPS em mãos, abra no Chrome do tablet e use **Instalar aplicativo**.
+Passo a passo completo: [`docs/DEPLOY-VERCEL.md`](docs/DEPLOY-VERCEL.md).
+
 ## Documentação técnica
 
 - [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) — camadas, banco de dados, PWA e caminho para o APK.
 - [`docs/LICENCAS-BIBLIA.md`](docs/LICENCAS-BIBLIA.md) — regras de licenciamento do texto bíblico.
+- [`docs/DEPLOY-VERCEL.md`](docs/DEPLOY-VERCEL.md) — publicação, atualizações e domínio próprio.
 
 ## Stack
 

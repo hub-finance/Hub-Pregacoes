@@ -4,6 +4,9 @@
   "private": true,
   "description": "Hub Bible — Biblia, estudo, devocional e organizador ministerial (PWA)",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
