@@ -151,6 +151,61 @@ Já verificado em navegador headless a 390px, 1024px e 2000px. Falta o uso real:
 
 ---
 
+## Traduções protegidas — as três vias investigadas (13/08/2026)
+
+Levantamento fechado. Resultado de cada uma:
+
+### 1. API licenciada — não avaliável daqui, mas é a via mais promissora
+
+A rede do ambiente de trabalho bloqueia todos os serviços de API bíblica
+(`api.scripture.api.bible`, `abibliadigital.com.br`, `bolls.life`,
+`getbible.net` — todos respondem `000`/403 no proxy). Não deu para verificar
+quais traduções em português cada um oferece nem sob que termos, e construir
+uma integração sem conseguir testá-la seria trabalho no escuro.
+
+**O que precisa ser feito, por alguém com rede aberta:**
+
+1. Verificar em cada serviço quais traduções em português estão disponíveis e
+   sob quais condições — em geral é preciso aceitar um contrato por tradução,
+   não basta a chave.
+2. Confirmar se o uso pretendido (app gratuito, não comercial, distribuído a
+   terceiros) está coberto.
+3. Só então implementar.
+
+**Como implementar quando houver serviço confirmado.** O repositório já tem o
+`TranslationInfo` com `requiresLicense`, e o leitor busca o texto por
+`getChapter(translation, book, chapter)` em `core/bible/repository.ts`. Um
+provedor on-line entra como um terceiro degrau na cascata, depois de memória e
+IndexedDB: busca o capítulo pela API, grava no IndexedDB e segue igual. Nenhuma
+tela precisa mudar. A chave do usuário fica em `settings`, nunca no repositório.
+
+### 2. Mais traduções em domínio público — nada novo encontrado
+
+Varri os catálogos alcançáveis. Em português existem apenas:
+
+| Fonte | Tradução | Situação |
+|---|---|---|
+| `seven1m/open-bibles` | Almeida | **já embutida** |
+| `damarals/biblias` | Bíblia Livre, Tradução Brasileira, Almeida 1911 | **já embutidas** |
+| `wldeh/bible-api` | Bíblia Livre Para Todos (BLT) | campo de copyright **vazio** — sem declaração de licença; e os arquivos de texto retornam 404 no repositório |
+| `wldeh/bible-api` | Translation for Translators | **só Novo Testamento** |
+| `gratis-bible/bible` | nenhuma em português | — |
+
+Conclusão: **as quatro que o app já traz são o que existe de livre e completo
+em português** nas fontes públicas alcançáveis. Campo de copyright vazio não é
+declaração de domínio público, e por isso a BLT não entrou.
+
+### 3. Autorização das editoras — pronta para enviar
+
+`IMPORTAR-TRADUCOES.md` traz o modelo de carta para SBB (ARA, ARC, NTLH, NAA),
+BV Books (KJA), Mundo Cristão (NVT), Biblica (NVI) e Trinitariana (ACF), com o
+que pedir e o que guardar da resposta.
+
+É a via mais curta e definitiva: com a autorização, embutir a tradução é
+trabalho de minutos.
+
+---
+
 ## Fontes já investigadas
 
 Para não repetir trabalho:
