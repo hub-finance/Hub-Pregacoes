@@ -157,7 +157,20 @@ Apaga o texto e o registro dela do aparelho.
 Adapte com seus dados e envie pelo canal de contato da editora. Guarde a
 resposta — ela é o seu documento de autorização.
 
-### Sociedade Bíblica do Brasil — ARA, NTLH, NAA
+### O que pedir — e o que guardar da resposta
+
+Peça três coisas, sempre por escrito:
+
+1. **Autorização de uso** do texto no seu aplicativo, com o alcance descrito
+   (só seus dispositivos, ou também os membros da igreja — seja honesto sobre
+   qual dos dois).
+2. **O texto em formato digital**, ou a indicação de onde obtê-lo legalmente.
+3. **A forma exata do crédito** que devem exibir — normalmente uma linha de
+   copyright que precisa aparecer junto ao texto.
+
+Guarde a resposta em PDF ou impressa. Ela é o seu documento de autorização.
+
+### Sociedade Bíblica do Brasil — ARA, ARC, NTLH, NAA
 
 > **Assunto:** Solicitação de autorização de uso de texto bíblico para uso pessoal e ministerial
 >
@@ -187,13 +200,35 @@ resposta — ela é o seu documento de autorização.
 
 Mesmo texto, trocando a tradução por **Nova Versão Internacional (NVI)**.
 
-### BV Books / Abba Press — KJA
+Canal: site oficial da SBB, seção de contato — peça o setor de **direitos
+autorais / permissões**.
 
-Mesmo texto, trocando por **King James Atualizada (KJA)**.
+### BV Books — King James Atualizada (KJA)
 
-### Sociedade Bíblica Trinitariana do Brasil — ACF
+Mesmo texto, trocando a tradução. Canal: site oficial da BV Books, contato.
+
+### Mundo Cristão — Nova Versão Transformadora (NVT)
+
+Mesmo texto. Canal: site oficial da Mundo Cristão, contato.
+
+### Biblica / Editora Vida — Nova Versão Internacional (NVI)
+
+Mesmo texto. A Biblica mantém política própria de permissões para uso não
+comercial — vale procurar a página de *permissions* antes de escrever.
+
+### Sociedade Bíblica Trinitariana do Brasil — Almeida Corrigida Fiel (ACF)
 
 Mesmo texto, trocando por **Almeida Corrigida Fiel (ACF)**.
+
+---
+
+## Se a autorização vier
+
+Me avise. Com a autorização em mãos, embutir a tradução no aplicativo é um
+trabalho de minutos: entra em `scripts/build-bible-data.mjs` como fonte, com os
+campos `license`, `licenseUrl` e `publisher` preenchidos com o texto exato que a
+editora exigir — eles aparecem no seletor de traduções e em Configurações ›
+Sobre. Ver `LICENCAS-BIBLIA.md`.
 
 ---
 
