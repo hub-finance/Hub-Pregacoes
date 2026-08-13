@@ -858,7 +858,8 @@
   padding: 0;
 }
 .doc-stage .doc-viewer-host .doc-page-slot {
-  margin: 0 auto 4px;
+  /* só o fio que separa uma folha da outra */
+  margin: 0 auto 2px;
   border-radius: 0;
   box-shadow: none;
 }
@@ -879,7 +880,7 @@
 }
 /* na tela dividida, a coluna da Bíblia também respira menos */
 .preach .preach-pane-body {
-  padding: var(--sp-3) var(--sp-4) var(--sp-5);
+  padding: var(--sp-2) var(--sp-3) var(--sp-5);
 }
 .preach .preach-pane-head {
   padding: 0 var(--sp-1);
@@ -889,7 +890,7 @@
    O documento fica de fora — ali o recuo é zero, e as duas regras têm a mesma
    especificidade: sem o `:not`, esta viria depois e devolveria a folga. */
 .preach-stage.split:not(.doc-stage) {
-  padding: var(--sp-3) var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
 }
 
 /* ------------------- corpo do texto da Bíblia ao lado --------------------- */
