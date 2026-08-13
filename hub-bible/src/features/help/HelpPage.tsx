@@ -104,6 +104,7 @@ const TOPICS: Topic[] = [
       'A apostila é exibida exatamente como foi feita — fontes, imagens, quadros e quebras de página. Nada é convertido.',
       'O botão "Modo Aula" abre a apostila em tela cheia com a Bíblia à esquerda e o material à direita: é a tela para dar aula. O botão de dividir fecha a Bíblia quando você quiser só estudar.',
       'A linha entre as duas colunas é arrastável: puxe para o lado para dar mais espaço à apostila ou à Bíblia. A posição fica gravada para as próximas vezes.',
+      'Para trocar de livro na Bíblia ao lado, toque no nome do livro no alto do painel — abre a lista com filtro por nome e os capítulos. As setas dos lados avançam e voltam capítulo.',
       'Os botões A- e A+ da barra de baixo aumentam a página da apostila; os do lado da Bíblia mudam só a letra dela. Cada lado tem o seu, e os dois ficam gravados.',
       'O botão de esquadro apara as margens brancas da folha: como a apostila é A4 e quase um quarto da largura é margem, a letra fica cerca de 25% maior sem precisar ampliar nada. Se alguma página aparecer cortada, toque nele de novo para ver a folha inteira.',
       'No Modo Aula há cronômetro e a tela não apaga sozinha, igual ao Modo Pregação.',

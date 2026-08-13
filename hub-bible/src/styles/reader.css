@@ -420,10 +420,21 @@
 }
 .preach-pane-ref {
   flex: 1;
+  min-width: 0;
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-sm);
   font-family: var(--font-ui);
   font-size: 0.95rem;
   font-weight: 650;
-  text-align: center;
+  color: var(--text);
+}
+.preach-pane-ref:hover {
+  background: var(--surface-hover);
 }
 .preach-pane-body {
   flex: 1;

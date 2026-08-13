@@ -605,7 +605,9 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  /* acima de tudo, inclusive do Modo Pregação (100): o painel é levado para o
+     corpo da página, então precisa vencer a tela cheia por z-index */
+  z-index: 120;
   background: var(--overlay);
   display: flex;
   align-items: flex-end;
