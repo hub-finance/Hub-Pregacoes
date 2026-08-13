@@ -94,7 +94,7 @@ export function newDevotional(): Devotional {
     userId: LOCAL_USER,
     title: '',
     date: today(),
-    category: 'Vida cristã',
+    category: 'Curso',
     scripture: '',
     reflection: '',
     application: '',
