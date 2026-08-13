@@ -915,6 +915,50 @@
   box-shadow: none;
 }
 
+/* A barra de baixo recolhida: sai da tela sem deixar faixa nenhuma, e devolve
+   a altura inteira ao material. Volta com um toque no documento ou na alça. */
+.preach-bar {
+  transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+.preach-bar.hidden {
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+/* a alça mora na borda de baixo, discreta, com área de toque de dedo */
+.preach-bar-handle {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom) + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  width: 88px;
+  height: 22px;
+  display: grid;
+  place-content: center;
+  opacity: 0.75;
+  transition: opacity var(--dur) var(--ease);
+}
+.preach-bar-handle::before {
+  content: '';
+  display: block;
+  width: 44px;
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--text-3);
+}
+.preach-bar-handle.away {
+  opacity: 0;
+  pointer-events: none;
+}
+.preach-bar-handle:hover {
+  opacity: 1;
+}
+
 /* Barras de cima e de baixo: a altura mínima do toque e mais nada. Vale para
    tela cheia inteira — apostila, sermão em arquivo ou sermão escrito aqui —
    porque cada faixa a mais é uma linha a menos de conteúdo na tela. */

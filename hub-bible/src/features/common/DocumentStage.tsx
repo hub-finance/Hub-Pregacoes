@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { DocumentViewer } from './DocumentViewer';
@@ -40,6 +40,38 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
   const zoom = settings.docZoom;
   const setZoom = (next: (z: number) => number) => update({ docZoom: next(zoom) });
 
+  /* ----------------------------- a barra de baixo -------------------------- */
+  /* Ela existe para os poucos segundos em que se ajusta alguma coisa; o resto
+     do tempo é material na tela. Some sozinha depois de um tempo parada e
+     volta com um toque no documento — com uma alça fina, sempre visível, para
+     que ninguém fique preso sem saber como sair. */
+  const [chrome, setChrome] = useState(true);
+  const hideTimer = useRef<number | undefined>(undefined);
+
+  const keepChrome = useCallback(() => {
+    setChrome(true);
+    window.clearTimeout(hideTimer.current);
+    hideTimer.current = window.setTimeout(() => setChrome(false), 6000);
+  }, []);
+
+  useEffect(() => {
+    keepChrome();
+    return () => window.clearTimeout(hideTimer.current);
+  }, [keepChrome]);
+
+  // sair pelo teclado, para quem usa o tablet com teclado acoplado
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') navigate(-1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate]);
+
+  /* Toque simples no documento alterna a barra. Arrastar (rolar) e demorar não
+     contam: senão a barra piscaria a cada rolagem de página. */
+  const touch = useRef({ x: 0, y: 0, at: 0 });
+
   // mantém a tela ligada enquanto se prega ou se ensina, quando o aparelho deixa
   useEffect(() => {
     let sentinel: { release: () => Promise<void> } | null = null;
@@ -64,7 +96,23 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
       {/* `divided` é o que coloca as duas colunas lado a lado; sem a classe, a
           Bíblia caía acima do documento mesmo em tela larga */}
       <SplitLayout divided={split} left={<ScripturePane />}>
-        <div className="preach-stage split doc-stage" style={{ justifyContent: 'flex-start' }}>
+        <div
+          className="preach-stage split doc-stage"
+          style={{ justifyContent: 'flex-start' }}
+          onPointerDown={(e) => {
+            touch.current = { x: e.clientX, y: e.clientY, at: Date.now() };
+          }}
+          onPointerUp={(e) => {
+            const moved = Math.hypot(e.clientX - touch.current.x, e.clientY - touch.current.y);
+            if (moved > 8 || Date.now() - touch.current.at > 400) return;
+            if (chrome) {
+              window.clearTimeout(hideTimer.current);
+              setChrome(false);
+            } else {
+              keepChrome();
+            }
+          }}
+        >
           <DocumentViewer
             attachment={attachment}
             dense
@@ -74,7 +122,15 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
           />
         </div>
       </SplitLayout>
-      <div className="preach-bar">
+      {/* alça: o fio que diz "há uma barra aqui" quando ela está recolhida */}
+      <button
+        className={`preach-bar-handle${chrome ? ' away' : ''}`}
+        onClick={keepChrome}
+        aria-label="Mostrar os controles"
+        aria-expanded={chrome}
+      />
+
+      <div className={`preach-bar${chrome ? '' : ' hidden'}`} onPointerDown={keepChrome}>
         <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Sair">
           <Icon name="close" />
         </button>
