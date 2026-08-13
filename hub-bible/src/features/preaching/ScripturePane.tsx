@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
+import { BookPicker } from '../bible/BookPicker';
 import { useAsync } from '../../hooks';
 import { useSettings } from '../../core/settings/SettingsContext';
 import { bookName } from '../../core/bible/canon';
@@ -19,6 +20,7 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
   const [chapter, setChapter] = useState(1);
   const [highlight, setHighlight] = useState<number | null>(null);
   const [manual, setManual] = useState(false);
+  const [picker, setPicker] = useState(false);
 
   // segue a referência do sermão enquanto o usuário não navegar por conta própria
   useEffect(() => {
@@ -68,9 +70,15 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
         >
           <Icon name="chevron-left" size={18} />
         </button>
-        <span className="preach-pane-ref truncate">
+        {/* o nome do livro é o botão para trocar de livro: é onde a mão vai */}
+        <button
+          className="preach-pane-ref truncate"
+          onClick={() => setPicker(true)}
+          aria-label="Trocar de livro ou capítulo"
+        >
           {bookName(book)} {chapter}
-        </span>
+          <Icon name="chevron-down" size={15} className="dim" />
+        </button>
         {manual && reference && (
           <button
             className="btn btn-sm btn-ghost"
@@ -127,6 +135,23 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
           );
         })}
       </div>
+
+      <BookPicker
+        open={picker}
+        books={meta.data?.books ?? []}
+        book={book}
+        chapter={chapter}
+        onClose={() => setPicker(false)}
+        onSelect={(nextBook, nextChapter) => {
+          setPicker(false);
+          setBook(nextBook);
+          setChapter(nextChapter);
+          setHighlight(null);
+          // escolha do usuário manda: o painel para de seguir a referência do
+          // ponto até ele tocar em "Voltar ao texto"
+          setManual(true);
+        }}
+      />
     </aside>
   );
 }
