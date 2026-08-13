@@ -5,6 +5,7 @@ import { DocumentViewer } from './DocumentViewer';
 import { SplitLayout } from './SplitLayout';
 import { SermonTimer } from '../preaching/SermonTimer';
 import { ScripturePane } from '../preaching/ScripturePane';
+import { downloadBlob } from '../../core/share/share';
 import { useSettings } from '../../core/settings/SettingsContext';
 import type { Attachment } from '../../core/db/types';
 
@@ -23,11 +24,18 @@ interface Props {
  * É o palco compartilhado pelo Modo Pregação (sermão que veio pronto em
  * arquivo) e pelo Modo Aula do Rhema (apostila em PDF): Bíblia à esquerda,
  * documento à direita, e nada mais na tela.
+ *
+ * A moldura é a mais fina possível de propósito. O documento não tem barra
+ * própria — o nome do arquivo e os controles de tamanho vivem na barra de
+ * baixo, que já existe — porque cada faixa de cinza em volta é largura que
+ * deixa de ser letra da apostila.
  */
 export function DocumentStage({ title, attachment, timer = true, splitByDefault = false }: Props) {
   const navigate = useNavigate();
   const { settings } = useSettings();
   const [split, setSplit] = useState(splitByDefault);
+  const [zoom, setZoom] = useState(1);
+  const [pages, setPages] = useState(0);
 
   // mantém a tela ligada enquanto se prega ou se ensina, quando o aparelho deixa
   useEffect(() => {
@@ -46,7 +54,7 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
 
   return (
     <div
-      className="preach"
+      className="preach doc-mode"
       style={{ '--preach-scale': settings.preachingScale } as React.CSSProperties}
     >
       {timer && <SermonTimer />}
@@ -54,7 +62,7 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
           Bíblia caía acima do documento mesmo em tela larga */}
       <SplitLayout divided={split} left={<ScripturePane />}>
         <div className="preach-stage split doc-stage" style={{ justifyContent: 'flex-start' }}>
-          <DocumentViewer attachment={attachment} />
+          <DocumentViewer attachment={attachment} dense zoom={zoom} onPages={setPages} />
         </div>
       </SplitLayout>
       <div className="preach-bar">
@@ -63,7 +71,29 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
         </button>
         <span className="small dim truncate" style={{ flex: 1, padding: '0 var(--sp-2)' }}>
           {title || attachment.name}
+          {pages ? ` · ${pages} pág` : ''}
         </span>
+        <button
+          className="icon-btn"
+          onClick={() => setZoom((z) => Math.max(0.5, Number((z - 0.15).toFixed(2))))}
+          aria-label="Diminuir a página"
+        >
+          <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>A-</span>
+        </button>
+        <button
+          className="icon-btn"
+          onClick={() => setZoom((z) => Math.min(3, Number((z + 0.15).toFixed(2))))}
+          aria-label="Aumentar a página"
+        >
+          <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>A+</span>
+        </button>
+        <button
+          className="icon-btn"
+          onClick={() => downloadBlob(attachment.blob, attachment.name)}
+          aria-label="Baixar o arquivo original"
+        >
+          <Icon name="download" />
+        </button>
         <button
           className={`icon-btn preach-split-toggle${split ? ' active' : ''}`}
           onClick={() => setSplit((v) => !v)}

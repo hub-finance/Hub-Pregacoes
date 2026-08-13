@@ -9,8 +9,10 @@ interface Props {
   children: ReactNode;
 }
 
-const MIN = 22;
-const MAX = 72;
+/* Até onde a linha pode ir. Larga o bastante para deixar a apostila quase
+   sozinha na tela, ou a Bíblia — quem ensina alterna entre as duas coisas. */
+const MIN = 15;
+const MAX = 85;
 
 /**
  * Tela dividida com a linha do meio arrastável.

@@ -395,10 +395,10 @@
 }
 .split-handle-grip {
   width: 4px;
-  height: 40px;
+  height: 56px;
   border-radius: var(--r-full);
   background: var(--text-3);
-  opacity: 0.5;
+  opacity: 0.85;
 }
 .split-handle:hover,
 .split-handle:focus-visible {
@@ -833,10 +833,10 @@
 
 /* ------------- documento em tela cheia: toda a largura é do texto ---------- */
 /* Na pregação e na aula o documento é a tela inteira daquele lado. Moldura,
-   cantos arredondados e recuo do palco só roubavam largura da página — e
-   largura, num PDF, é diretamente o tamanho da letra. */
-/* `.preach-stage.split` também tem padding e é mais específico que `.doc-stage`
-   sozinho — daí os dois nomes aqui, senão sobravam 60px de recuo dos lados. */
+   cantos arredondados, barra própria e recuo do palco só roubavam espaço da
+   página — e espaço, num PDF, é diretamente o tamanho da letra.
+   `.preach-stage.split` também tem padding e é mais específico que
+   `.doc-stage` sozinho, daí os dois nomes juntos aqui. */
 .preach-stage.doc-stage {
   padding: 0;
 }
@@ -854,11 +854,33 @@
   min-height: 0;
   /* nos dois sentidos: aumentada com A+, a página passa da largura da coluna */
   overflow: auto;
-  padding: var(--sp-2) 0;
+  padding: 0;
 }
 .doc-stage .doc-viewer-host .doc-page-slot {
-  margin-bottom: var(--sp-2);
+  margin: 0 auto 4px;
   border-radius: 0;
+  box-shadow: none;
+}
+
+/* barras de cima e de baixo no modo documento: a altura mínima do toque e mais
+   nada. Cada faixa a mais é uma linha a menos da apostila na tela. */
+.preach.doc-mode .preach-timer {
+  padding: 0 var(--sp-3);
+  gap: var(--sp-2);
+}
+.preach.doc-mode .preach-timer-clock {
+  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+}
+.preach.doc-mode .preach-bar {
+  padding: 0 var(--sp-2);
+  gap: 0;
+}
+/* na tela dividida, a coluna da Bíblia também respira menos */
+.preach.doc-mode .preach-pane-body {
+  padding: var(--sp-3) var(--sp-4) var(--sp-5);
+}
+.preach.doc-mode .preach-pane-head {
+  padding: 0 var(--sp-1);
 }
 
 /* ------------------- corpo do texto da Bíblia ao lado --------------------- */

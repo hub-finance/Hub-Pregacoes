@@ -21,12 +21,27 @@ import type { Attachment } from '../../core/db/types';
  * As duas bibliotecas são carregadas sob demanda: quem nunca abre um arquivo
  * importado não paga por elas no primeiro carregamento.
  */
-export function DocumentViewer({ attachment }: { attachment: Attachment }) {
+interface Props {
+  attachment: Attachment;
+  /**
+   * Sem moldura e sem barra própria: a página ocupa a coluna inteira.
+   * É como o documento aparece na pregação e na aula, onde cada pixel de
+   * largura vira tamanho de letra e a barra de baixo já traz os controles.
+   */
+  dense?: boolean;
+  /** Ampliação vinda de fora (modo `dense`). Sem ela, o visualizador controla. */
+  zoom?: number;
+  /** Número de páginas, para quem exibe essa informação em outro lugar. */
+  onPages?: (pages: number) => void;
+}
+
+export function DocumentViewer({ attachment, dense, zoom: outerZoom, onPages }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const [pages, setPages] = useState(0);
-  const [zoom, setZoom] = useState(1);
+  const [ownZoom, setOwnZoom] = useState(1);
+  const zoom = outerZoom ?? ownZoom;
   const [hostWidth, setHostWidth] = useState(0);
 
   /**
@@ -78,10 +93,14 @@ export function DocumentViewer({ attachment }: { attachment: Attachment }) {
             return;
           }
           setPages(doc.numPages);
+          onPages?.(doc.numPages);
           cleanups.push(() => void doc.destroy());
 
-          // largura disponível vira a escala: o documento ocupa a coluna toda
-          const available = Math.max(240, (hostWidth || host.clientWidth || 640) - 24);
+          // largura disponível vira a escala: o documento ocupa a coluna toda.
+          // Em `dense` não sobra folga nenhuma nas laterais — é o que dá à
+          // apostila a largura que a moldura estava consumindo.
+          const gutter = dense ? 0 : 24;
+          const available = Math.max(240, (hostWidth || host.clientWidth || 640) - gutter);
           const width = available * zoom;
           const first = await doc.getPage(1);
           const base = first.getViewport({ scale: 1 });
@@ -179,10 +198,13 @@ export function DocumentViewer({ attachment }: { attachment: Attachment }) {
       cancelled = true;
       cleanups.forEach((run) => run());
     };
+    // `onPages` e `dense` não entram: mudá-los não muda o que está desenhado
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attachment, zoom, hostWidth]);
 
   return (
-    <div className="doc-viewer">
+    <div className={`doc-viewer${dense ? ' dense' : ''}`}>
+      {!dense && (
       <div className="doc-viewer-bar">
         <Icon name={attachment.format === 'pdf' ? 'print' : 'note'} size={18} className="dim" />
         <span className="truncate" style={{ flex: 1, fontSize: '0.86rem', fontWeight: 550 }}>
@@ -194,14 +216,14 @@ export function DocumentViewer({ attachment }: { attachment: Attachment }) {
         </span>
         <button
           className="icon-btn"
-          onClick={() => setZoom((z) => Math.max(0.5, Number((z - 0.15).toFixed(2))))}
+          onClick={() => setOwnZoom((z) => Math.max(0.5, Number((z - 0.15).toFixed(2))))}
           aria-label="Diminuir"
         >
           <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>A-</span>
         </button>
         <button
           className="icon-btn"
-          onClick={() => setZoom((z) => Math.min(3, Number((z + 0.15).toFixed(2))))}
+          onClick={() => setOwnZoom((z) => Math.min(3, Number((z + 0.15).toFixed(2))))}
           aria-label="Aumentar"
         >
           <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>A+</span>
@@ -214,6 +236,7 @@ export function DocumentViewer({ attachment }: { attachment: Attachment }) {
           <Icon name="download" size={18} />
         </button>
       </div>
+      )}
 
       {status === 'loading' && (
         <p className="small dim center" style={{ padding: 'var(--sp-5)' }}>
