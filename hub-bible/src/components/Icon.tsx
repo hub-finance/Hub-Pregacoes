@@ -14,7 +14,7 @@ export type IconName =
   | 'sun' | 'moon' | 'sepia' | 'highlighter' | 'clock' | 'play' | 'pause'
   | 'reset' | 'swap' | 'text' | 'offline' | 'lock' | 'filter' | 'duplicate'
   | 'flame' | 'folder' | 'split' | 'warning' | 'info'
-  | 'list' | 'quote' | 'arrow-up' | 'arrow-down';
+  | 'list' | 'quote' | 'arrow-up' | 'arrow-down' | 'crop';
 
 const PATHS: Record<IconName, string> = {
   home: 'M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5M9.5 20v-6h5v6',
@@ -68,6 +68,7 @@ const PATHS: Record<IconName, string> = {
   quote: 'M9.5 6.5C7 7.5 5.5 9.8 5.5 12.5v5h5v-5h-3c0-2 .8-3.4 2.6-4.2zM19 6.5c-2.5 1-4 3.3-4 6v5h5v-5h-3c0-2 .8-3.4 2.6-4.2z',
   'arrow-up': 'M12 20V4.5M6 10.5 12 4.5l6 6',
   'arrow-down': 'M12 4v15.5M6 13.5l6 6 6-6',
+  crop: 'M6.5 2.5v15h15M2.5 6.5h15v15',
 };
 
 interface IconProps {
