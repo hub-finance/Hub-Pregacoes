@@ -702,7 +702,8 @@
   z-index: 2;
 }
 .doc-viewer-host {
-  padding: var(--sp-3);
+  /* folga mínima: a página é o conteúdo, a moldura não precisa competir */
+  padding: var(--sp-1);
   overflow-x: auto;
   display: flex;
   flex-direction: column;
@@ -713,7 +714,7 @@
    O lugar da folha existe antes do desenho: assim a barra de rolagem já mostra
    o tamanho real do documento e não muda de tamanho enquanto se lê. */
 .doc-viewer-host .doc-page-slot {
-  margin: 0 auto var(--sp-3);
+  margin: 0 auto var(--sp-2);
   /* nada de `max-width` aqui: é o que impedia o A+ de aumentar a página */
   background: #fff;
   box-shadow: var(--shadow-2);
@@ -862,25 +863,33 @@
   box-shadow: none;
 }
 
-/* barras de cima e de baixo no modo documento: a altura mínima do toque e mais
-   nada. Cada faixa a mais é uma linha a menos da apostila na tela. */
-.preach.doc-mode .preach-timer {
+/* Barras de cima e de baixo: a altura mínima do toque e mais nada. Vale para
+   tela cheia inteira — apostila, sermão em arquivo ou sermão escrito aqui —
+   porque cada faixa a mais é uma linha a menos de conteúdo na tela. */
+.preach .preach-timer {
   padding: 0 var(--sp-3);
   gap: var(--sp-2);
 }
-.preach.doc-mode .preach-timer-clock {
+.preach .preach-timer-clock {
   font-size: clamp(1.05rem, 1.6vw, 1.35rem);
 }
-.preach.doc-mode .preach-bar {
-  padding: 0 var(--sp-2);
+.preach .preach-bar {
+  padding: 2px var(--sp-2);
   gap: 0;
 }
 /* na tela dividida, a coluna da Bíblia também respira menos */
-.preach.doc-mode .preach-pane-body {
+.preach .preach-pane-body {
   padding: var(--sp-3) var(--sp-4) var(--sp-5);
 }
-.preach.doc-mode .preach-pane-head {
+.preach .preach-pane-head {
   padding: 0 var(--sp-1);
+}
+/* O texto do sermão escrito no aplicativo ganha o mesmo espaço: com a Bíblia
+   ao lado, o recuo do palco era maior do que a coluna aguentava.
+   O documento fica de fora — ali o recuo é zero, e as duas regras têm a mesma
+   especificidade: sem o `:not`, esta viria depois e devolveria a folga. */
+.preach-stage.split:not(.doc-stage) {
+  padding: var(--sp-3) var(--sp-4);
 }
 
 /* ------------------- corpo do texto da Bíblia ao lado --------------------- */

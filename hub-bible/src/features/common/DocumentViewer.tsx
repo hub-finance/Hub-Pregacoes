@@ -99,7 +99,7 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, onPages }: 
           // largura disponível vira a escala: o documento ocupa a coluna toda.
           // Em `dense` não sobra folga nenhuma nas laterais — é o que dá à
           // apostila a largura que a moldura estava consumindo.
-          const gutter = dense ? 0 : 24;
+          const gutter = dense ? 0 : 8;
           const available = Math.max(240, (hostWidth || host.clientWidth || 640) - gutter);
           const width = available * zoom;
           const first = await doc.getPage(1);
