@@ -32,10 +32,13 @@ interface Props {
  */
 export function DocumentStage({ title, attachment, timer = true, splitByDefault = false }: Props) {
   const navigate = useNavigate();
-  const { settings } = useSettings();
+  const { settings, update } = useSettings();
   const [split, setSplit] = useState(splitByDefault);
-  const [zoom, setZoom] = useState(1);
   const [pages, setPages] = useState(0);
+  // o tamanho e o corte de margem ficam gravados: ajusta-se uma vez, e a
+  // próxima apostila já abre do jeito que este pregador lê
+  const zoom = settings.docZoom;
+  const setZoom = (next: (z: number) => number) => update({ docZoom: next(zoom) });
 
   // mantém a tela ligada enquanto se prega ou se ensina, quando o aparelho deixa
   useEffect(() => {
@@ -62,7 +65,13 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
           Bíblia caía acima do documento mesmo em tela larga */}
       <SplitLayout divided={split} left={<ScripturePane />}>
         <div className="preach-stage split doc-stage" style={{ justifyContent: 'flex-start' }}>
-          <DocumentViewer attachment={attachment} dense zoom={zoom} onPages={setPages} />
+          <DocumentViewer
+            attachment={attachment}
+            dense
+            zoom={zoom}
+            trim={settings.trimMargins}
+            onPages={setPages}
+          />
         </div>
       </SplitLayout>
       <div className="preach-bar">
@@ -86,6 +95,17 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
           aria-label="Aumentar a página"
         >
           <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>A+</span>
+        </button>
+        <button
+          className={`icon-btn${settings.trimMargins ? ' active' : ''}`}
+          onClick={() => update({ trimMargins: !settings.trimMargins })}
+          aria-label={
+            settings.trimMargins ? 'Mostrar as margens da página' : 'Aparar as margens da página'
+          }
+          aria-pressed={settings.trimMargins}
+          title="Aparar as margens brancas"
+        >
+          <Icon name="crop" />
         </button>
         <button
           className="icon-btn"

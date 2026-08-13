@@ -46,6 +46,10 @@ export interface AppSettings {
   panelScale: number;
   /** Quanto da largura cabe à Bíblia na tela dividida, em porcentagem. */
   splitRatio: number;
+  /** Ampliação do documento importado (PDF/Word) na tela cheia. */
+  docZoom: number;
+  /** Aparar as margens brancas do PDF, para a letra render mais na coluna. */
+  trimMargins: boolean;
   /** Versão das preferências — permite reaplicar padrões melhores em quem já usa. */
   settingsVersion: number;
 }
@@ -83,6 +87,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   preachingScale: 1,
   panelScale: 0.9,
   splitRatio: 42,
+  docZoom: 1,
+  trimMargins: true,
   settingsVersion: SETTINGS_VERSION,
 };
 

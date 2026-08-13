@@ -21,6 +21,65 @@ import type { Attachment } from '../../core/db/types';
  * As duas bibliotecas são carregadas sob demanda: quem nunca abre um arquivo
  * importado não paga por elas no primeiro carregamento.
  */
+interface Area {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** Folga deixada em volta do texto, em pontos — o respiro de uma página. */
+const TRIM_PADDING = 14;
+
+/**
+ * Onde está o texto dentro da página.
+ *
+ * Uma apostila em A4 gasta perto de um quarto da largura com margem branca.
+ * Exibindo a folha inteira numa coluna estreita, essa margem come o tamanho da
+ * letra. Medindo onde o texto realmente começa e termina, a mesma coluna passa
+ * a mostrar só o que se lê — e a letra cresce na mesma proporção.
+ *
+ * Devolve `null` quando cortar seria arriscado: página sem texto, ou com o
+ * texto ocupando pouco espaço (capa, página de abertura, folha com imagem
+ * grande), onde o que está fora do bloco de texto provavelmente importa.
+ */
+async function contentBox(
+  page: { getTextContent: () => Promise<{ items: unknown[] }> },
+  natural: { width: number; height: number },
+): Promise<Area | null> {
+  try {
+    const content = await page.getTextContent();
+    let left = Infinity;
+    let right = -Infinity;
+    let bottom = Infinity;
+    let top = -Infinity;
+
+    for (const raw of content.items) {
+      const item = raw as { transform?: number[]; width?: number; height?: number; str?: string };
+      if (!item.transform || !item.str?.trim()) continue;
+      const x = item.transform[4];
+      const y = item.transform[5];
+      left = Math.min(left, x);
+      right = Math.max(right, x + (item.width ?? 0));
+      // a linha de base fica acima do fundo da letra: desce um pouco
+      bottom = Math.min(bottom, y - (item.height ?? 10) * 0.3);
+      top = Math.max(top, y + (item.height ?? 10));
+    }
+    if (!Number.isFinite(left) || !Number.isFinite(top)) return null;
+
+    const x = Math.max(0, left - TRIM_PADDING);
+    const width = Math.min(natural.width, right + TRIM_PADDING) - x;
+    const y = Math.max(0, bottom - TRIM_PADDING);
+    const height = Math.min(natural.height, top + TRIM_PADDING) - y;
+
+    // texto ocupando pouco da folha: o que sobra em volta costuma ser desenho
+    if (width < natural.width * 0.55 || height < natural.height * 0.3) return null;
+    return { x, y, width, height };
+  } catch {
+    return null;
+  }
+}
+
 interface Props {
   attachment: Attachment;
   /**
@@ -31,11 +90,13 @@ interface Props {
   dense?: boolean;
   /** Ampliação vinda de fora (modo `dense`). Sem ela, o visualizador controla. */
   zoom?: number;
+  /** Aparar as margens brancas da página. */
+  trim?: boolean;
   /** Número de páginas, para quem exibe essa informação em outro lugar. */
   onPages?: (pages: number) => void;
 }
 
-export function DocumentViewer({ attachment, dense, zoom: outerZoom, onPages }: Props) {
+export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPages }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [message, setMessage] = useState('');
@@ -114,13 +175,25 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, onPages }: 
             try {
               const page = await doc.getPage(n);
               const natural = page.getViewport({ scale: 1 });
-              const viewport = page.getViewport({ scale: (width / natural.width) * density });
+              const box = trim ? await contentBox(page, natural) : null;
+              const area = box ?? { x: 0, y: 0, width: natural.width, height: natural.height };
+              const scale = (width / area.width) * density;
+              // desloca o desenho para que a área de texto comece no canto do
+              // quadro; o resto da folha fica fora do canvas
+              const viewport = page.getViewport({
+                scale,
+                offsetX: -area.x * scale,
+                offsetY: -(natural.height - area.y - area.height) * scale,
+              });
               const canvas = document.createElement('canvas');
               canvas.className = 'doc-page';
-              canvas.width = viewport.width;
-              canvas.height = viewport.height;
+              canvas.width = Math.round(area.width * scale);
+              canvas.height = Math.round(area.height * scale);
               canvas.style.width = '100%';
               canvas.style.height = 'auto';
+              // quanto a letra cresceu por causa do corte — 1 significa página
+              // inteira. Serve para conferir o corte sem abrir o código.
+              canvas.dataset.fit = (natural.width / area.width).toFixed(2);
               const ctx = canvas.getContext('2d');
               if (!ctx) return;
               await page.render({ canvasContext: ctx, viewport }).promise;
@@ -160,7 +233,12 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, onPages }: 
           );
           cleanups.push(() => observer.disconnect());
 
-          const placeholder = (width * base.height) / base.width;
+          // altura de reserva: a proporção da primeira página serve para todas
+          const sample = trim ? await contentBox(first, base) : null;
+          const ratio = sample
+            ? sample.height / sample.width
+            : base.height / base.width;
+          const placeholder = width * ratio;
           for (let n = 1; n <= doc.numPages; n++) {
             const slot = document.createElement('div');
             slot.className = 'doc-page-slot';
@@ -198,9 +276,9 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, onPages }: 
       cancelled = true;
       cleanups.forEach((run) => run());
     };
-    // `onPages` e `dense` não entram: mudá-los não muda o que está desenhado
+    // `onPages` não entra: mudá-lo não muda o que está desenhado
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attachment, zoom, hostWidth]);
+  }, [attachment, zoom, hostWidth, trim, dense]);
 
   return (
     <div className={`doc-viewer${dense ? ' dense' : ''}`}>
