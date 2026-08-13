@@ -663,6 +663,13 @@
   flex-direction: column;
   gap: var(--sp-4);
 }
+/* O corpo do painel rola; quem está dentro dele não encolhe. Sem isto, com a
+   lista longa e a tela baixa, o navegador espremia a barra de abas
+   (Antigo/Novo Testamento) até virar um risco — e não havia como trocar de
+   testamento. Vale para todo o painel, não só para o seletor de livros. */
+.sheet-body > * {
+  flex: none;
+}
 .sheet-foot {
   display: flex;
   gap: var(--sp-2);
