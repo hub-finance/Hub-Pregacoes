@@ -27,6 +27,30 @@ export function DocumentViewer({ attachment }: { attachment: Attachment }) {
   const [message, setMessage] = useState('');
   const [pages, setPages] = useState(0);
   const [zoom, setZoom] = useState(1);
+  const [hostWidth, setHostWidth] = useState(0);
+
+  /**
+   * A largura da coluna manda no tamanho da página — e ela muda: ao arrastar a
+   * divisão da tela, ao girar o tablet. Redesenhar a cada pixel travaria o
+   * arrasto, então a medida só vale depois que o movimento para.
+   */
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    let timer: number | undefined;
+    const observer = new ResizeObserver(([entry]) => {
+      const width = Math.round(entry.contentRect.width);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        setHostWidth((previous) => (Math.abs(previous - width) > 16 ? width : previous));
+      }, 200);
+    });
+    observer.observe(host);
+    return () => {
+      window.clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,7 +81,7 @@ export function DocumentViewer({ attachment }: { attachment: Attachment }) {
           cleanups.push(() => void doc.destroy());
 
           // largura disponível vira a escala: o documento ocupa a coluna toda
-          const available = Math.max(240, (host.clientWidth || 640) - 24);
+          const available = Math.max(240, (hostWidth || host.clientWidth || 640) - 24);
           const width = available * zoom;
           const first = await doc.getPage(1);
           const base = first.getViewport({ scale: 1 });
@@ -122,8 +146,10 @@ export function DocumentViewer({ attachment }: { attachment: Attachment }) {
             const slot = document.createElement('div');
             slot.className = 'doc-page-slot';
             slot.dataset.page = String(n);
+            // sem limite de largura: com A+ a página passa da coluna e o
+            // painel rola de lado. Era o `max-width: 100%` que fazia o botão
+            // de aumentar não surtir efeito nenhum.
             slot.style.width = `${width}px`;
-            slot.style.maxWidth = '100%';
             slot.style.minHeight = `${placeholder}px`;
             host.appendChild(slot);
             observer.observe(slot);
@@ -153,7 +179,7 @@ export function DocumentViewer({ attachment }: { attachment: Attachment }) {
       cancelled = true;
       cleanups.forEach((run) => run());
     };
-  }, [attachment, zoom]);
+  }, [attachment, zoom, hostWidth]);
 
   return (
     <div className="doc-viewer">
@@ -211,10 +237,13 @@ export function DocumentViewer({ attachment }: { attachment: Attachment }) {
         </div>
       )}
 
+      {/* nunca escondido com `display: none`: elemento escondido mede zero, e
+          era por isso que a página saía sempre com a largura de reserva (640px)
+          em vez da largura real da coluna. Vazio, ele não ocupa nada. */}
       <div
         className={`doc-viewer-host${attachment.format === 'docx' ? ' is-docx' : ''}`}
         ref={hostRef}
-        style={{ display: status === 'ready' ? 'block' : 'none' }}
+        style={{ visibility: status === 'ready' ? 'visible' : 'hidden' }}
       />
     </div>
   );

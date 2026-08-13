@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { SermonTimer } from './SermonTimer';
 import { ScripturePane } from './ScripturePane';
 import { DocumentStage } from '../common/DocumentStage';
+import { SplitLayout } from '../common/SplitLayout';
 import { getAttachment } from '../../core/data/attachments';
 import { EmptyState, Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
@@ -286,8 +287,10 @@ export default function PreachingPage() {
       style={{ '--preach-scale': settings.preachingScale } as React.CSSProperties}
     >
       <SermonTimer />
-      <div className={`preach-split${split && sermon.data ? ' divided' : ''}`}>
-        {split && sermon.data && <ScripturePane reference={step.scripture?.reference} />}
+      <SplitLayout
+        divided={!!(split && sermon.data)}
+        left={<ScripturePane reference={step.scripture?.reference} />}
+      >
         <div
           className={`preach-stage${split ? ' split' : ''}`}
           onClick={(e) => (e.detail === 2 ? go(1) : undefined)}
@@ -320,7 +323,7 @@ export default function PreachingPage() {
           </div>
         )}
         </div>
-      </div>
+      </SplitLayout>
 
       <div className="preach-bar">
         <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Sair do modo pregação">
