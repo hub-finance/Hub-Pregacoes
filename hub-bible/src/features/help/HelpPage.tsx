@@ -16,12 +16,27 @@ interface Topic {
 const TOPICS: Topic[] = [
   {
     icon: 'download',
-    title: 'Instalar no tablet ou no celular',
+    title: 'Instalar no tablet ou no celular (Android)',
     steps: [
       'Abra o endereço do aplicativo no Chrome.',
       'Toque no menu do navegador (⋮) e escolha "Instalar aplicativo" ou "Adicionar à tela inicial".',
       'O Hub Bible passa a abrir em tela cheia, com ícone próprio, como um aplicativo comum.',
       'Depois de instalado, vá em Configurações › Traduções › "Baixar para uso offline". A partir daí a Bíblia inteira funciona sem internet.',
+    ],
+  },
+  {
+    icon: 'download',
+    title: 'Usar no iPhone ou no iPad',
+    steps: [
+      'Abra o endereço do aplicativo no Safari. No iPhone e no iPad é o Safari que instala aplicativos na tela de início.',
+      'Toque no botão Compartilhar (o quadrado com a seta para cima) e escolha "Adicionar à Tela de Início". Confirme em Adicionar.',
+      'Abra pelo ícone que apareceu na tela de início — e não mais pelo Safari. É essa a diferença que faz o iPhone tratar o Hub Bible como aplicativo: tela cheia, e os seus dados protegidos da limpeza que o Safari faz em sites sem uso.',
+      'Logo depois de instalar, vá em Configurações › Traduções › "Baixar para uso offline". Sem isso a Bíblia precisa de internet.',
+      'Faça o backup de vez em quando: Configurações › "Exportar meus dados". O arquivo vai para o app Arquivos. É a garantia contra perder sermões e anotações.',
+      'Para importar apostilas e sermões, tenha os arquivos no app Arquivos ou no iCloud Drive; o botão Importar abre direto neles.',
+      'Se a exportação em PDF não abrir, é o bloqueio de pop-up do Safari: Ajustes › Safari › desligue "Bloquear Pop-ups", ou use Markdown/TXT.',
+      'Em iPad com iOS anterior ao 16.4, a tela pode apagar durante a pregação. Ajustes › Tela e Brilho › Bloqueio Automático › Nunca, enquanto estiver pregando.',
+      'O aplicativo ainda não foi testado em aparelho da Apple — foi feito e verificado no Android. Se algo se comportar diferente, é bom avisar.',
     ],
   },
   {
