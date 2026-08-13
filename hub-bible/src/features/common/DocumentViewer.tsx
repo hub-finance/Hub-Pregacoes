@@ -28,8 +28,13 @@ interface Area {
   height: number;
 }
 
-/** Folga deixada em volta do texto, em pontos — o respiro de uma página. */
-const TRIM_PADDING = 14;
+/**
+ * Folga deixada em volta do texto, em pontos.
+ *
+ * O suficiente para a letra não encostar na borda da tela, e nada além disso:
+ * cada ponto aqui é largura que sai do tamanho da letra.
+ */
+const TRIM_PADDING = 5;
 
 /**
  * Onde está o texto dentro da página.
