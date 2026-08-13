@@ -1,5 +1,7 @@
 import { db, now, uid } from '../db/db';
-import { LOCAL_USER, type Attachment } from '../db/types';
+import { LOCAL_USER, type Attachment, type AttachmentFormat } from '../db/types';
+
+export type { AttachmentFormat };
 
 /**
  * Arquivos importados pelo usuário — sermões que já chegaram prontos em PDF ou
@@ -10,9 +12,10 @@ import { LOCAL_USER, type Attachment } from '../db/types';
 export const ACCEPTED_MIME = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 ].join(',');
 
-export const ACCEPTED_EXTENSIONS = '.pdf,.docx';
+export const ACCEPTED_EXTENSIONS = '.pdf,.docx,.pptx';
 
 /**
  * Limite por arquivo.
@@ -23,8 +26,6 @@ export const ACCEPTED_EXTENSIONS = '.pdf,.docx';
  * engasgar ao gravar um único registro.
  */
 export const MAX_FILE_BYTES = 35 * 1024 * 1024;
-
-export type AttachmentFormat = 'pdf' | 'docx';
 
 export interface DetectedFile {
   format: AttachmentFormat;
@@ -53,12 +54,23 @@ export function detectFormat(file: File): DetectedFile {
   ) {
     return { format: 'docx', baseName };
   }
+  if (
+    file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+    lower.endsWith('.pptx')
+  ) {
+    return { format: 'pptx', baseName };
+  }
+  if (lower.endsWith('.ppt')) {
+    throw new Error(
+      'Apresentações .ppt antigas não podem ser exibidas. No PowerPoint, use "Salvar como" para .pptx ou PDF.',
+    );
+  }
   if (lower.endsWith('.doc')) {
     throw new Error(
       'Arquivos .doc antigos não podem ser exibidos. Abra no Word e use "Salvar como" para .docx ou PDF.',
     );
   }
-  throw new Error('Formato não suportado. Envie um arquivo PDF ou Word (.docx).');
+  throw new Error('Formato não suportado. Envie PDF, Word (.docx) ou apresentação (.pptx).');
 }
 
 export async function saveAttachment(docId: string, file: File): Promise<Attachment> {
@@ -110,7 +122,11 @@ export async function removeAttachmentsOf(docId: string): Promise<void> {
 export async function extractTitle(file: File, format: AttachmentFormat): Promise<string | null> {
   try {
     const first =
-      format === 'pdf' ? await firstLineOfPdf(file) : await firstLineOfDocx(file);
+      format === 'pdf'
+        ? await firstLineOfPdf(file)
+        : format === 'pptx'
+          ? await firstLineOfPptx(file)
+          : await firstLineOfDocx(file);
     const clean = (first ?? '').replace(/\s+/g, ' ').trim();
     // linhas de filete, numeração solta e frases longas demais não são título
     if (clean.length < 3 || clean.length > 120) return null;
@@ -140,6 +156,19 @@ async function firstLineOfDocx(file: File): Promise<string | null> {
   const xml = await zip.file('word/document.xml')?.async('string');
   if (!xml) return null;
   for (const match of xml.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)) {
+    const text = match[1].trim();
+    if (text && /[\p{L}]/u.test(text) && text.length >= 3) return text;
+  }
+  return null;
+}
+
+/** O título da apresentação está no texto do primeiro slide. */
+async function firstLineOfPptx(file: File): Promise<string | null> {
+  const JSZip = (await import('jszip')).default;
+  const zip = await JSZip.loadAsync(await file.arrayBuffer());
+  const xml = await zip.file('ppt/slides/slide1.xml')?.async('string');
+  if (!xml) return null;
+  for (const match of xml.matchAll(/<a:t>([^<]*)<\/a:t>/g)) {
     const text = match[1].trim();
     if (text && /[\p{L}]/u.test(text) && text.length >= 3) return text;
   }

@@ -132,7 +132,7 @@ export interface Sermon {
   content?: SermonBlock[];
   /** Sermão que chegou pronto num arquivo: exibido como veio, sem reescrever. */
   attachmentId?: ID;
-  attachmentFormat?: 'pdf' | 'docx';
+  attachmentFormat?: AttachmentFormat;
   /**
    * Estrutura antiga, em blocos de tópico. Mantida somente para não perder o
    * que já foi escrito: o editor a exibe quando tem conteúdo e oferece juntar
@@ -168,9 +168,21 @@ export interface Study {
   updatedAt: number;
   /** Apostila que chegou pronta em arquivo: exibida como veio, sem reescrever. */
   attachmentId?: ID;
-  attachmentFormat?: 'pdf' | 'docx';
+  attachmentFormat?: AttachmentFormat;
 }
 
+/**
+ * Formatos de arquivo exibidos como vieram. PDF e Word saem idênticos ao
+ * original; a apresentação é reconstruída a partir do arquivo — chega perto,
+ * mas não é o PowerPoint desenhando.
+ */
+export type AttachmentFormat = 'pdf' | 'docx' | 'pptx';
+
+/**
+ * Devocional — e, na tela, também o **Curso**: material de aula que chega
+ * pronto em PDF, Word ou apresentação. O identificador `devotional` permanece
+ * porque é o nome da tabela desde a primeira versão do banco.
+ */
 export interface Devotional {
   id: ID;
   userId: ID;
@@ -187,6 +199,9 @@ export interface Devotional {
   favorite?: boolean;
   createdAt: number;
   updatedAt: number;
+  /** Curso que chegou pronto em arquivo: exibido como veio, sem reescrever. */
+  attachmentId?: ID;
+  attachmentFormat?: AttachmentFormat;
 }
 
 /** Documento livre da Biblioteca Ministerial (liderança, GC, discipulado…). */
@@ -256,7 +271,7 @@ export interface Attachment {
   name: string;
   mime: string;
   size: number;
-  format: 'pdf' | 'docx';
+  format: AttachmentFormat;
   blob: Blob;
   createdAt: number;
 }

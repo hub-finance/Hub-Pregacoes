@@ -58,7 +58,10 @@ node scripts/generate-icons.mjs   # regenera os ícones do PWA
   abrem no **Modo Aula**: Bíblia à esquerda, apostila à direita, cronômetro e tela que não
   apaga. As páginas do PDF são desenhadas conforme a rolagem, então apostilas de dezenas
   de páginas abrem sem pesar na memória do aparelho.
-- **Devocionais** com texto bíblico, reflexão, aplicação e oração.
+- **Cursos** — o material de aula que já vem pronto, importado em **PDF, Word (.docx) ou
+  apresentação (.pptx)**, aberto no **Modo Aula** com a Bíblia ao lado. A aba nasceu dos
+  devocionais e continua guardando os que já existiam, com texto bíblico, reflexão,
+  aplicação e oração.
 - **Biblioteca Ministerial** unificando tudo, com busca e as categorias da especificação
   (Liderança, GC, Discipulado, Escola de Líderes, Ministério, Evangelismo, Família, Vida cristã).
 - **Planos de leitura**: Bíblia em 1 ano, NT em 90 dias, Evangelhos em 30 dias, Salmos e

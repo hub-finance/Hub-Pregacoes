@@ -31,7 +31,7 @@ interface Props<T extends BaseDoc> {
 }
 
 /**
- * Listagem padrão dos documentos ministeriais (sermões, estudos, devocionais,
+ * Listagem padrão dos documentos ministeriais (sermões, Rhema, cursos,
  * materiais). Mesmo comportamento em todos os módulos: buscar, filtrar por
  * categoria, criar, duplicar e excluir.
  */

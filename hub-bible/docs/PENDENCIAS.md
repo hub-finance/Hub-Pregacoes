@@ -155,6 +155,10 @@ Já verificado em navegador headless a 390px, 1024px e 2000px. Falta o uso real:
       ficam desenhadas por vez, 7 MB de memória; falta a medição no tablet real
       com PDFs cheios de imagem)
 - [ ] Dar uma aula inteira no Modo Aula, com a Bíblia ao lado
+- [ ] Abrir um curso real em `.pptx` — o desenho da apresentação é reconstruído
+      pelo `pptx-preview`, não pelo PowerPoint, e vale conferir num arquivo de
+      verdade (com imagens, máscaras e SmartArt) se algum slide escorrega. O
+      caminho seguro, quando escorregar, é salvar como PDF.
 
 ---
 

@@ -11,7 +11,8 @@ import {
 } from '../db/types';
 
 /**
- * Documentos ministeriais: sermões, estudos, devocionais e materiais livres.
+ * Documentos ministeriais: sermões, Rhema, cursos e materiais livres. Na tela
+ * eles têm esses nomes; aqui guardam os identificadores originais do banco.
  * Todos compartilham o mesmo ciclo de vida (criar/salvar/duplicar/excluir) e
  * alimentam a Biblioteca Ministerial.
  */
@@ -21,14 +22,14 @@ export type DocKind = 'sermon' | 'study' | 'devotional' | 'doc';
 export const DOC_LABEL: Record<DocKind, string> = {
   sermon: 'Sermão',
   study: 'Rhema',
-  devotional: 'Devocional',
+  devotional: 'Curso',
   doc: 'Material',
 };
 
 export const DOC_ROUTE: Record<DocKind, string> = {
   sermon: '/sermoes',
   study: '/rhema',
-  devotional: '/devocionais',
+  devotional: '/cursos',
   doc: '/biblioteca',
 };
 
@@ -234,8 +235,8 @@ export async function loadLibrary(): Promise<LibraryEntry[]> {
     ...devotionals.map((d) => ({
       id: d.id,
       kind: 'devotional' as const,
-      title: d.title || 'Devocional sem título',
-      category: d.category || 'Devocionais',
+      title: d.title || 'Curso sem título',
+      category: d.category || 'Cursos',
       subtitle: [d.date, d.scripture].filter(Boolean).join(' · '),
       tags: d.tags,
       updatedAt: d.updatedAt,
@@ -266,7 +267,7 @@ export function filterLibrary(
   const q = normalize(query);
   return entries.filter((e) => {
     if (category && category !== 'Todos') {
-      const kindCategory = { sermon: 'Sermões', study: 'Rhema', devotional: 'Devocionais', doc: '' }[e.kind];
+      const kindCategory = { sermon: 'Sermões', study: 'Rhema', devotional: 'Cursos', doc: '' }[e.kind];
       if (e.category !== category && kindCategory !== category) return false;
     }
     return !q || e.searchBlob.includes(q);

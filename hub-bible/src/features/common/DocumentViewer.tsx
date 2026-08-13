@@ -256,6 +256,18 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
             host.appendChild(slot);
             observer.observe(slot);
           }
+        } else if (attachment.format === 'pptx') {
+          // A apresentação é reconstruída a partir do arquivo: o desenho fica
+          // próximo do original, mas não é o PowerPoint desenhando. Quem quiser
+          // fidelidade total salva como PDF, que o visualizador exibe idêntico.
+          const { init } = await import('pptx-preview');
+          // o A+/A- vale aqui também: o slide é desenhado na largura pedida
+          const available = (hostWidth || host.clientWidth || 960) - (dense ? 0 : 8);
+          const width = Math.max(320, available * zoom);
+          const previewer = init(host, { width, height: Math.round((width * 9) / 16) });
+          const buffer = await attachment.blob.arrayBuffer();
+          if (cancelled) return;
+          await previewer.preview(buffer);
         } else {
           const { renderAsync } = await import('docx-preview');
           const buffer = await attachment.blob.arrayBuffer();
@@ -347,7 +359,7 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
           era por isso que a página saía sempre com a largura de reserva (640px)
           em vez da largura real da coluna. Vazio, ele não ocupa nada. */}
       <div
-        className={`doc-viewer-host${attachment.format === 'docx' ? ' is-docx' : ''}`}
+        className={`doc-viewer-host is-${attachment.format}`}
         ref={hostRef}
         style={{ visibility: status === 'ready' ? 'visible' : 'hidden' }}
       />
