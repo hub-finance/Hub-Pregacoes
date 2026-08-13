@@ -128,6 +128,17 @@ const TOPICS: Topic[] = [
     ],
   },
   {
+    icon: 'library',
+    title: 'Cursos — o material das aulas',
+    steps: [
+      'A aba Cursos funciona como o Rhema, para o material de aula que você já tem pronto: importe e ensine a partir dele, com a Bíblia ao lado.',
+      'Cursos › Importar › escolha o arquivo. Aceita PDF, Word (.docx) e apresentação do PowerPoint (.pptx), até 35 MB cada.',
+      'O botão "Modo Aula" abre o material em tela cheia com a Bíblia à esquerda — a mesma tela do Rhema, com cronômetro, divisão arrastável e a tela que não apaga.',
+      'Sobre as apresentações: o PDF e o Word saem idênticos ao original. O .pptx é reconstruído pelo aplicativo e chega perto, mas pode escorregar em algum detalhe de desenho. Se algum slide sair diferente, salve a apresentação como PDF no PowerPoint — sai igualzinho.',
+      'Os devocionais que você já tinha continuam aqui, com os mesmos campos de sempre: nada se perdeu, a aba só mudou de nome.',
+    ],
+  },
+  {
     icon: 'preach',
     title: 'Modo Pregação',
     steps: [
@@ -154,7 +165,7 @@ const TOPICS: Topic[] = [
     title: 'Backup dos seus dados',
     steps: [
       'Tudo o que você cria fica gravado apenas no seu aparelho. Nada é enviado para servidor nenhum.',
-      'Por isso o backup importa: Configurações › "Exportar meus dados" gera um arquivo com favoritos, anotações, sermões, estudos, devocionais e planos.',
+      'Por isso o backup importa: Configurações › "Exportar meus dados" gera um arquivo com favoritos, anotações, sermões, Rhema, cursos e planos.',
       'Para restaurar em outro aparelho, ou depois de reinstalar: Configurações › "Restaurar backup".',
       'Se você limpar os dados do navegador sem ter backup, o conteúdo se perde. Exporte de tempos em tempos.',
     ],

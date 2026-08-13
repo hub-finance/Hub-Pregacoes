@@ -25,7 +25,7 @@ export const HIGHLIGHT_CATEGORIES: HighlightCategory[] = [
 export const LIBRARY_CATEGORIES = [
   'Sermões',
   'Rhema',
-  'Devocionais',
+  'Cursos',
   'Liderança',
   'GC',
   'Discipulado',
@@ -39,7 +39,7 @@ export const LIBRARY_CATEGORIES = [
 
 export type LibraryCategory = (typeof LIBRARY_CATEGORIES)[number];
 
-/** Categorias sugeridas para sermões, estudos e devocionais. */
+/** Categorias sugeridas para sermões, Rhema e cursos. */
 export const CONTENT_CATEGORIES = [
   'Culto',
   'Célula / GC',

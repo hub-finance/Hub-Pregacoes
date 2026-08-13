@@ -36,7 +36,7 @@ export default function DashboardPage() {
   const cards = [
     { label: 'Sermões preparados', value: counts?.sermons ?? 0, to: '/sermoes', icon: '🎙️' },
     { label: 'Rhema e estudos', value: counts?.studies ?? 0, to: '/rhema', icon: '📚' },
-    { label: 'Devocionais', value: counts?.devotionals ?? 0, to: '/devocionais', icon: '🙏' },
+    { label: 'Cursos', value: counts?.devotionals ?? 0, to: '/cursos', icon: '🙏' },
     { label: 'Materiais', value: counts?.docs ?? 0, to: '/biblioteca', icon: '📂' },
     { label: 'Capítulos lidos', value: stats.data?.distinctChapters ?? 0, to: '/biblia', icon: '📖' },
     { label: 'Dias consecutivos', value: stats.data?.streak ?? 0, to: '/planos', icon: '🔥' },

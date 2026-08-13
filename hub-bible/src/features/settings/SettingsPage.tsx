@@ -374,7 +374,7 @@ export default function SettingsPage() {
       <ConfirmDialog
         open={confirmWipe}
         title="Excluir todos os dados"
-        message="Favoritos, anotações, marcações, sermões, estudos, devocionais, materiais e planos serão apagados deste dispositivo. Esta ação não pode ser desfeita."
+        message="Favoritos, anotações, marcações, sermões, Rhema, cursos, materiais e planos serão apagados deste dispositivo. Esta ação não pode ser desfeita."
         confirmLabel="Excluir tudo"
         onCancel={() => setConfirmWipe(false)}
         onConfirm={async () => {

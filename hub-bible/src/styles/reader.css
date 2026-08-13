@@ -765,6 +765,25 @@
 .doc-viewer-host.is-docx {
   align-items: stretch;
 }
+
+/* apresentação: cada slide é uma folha deitada, com a mesma moldura do PDF */
+.doc-viewer-host.is-pptx {
+  padding: var(--sp-1);
+}
+.doc-viewer-host.is-pptx .pptx-preview-wrapper {
+  overflow: visible !important;
+  height: auto !important;
+  width: 100% !important;
+}
+.doc-viewer-host.is-pptx .slide-wrapper,
+.doc-viewer-host.is-pptx section {
+  margin: 0 auto var(--sp-2);
+  background: #fff;
+  box-shadow: var(--shadow-2);
+}
+.doc-stage .doc-viewer-host.is-pptx {
+  padding: 0;
+}
 .doc-viewer-host .docx-wrapper {
   background: transparent;
   padding: 0;
