@@ -122,7 +122,7 @@ const TOPICS: Topic[] = [
       'A Bíblia ao lado é a Bíblia inteira, não um resumo: abre onde você parou de ler, troca de livro pelo nome no alto do painel, troca de tradução no botão da sigla, mostra as suas marcações e deixa marcar, favoritar e copiar versículo ali mesmo — o que você faz ali aparece no leitor, e o que fez no leitor aparece ali.',
       'Os botões A- e A+ da barra de baixo aumentam a página da apostila; os do lado da Bíblia mudam só a letra dela. Cada lado tem o seu, e os dois ficam gravados.',
       'O botão de esquadro apara as margens brancas da folha: como a apostila é A4 e quase um quarto da largura é margem, a letra fica cerca de 25% maior sem precisar ampliar nada. Se alguma página aparecer cortada, toque nele de novo para ver a folha inteira.',
-      'A barra de baixo se recolhe sozinha depois de alguns segundos parada, para o material ocupar a tela inteira. Um toque no documento traz de volta; outro toque recolhe. Recolhida, fica um risquinho no rodapé — toque nele e ela volta.',
+      'A barra de baixo se recolhe sozinha depois de três segundos parada, e some na hora quando você começa a rolar o material. Um toque no documento traz de volta; outro toque recolhe. Recolhida, fica um risquinho no rodapé — toque nele e ela volta.',
       'No Modo Aula há cronômetro e a tela não apaga sozinha, igual ao Modo Pregação.',
       'Você pode escrever suas observações, vincular versículos e criar anotações sobre a apostila — o material continua intacto, o que é seu fica separado.',
       'Formatos aceitos: PDF e Word .docx, até 35 MB cada. As páginas são desenhadas conforme você rola, então apostilas de 60 páginas abrem sem travar.',

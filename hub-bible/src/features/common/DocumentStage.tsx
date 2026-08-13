@@ -48,10 +48,15 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
   const [chrome, setChrome] = useState(true);
   const hideTimer = useRef<number | undefined>(undefined);
 
+  const hideChrome = useCallback(() => {
+    window.clearTimeout(hideTimer.current);
+    setChrome(false);
+  }, []);
+
   const keepChrome = useCallback(() => {
     setChrome(true);
     window.clearTimeout(hideTimer.current);
-    hideTimer.current = window.setTimeout(() => setChrome(false), 6000);
+    hideTimer.current = window.setTimeout(() => setChrome(false), 3000);
   }, []);
 
   useEffect(() => {
@@ -105,13 +110,13 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
           onPointerUp={(e) => {
             const moved = Math.hypot(e.clientX - touch.current.x, e.clientY - touch.current.y);
             if (moved > 8 || Date.now() - touch.current.at > 400) return;
-            if (chrome) {
-              window.clearTimeout(hideTimer.current);
-              setChrome(false);
-            } else {
-              keepChrome();
-            }
+            if (chrome) hideChrome();
+            else keepChrome();
           }}
+          /* começou a ler: a barra sai na hora, sem esperar o tempo correr.
+             `Capture` porque o evento de rolagem não sobe do filho que rola. */
+          onScrollCapture={hideChrome}
+          onWheel={hideChrome}
         >
           <DocumentViewer
             attachment={attachment}
