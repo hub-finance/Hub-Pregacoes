@@ -42,6 +42,10 @@ export interface AppSettings {
   preachingMinutes: number | null;
   /** Corpo do texto no Modo Pregação, independente do tamanho do leitor. */
   preachingScale: number;
+  /** Corpo do texto na Bíblia ao lado (tela dividida), ajustável ali mesmo. */
+  panelScale: number;
+  /** Quanto da largura cabe à Bíblia na tela dividida, em porcentagem. */
+  splitRatio: number;
   /** Versão das preferências — permite reaplicar padrões melhores em quem já usa. */
   settingsVersion: number;
 }
@@ -77,6 +81,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   onboarded: false,
   preachingMinutes: 40,
   preachingScale: 1,
+  panelScale: 0.9,
+  splitRatio: 42,
   settingsVersion: SETTINGS_VERSION,
 };
 

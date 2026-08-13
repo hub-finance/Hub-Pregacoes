@@ -14,7 +14,7 @@ import { getChapter, getMeta } from '../../core/bible/repository';
  * pode navegar livremente sem perder o passo do sermão.
  */
 export function ScripturePane({ reference }: { reference?: string } = {}) {
-  const { settings } = useSettings();
+  const { settings, update } = useSettings();
   const [book, setBook] = useState('JHN');
   const [chapter, setChapter] = useState(1);
   const [highlight, setHighlight] = useState<number | null>(null);
@@ -54,7 +54,11 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
   }, [verses.data, highlight]);
 
   return (
-    <aside className="preach-pane" aria-label="Bíblia">
+    <aside
+      className="preach-pane"
+      aria-label="Bíblia"
+      style={{ '--pane-scale': settings.panelScale } as React.CSSProperties}
+    >
       <header className="preach-pane-head">
         <button
           className="icon-btn"
@@ -89,6 +93,22 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
           disabled={chapter >= totalChapters}
         >
           <Icon name="chevron-right" size={18} />
+        </button>
+        {/* o tamanho da letra daqui é independente do leitor e do sermão:
+            na tela dividida, cada lado pede um corpo diferente */}
+        <button
+          className="icon-btn"
+          onClick={() => update({ panelScale: Math.max(0.6, Number((settings.panelScale - 0.1).toFixed(2))) })}
+          aria-label="Diminuir a letra da Bíblia"
+        >
+          <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>A-</span>
+        </button>
+        <button
+          className="icon-btn"
+          onClick={() => update({ panelScale: Math.min(2, Number((settings.panelScale + 0.1).toFixed(2))) })}
+          aria-label="Aumentar a letra da Bíblia"
+        >
+          <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>A+</span>
         </button>
       </header>
 

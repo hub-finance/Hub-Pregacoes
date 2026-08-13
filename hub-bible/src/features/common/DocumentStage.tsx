@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { DocumentViewer } from './DocumentViewer';
+import { SplitLayout } from './SplitLayout';
 import { SermonTimer } from '../preaching/SermonTimer';
 import { ScripturePane } from '../preaching/ScripturePane';
 import { useSettings } from '../../core/settings/SettingsContext';
@@ -51,12 +52,11 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
       {timer && <SermonTimer />}
       {/* `divided` é o que coloca as duas colunas lado a lado; sem a classe, a
           Bíblia caía acima do documento mesmo em tela larga */}
-      <div className={`preach-split${split ? ' divided' : ''}`}>
-        {split && <ScripturePane />}
+      <SplitLayout divided={split} left={<ScripturePane />}>
         <div className="preach-stage split doc-stage" style={{ justifyContent: 'flex-start' }}>
           <DocumentViewer attachment={attachment} />
         </div>
-      </div>
+      </SplitLayout>
       <div className="preach-bar">
         <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Sair">
           <Icon name="close" />

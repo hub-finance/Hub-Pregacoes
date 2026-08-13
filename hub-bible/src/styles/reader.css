@@ -368,10 +368,41 @@
      O limite era 900px, e por causa dele o tablet em pé caía no empilhado:
      Bíblia em cima, mensagem embaixo. Lado a lado é o que se pede a uma tela
      dividida, e a 600px cada coluna ainda tem 300px — estreito, mas legível.
-     Abaixo disso (celular) o empilhado continua sendo o único que serve. */
+     Abaixo disso (celular) o empilhado continua sendo o único que serve.
+
+     A proporção vem de `--split-a` (porcentagem para a Bíblia), gravada nas
+     preferências e ajustável arrastando a linha do meio. */
   .preach-split.divided {
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    grid-template-columns: minmax(0, calc(var(--split-a, 42) * 1%)) 10px minmax(0, 1fr);
   }
+}
+
+/* a linha do meio: fina, discreta, mas com área de toque de dedo */
+.split-handle {
+  position: relative;
+  cursor: col-resize;
+  touch-action: none;
+  background: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.split-handle::before {
+  /* alvo de toque maior que o traço, sem ocupar espaço no layout */
+  content: '';
+  position: absolute;
+  inset: 0 -10px;
+}
+.split-handle-grip {
+  width: 4px;
+  height: 40px;
+  border-radius: var(--r-full);
+  background: var(--text-3);
+  opacity: 0.5;
+}
+.split-handle:hover,
+.split-handle:focus-visible {
+  background: var(--accent);
 }
 .preach-pane {
   display: flex;
@@ -421,6 +452,10 @@
   .preach-pane {
     border-right: none;
     border-bottom: 1px solid var(--border);
+  }
+  /* empilhado, arrastar a divisão não faz sentido */
+  .split-handle {
+    display: none;
   }
 }
 @media (max-width: 899px) {
@@ -679,6 +714,7 @@
    o tamanho real do documento e não muda de tamanho enquanto se lê. */
 .doc-viewer-host .doc-page-slot {
   margin: 0 auto var(--sp-3);
+  /* nada de `max-width` aqui: é o que impedia o A+ de aumentar a página */
   background: #fff;
   box-shadow: var(--shadow-2);
   border-radius: 2px;
@@ -793,4 +829,42 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--accent);
+}
+
+/* ------------- documento em tela cheia: toda a largura é do texto ---------- */
+/* Na pregação e na aula o documento é a tela inteira daquele lado. Moldura,
+   cantos arredondados e recuo do palco só roubavam largura da página — e
+   largura, num PDF, é diretamente o tamanho da letra. */
+/* `.preach-stage.split` também tem padding e é mais específico que `.doc-stage`
+   sozinho — daí os dois nomes aqui, senão sobravam 60px de recuo dos lados. */
+.preach-stage.doc-stage {
+  padding: 0;
+}
+.doc-stage .doc-viewer {
+  border: none;
+  border-radius: 0;
+  background: var(--bg-sunken);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.doc-stage .doc-viewer-host {
+  flex: 1;
+  min-height: 0;
+  /* nos dois sentidos: aumentada com A+, a página passa da largura da coluna */
+  overflow: auto;
+  padding: var(--sp-2) 0;
+}
+.doc-stage .doc-viewer-host .doc-page-slot {
+  margin-bottom: var(--sp-2);
+  border-radius: 0;
+}
+
+/* ------------------- corpo do texto da Bíblia ao lado --------------------- */
+.preach-pane {
+  --pane-scale: 1;
+}
+.preach-pane-body {
+  font-size: calc(clamp(1rem, calc(0.5vw + 0.9rem), 1.35rem) * var(--pane-scale));
 }
