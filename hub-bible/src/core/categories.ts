@@ -42,6 +42,7 @@ export type LibraryCategory = (typeof LIBRARY_CATEGORIES)[number];
 /** Categorias sugeridas para sermões, Rhema e cursos. */
 export const CONTENT_CATEGORIES = [
   'Culto',
+  'Curso',
   'Célula / GC',
   'Discipulado',
   'Escola de Líderes',

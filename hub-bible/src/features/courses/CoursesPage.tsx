@@ -24,7 +24,9 @@ export default function CoursesPage() {
     const { baseName, format } = detectFormat(file);
     // o título de dentro do arquivo vence o nome do arquivo
     const title = (await extractTitle(file, format)) || baseName || file.name;
-    const course: Devotional = { ...newDevotional(), title, category: 'Escola de Líderes' };
+    // categoria neutra: um curso é sobre o que o autor quiser, e quem escolhe
+    // o assunto é o usuário — o aplicativo não decide por ele
+    const course: Devotional = { ...newDevotional(), title, category: 'Curso' };
     const attachment = await saveAttachment(course.id, file);
     await saveDoc('devotional', {
       ...course,
