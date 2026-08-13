@@ -414,8 +414,11 @@
 .preach-pane-head {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-3);
+  gap: var(--sp-1);
+  /* o painel pode ficar estreito: em vez de espremer os botões abaixo do
+     mínimo de toque, a barra quebra em duas linhas */
+  flex-wrap: wrap;
+  padding: var(--sp-1) var(--sp-2);
   border-bottom: 1px solid var(--border);
 }
 .preach-pane-ref {
@@ -448,6 +451,24 @@
   margin-bottom: 0.5em;
   border-radius: 4px;
   padding: 2px 4px;
+  cursor: pointer;
+  transition: background 200ms var(--ease);
+}
+/* as mesmas marcações do leitor: o que foi grifado lá aparece grifado aqui */
+.pane-verse.highlighted {
+  background: color-mix(in srgb, var(--hl-color, var(--accent)) 26%, transparent);
+}
+.pane-verse.selected {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+/* volta ao ponto do sermão — só aparece depois de navegar por conta própria */
+.pane-back {
+  width: 100%;
+  justify-content: flex-start;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  color: var(--accent-strong);
 }
 .pane-verse.target {
   background: color-mix(in srgb, var(--accent) 20%, transparent);
