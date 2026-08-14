@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { Sheet } from '../../components/Sheet';
 import { normalize } from '../../core/bible/canon';
+import { bookName } from '../../core/bible/canon';
+import { parseReference } from '../../core/bible/reference';
 import type { BookMeta } from '../../core/db/types';
 
 interface Props {
@@ -10,7 +12,8 @@ interface Props {
   book: string;
   chapter: number;
   onClose: () => void;
-  onSelect: (book: string, chapter: number) => void;
+  /** `verse` presente quando a referência digitada trouxe o versículo. */
+  onSelect: (book: string, chapter: number, verse?: number) => void;
 }
 
 /** Seleção de livro e capítulo em dois passos, com filtro por nome. */
@@ -34,6 +37,10 @@ export function BookPicker({ open, books, book, chapter, onClose, onSelect }: Pr
   }, [books, query, testament]);
 
   const showChapters = pending && !query;
+  /* "Jo 3:16" digitado no filtro vale como endereço, não como nome de livro:
+     em vez de obrigar a passar pelo livro e pela grade de capítulos, o atalho
+     leva direto ao versículo. */
+  const reference = parseReference(query);
 
   return (
     <Sheet
@@ -56,8 +63,8 @@ export function BookPicker({ open, books, book, chapter, onClose, onSelect }: Pr
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Filtrar livro (ex.: joão, 1co)"
-              aria-label="Filtrar livro"
+              placeholder="Livro ou referência (ex.: joão, 1co, Jo 3:16)"
+              aria-label="Filtrar livro ou digitar uma referência"
             />
             {query && (
               <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => setQuery('')} aria-label="Limpar">
@@ -65,6 +72,16 @@ export function BookPicker({ open, books, book, chapter, onClose, onSelect }: Pr
               </button>
             )}
           </div>
+
+          {reference && (
+            <button
+              className="btn btn-primary btn-block"
+              onClick={() => onSelect(reference.book, reference.chapter, reference.verse)}
+            >
+              Ir para {bookName(reference.book)} {reference.chapter}
+              {reference.verse ? `:${reference.verse}` : ''}
+            </button>
+          )}
 
           {!query && (
             <div className="tabs" role="tablist">

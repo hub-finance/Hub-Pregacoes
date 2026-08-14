@@ -134,7 +134,13 @@ export default function BiblePage() {
   }, [searchParams, verses.length]);
 
   const goToChapter = useCallback(
-    (nextBook: string, nextChapter: number) => {
+    (nextBook: string, nextChapter: number, verse?: number) => {
+      // com versículo, o endereço leva a âncora e a rolagem é feita por ela;
+      // sem versículo, começa-se o capítulo do alto
+      if (verse) {
+        navigate(`/biblia/${nextBook}/${nextChapter}?v=${verse}`);
+        return;
+      }
       setSearchParams({}, { replace: true });
       navigate(`/biblia/${nextBook}/${nextChapter}`);
       readerRef.current?.scrollIntoView({ block: 'start' });
@@ -281,7 +287,9 @@ export default function BiblePage() {
 
   return (
     <>
-      <div className="row" style={{ padding: 'var(--sp-3) var(--sp-4) 0', gap: 'var(--sp-2)' }}>
+      {/* a barra acompanha a rolagem: no meio de um capítulo longo, trocar de
+          livro não pode exigir subir a página inteira */}
+      <div className="row reader-bar">
         {/* pílula de referência: livro, capítulo e tradução, com a linha de
             progresso da leitura do capítulo — como nos leitores bíblicos */}
         <button className="reader-pill" onClick={() => setBookPicker(true)}>
@@ -403,8 +411,16 @@ export default function BiblePage() {
         <button className="btn btn-ghost" onClick={prev}>
           ← Anterior
         </button>
-        <button className="btn btn-ghost mono-num" onClick={() => setBookPicker(true)}>
-          {chapter} / {totalChapters}
+        {/* mesma pílula do alto: quem terminou o capítulo escolhe o próximo
+            destino sem voltar ao topo */}
+        <button className="reader-pill" onClick={() => setBookPicker(true)}>
+          {bookName(book)} {chapter}
+          <span className="dim mono-num" style={{ fontWeight: 500 }}>
+            de {totalChapters}
+          </span>
+          <span className="reader-pill-caret" aria-hidden="true">
+            ▾
+          </span>
         </button>
         <button className="btn btn-ghost" onClick={next}>
           Próximo →
@@ -446,9 +462,9 @@ export default function BiblePage() {
         book={book}
         chapter={chapter}
         onClose={() => setBookPicker(false)}
-        onSelect={(b, c) => {
+        onSelect={(b, c, v) => {
           setBookPicker(false);
-          goToChapter(b, c);
+          goToChapter(b, c, v);
         }}
       />
 
