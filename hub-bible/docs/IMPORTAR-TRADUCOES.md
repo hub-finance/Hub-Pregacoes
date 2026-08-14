@@ -28,6 +28,32 @@ Caminhos legítimos para obter o arquivo:
 Baixar um arquivo pirata de uma tradução protegida é violação de direito autoral,
 mesmo que o uso seja só seu e mesmo dentro da igreja.
 
+### Sobre `github.com/damarals/biblias` — conferido em 13/08/2026
+
+Coletânea de 18 Bíblias em português, em Zefania XML, SQLite e JSON. É a fonte
+mais prática para quem já tem direito de usar uma tradução, porque **o JSON das
+releases entra no Hub Bible sem conversão nenhuma** (formato "lista de livros na
+ordem canônica", item 2 mais abaixo). Verificado ponta a ponta com o arquivo da
+Bíblia Livre: importou e a tradução passou a aparecer disponível.
+
+Sobre a licença, é preciso ler com cuidado, porque as duas coisas coexistem no
+mesmo repositório:
+
+| | |
+|---|---|
+| **A licença MIT do repositório** | cobre o *toolkit* em Python de Daniel Amaral — o código que baixa, valida e converte. |
+| **O texto bíblico** | não. O próprio README diz: *"As de domínio público (†) podem ser redistribuídas livremente; **as demais pertencem a suas editoras**."* |
+
+Marcadas com † lá: **Tradução Brasileira, Bíblia Livre e Almeida 1911** — as três
+já acompanham o Hub Bible. Todas as outras (ARA, ARC, ACF, NAA, NTLH, NVI, NVT,
+KJA, KJF, AS21, NBV, OL, MENS, VFL, JFAA) aparecem na tabela **com o nome da
+editora ao lado**, e é essa coluna que manda.
+
+Ou seja: o repositório é ótimo como *formato* e péssimo como *licença* para
+distribuição. Serve para você instalar no seu aparelho uma tradução que você já
+tem direito de usar; não serve para embutir no aplicativo que é compartilhado
+com outras pessoas.
+
 ---
 
 ## Passo a passo (conferido no aplicativo)
@@ -94,6 +120,9 @@ capítulos, e cada capítulo com a lista de versículos:
 ```
 
 ### 2. Lista de livros na ordem canônica
+
+*É o formato dos arquivos `.json` de `damarals/biblias` — entra direto, sem
+conversão.*
 
 66 itens, de Gênesis a Apocalipse, na ordem. É o formato mais comum em arquivos
 públicos:
