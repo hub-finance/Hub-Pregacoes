@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { BookPicker } from './BookPicker';
@@ -16,7 +16,7 @@ import { useSettings } from '../../core/settings/SettingsContext';
 import { db } from '../../core/db/db';
 import { bookName } from '../../core/bible/canon';
 import { formatSelection } from '../../core/bible/reference';
-import { getChapter, getMeta, loadCatalog } from '../../core/bible/repository';
+import { getChapter, getChapterPericopes, getMeta, loadCatalog } from '../../core/bible/repository';
 import { categoryColor } from '../../core/categories';
 import { listChapterHighlights, setHighlight } from '../../core/data/highlights';
 import { addFavorite, findFavoriteFor, removeFavorite } from '../../core/data/favorites';
@@ -57,6 +57,12 @@ export default function BiblePage() {
   const chapter = Number(params.chapter) || settings.lastPosition?.chapter || 1;
 
   const chapterText = useAsync(() => getChapter(translation, book, chapter), [translation, book, chapter]);
+  /* Títulos de perícope do capítulo. Só existem em traduções que os trazem —
+     nas embutidas o mapa vem vazio e nada muda na tela. */
+  const pericopes = useAsync(
+    () => getChapterPericopes(translation, book, chapter),
+    [translation, book, chapter],
+  );
   const compareText = useAsync(
     () =>
       settings.compareTranslation
@@ -362,6 +368,7 @@ export default function BiblePage() {
             {verses.map((text, index) => {
               const verse = index + 1;
               const category = highlightByVerse.get(verse);
+              const heading = pericopes.data?.get(verse);
               const classes = [
                 'verse',
                 selection.includes(verse) ? 'selected' : '',
@@ -370,8 +377,13 @@ export default function BiblePage() {
                 .filter(Boolean)
                 .join(' ');
               return (
+                <Fragment key={verse}>
+                {heading && (
+                  /* o título abre o trecho: fica fora do versículo para não
+                     entrar na seleção nem na cópia */
+                  <h3 className="pericope">{heading}</h3>
+                )}
                 <span
-                  key={verse}
                   id={`v-${verse}`}
                   className={classes}
                   style={category ? ({ '--hl-color': categoryColor(category) } as React.CSSProperties) : undefined}
@@ -413,6 +425,7 @@ export default function BiblePage() {
                     </span>
                   )}
                 </span>
+                </Fragment>
               );
             })}
           </div>

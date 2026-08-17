@@ -1,6 +1,6 @@
 import { SQLiteFile } from '../sqlite/reader';
 import { CANON, findBook } from './canon';
-import type { StrongTag } from '../db/types';
+import type { Pericope, StrongTag } from '../db/types';
 
 /**
  * Leitura dos módulos do MyBible (`*.SQLite3`).
@@ -14,7 +14,7 @@ import type { StrongTag } from '../db/types';
  * e nada é embutido no aplicativo.
  */
 
-export type { StrongTag } from '../db/types';
+export type { StrongTag, Pericope } from '../db/types';
 
 export type MyBibleKind = 'bible' | 'dictionary' | 'unknown';
 
@@ -25,6 +25,8 @@ export interface MyBibleBible {
   books: Record<string, string[][]>;
   /** OSIS -> capítulos -> versículos -> etiquetas Strong. Ausente sem Strong. */
   strongs?: Record<string, StrongTag[][][]>;
+  /** OSIS -> títulos de perícope. Ausente quando o módulo não os traz. */
+  pericopes?: Record<string, Pericope[]>;
   /** Livros do arquivo que não couberam no cânone de 66 (deuterocanônicos). */
   skipped: string[];
 }
@@ -215,14 +217,59 @@ export function readBible(db: SQLiteFile): MyBibleBible {
     books[osis] = books[osis].map((chapter) => Array.from(chapter ?? [], (v) => v ?? ''));
   }
 
+  const pericopes = readPericopes(db, (n) =>
+    trustNumbers
+      ? (NUMBER_TO_OSIS.get(n) ?? resolveByName(nameByNumber.get(n)))
+      : (resolveByName(nameByNumber.get(n)) ?? NUMBER_TO_OSIS.get(n)),
+  );
+
   return {
     kind: 'bible',
     info,
     books,
+    pericopes,
     strongs: anyStrong ? strongs : undefined,
     skipped: [...skipped],
   };
 }
+
+/**
+ * Títulos de perícope — os subtítulos no meio do texto ("A criação dos céus e
+ * da terra"). No MyBible eles vivem na tabela `stories`, separados do
+ * versículo, apontando o ponto em que entram.
+ *
+ * Isso resolve, pela porta do módulo do usuário, o que nenhuma das traduções
+ * livres em português traz: os títulos são trabalho editorial, com direitos de
+ * quem os escreveu, e por isso não podem ser embutidos no aplicativo. Vindos do
+ * arquivo de quem já tem a edição, ficam no aparelho como o resto.
+ */
+function readPericopes(
+  db: SQLiteFile,
+  toOsis: (bookNumber: number) => string | undefined,
+): Record<string, Pericope[]> | undefined {
+  if (!db.has('stories')) return undefined;
+
+  const out: Record<string, Pericope[]> = {};
+  let total = 0;
+
+  for (const row of db.rows('stories')) {
+    const osis = toOsis(Number(row.book_number));
+    const chapter = Number(row.chapter);
+    const verse = Number(row.verse);
+    const title = collapse(stripTags(String(row.title ?? '')));
+    if (!osis || !title || !Number.isFinite(chapter) || !Number.isFinite(verse)) continue;
+    (out[osis] ||= []).push({ chapter, verse: verse || 1, title });
+    total++;
+  }
+
+  if (!total) return undefined;
+  for (const osis of Object.keys(out)) {
+    out[osis].sort((a, b) => a.chapter - b.chapter || a.verse - b.verse);
+  }
+  return out;
+}
+
+const stripTags = (s: string) => s.replace(DROP_WITH_CONTENT, '').replace(/<[^>]*>/g, '');
 
 function resolveByName(label: string | undefined): string | undefined {
   if (!label) return undefined;

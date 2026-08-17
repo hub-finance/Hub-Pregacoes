@@ -2,6 +2,7 @@ import { db, now } from '../db/db';
 import type {
   BookMeta,
   CachedBook,
+  Pericope,
   StrongTag,
   TranslationInfo,
   TranslationMeta,
@@ -308,6 +309,8 @@ interface StoreOptions {
   meta?: Partial<TranslationMeta>;
   /** Números Strong por livro, quando a origem os traz. */
   strongs?: Record<string, StrongTag[][][]>;
+  /** Títulos de perícope por livro. */
+  pericopes?: Record<string, Pericope[]>;
 }
 
 /**
@@ -318,7 +321,7 @@ interface StoreOptions {
 export async function storeTranslation(
   info: TranslationInfo,
   books: BookMap,
-  { meta: incomingMeta, strongs }: StoreOptions = {},
+  { meta: incomingMeta, strongs, pericopes }: StoreOptions = {},
 ): Promise<ImportResult> {
   const osisList = Object.keys(books).filter((k) => CANON_BY_OSIS.has(k));
   if (!osisList.length) throw new Error('Nenhum livro reconhecido no arquivo.');
@@ -336,6 +339,7 @@ export async function storeTranslation(
       book: canon.osis,
       chapters,
       strongs: strongs?.[canon.osis],
+      pericopes: pericopes?.[canon.osis],
       savedAt: now(),
     });
     const verseCounts = chapters.map((c) => c.length);
@@ -388,4 +392,27 @@ export async function removeImportedTranslation(id: string): Promise<void> {
     if (key.startsWith(`${id}:`)) memBooks.delete(key);
   }
   catalogCache = null;
+}
+
+/**
+ * Títulos de perícope do capítulo, indexados pelo versículo em que entram.
+ *
+ * Devolve um mapa vazio quando a tradução não os traz — que é o caso de todas
+ * as embutidas. A tela não precisa saber a diferença.
+ */
+export async function getChapterPericopes(
+  translation: string,
+  book: string,
+  chapter: number,
+): Promise<Map<number, string>> {
+  const map = new Map<number, string>();
+  try {
+    const record = await getBook(translation, book);
+    for (const p of record.pericopes ?? []) {
+      if (p.chapter === chapter) map.set(p.verse, p.title);
+    }
+  } catch {
+    // sem livro não há título: o erro de leitura já é tratado por quem lê o texto
+  }
+  return map;
 }

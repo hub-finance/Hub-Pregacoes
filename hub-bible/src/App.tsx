@@ -1,10 +1,12 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AppLayout } from './app/AppLayout';
 import { UpdatePrompt } from './app/UpdatePrompt';
 import { Spinner } from './components/ui';
 import HomePage from './features/home/HomePage';
 import BiblePage from './features/bible/BiblePage';
+import { autoBackupIfDue } from './core/backupStore';
+import { useSettings } from './core/settings/SettingsContext';
 
 /**
  * Rotas. Os módulos ministeriais são carregados sob demanda para manter o
@@ -41,7 +43,27 @@ function LegacyDevotionalRedirect() {
   return <Navigate to={`/cursos/${id}`} replace />;
 }
 
+/**
+ * Cópia automática no aparelho, uma vez a cada poucos dias.
+ *
+ * Roda depois do primeiro desenho e sem bloquear nada: não é um recurso que o
+ * usuário está esperando, é uma rede embaixo dele. Falhar em silêncio é o
+ * comportamento certo — um aviso de erro aqui só assustaria sem ajudar.
+ */
+function useAutoBackup() {
+  const { settings } = useSettings();
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void autoBackupIfDue(settings).catch(() => undefined);
+    }, 8000);
+    return () => window.clearTimeout(timer);
+    // só na montagem: a cópia é periódica, não reage a cada ajuste
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+}
+
 export default function App() {
+  useAutoBackup();
   return (
     <>
       <Routes>

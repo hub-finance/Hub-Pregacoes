@@ -17,6 +17,8 @@ export interface MyBibleImportResult extends ImportResult {
   skipped: string[];
   /** O módulo trouxe números Strong. */
   strong: boolean;
+  /** Quantos títulos de perícope vieram. */
+  pericopes: number;
 }
 
 export async function importMyBibleBible(
@@ -39,9 +41,11 @@ export async function importMyBibleBible(
 
   const result = await storeTranslation({ ...info, hasStrong: strong }, module.books, {
     strongs: module.strongs,
+    pericopes: module.pericopes,
   });
 
-  return { ...result, skipped: module.skipped, strong };
+  const pericopes = Object.values(module.pericopes ?? {}).reduce((a, b) => a + b.length, 0);
+  return { ...result, skipped: module.skipped, strong, pericopes };
 }
 
 /** Sem um espaço escolhido, o módulo se apresenta pelo que ele mesmo declara. */
