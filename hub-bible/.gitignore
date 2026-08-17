@@ -11,3 +11,15 @@ scripts/.cache/
 .vite/
 tsconfig.tsbuildinfo
 *.tsbuildinfo
+
+# Capacitor — o conteúdo web é copiado de dist/ a cada build; versionar isso
+# duplicaria 24 MB no repositório e sairia desatualizado no primeiro commit.
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/capacitor-cordova-android-plugins/
+*.keystore
+*.jks

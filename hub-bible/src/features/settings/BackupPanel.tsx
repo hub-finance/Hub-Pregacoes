@@ -15,6 +15,7 @@ import {
   saveSnapshot,
   sendBackupTo,
 } from '../../core/backupStore';
+import { installKind } from '../../core/platform';
 import {
   formatBytes,
   requestPersistence,
@@ -24,6 +25,31 @@ import {
 import type { BackupSnapshot } from '../../core/db/types';
 
 type SnapshotMeta = Omit<BackupSnapshot, 'payload' | 'signature'>;
+
+/**
+ * Onde os dados desta instalação moram.
+ *
+ * O aplicativo e a versão do navegador podem ser usados lado a lado, mas cada
+ * um guarda os próprios dados — um sermão escrito num não aparece no outro. Não
+ * dizer isso deixaria o usuário achando que perdeu o que escreveu.
+ */
+const WHERE = {
+  app: {
+    title: 'Você está no aplicativo instalado (APK)',
+    detail:
+      'Os dados ficam na área do próprio aplicativo. Limpar o navegador não os afeta. A versão do navegador tem os dados dela, separados — para levar de uma para a outra, use a cópia.',
+  },
+  pwa: {
+    title: 'Você está na versão instalada pelo navegador',
+    detail:
+      'Os dados ficam na área do navegador. Limpar os dados dele apaga tudo. Se você também usa o aplicativo (APK), ele tem os dados dele, separados.',
+  },
+  browser: {
+    title: 'Você está usando pelo navegador, sem instalar',
+    detail:
+      'Instale pelo menu do navegador: além da tela cheia, os dados passam a ser tratados como de um aplicativo, e não como de um site qualquer.',
+  },
+} as const;
 
 /**
  * Cópias de segurança.
@@ -89,6 +115,15 @@ export function BackupPanel() {
               se perder ou os dados do navegador forem limpos, seus sermões e anotações vão junto.
             </>
           )}
+        </span>
+      </div>
+
+      {/* --------------- em qual instalação estes dados moram -------------- */}
+      <div className="card row" style={{ gap: 'var(--sp-3)' }}>
+        <Icon name="info" size={20} style={{ flex: 'none', color: 'var(--text-3)' }} />
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span className="list-title">{WHERE[installKind()].title}</span>
+          <span className="list-meta">{WHERE[installKind()].detail}</span>
         </span>
       </div>
 

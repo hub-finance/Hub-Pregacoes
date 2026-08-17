@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Hub Bible</string>
+    <string name="title_activity_main">Hub Bible</string>
+    <string name="package_name">app.hubbible.leitor</string>
+    <string name="custom_url_scheme">app.hubbible.leitor</string>
+</resources>

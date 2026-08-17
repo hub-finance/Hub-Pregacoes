@@ -1,12 +1,23 @@
 import { useEffect } from 'react';
 import { Icon } from '../components/Icon';
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import { isNativeApp } from '../core/platform';
 
 /**
  * Atualização do PWA: o service worker novo só assume quando o usuário aceita,
  * evitando recarregar a tela no meio de uma leitura ou de um sermão em edição.
+ *
+ * Dentro do APK isto não existe. O conteúdo web já vem embutido no aplicativo,
+ * não há servidor de onde buscar versão nova, e um service worker cacheando por
+ * cima dos arquivos do próprio pacote só criaria chance de servir tela velha
+ * depois de uma atualização. Lá a atualização é instalar o APK novo.
  */
 export function UpdatePrompt() {
+  if (isNativeApp()) return null;
+  return <ServiceWorkerPrompt />;
+}
+
+function ServiceWorkerPrompt() {
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     offlineReady: [offlineReady, setOfflineReady],
