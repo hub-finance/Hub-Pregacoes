@@ -183,6 +183,7 @@ const TOPICS: Topic[] = [
     steps: [
       'Tudo o que você cria fica gravado apenas no seu aparelho. Nada é enviado para servidor nenhum.',
       'Em Configurações › Backup e privacidade o app mostra há quanto tempo você guardou uma cópia fora do aparelho. Enquanto não houver nenhuma, o aviso fica vermelho.',
+      'O app também pede ao navegador que não descarte seus dados para liberar espaço — é a linha "Armazenamento protegido". Num app instalado o Chrome costuma conceder sozinho. Isso impede o Android de apagar por conta própria, mas não impede você de limpar os dados do navegador.',
       '"Salvar no Google Drive" abre a folha de compartilhamento do aparelho — escolha Drive, e-mail ou o que preferir. É a cópia que salva de verdade.',
       'O app também guarda sozinho as últimas cópias neste aparelho, uma a cada poucos dias. Servem para desfazer um engano, como apagar um sermão sem querer — mas se o navegador for limpo, vão junto.',
       'Para restaurar: pelo botão Restaurar de uma cópia da lista, ou em "Restaurar de um arquivo". Nos dois casos o estado atual é gravado antes, para haver caminho de volta.',
