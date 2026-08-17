@@ -1,11 +1,20 @@
 # Como instalar uma tradução licenciada
 
-O Hub Bible acompanha cinco traduções livres. **ARA, NVI, NTLH, KJA, NAA e ACF**
-são protegidas por direitos autorais e não são distribuídas com o aplicativo —
-elas aparecem no catálogo com um cadeado 🔒.
+O Hub Bible acompanha cinco traduções livres. Outras **quinze** — ACF, ARA, ARC,
+AS21, JFAA, KJA, KJF, NAA, NBV, NTLH, NVI, NVT, O Livro, A Mensagem e VFL — são
+protegidas por direitos autorais e **não são distribuídas com o aplicativo**.
+Elas estão no catálogo apenas como espaço reservado: nome, sigla e editora. O
+texto é do usuário.
 
 Este documento explica como instalar uma dessas traduções a partir de uma cópia
 que você tenha o direito de usar.
+
+> **A linha que o projeto segue.** Nenhum texto protegido entra em
+> `public/bible/` — o que é publicado é o que qualquer pessoa que instale o app
+> recebe, e aí distribuição é distribuição. Já a importação é outra coisa: grava
+> no IndexedDB **daquele aparelho** um arquivo que o dono já tem direito de usar,
+> e não sai dali. Por isso os quinze espaços ficam abertos para importar, e
+> nenhum deles vem preenchido.
 
 ---
 
@@ -58,15 +67,24 @@ com outras pessoas.
 
 ## Passo a passo (conferido no aplicativo)
 
-1. Abra o **Hub Bible** no tablet ou no celular.
-2. Menu → **Configurações**.
-3. Role até a seção **Traduções**.
-4. Abaixo das traduções instaladas há o aviso ⚖️ e a lista **"Requer licença"**,
-   com ARA, NVI, NTLH, KJA, NAA e ACF.
-5. Toque em **Importar** na linha da tradução desejada.
-6. O seletor de arquivos do Android abre. Escolha o arquivo `.json`.
-7. Aguarde alguns segundos. Aparece o aviso:
-   *"ARA: 66 livros e 31.102 versículos importados."*
+### Pela leitura (caminho curto)
+
+1. Abra a **Bíblia** e toque na sigla da tradução, no alto.
+2. Role a folha até **"Importar do seu arquivo"**.
+3. Toque na tradução desejada e escolha o `.json`.
+4. Terminada a gravação, a folha fecha **já lendo na tradução importada**.
+
+### Por Configurações
+
+1. Menu → **Configurações** → seção **Traduções**.
+2. Toque em **"Importar um arquivo de tradução"** e escolha o `.json`. Se o
+   arquivo tiver o nome da sigla (`ARA.json`, `NVI.json`…), o app reconhece
+   sozinho a qual das quinze ele pertence.
+   Nome desconhecido entra como tradução sua, com o nome do próprio arquivo.
+3. Ou, se preferir escolher antes, toque em **Importar** na linha da tradução,
+   mais abaixo.
+4. Aguarde alguns segundos. Aparece o aviso:
+   *"NAA: 66 livros e 31.101 versículos neste aparelho."*
 
 Pronto. A tradução deixa de mostrar o cadeado e passa a funcionar como qualquer
 outra:
@@ -76,6 +94,11 @@ outra:
 - entra na **busca** — verificado: a busca percorre o texto importado normalmente;
 - continua disponível **offline**, sem baixar nada de novo;
 - **permanece após fechar e reabrir** o aplicativo.
+
+Em *Configurações › Traduções* ela ganha **Substituir arquivo** (para trocar por
+uma cópia melhor) e **Remover tradução**. O botão *"Limpar do dispositivo"*, que
+as traduções embutidas têm, não aparece nas importadas de propósito: o texto
+delas não teria de onde voltar.
 
 ---
 
@@ -102,8 +125,35 @@ Importar*. Passe o arquivo para o tablet por Google Drive, e-mail ou cabo.
 
 ## Formatos de arquivo aceitos
 
-O arquivo precisa ser **JSON**, em um destes três formatos. A conversão está em
-`normalizeImportedBible()` (`src/core/bible/repository.ts`).
+### Módulo do MyBible (`.SQLite3`)
+
+Escolha o arquivo do módulo como ele está. No Android eles ficam na pasta
+`MyBible` da memória interna. É o caminho das **Bíblias com números Strong** em
+português, que não existem em JSON.
+
+O app lê o arquivo por conta própria: `src/core/sqlite/reader.ts` é um leitor de
+SQLite somente-leitura escrito para isto (cabeçalho, árvore-B, registros e
+páginas de transbordo — sem SQL e sem WebAssembly, que custaria ~1,2 MB no cache
+do PWA). `src/core/bible/mybible.ts` entende as tabelas do formato: `info`,
+`books`, `verses`.
+
+Da marcação do MyBible, as notas (`<f>`, `<n>`) são descartadas e as demais
+etiquetas saem do texto. Os `<S>430</S>` viram etiquetas Strong guardadas **ao
+lado** do versículo, com a posição da palavra a que pertencem — o texto continua
+texto puro, para a busca e a cópia seguirem funcionando. Módulos que gravam só
+o número recebem a letra pelo testamento: `H` no Antigo, `G` no Novo.
+
+Livros fora do cânone de 66 (Tobias, Judite…) são ignorados, e o aviso diz
+quais.
+
+> **Ainda não há tela para ver os números Strong.** Eles são importados e ficam
+> guardados; falta a consulta (tocar na palavra e ver o termo original). Sem um
+> dicionário Strong importado também não haveria o que mostrar além do código.
+
+### JSON
+
+Em um destes três formatos. A conversão está em `normalizeImportedBible()`
+(`src/core/bible/repository.ts`).
 
 ### 1. Formato do Hub Bible
 

@@ -1,11 +1,10 @@
-import { useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { ProgressBar } from '../../components/ui';
 import { useToast } from '../../components/Toast';
 import { useAsync } from '../../hooks';
-import { readJsonFile } from '../../core/backup';
+import { useTranslationImport } from '../bible/useTranslationImport';
 import {
-  importTranslation,
   installTranslation,
   installedBookCount,
   loadCatalog,
@@ -20,15 +19,13 @@ import type { TranslationInfo } from '../../core/db/types';
  * Traduções em domínio público acompanham o aplicativo. As protegidas por
  * direitos autorais aparecem como "espaço reservado": o usuário instala uma
  * cópia que já possua licença para usar, e o app passa a tratá-la como
- * qualquer outra tradução.
+ * qualquer outra tradução — só que gravada apenas neste aparelho.
  */
 export function TranslationManager() {
   const { notify } = useToast();
   const catalog = useAsync(() => loadCatalog(true), []);
   const [progress, setProgress] = useState<{ id: string; done: number; total: number } | null>(null);
   const [installedMap, setInstalledMap] = useState<Record<string, number>>({});
-  const fileInput = useRef<HTMLInputElement>(null);
-  const pendingSlot = useRef<TranslationInfo | null>(null);
 
   const refreshInstalled = async (list: TranslationInfo[]) => {
     const entries = await Promise.all(
@@ -37,7 +34,21 @@ export function TranslationManager() {
     setInstalledMap(Object.fromEntries(entries));
   };
 
-  if (catalog.data && !Object.keys(installedMap).length) void refreshInstalled(catalog.data);
+  /* Recontar sempre que o catálogo mudar. Antes isso era feito na renderização,
+     só enquanto o mapa estivesse vazio — e uma tradução recém-importada, cujo
+     id ainda não existia no catálogo anterior, ficava parada em 0/66. */
+  useEffect(() => {
+    if (catalog.data) void refreshInstalled(catalog.data);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catalog.data]);
+
+  const { input, pick, busy } = useTranslationImport({
+    catalog: catalog.data ?? [],
+    onImported: () => {
+      catalog.reload();
+      setInstalledMap({});
+    },
+  });
 
   const download = async (info: TranslationInfo) => {
     setProgress({ id: info.id, done: 0, total: 66 });
@@ -52,45 +63,17 @@ export function TranslationManager() {
     }
   };
 
-  const pickFile = (info: TranslationInfo) => {
-    pendingSlot.current = info;
-    fileInput.current?.click();
-  };
-
-  const onFile = async (file: File | undefined) => {
-    const slot = pendingSlot.current;
-    if (!file || !slot) return;
-    try {
-      const data = await readJsonFile(file);
-      const result = await importTranslation(slot, data);
-      notify(`${slot.shortName}: ${result.books} livros e ${result.verses} versículos importados.`);
-      catalog.reload();
-      setInstalledMap({});
-    } catch (err) {
-      notify((err as Error).message, 'error');
-    } finally {
-      pendingSlot.current = null;
-      if (fileInput.current) fileInput.current.value = '';
-    }
-  };
-
   const available = (catalog.data ?? []).filter((t) => t.bundled || t.imported);
   const licensed = (catalog.data ?? []).filter((t) => !t.bundled && !t.imported);
 
   return (
     <div className="stack">
-      <input
-        ref={fileInput}
-        type="file"
-        accept="application/json,.json"
-        className="sr-only"
-        onChange={(e) => onFile(e.target.files?.[0])}
-      />
+      {input}
 
       <div className="list">
         {available.map((t) => {
           const installed = installedMap[t.id] ?? 0;
-          const busy = progress?.id === t.id;
+          const busyDownload = progress?.id === t.id;
           return (
             <div key={t.id} className="card stack" style={{ gap: 'var(--sp-2)' }}>
               <div className="row">
@@ -100,22 +83,24 @@ export function TranslationManager() {
                   <span className="list-meta">
                     {t.languageLabel} · {t.license}
                     {t.imported ? ' · importada por você' : ''}
+                    {t.hasStrong ? ' · com números Strong' : ''}
                   </span>
                 </span>
                 <span className="small dim mono-num">{installed}/66</span>
               </div>
 
-              {busy && progress && (
+              {busyDownload && progress && (
                 <ProgressBar value={(progress.done / progress.total) * 100} label="Baixando" />
               )}
 
               <div className="row row-wrap">
-                {installed < 66 && (
-                  <button className="btn btn-sm" disabled={busy} onClick={() => download(t)}>
+                {/* traduções importadas já chegam inteiras: não há de onde baixar */}
+                {installed < 66 && !t.imported && (
+                  <button className="btn btn-sm" disabled={busyDownload} onClick={() => download(t)}>
                     Baixar para uso offline
                   </button>
                 )}
-                {installed > 0 && (
+                {installed > 0 && !t.imported && (
                   <button
                     className="btn btn-sm btn-ghost"
                     onClick={async () => {
@@ -128,17 +113,22 @@ export function TranslationManager() {
                   </button>
                 )}
                 {t.imported && (
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={async () => {
-                      await removeImportedTranslation(t.id);
-                      notify('Tradução removida.');
-                      catalog.reload();
-                      setInstalledMap({});
-                    }}
-                  >
-                    Remover tradução
-                  </button>
+                  <>
+                    <button className="btn btn-sm btn-ghost" disabled={!!busy} onClick={() => pick(t)}>
+                      Substituir arquivo
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={async () => {
+                        await removeImportedTranslation(t.id);
+                        notify('Tradução removida.');
+                        catalog.reload();
+                        setInstalledMap({});
+                      }}
+                    >
+                      Remover tradução
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -146,45 +136,64 @@ export function TranslationManager() {
         })}
       </div>
 
+      <div className="notice notice-accent">
+        <Icon name="lock" size={20} style={{ flex: 'none' }} />
+        <span>
+          As traduções abaixo pertencem às suas editoras e <strong>não acompanham</strong> o
+          aplicativo. Se você tem uma cópia que pode usar, importe o arquivo aqui: ele é gravado{' '}
+          <strong>somente neste aparelho</strong> — não vai para a internet nem para quem instalar o
+          app depois.
+        </span>
+      </div>
+
+      <button className="btn btn-block" disabled={!!busy} onClick={() => pick(null)}>
+        <Icon name="download" size={18} />
+        {busy === '?' ? 'Importando…' : 'Importar um arquivo de tradução'}
+      </button>
+      <p className="small dim" style={{ marginTop: 'calc(var(--sp-2) * -1)' }}>
+        Aceita <strong>JSON</strong> e <strong>módulos do MyBible</strong> (<code>.SQLite3</code>) —
+        é por aqui que entra uma Bíblia com números Strong. Pelo nome do arquivo o app reconhece a
+        tradução (ARA.json, NVI.json…); nome desconhecido entra como tradução sua.
+      </p>
+
       {licensed.length > 0 && (
-        <>
-          <div className="notice notice-accent">
-            <Icon name="lock" size={20} style={{ flex: "none" }} />
-            <span>
-              As traduções abaixo são protegidas por direitos autorais e <strong>não acompanham</strong> o
-              aplicativo. Se você tem autorização do detentor dos direitos (ou um arquivo licenciado),
-              importe-o aqui — ele fica somente no seu dispositivo.
-            </span>
-          </div>
-
-          <div className="list">
-            {licensed.map((t) => (
-              <div key={t.id} className="list-item">
-                <span className="badge">{t.abbrev}</span>
-                <span className="list-body">
-                  <span className="list-title">{t.name}</span>
-                  <span className="list-meta">{t.publisher}</span>
+        <div className="list">
+          {licensed.map((t) => (
+            <div key={t.id} className="list-item">
+              <span className="badge">{t.abbrev}</span>
+              <span className="list-body">
+                <span className="list-title">{t.name}</span>
+                <span className="list-meta">
+                  {t.publisher}
+                  {t.year ? ` · ${t.year}` : ''}
                 </span>
-                <button className="btn btn-sm" onClick={() => pickFile(t)}>
-                  Importar
-                </button>
-              </div>
-            ))}
-          </div>
+              </span>
+              <button className="btn btn-sm" disabled={!!busy} onClick={() => pick(t)}>
+                {busy === t.id ? '…' : 'Importar'}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
-          <details className="card">
-            <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Formatos aceitos na importação</summary>
-            <div className="stack small muted" style={{ marginTop: 'var(--sp-3)' }}>
-              <p>O arquivo precisa ser JSON em um destes formatos:</p>
-              <pre
-                style={{
-                  overflowX: 'auto',
-                  background: 'var(--surface-2)',
-                  padding: 'var(--sp-3)',
-                  borderRadius: 'var(--r-sm)',
-                  fontSize: '0.78rem',
-                }}
-              >{`// 1) Hub Bible
+      <details className="card">
+        <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Formatos aceitos na importação</summary>
+        <div className="stack small muted" style={{ marginTop: 'var(--sp-3)' }}>
+          <p>
+            <strong>Módulo do MyBible</strong> (<code>.SQLite3</code>): escolha o arquivo do módulo
+            como ele está. No Android os módulos ficam na pasta <code>MyBible</code> da memória
+            interna. Se a Bíblia tiver números Strong, eles vêm junto.
+          </p>
+          <p>Ou <strong>JSON</strong>, em um destes formatos:</p>
+          <pre
+            style={{
+              overflowX: 'auto',
+              background: 'var(--surface-2)',
+              padding: 'var(--sp-3)',
+              borderRadius: 'var(--r-sm)',
+              fontSize: '0.78rem',
+            }}
+          >{`// 1) Hub Bible
 { "books": { "GEN": [["No princípio…", "…"]], "JHN": [[…]] } }
 
 // 2) Lista na ordem canônica (66 livros)
@@ -192,10 +201,12 @@ export function TranslationManager() {
 
 // 3) Tabela de versículos
 { "resultset": { "row": [ { "field": [1001001, 1, 1, 1, "texto"] } ] } }`}</pre>
-            </div>
-          </details>
-        </>
-      )}
+          <p>
+            O formato 2 é o que sai das coletâneas abertas em JSON — é só escolher o arquivo, sem
+            converter nada.
+          </p>
+        </div>
+      </details>
     </div>
   );
 }

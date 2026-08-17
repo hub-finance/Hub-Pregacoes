@@ -476,6 +476,7 @@ export default function BiblePage() {
         onClose={() => setTranslationPicker(false)}
         onSelect={(id) => update({ defaultTranslation: id })}
         onCompare={(id) => update({ compareTranslation: id })}
+        onImported={() => catalog.reload()}
       />
 
       <ReaderScrollbar />

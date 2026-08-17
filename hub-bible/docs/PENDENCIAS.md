@@ -59,8 +59,42 @@ correspondente. Não quebra as traduções que não tiverem títulos.
 As palavras coloridas do print de referência: cada uma ligada ao dicionário
 hebraico/grego (Strong). Aparecem na *Bíblia Almeida Strong*.
 
-**Situação:** precisa de um texto com marcação palavra a palavra. Nenhuma das
-cinco traduções embutidas tem isso.
+### O que já está feito (17/08/2026) — a via do MyBible
+
+O caminho que resolveu a falta de fonte livre foi **não procurar fonte**: o
+usuário já tem, no aparelho dele, um módulo do MyBible com Strong em português
+(a *Bíblia+*, 16,5 MB). O app passou a ler esse formato.
+
+- `src/core/sqlite/reader.ts` — leitor de SQLite somente-leitura, escrito à mão
+  (árvore-B de tabela, registros, páginas de transbordo). Sem WebAssembly, que
+  custaria ~1,2 MB no cache do PWA para um recurso usado uma vez. Conferido
+  contra 7.200 linhas geradas pelo `sqlite3` do Python, com páginas de 512,
+  4096 e 65536 bytes, UTF-8 e UTF-16, transbordo e todos os tipos.
+- `src/core/bible/mybible.ts` — tabelas `info`/`books`/`verses`, a numeração de
+  livros do formato, a limpeza da marcação e a extração das etiquetas Strong
+  com a posição da palavra.
+- `src/core/bible/mybibleImport.ts` — grava como tradução do aparelho.
+- Guardadas em `CachedBook.strongs` (`StrongTag = [palavra, código]`), ao lado
+  do texto, que continua puro. `TranslationInfo.hasStrong` marca a tradução.
+
+Conferido no navegador com um módulo de 11,7 MB montado no formato: 66 livros,
+31.101 versículos, importação em ~1,1 s, leitura sem marcação vazando, busca
+encontrando o texto importado.
+
+### O que falta
+
+1. **A tela.** Tocar na palavra e ver o código e o termo original. Os dados já
+   estão gravados; não há nada que os mostre.
+2. **O dicionário.** Sem ele o código é só "H430". `readDictionary()` e
+   `isStrongDictionary()` já existem em `mybible.ts` — falta a tabela no Dexie,
+   a importação e a consulta. Um módulo `*.dictionary.SQLite3` do MyBible
+   resolve, pela mesma porta.
+
+O levantamento abaixo continua valendo para quem quiser uma fonte **embutível**
+— que segue não existindo em português.
+
+**Situação das traduções embutidas:** nenhuma das cinco tem marcação palavra a
+palavra, e isso não mudou.
 
 **Varredura de 13/08/2026 — nada em português.** Nas fontes alcançáveis, texto
 com números de Strong só existe em inglês e francês:
@@ -140,10 +174,21 @@ itens saem juntos.
 ## 4. Ensinar a importar as traduções com direitos autorais
 
 **Pendência de explicação, não de código.** O recurso está pronto e funcionando:
-*Configurações › Traduções › Importar*. Ver `TranslationManager.tsx` e
-`normalizeImportedBible()` em `core/bible/repository.ts`.
+*Configurações › Traduções*, e também pela sigla da tradução dentro da leitura.
+Ver `TranslationManager.tsx`, `TranslationPicker.tsx`, o gancho compartilhado
+`features/bible/useTranslationImport.tsx` e `normalizeImportedBible()` em
+`core/bible/repository.ts`.
 
-Traduções já registradas como espaço reservado: **ARA, NVI, NTLH, KJA, NAA, ACF**.
+Espaços reservados (17/08/2026): os **quinze** títulos protegidos de
+`damarals/biblias` — ACF, ARA, ARC, AS21, JFAA, KJA, KJF, NAA, NBV, NTLH, NVI,
+NVT, OL, MENS, VFL. Nenhum traz texto; só nome, sigla e editora.
+
+Decisão do usuário, registrada aqui para não se perder: **uso pessoal, sem
+distribuição.** O que isso mudou foi o caminho de importação, não a regra — o
+build segue sem nenhum texto protegido. Conferido ponta a ponta com o JSON de
+release de `damarals/biblias` (formato "lista canônica", 4 MB): *66 livros e
+31.101 versículos neste aparelho*, tradução aparecendo no seletor, na comparação
+e na busca.
 
 Falta entregar ao usuário:
 

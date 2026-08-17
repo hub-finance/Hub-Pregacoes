@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { Sheet } from '../../components/Sheet';
+import { useTranslationImport } from './useTranslationImport';
 import type { TranslationInfo } from '../../core/db/types';
 
 interface Props {
@@ -11,12 +11,17 @@ interface Props {
   onClose: () => void;
   onSelect: (id: string) => void;
   onCompare: (id: string | null) => void;
+  /** Recarrega o catálogo depois que uma tradução é importada aqui. */
+  onImported?: () => void;
 }
 
 /**
- * Seleção de tradução. Traduções protegidas por direitos autorais aparecem
- * listadas, mas só ficam disponíveis depois que o usuário instala uma cópia
- * licenciada em Configurações › Traduções.
+ * Seleção de tradução.
+ *
+ * As traduções protegidas por direitos autorais não acompanham o aplicativo —
+ * mas quem já tem uma cópia importa o arquivo aqui mesmo, sem sair da leitura,
+ * e a partir daí ela se comporta como qualquer outra: aparece na lista, entra
+ * na comparação e vale para a busca.
  */
 export function TranslationPicker({
   open,
@@ -26,12 +31,23 @@ export function TranslationPicker({
   onClose,
   onSelect,
   onCompare,
+  onImported,
 }: Props) {
   const available = translations.filter((t) => t.bundled || t.imported);
   const licensed = translations.filter((t) => !t.bundled && !t.imported);
+  const { input, pick, busy } = useTranslationImport({
+    catalog: translations,
+    onImported: (info) => {
+      onImported?.();
+      onSelect(info.id);
+      onClose();
+    },
+  });
 
   return (
     <Sheet open={open} title="Tradução" onClose={onClose}>
+      {input}
+
       <div className="list">
         {available.map((t) => (
           <button
@@ -48,6 +64,7 @@ export function TranslationPicker({
               <span className="list-meta">
                 {t.languageLabel} · {t.license}
                 {t.imported ? ' · importada' : ''}
+                {t.hasStrong ? ' · números Strong' : ''}
               </span>
             </span>
             {current === t.id && <Icon name="check" size={18} style={{ color: 'var(--accent-strong)' }} />}
@@ -80,26 +97,28 @@ export function TranslationPicker({
       {licensed.length > 0 && (
         <div>
           <p className="section-title" style={{ marginBottom: 'var(--sp-2)' }}>
-            Requer licença
+            Importar do seu arquivo
           </p>
           <div className="list">
             {licensed.map((t) => (
-              <div key={t.id} className="list-item" style={{ opacity: 0.75 }}>
+              <button
+                key={t.id}
+                className="list-item"
+                disabled={!!busy}
+                onClick={() => pick(t)}
+              >
                 <span className="badge">{t.abbrev}</span>
                 <span className="list-body">
                   <span className="list-title">{t.name}</span>
                   <span className="list-meta">{t.publisher}</span>
                 </span>
-                <Icon name="lock" size={17} className="dim" />
-              </div>
+                <span className="small dim">{busy === t.id ? 'importando…' : 'Importar'}</span>
+              </button>
             ))}
           </div>
           <p className="small dim" style={{ marginTop: 'var(--sp-2)' }}>
-            Estas traduções são protegidas por direitos autorais e não acompanham o aplicativo.{' '}
-            <Link to="/config" onClick={onClose} style={{ color: 'var(--accent-strong)', fontWeight: 600 }}>
-              Instalar uma cópia licenciada
-            </Link>
-            .
+            Estas traduções são das editoras e não vêm com o aplicativo. Escolha o arquivo JSON da
+            sua cópia: ele fica somente neste aparelho.
           </p>
         </div>
       )}

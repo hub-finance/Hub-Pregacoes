@@ -571,12 +571,18 @@
 .list-body {
   min-width: 0;
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
+/* título e legenda são `span`: sem `block` os dois correm colados na mesma
+   linha assim que o nome fica comprido ("…AtualizadaPortuguês · Direitos…") */
 .list-title {
+  display: block;
   font-weight: 570;
   font-size: 0.95rem;
 }
 .list-meta {
+  display: block;
   font-size: 0.78rem;
   color: var(--text-3);
   margin-top: 2px;
