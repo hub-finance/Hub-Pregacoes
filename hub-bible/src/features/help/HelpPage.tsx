@@ -40,6 +40,18 @@ const TOPICS: Topic[] = [
     ],
   },
   {
+    icon: 'download',
+    title: 'Aplicativo Android (APK) — independente do navegador',
+    steps: [
+      'Além da instalação pelo navegador, existe o APK: o mesmo aplicativo, mas com armazenamento próprio. Limpar os dados do Chrome não afeta nada dentro dele.',
+      'O APK é gerado no GitHub, na aba Actions: abra a execução mais recente de "APK Android" e baixe o arquivo em Artifacts › hub-bible-apk.',
+      'Baixe no tablet e toque no arquivo para instalar. O Android vai pedir permissão para instalar de fora da loja — é normal, porque não passa pela Play Store.',
+      'Atenção: as duas instalações NÃO compartilham dados. Um sermão escrito no aplicativo não aparece na versão do navegador, e vice-versa. Para levar de uma para a outra, exporte a cópia de um lado e restaure do outro.',
+      'Em Configurações › Backup o app diz em qual das duas você está.',
+      'No APK a atualização deixa de ser automática: atualizar é baixar e instalar a versão nova. É o preço de não depender do navegador.',
+    ],
+  },
+  {
     icon: 'reset',
     title: 'Atualizar para a versão mais nova',
     steps: [
@@ -47,6 +59,7 @@ const TOPICS: Topic[] = [
       'Se você ignorar o aviso, a atualização entra sozinha na próxima vez que abrir o aplicativo.',
       'Se quiser forçar: feche o aplicativo por completo (retire-o dos apps recentes) e abra de novo.',
       'Nada do que você criou se perde numa atualização — anotações, sermões e favoritos ficam no aparelho.',
+      'Isso vale para a instalação pelo navegador. No aplicativo Android (APK) não há aviso de versão nova: lá, atualizar é baixar e instalar o APK mais recente.',
     ],
   },
   {
