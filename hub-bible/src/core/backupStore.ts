@@ -1,5 +1,11 @@
 import { db, now, uid } from './db/db';
-import { createBackup, restoreBackup, type BackupFile, type RestoreResult } from './backup';
+import {
+  createBackup,
+  restoreBackup,
+  type BackupFile,
+  type BackupOptions,
+  type RestoreResult,
+} from './backup';
 import type { BackupSnapshot } from './db/types';
 
 /**
@@ -197,12 +203,18 @@ export function backupFileName(at = new Date()): string {
 export async function sendBackupTo(
   targetId: string,
   settings?: unknown,
-): Promise<{ result: 'sent' | 'downloaded'; records: number }> {
+  options?: BackupOptions,
+): Promise<{ result: 'sent' | 'downloaded'; records: number; bytes: number }> {
   const target = targets.get(targetId);
   if (!target) throw new Error('Destino desconhecido.');
 
-  const backup = await createBackup(settings);
-  const payload = JSON.stringify(backup, null, 2);
+  const backup = await createBackup(settings, options);
+  /* Sem indentação quando o texto bíblico vai junto: a formatação bonita custa
+     dezenas de MB num arquivo que ninguém vai ler à mão. Sem as Bíblias o
+     arquivo é pequeno, e aí vale deixá-lo legível. */
+  const payload = backup.translations
+    ? JSON.stringify(backup)
+    : JSON.stringify(backup, null, 2);
   const result = await target.send(
     new Blob([payload], { type: 'application/json' }),
     backupFileName(),
@@ -215,6 +227,7 @@ export async function sendBackupTo(
   return {
     result,
     records: Object.values(backup.counts).reduce((a, b) => a + b, 0),
+    bytes: payload.length,
   };
 }
 

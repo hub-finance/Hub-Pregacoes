@@ -200,7 +200,8 @@ const TOPICS: Topic[] = [
       '"Salvar no Google Drive" abre a folha de compartilhamento do aparelho — escolha Drive, e-mail ou o que preferir. É a cópia que salva de verdade.',
       'O app também guarda sozinho as últimas cópias neste aparelho, uma a cada poucos dias. Servem para desfazer um engano, como apagar um sermão sem querer — mas se o navegador for limpo, vão junto.',
       'Para restaurar: pelo botão Restaurar de uma cópia da lista, ou em "Restaurar de um arquivo". Nos dois casos o estado atual é gravado antes, para haver caminho de volta.',
-      'A cópia não leva os arquivos importados (PDF, Word, apresentações) nem as traduções importadas — são grandes demais. Guarde os originais.',
+      'Marque "Levar também as Bíblias que importei" para que um arquivo só carregue seus sermões e as Bíblias importadas. É assim que se leva tudo do navegador para o aplicativo Android, sem reimportar tradução nenhuma — o arquivo fica bem maior, mas a instalação nova nasce completa.',
+      'As apostilas e cursos em PDF, Word e apresentação continuam de fora: não cabem num arquivo de backup. Guarde os originais e importe de novo.',
     ],
   },
   {
