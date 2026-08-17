@@ -287,6 +287,7 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
           setTranslation(id);
         }}
         onCompare={() => undefined}
+        onImported={() => catalog.reload()}
       />
     </aside>
   );

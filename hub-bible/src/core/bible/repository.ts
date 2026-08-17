@@ -1,6 +1,6 @@
 import { db, now } from '../db/db';
 import type { BookMeta, CachedBook, TranslationInfo, TranslationMeta, VerseRef } from '../db/types';
-import { CANON, CANON_BY_OSIS } from './canon';
+import { CANON, CANON_BY_OSIS, findBook } from './canon';
 
 /**
  * Repositório do texto bíblico.
@@ -245,7 +245,10 @@ export function normalizeImportedBible(data: unknown): { books: BookMap; meta?: 
     data.forEach((entry, index) => {
       const chapters = (entry?.chapters ?? entry?.capitulos) as string[][] | undefined;
       if (!chapters) return;
-      const osis = CANON[index]?.osis;
+      /* A sigla do próprio arquivo manda mais que a posição: se ela for
+         reconhecida, um livro faltando no meio da lista não desloca todos os
+         seguintes. Sem sigla reconhecível, vale a ordem canônica. */
+      const osis = osisFromLabel(entry?.abbrev ?? entry?.sigla ?? entry?.name) ?? CANON[index]?.osis;
       if (!osis) return;
       books[osis] = chapters.map((c) => c.map((v) => String(v ?? '').trim()));
     });
@@ -253,6 +256,12 @@ export function normalizeImportedBible(data: unknown): { books: BookMap; meta?: 
   }
 
   throw new Error('Formato de arquivo não reconhecido.');
+}
+
+/** Sigla ou nome de livro, em qualquer grafia usual, -> código OSIS. */
+function osisFromLabel(label: unknown): string | undefined {
+  if (typeof label !== 'string' || !label.trim()) return undefined;
+  return findBook(label)?.osis;
 }
 
 function fill(books: BookMap): BookMap {

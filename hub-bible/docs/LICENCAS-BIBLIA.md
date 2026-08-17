@@ -42,12 +42,25 @@ disponíveis quando o próprio usuário instala uma cópia que já tenha licenç
 
 | ID | Tradução | Detentor dos direitos |
 |---|---|---|
-| `pt_ara` | Almeida Revista e Atualizada | Sociedade Bíblica do Brasil |
-| `pt_nvi` | Nova Versão Internacional | Biblica / Editora Vida |
-| `pt_ntlh` | Nova Tradução na Linguagem de Hoje | Sociedade Bíblica do Brasil |
-| `pt_kja` | King James Atualizada | Abba Press / BV Books |
+| `pt_acf` | Almeida Corrigida Fiel (1994) | Sociedade Bíblica Trinitariana do Brasil |
+| `pt_ara` | Almeida Revista e Atualizada (1993) | Sociedade Bíblica do Brasil |
+| `pt_arc` | Almeida Revista e Corrigida (1995) | Sociedade Bíblica do Brasil |
+| `pt_as21` | Almeida Século 21 (2009) | Editora Vida Nova |
+| `pt_jfaa` | Almeida Atualizada | edição atualizada de Almeida |
+| `pt_kja` | King James Atualizada (1999) | Abba Press / BV Books |
+| `pt_kjf` | King James Fiel | BV Books |
 | `pt_naa` | Nova Almeida Atualizada (2017) | Sociedade Bíblica do Brasil |
-| `pt_acf` | Almeida Corrigida Fiel | Sociedade Bíblica Trinitariana do Brasil |
+| `pt_nbv` | Nova Bíblia Viva (2007) | Editora Mundo Cristão |
+| `pt_ntlh` | Nova Tradução na Linguagem de Hoje (1988) | Sociedade Bíblica do Brasil |
+| `pt_nvi` | Nova Versão Internacional | Biblica / Editora Vida |
+| `pt_nvt` | Nova Versão Transformadora (2016) | Editora Mundo Cristão |
+| `pt_ol` | O Livro (2000) | Biblica |
+| `pt_mens` | A Mensagem (2016) | Editora Vida |
+| `pt_vfl` | Versão Fácil de Ler (2017) | Bible League International |
+
+A lista sai de `LICENSED_SLOTS`, em `scripts/build-bible-data.mjs`; `catalog.json`
+é gerado a partir dela. Acrescentar um slot é acrescentar **nome, sigla e
+editora** — nunca texto.
 
 O texto importado fica **somente no dispositivo do usuário** (IndexedDB). Ele não é
 enviado a servidores nem embutido no build.

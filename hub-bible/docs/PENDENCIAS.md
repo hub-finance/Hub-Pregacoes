@@ -140,10 +140,21 @@ itens saem juntos.
 ## 4. Ensinar a importar as traduções com direitos autorais
 
 **Pendência de explicação, não de código.** O recurso está pronto e funcionando:
-*Configurações › Traduções › Importar*. Ver `TranslationManager.tsx` e
-`normalizeImportedBible()` em `core/bible/repository.ts`.
+*Configurações › Traduções*, e também pela sigla da tradução dentro da leitura.
+Ver `TranslationManager.tsx`, `TranslationPicker.tsx`, o gancho compartilhado
+`features/bible/useTranslationImport.tsx` e `normalizeImportedBible()` em
+`core/bible/repository.ts`.
 
-Traduções já registradas como espaço reservado: **ARA, NVI, NTLH, KJA, NAA, ACF**.
+Espaços reservados (17/08/2026): os **quinze** títulos protegidos de
+`damarals/biblias` — ACF, ARA, ARC, AS21, JFAA, KJA, KJF, NAA, NBV, NTLH, NVI,
+NVT, OL, MENS, VFL. Nenhum traz texto; só nome, sigla e editora.
+
+Decisão do usuário, registrada aqui para não se perder: **uso pessoal, sem
+distribuição.** O que isso mudou foi o caminho de importação, não a regra — o
+build segue sem nenhum texto protegido. Conferido ponta a ponta com o JSON de
+release de `damarals/biblias` (formato "lista canônica", 4 MB): *66 livros e
+31.101 versículos neste aparelho*, tradução aparecendo no seletor, na comparação
+e na busca.
 
 Falta entregar ao usuário:
 
