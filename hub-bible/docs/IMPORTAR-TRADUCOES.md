@@ -125,8 +125,35 @@ Importar*. Passe o arquivo para o tablet por Google Drive, e-mail ou cabo.
 
 ## Formatos de arquivo aceitos
 
-O arquivo precisa ser **JSON**, em um destes três formatos. A conversão está em
-`normalizeImportedBible()` (`src/core/bible/repository.ts`).
+### Módulo do MyBible (`.SQLite3`)
+
+Escolha o arquivo do módulo como ele está. No Android eles ficam na pasta
+`MyBible` da memória interna. É o caminho das **Bíblias com números Strong** em
+português, que não existem em JSON.
+
+O app lê o arquivo por conta própria: `src/core/sqlite/reader.ts` é um leitor de
+SQLite somente-leitura escrito para isto (cabeçalho, árvore-B, registros e
+páginas de transbordo — sem SQL e sem WebAssembly, que custaria ~1,2 MB no cache
+do PWA). `src/core/bible/mybible.ts` entende as tabelas do formato: `info`,
+`books`, `verses`.
+
+Da marcação do MyBible, as notas (`<f>`, `<n>`) são descartadas e as demais
+etiquetas saem do texto. Os `<S>430</S>` viram etiquetas Strong guardadas **ao
+lado** do versículo, com a posição da palavra a que pertencem — o texto continua
+texto puro, para a busca e a cópia seguirem funcionando. Módulos que gravam só
+o número recebem a letra pelo testamento: `H` no Antigo, `G` no Novo.
+
+Livros fora do cânone de 66 (Tobias, Judite…) são ignorados, e o aviso diz
+quais.
+
+> **Ainda não há tela para ver os números Strong.** Eles são importados e ficam
+> guardados; falta a consulta (tocar na palavra e ver o termo original). Sem um
+> dicionário Strong importado também não haveria o que mostrar além do código.
+
+### JSON
+
+Em um destes três formatos. A conversão está em `normalizeImportedBible()`
+(`src/core/bible/repository.ts`).
 
 ### 1. Formato do Hub Bible
 

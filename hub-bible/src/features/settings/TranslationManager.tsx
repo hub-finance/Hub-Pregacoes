@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { ProgressBar } from '../../components/ui';
 import { useToast } from '../../components/Toast';
@@ -34,7 +34,13 @@ export function TranslationManager() {
     setInstalledMap(Object.fromEntries(entries));
   };
 
-  if (catalog.data && !Object.keys(installedMap).length) void refreshInstalled(catalog.data);
+  /* Recontar sempre que o catálogo mudar. Antes isso era feito na renderização,
+     só enquanto o mapa estivesse vazio — e uma tradução recém-importada, cujo
+     id ainda não existia no catálogo anterior, ficava parada em 0/66. */
+  useEffect(() => {
+    if (catalog.data) void refreshInstalled(catalog.data);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catalog.data]);
 
   const { input, pick, busy } = useTranslationImport({
     catalog: catalog.data ?? [],
@@ -77,6 +83,7 @@ export function TranslationManager() {
                   <span className="list-meta">
                     {t.languageLabel} · {t.license}
                     {t.imported ? ' · importada por você' : ''}
+                    {t.hasStrong ? ' · com números Strong' : ''}
                   </span>
                 </span>
                 <span className="small dim mono-num">{installed}/66</span>
@@ -144,8 +151,9 @@ export function TranslationManager() {
         {busy === '?' ? 'Importando…' : 'Importar um arquivo de tradução'}
       </button>
       <p className="small dim" style={{ marginTop: 'calc(var(--sp-2) * -1)' }}>
-        Reconhece a tradução pelo nome do arquivo (ARA.json, NVI.json…). Se o nome não for
-        conhecido, entra como uma tradução sua, com o nome do próprio arquivo.
+        Aceita <strong>JSON</strong> e <strong>módulos do MyBible</strong> (<code>.SQLite3</code>) —
+        é por aqui que entra uma Bíblia com números Strong. Pelo nome do arquivo o app reconhece a
+        tradução (ARA.json, NVI.json…); nome desconhecido entra como tradução sua.
       </p>
 
       {licensed.length > 0 && (
@@ -171,7 +179,12 @@ export function TranslationManager() {
       <details className="card">
         <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Formatos aceitos na importação</summary>
         <div className="stack small muted" style={{ marginTop: 'var(--sp-3)' }}>
-          <p>O arquivo precisa ser JSON em um destes formatos:</p>
+          <p>
+            <strong>Módulo do MyBible</strong> (<code>.SQLite3</code>): escolha o arquivo do módulo
+            como ele está. No Android os módulos ficam na pasta <code>MyBible</code> da memória
+            interna. Se a Bíblia tiver números Strong, eles vêm junto.
+          </p>
+          <p>Ou <strong>JSON</strong>, em um destes formatos:</p>
           <pre
             style={{
               overflowX: 'auto',

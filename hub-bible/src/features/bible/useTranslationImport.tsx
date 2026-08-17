@@ -17,6 +17,9 @@ import type { TranslationInfo } from '../../core/db/types';
  * da leitura, para que o caminho seja um só.
  */
 
+/** Módulo do MyBible — o nome do arquivo é o que distingue os dois caminhos. */
+const isModule = (file: File) => /\.(sqlite3?|db)$/i.test(file.name);
+
 /** Sem slot escolhido, o nome do arquivo decide o lugar dele. */
 function slotForFile(file: File, catalog: TranslationInfo[]): TranslationInfo {
   const base = file.name.replace(/\.[^.]+$/, '').trim();
@@ -70,13 +73,8 @@ export function useTranslationImport({ catalog, onImported }: Options) {
     slotRef.current = null;
     setBusy(chosen?.id ?? '?');
     try {
-      const data = await readJsonFile(file);
-      const info = chosen ?? slotForFile(file, catalog);
-      const result = await importTranslation(info, data);
-      notify(
-        `${info.shortName}: ${result.books} livros e ${result.verses.toLocaleString('pt-BR')} versículos neste aparelho.`,
-      );
-      onImported?.(info);
+      if (isModule(file)) await importModule(file, chosen);
+      else await importJson(file, chosen);
     } catch (err) {
       notify((err as Error).message, 'error');
     } finally {
@@ -85,11 +83,35 @@ export function useTranslationImport({ catalog, onImported }: Options) {
     }
   };
 
+  const importJson = async (file: File, chosen: TranslationInfo | null) => {
+    const data = await readJsonFile(file);
+    const info = chosen ?? slotForFile(file, catalog);
+    const result = await importTranslation(info, data);
+    notify(
+      `${info.shortName}: ${result.books} livros e ${result.verses.toLocaleString('pt-BR')} versículos neste aparelho.`,
+    );
+    onImported?.(info);
+  };
+
+  /* Módulo do MyBible: um banco SQLite inteiro, lido aqui mesmo. É por onde
+     entram as Bíblias com números Strong, que não existem em JSON. */
+  const importModule = async (file: File, chosen: TranslationInfo | null) => {
+    const { importMyBibleBible } = await import('../../core/bible/mybibleImport');
+    const buffer = await file.arrayBuffer();
+    const result = await importMyBibleBible(buffer, chosen, file.name);
+    const name = result.translation.shortName;
+    notify(
+      `${name}: ${result.books} livros e ${result.verses.toLocaleString('pt-BR')} versículos` +
+        (result.strong ? ', com números Strong.' : '.'),
+    );
+    onImported?.(result.translation);
+  };
+
   const input = (
     <input
       ref={inputRef}
       type="file"
-      accept="application/json,.json"
+      accept="application/json,.json,.SQLite3,.sqlite3,.sqlite,application/octet-stream"
       className="sr-only"
       onChange={(e) => void onFile(e.target.files?.[0])}
     />

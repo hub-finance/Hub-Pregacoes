@@ -161,6 +161,7 @@ const TOPICS: Topic[] = [
       'ARA, ARC, NVI, NAA, NTLH, NVT, ACF, KJA, KJF, AS21, NBV, O Livro, A Mensagem e outras têm direitos autorais e não acompanham o aplicativo — mas estão no catálogo esperando a sua cópia.',
       'Tendo o arquivo da tradução, importe por Configurações › Traduções, ou pelo próprio botão da sigla enquanto lê. O texto é gravado só neste aparelho: não sobe para lugar nenhum e não vai junto para quem instalar o app depois.',
       'Se o arquivo tiver o nome da sigla (ARA.json, NVI.json…), o app reconhece sozinho a qual tradução ele pertence — basta escolher o arquivo.',
+      'Módulos do MyBible (arquivos .SQLite3) também entram, do jeito que estão. É por aí que vem uma Bíblia com números Strong, como a Bíblia+: os números são guardados junto com o texto. No Android os módulos ficam na pasta MyBible da memória interna.',
       { to: '/config', label: 'Abrir configurações', text: 'A importação aceita arquivos JSON em três formatos diferentes.' },
     ],
   },

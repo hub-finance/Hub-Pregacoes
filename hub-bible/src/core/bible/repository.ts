@@ -1,5 +1,12 @@
 import { db, now } from '../db/db';
-import type { BookMeta, CachedBook, TranslationInfo, TranslationMeta, VerseRef } from '../db/types';
+import type {
+  BookMeta,
+  CachedBook,
+  StrongTag,
+  TranslationInfo,
+  TranslationMeta,
+  VerseRef,
+} from '../db/types';
 import { CANON, CANON_BY_OSIS, findBook } from './canon';
 
 /**
@@ -276,7 +283,26 @@ export async function importTranslation(
   info: TranslationInfo,
   data: unknown,
 ): Promise<ImportResult> {
-  const { books, meta: incomingMeta } = normalizeImportedBible(data);
+  const { books, meta } = normalizeImportedBible(data);
+  return storeTranslation(info, books, { meta });
+}
+
+interface StoreOptions {
+  meta?: Partial<TranslationMeta>;
+  /** Números Strong por livro, quando a origem os traz. */
+  strongs?: Record<string, StrongTag[][][]>;
+}
+
+/**
+ * Grava no aparelho o texto já normalizado, venha ele de JSON ou de um módulo
+ * do MyBible. É aqui que a tradução deixa de ser arquivo e passa a existir para
+ * o app: livros, metadados e — quando houver — os números Strong ao lado.
+ */
+export async function storeTranslation(
+  info: TranslationInfo,
+  books: BookMap,
+  { meta: incomingMeta, strongs }: StoreOptions = {},
+): Promise<ImportResult> {
   const osisList = Object.keys(books).filter((k) => CANON_BY_OSIS.has(k));
   if (!osisList.length) throw new Error('Nenhum livro reconhecido no arquivo.');
 
@@ -292,6 +318,7 @@ export async function importTranslation(
       translation: info.id,
       book: canon.osis,
       chapters,
+      strongs: strongs?.[canon.osis],
       savedAt: now(),
     });
     const verseCounts = chapters.map((c) => c.length);

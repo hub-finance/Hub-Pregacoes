@@ -64,6 +64,7 @@ export function TranslationPicker({
               <span className="list-meta">
                 {t.languageLabel} · {t.license}
                 {t.imported ? ' · importada' : ''}
+                {t.hasStrong ? ' · números Strong' : ''}
               </span>
             </span>
             {current === t.id && <Icon name="check" size={18} style={{ color: 'var(--accent-strong)' }} />}

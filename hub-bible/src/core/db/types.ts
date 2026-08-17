@@ -282,8 +282,17 @@ export interface CachedBook {
   translation: string;
   book: string;
   chapters: string[][];
+  /**
+   * Números Strong, quando a tradução os traz (módulos do MyBible).
+   * Capítulo → versículo → `[posição da palavra, código]`. Fica em paralelo a
+   * `chapters` para que o texto continue sendo texto puro na busca e na cópia.
+   */
+  strongs?: StrongTag[][][];
   savedAt: number;
 }
+
+/** [posição da palavra no versículo, código Strong] — ex.: `[0, 'H430']`. */
+export type StrongTag = [word: number, code: string];
 
 /* -------------------------------- catálogo ------------------------------- */
 
@@ -305,6 +314,8 @@ export interface TranslationInfo {
   stats?: { books: number; chapters: number; verses: number };
   /** Preenchido em runtime: tradução importada pelo usuário. */
   imported?: boolean;
+  /** A tradução traz números Strong palavra a palavra. */
+  hasStrong?: boolean;
 }
 
 export interface BookMeta {
