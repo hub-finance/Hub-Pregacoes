@@ -75,11 +75,33 @@ Os números de Strong em si são de 1890 e estão em domínio público. O que n�
 existe livre é o **mapeamento** desses números sobre um texto em português —
 isso é trabalho editorial de quem fez, com direitos próprios.
 
+**Levantamento de 14/08/2026 — as fontes existem, mas em inglês.** Conferido
+baixando os arquivos:
+
+| Fonte | O que é | Licença | Tamanho |
+|---|---|---|---|
+| `openscriptures/strongs` | Léxico de Strong (1890) completo | CC BY-SA, sobre texto em domínio público | grego 1,2 MB · hebraico 2,0 MB |
+| `STEPBible/STEPBible-Data` | TBESG e TBESH, léxicos breves da Tyndale House | CC BY 4.0 | — |
+
+**Em português, nada com licença utilizável.** O "Dicionário Bíblico Strong"
+em português é da Sociedade Bíblica do Brasil e tem direitos autorais; os PDFs
+que circulam em SlideShare e Internet Archive não são fonte licenciada. Busca
+no GitHub por léxico bíblico em português só devolve dicionários da língua
+portuguesa (fserb/pt-br, unitex-pt-br e afins), que não servem.
+
 **Caminho viável hoje:** aplicar Strong sobre a **KJV**, que já está embutida e
-tem versão com Strong em domínio público. Daria o recurso de palavra clicável
-com o original hebraico/grego — em inglês, servindo como ferramenta de estudo
-ao lado do texto em português. Vale confirmar com o usuário se resolve, antes
-de investir no trabalho.
+tem versão com Strong em domínio público, com as definições em inglês. Daria a
+palavra clicável com o original hebraico/grego — ferramenta de estudo ao lado
+do texto em português.
+
+**Para ter as definições em português**, três saídas, em ordem de custo:
+
+1. **Traduzir o léxico de Strong.** O texto de 1890 é domínio público, então a
+   tradução é permitida e seria nossa. São ~14.000 verbetes curtos; feito por
+   máquina, precisa vir rotulado como tradução automática, sem se passar por
+   obra de referência revisada.
+2. **Licenciar** um léxico em português de uma editora.
+3. **Deixar em inglês** e assumir isso na interface.
 
 **Impacto no código — o ponto mais importante desta lista.** Hoje um versículo
 é uma `string` simples:
