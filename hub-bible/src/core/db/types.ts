@@ -369,3 +369,31 @@ export interface BookMeta {
 export interface TranslationMeta extends TranslationInfo {
   books: BookMeta[];
 }
+
+/* ------------------------------ dicionários ------------------------------ */
+
+/**
+ * Dicionário importado pelo usuário — tipicamente um léxico de Strong vindo de
+ * um módulo `*.dictionary.SQLite3` do MyBible. Como as traduções, o conteúdo
+ * fica só neste aparelho.
+ */
+export interface DictionaryInfo {
+  id: ID;
+  name: string;
+  /** Verbetes indexados por código Strong (H430, G26) e não por palavra. */
+  isStrong: boolean;
+  entries: number;
+  language?: string;
+  createdAt: number;
+}
+
+export interface DictionaryEntry {
+  id: ID;
+  dictionaryId: ID;
+  /** O verbete como está no arquivo. */
+  topic: string;
+  /** O verbete normalizado, para casar "H430" com "H0430" e "0430". */
+  topicKey: string;
+  /** HTML restrito — passa pelo mesmo saneador dos sermões. */
+  definition: string;
+}

@@ -109,14 +109,30 @@ Conferido no navegador com um módulo de 11,7 MB montado no formato: 66 livros,
 31.101 versículos, importação em ~1,1 s, leitura sem marcação vazando, busca
 encontrando o texto importado.
 
-### O que falta
+### Concluído em 17/08/2026 — a consulta e o dicionário
 
-1. **A tela.** Tocar na palavra e ver o código e o termo original. Os dados já
-   estão gravados; não há nada que os mostre.
-2. **O dicionário.** Sem ele o código é só "H430". `readDictionary()` e
-   `isStrongDictionary()` já existem em `mybible.ts` — falta a tabela no Dexie,
-   a importação e a consulta. Um módulo `*.dictionary.SQLite3` do MyBible
-   resolve, pela mesma porta.
+- `core/data/dictionaries.ts` — importa módulos `*.dictionary.SQLite3`, grava em
+  `dictionaries` + `dictionaryEntries` (Dexie v4) e consulta por código.
+  `topicKey()` normaliza o verbete, porque os arquivos discordam na grafia do
+  mesmo código: `H430`, `H0430`, `0430`, `430` caem todos na mesma chave.
+- **Um botão só.** Bíblia e dicionário chegam no mesmo formato; o próprio
+  arquivo diz o que é (`moduleKind`), então não se pede ao usuário que saiba.
+- `features/bible/StrongSheet.tsx` — o versículo palavra por palavra. Abre pela
+  ação **"No original"** da barra do versículo, que só existe quando a tradução
+  tem `hasStrong`.
+
+**Por que não é toque na palavra dentro do texto:** no tablet, palavra em meio a
+parágrafo é alvo pequeno demais, e tocar no texto já significa selecionar o
+versículo. Na folha cada palavra vira botão de 34 px.
+
+Conferido: Bíblia com Strong e dicionário de 803 verbetes importados pelo mesmo
+botão; Gn 1.1 abre com `No H7225 · principio H7225 · creou H1254 · Deus H430`, e
+tocar em "No" traz *"reshit — princípio, primeiro, o melhor"*. Na Almeida
+embutida a ação não aparece.
+
+Falta só o que depende de licença: **nenhum léxico em português é embutível**, então
+a consulta continua dependendo do arquivo do usuário. O levantamento abaixo
+explica por quê.
 
 O levantamento abaixo continua valendo para quem quiser uma fonte **embutível**
 — que segue não existindo em português.

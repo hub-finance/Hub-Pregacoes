@@ -39,6 +39,8 @@ export function TranslationPicker({
     catalog: translations,
     onImported: (info) => {
       onImported?.();
+      // dicionário não é tradução: não há o que selecionar, a folha só recarrega
+      if (!info) return;
       onSelect(info.id);
       onClose();
     },

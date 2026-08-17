@@ -214,6 +214,7 @@
     <li><a href="#cursos">Cursos — material de aula</a></li>
     <li><a href="#pregacao">Modo Pregação e Modo Aula</a></li>
     <li><a href="#traducoes">Traduções e direitos autorais</a></li>
+    <li><a href="#original">Palavras no original (Strong)</a></li>
     <li><a href="#backup">Backup e seus dados</a></li>
     <li><a href="#compartilhar">Compartilhar o aplicativo</a></li>
     <li><a href="#problemas">Problemas comuns</a></li>
@@ -605,8 +606,63 @@
 </section>
 
 <!-- ==================================================================== -->
+<section id="original">
+  <h2><span class="num">13</span>Palavras no original (Strong)</h2>
+  <p class="section-lead">Ver o termo hebraico ou grego por trás de uma palavra do versículo.</p>
+
+  <p>
+    Os <strong>números de Strong</strong> são um índice antigo que dá um código a cada palavra
+    do hebraico e do grego bíblicos — <code>H430</code> para <em>elohim</em>,
+    <code>G26</code> para <em>agapē</em>. Com eles, dá para ver qual palavra original está por
+    trás de cada palavra da tradução.
+  </p>
+
+  <h3>São precisos dois arquivos</h3>
+  <ol class="steps">
+    <li>
+      Uma <strong>Bíblia com números Strong</strong> — um módulo do MyBible que os traga. É ela
+      que liga cada palavra do versículo a um código.
+    </li>
+    <li>
+      Um <strong>dicionário Strong</strong> — outro módulo (<code>.dictionary.SQLite3</code>),
+      que diz o que cada código significa. Sem ele aparece só <code>H430</code>, que não ajuda
+      ninguém.
+    </li>
+  </ol>
+  <p>
+    Os dois entram pelo <strong>mesmo botão</strong>:
+    <span class="path">Configurações › Importar um arquivo de tradução</span>. O próprio arquivo
+    diz se é Bíblia ou dicionário — você não precisa escolher.
+  </p>
+
+  <h3>Como consultar</h3>
+  <ol class="steps">
+    <li>Leia numa tradução que tenha Strong (aparece &ldquo;com números Strong&rdquo; na lista de traduções).</li>
+    <li>Toque no versículo para selecioná-lo.</li>
+    <li>Na barra de ações, toque em <strong>&ldquo;No original&rdquo;</strong>.</li>
+    <li>
+      O versículo aparece palavra por palavra, cada uma com o código. Toque numa palavra para
+      ver a definição do dicionário.
+    </li>
+  </ol>
+  <div class="note">
+    <span class="note-title">Por que não é só tocar na palavra no texto</span>
+    <p>
+      No tablet, uma palavra dentro do parágrafo é alvo pequeno demais — e tocar no texto já
+      quer dizer &ldquo;selecionar o versículo&rdquo;. Na folha, cada palavra vira um botão do
+      tamanho do dedo.
+    </p>
+  </div>
+  <p>
+    A ação <strong>&ldquo;No original&rdquo;</strong> só aparece quando a tradução aberta tem
+    números Strong. Nas traduções que vêm no aplicativo ela não existe, porque elas não têm essa
+    marcação.
+  </p>
+</section>
+
+<!-- ==================================================================== -->
 <section id="backup">
-  <h2><span class="num">13</span>Backup e seus dados</h2>
+  <h2><span class="num">15</span>Backup e seus dados</h2>
   <p class="section-lead">A seção mais importante deste manual.</p>
 
   <p>
@@ -681,7 +737,7 @@
 
 <!-- ==================================================================== -->
 <section id="compartilhar">
-  <h2><span class="num">14</span>Compartilhar o aplicativo</h2>
+  <h2><span class="num">16</span>Compartilhar o aplicativo</h2>
   <ul>
     <li>Basta enviar o endereço para quem você quiser. Não há cadastro nem loja de aplicativos.</li>
     <li>Cada pessoa instala e passa a ter o <strong>próprio conteúdo</strong>, separado do seu.</li>
@@ -695,7 +751,7 @@
 
 <!-- ==================================================================== -->
 <section id="problemas">
-  <h2><span class="num">15</span>Problemas comuns</h2>
+  <h2><span class="num">17</span>Problemas comuns</h2>
   <div class="table-scroll">
     <table>
       <thead><tr><th>Aconteceu</th><th>O que fazer</th></tr></thead>
@@ -725,6 +781,14 @@
           <td>Ajustes › Tela e Brilho › Bloqueio Automático › Nunca, enquanto estiver pregando.</td>
         </tr>
         <tr>
+          <td>Não aparece &ldquo;No original&rdquo;</td>
+          <td>A tradução aberta não tem números Strong. Troque para uma que tenha — a lista de traduções mostra quais têm.</td>
+        </tr>
+        <tr>
+          <td>Aparece o código, mas não o significado</td>
+          <td>Falta importar um dicionário Strong (<code>.dictionary.SQLite3</code>), pelo mesmo botão das traduções.</td>
+        </tr>
+        <tr>
           <td>A versão nova não chegou</td>
           <td>Feche o aplicativo por completo (tire dos recentes) e abra de novo.</td>
         </tr>
@@ -735,17 +799,14 @@
 
 <!-- ==================================================================== -->
 <section id="limites">
-  <h2><span class="num">16</span>O que ainda não existe</h2>
+  <h2><span class="num">18</span>O que ainda não existe</h2>
   <p class="section-lead">Para você saber o que esperar — e o que não procurar.</p>
   <ul>
     <li>
-      <strong>Consulta dos números Strong.</strong> Bíblias com Strong já são importadas e os
-      números ficam guardados, mas ainda não há tela para tocar na palavra e ver o termo
-      original. Falta também um dicionário que dê significado ao código.
-    </li>
-    <li>
-      <strong>Títulos de seção nas traduções que vêm no app.</strong> Eles aparecem quando você
-      importa um módulo que os traz; as traduções livres embutidas não os têm.
+      <strong>Números Strong e títulos de seção nas traduções que vêm no app.</strong> Os dois
+      funcionam, mas dependem de você importar um módulo que os traga: as traduções livres
+      embutidas não têm essa marcação, e nenhum léxico bíblico em português tem licença que
+      permita embutir.
     </li>
     <li>
       <strong>Sincronização entre aparelhos.</strong> Hoje cada aparelho tem os seus dados. Levar
