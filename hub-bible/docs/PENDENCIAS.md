@@ -320,3 +320,53 @@ Para não repetir trabalho:
 | `bibleapi/bibleapi-bibles-json` | KJV e outras | ✅ em uso (KJV) |
 | `thiagobodruk/biblia` | NVI, ACF, AA | ❌ direitos reservados às editoras — não usar |
 | `ebible.org` | catálogo amplo | ⚠️ inacessível pela rede do ambiente de trabalho; usar espelhos no GitHub |
+
+---
+
+## 7. Salvar os dados fora do aparelho — decidido em 17/08/2026
+
+Hoje tudo vive no IndexedDB de um aparelho só. O usuário decidiu o caminho, em
+duas etapas:
+
+1. **Agora — cópia no Google.** Sem servidor e sem conta: o app gera o arquivo
+   de backup e o entrega à folha de compartilhamento do Android, onde "Salvar no
+   Drive" é um toque. Some com o "lembrar de exportar". Vale acrescentar cópias
+   automáticas guardadas no próprio Dexie (as N últimas), que protegem do erro
+   mais comum — apagar um sermão sem querer — sem depender de nada externo.
+   *Não construído ainda.*
+2. **Depois — servidor com conta e sincronização.** Foi a opção que ele quis
+   para o futuro ("muito bom essa segunda opção"). O contrato já existe em
+   `core/sync/syncAdapter.ts`: `SYNCABLE_TABLES`, `collectLocalChanges`,
+   `applyRemoteChanges` e resolução por `updatedAt`. Ligar um servidor é
+   registrar um adaptador, sem mexer em tela.
+
+**A trava de licença vale aqui também.** As traduções importadas (ARA, Bíblia+…)
+**não podem** subir para servidor nem sincronizar entre pessoas: sair do aparelho
+deixa de ser uso pessoal e vira distribuição. `SYNCABLE_TABLES` já não inclui
+`books` nem `attachments` — manter assim.
+
+Ao construir, usar um contrato de destino (`BackupTarget`) em vez de chamar o
+Google direto das telas, para que o servidor da etapa 2 entre pelo mesmo lugar.
+O upload automático de verdade no Drive (sem o toque na folha) exige um client ID
+OAuth criado pelo próprio usuário no Google Cloud — só vale a pena se a folha de
+compartilhamento se mostrar insuficiente.
+
+---
+
+## 8. Rodar como APK e como aplicativo de iOS — planejar, não hoje
+
+Pedido registrado em 17/08/2026, explicitamente para depois. O que já joga a
+favor: o app é um PWA completo, com service worker, manifesto e ícones, e usa
+`HashRouter` justamente para funcionar dentro de uma WebView sem reescrita de
+rotas no servidor.
+
+Caminhos a comparar quando chegar a hora:
+
+| Caminho | O que dá | O que custa |
+|---|---|---|
+| **TWA / Bubblewrap** (Android) | APK que embrulha o PWA; publicável na Play Store | conta de desenvolvedor (US$ 25, uma vez), assinatura, Digital Asset Links |
+| **Capacitor** (Android + iOS) | um projeto para os dois; acesso a arquivos, biometria e armazenamento nativos | build nativo, e para iOS exige Mac + conta Apple (US$ 99/ano) |
+| **Continuar só PWA** | zero custo, atualização instantânea, sem revisão de loja | não aparece nas lojas; instalação depende do navegador |
+
+Antes de decidir, verificar o app num iPhone/iPad de verdade (§6): parte da
+motivação para empacotar costuma ser justamente o que a Apple limita no PWA.

@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hub Bible — Manual de uso</title>
+<meta name="description" content="Manual completo do Hub Bible: leitura, sermões, Rhema, cursos, Modo Pregação, traduções e backup." />
+<style>
+  :root {
+    --bg: #faf8f5;
+    --surface: #ffffff;
+    --surface-2: #f6f3ee;
+    --border: #e5ded4;
+    --border-strong: #d5cabb;
+    --text: #1b1a17;
+    --text-2: #56514a;
+    --text-3: #8a837a;
+    --accent: #8a6a2f;
+    --accent-strong: #6f5423;
+    --accent-soft: #f3ead9;
+    --danger: #a4383a;
+    --font-ui: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, 'Times New Roman', serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --bg: #14130f;
+      --surface: #1c1a16;
+      --surface-2: #232019;
+      --border: #322d24;
+      --border-strong: #453e32;
+      --text: #f0ece4;
+      --text-2: #c3bcaf;
+      --text-3: #948c7e;
+      --accent: #d9b166;
+      --accent-strong: #e8c789;
+      --accent-soft: #2a2419;
+      --danger: #e0817f;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 17px;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+
+  /* ------------------------------- capa -------------------------------- */
+  header.cover {
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .brand { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
+  .brand-mark {
+    width: 46px; height: 46px; flex: none;
+    border-radius: 12px;
+    background: var(--accent-strong);
+    color: #fff;
+    display: grid; place-items: center;
+    font-weight: 700; letter-spacing: 0.02em;
+  }
+  .brand-name { font-weight: 650; font-size: 1.05rem; }
+  .brand-sub { color: var(--text-3); font-size: 0.85rem; }
+  h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 6vw, 2.7rem);
+    line-height: 1.15;
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+  }
+  .lead { color: var(--text-2); font-size: 1.05rem; margin: 0; }
+
+  /* ------------------------------ sumário ------------------------------ */
+  nav.toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  nav.toc h2 {
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--text-3); margin: 0 0 0.75rem; font-weight: 650;
+  }
+  nav.toc ol { margin: 0; padding-left: 1.35rem; columns: 2; column-gap: 2rem; }
+  @media (max-width: 34rem) { nav.toc ol { columns: 1; } }
+  nav.toc li { margin: 0.3rem 0; break-inside: avoid; }
+  nav.toc a { color: var(--text); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent-strong); text-decoration: underline; }
+
+  /* ------------------------------ seções ------------------------------- */
+  section { margin-bottom: 3rem; scroll-margin-top: 1rem; }
+  h2 {
+    font-family: var(--font-serif);
+    font-size: 1.6rem; font-weight: 600;
+    margin: 0 0 0.35rem;
+    padding-top: 0.5rem;
+  }
+  h2 .num {
+    display: inline-block; min-width: 1.9rem;
+    color: var(--accent); font-family: var(--font-ui);
+    font-size: 1rem; font-weight: 700;
+  }
+  h3 {
+    font-size: 1.02rem; font-weight: 650; margin: 1.75rem 0 0.5rem;
+    color: var(--text);
+  }
+  h2 + p.section-lead { color: var(--text-2); margin: 0 0 1.25rem 1.9rem; }
+  p { margin: 0 0 0.9rem; }
+  ul, ol.steps { margin: 0 0 1rem; padding-left: 1.3rem; }
+  li { margin: 0.45rem 0; }
+  strong { font-weight: 650; }
+  code {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.08em 0.35em;
+  }
+  a { color: var(--accent-strong); }
+
+  /* caixas */
+  .note, .warn {
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    margin: 1.25rem 0;
+    font-size: 0.95rem;
+  }
+  .note { background: var(--accent-soft); border: 1px solid var(--border-strong); }
+  .warn { background: var(--surface); border: 1px solid var(--danger); border-left-width: 4px; }
+  .note p:last-child, .warn p:last-child { margin-bottom: 0; }
+  .note-title, .warn-title { font-weight: 650; display: block; margin-bottom: 0.2rem; }
+  .warn-title { color: var(--danger); }
+
+  /* tabelas */
+  .table-scroll { overflow-x: auto; margin: 1.25rem 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.94rem; }
+  th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-weight: 650; color: var(--text-2); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* caminho de menu */
+  .path {
+    display: inline-block;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.1rem 0.7rem;
+    font-size: 0.9rem;
+    font-weight: 550;
+    /* um caminho de menu longo não pode empurrar a página para o lado no
+       celular — ele quebra, e o "›" segura a leitura */
+    overflow-wrap: anywhere;
+  }
+
+  footer {
+    margin-top: 4rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-3); font-size: 0.88rem;
+  }
+
+  /* ------------------------------ impressão ---------------------------- */
+  @media print {
+    :root { --bg: #fff; --surface: #fff; --surface-2: #f5f5f5; --text: #000; --text-2: #333; --text-3: #666; }
+    body { font-size: 11pt; }
+    .wrap { max-width: none; padding: 0; }
+    nav.toc { break-after: page; }
+    section { break-inside: auto; }
+    h2 { break-after: avoid; }
+    .note, .warn, table { break-inside: avoid; }
+    a { color: #000; text-decoration: none; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <div class="brand">
+    <div class="brand-mark">HB</div>
+    <div>
+      <div class="brand-name">Hub Bible</div>
+      <div class="brand-sub">Bíblia e ministério</div>
+    </div>
+  </div>
+  <h1>Manual de uso</h1>
+  <p class="lead">
+    Tudo o que o aplicativo faz, explicado passo a passo. Guarde este arquivo, imprima
+    ou envie para quem for usar o Hub Bible com você.
+  </p>
+</header>
+
+<nav class="toc">
+  <h2>Neste manual</h2>
+  <ol>
+    <li><a href="#sobre">O que é o Hub Bible</a></li>
+    <li><a href="#instalar">Instalar no aparelho</a></li>
+    <li><a href="#atualizar">Atualizar</a></li>
+    <li><a href="#ler">Ler a Bíblia</a></li>
+    <li><a href="#buscar">Buscar no texto</a></li>
+    <li><a href="#marcacoes">Marcações, favoritos e anotações</a></li>
+    <li><a href="#sermao">Preparar um sermão</a></li>
+    <li><a href="#importar-sermao">Importar um sermão pronto</a></li>
+    <li><a href="#rhema">Rhema — estudos e apostilas</a></li>
+    <li><a href="#cursos">Cursos — material de aula</a></li>
+    <li><a href="#pregacao">Modo Pregação e Modo Aula</a></li>
+    <li><a href="#traducoes">Traduções e direitos autorais</a></li>
+    <li><a href="#backup">Backup e seus dados</a></li>
+    <li><a href="#compartilhar">Compartilhar o aplicativo</a></li>
+    <li><a href="#problemas">Problemas comuns</a></li>
+    <li><a href="#limites">O que ainda não existe</a></li>
+  </ol>
+</nav>
+
+<!-- ==================================================================== -->
+<section id="sobre">
+  <h2><span class="num">1</span>O que é o Hub Bible</h2>
+  <p class="section-lead">Uma Bíblia que também é a bancada de trabalho do ministério.</p>
+
+  <p>
+    O Hub Bible reúne, num aparelho só, o que o pastor usa para estudar e pregar: a leitura
+    da Bíblia com marcações e anotações, a preparação de sermões, as apostilas e os cursos
+    que você já tem prontos, os planos de leitura e uma tela de pregação em que o material
+    fica grande e a Bíblia fica ao lado.
+  </p>
+
+  <h3>Três coisas para entender desde o começo</h3>
+  <ul>
+    <li>
+      <strong>Não é um aplicativo de loja.</strong> Ele se instala pelo navegador e passa a
+      funcionar como qualquer outro app, com ícone próprio e tela cheia.
+    </li>
+    <li>
+      <strong>Funciona sem internet.</strong> Depois de baixar a Bíblia para uso offline,
+      tudo funciona no avião, no sítio, na igreja sem sinal.
+    </li>
+    <li>
+      <strong>Seus dados são só seus.</strong> Não há cadastro, senha nem servidor. Sermões,
+      anotações e marcações ficam gravados no próprio aparelho e não saem dele. Ninguém —
+      nem quem fez o aplicativo — tem acesso ao que você escreve.
+    </li>
+  </ul>
+
+  <div class="note">
+    <span class="note-title">A outra face da mesma moeda</span>
+    <p>
+      Como nada fica em servidor, ninguém pode recuperar seus dados por você. Se o aparelho
+      se perder ou os dados do navegador forem limpos, o conteúdo vai junto. Por isso a
+      seção <a href="#backup">Backup</a> é a mais importante deste manual.
+    </p>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section id="instalar">
+  <h2><span class="num">2</span>Instalar no aparelho</h2>
+  <p class="section-lead">O caminho muda conforme o aparelho seja Android ou da Apple.</p>
+
+  <h3>Android — tablet ou celular</h3>
+  <ol class="steps">
+    <li>Abra o endereço do aplicativo no <strong>Chrome</strong>.</li>
+    <li>Toque no menu do navegador (⋮) e escolha <strong>“Instalar aplicativo”</strong> ou “Adicionar à tela inicial”.</li>
+    <li>O Hub Bible passa a abrir em tela cheia, com ícone próprio.</li>
+    <li>
+      Logo depois, vá em <span class="path">Configurações › Traduções › Baixar para uso offline</span>.
+      A partir daí a Bíblia inteira funciona sem internet.
+    </li>
+  </ol>
+
+  <h3>iPhone e iPad</h3>
+  <ol class="steps">
+    <li>
+      Abra o endereço no <strong>Safari</strong>. No iPhone e no iPad é o Safari que instala
+      aplicativos na tela de início — pelo Chrome não funciona.
+    </li>
+    <li>
+      Toque no botão <strong>Compartilhar</strong> (o quadrado com a seta para cima) e escolha
+      <strong>“Adicionar à Tela de Início”</strong>. Confirme em Adicionar.
+    </li>
+    <li>
+      Passe a abrir pelo ícone que apareceu — e não mais pelo Safari. É isso que faz o iPhone
+      tratar o Hub Bible como aplicativo: tela cheia, e os seus dados protegidos da limpeza
+      que o Safari faz em sites sem uso.
+    </li>
+    <li>Baixe a Bíblia para uso offline, como no Android.</li>
+    <li>
+      Para importar apostilas e sermões, tenha os arquivos no app <strong>Arquivos</strong> ou
+      no iCloud Drive; o botão Importar abre direto neles.
+    </li>
+  </ol>
+
+  <div class="warn">
+    <span class="warn-title">Ainda não testado em aparelho da Apple</span>
+    <p>
+      O aplicativo foi feito e verificado no Android. Tudo o que ele usa é compatível com
+      iPhone e iPad, mas nenhum teste foi feito em aparelho real da Apple. Se algo se
+      comportar diferente, vale avisar.
+    </p>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section id="atualizar">
+  <h2><span class="num">3</span>Atualizar</h2>
+  <ul>
+    <li>A atualização é automática. Quando há versão nova, aparece o aviso <strong>“Nova versão disponível”</strong> no alto da tela — toque em Atualizar.</li>
+    <li>Se você ignorar o aviso, a atualização entra sozinha da próxima vez que abrir o aplicativo.</li>
+    <li>Para forçar: feche o aplicativo por completo (retire-o dos aplicativos recentes) e abra de novo.</li>
+    <li><strong>Nada do que você criou se perde numa atualização.</strong></li>
+  </ul>
+</section>
+
+<!-- ==================================================================== -->
+<section id="ler">
+  <h2><span class="num">4</span>Ler a Bíblia</h2>
+
+  <h3>Trocar de livro, capítulo e versículo</h3>
+  <ul>
+    <li>
+      Toque na <strong>pílula com o nome do livro</strong>. Ela acompanha a rolagem, e a mesma
+      pílula está no fim do capítulo — não é preciso voltar ao topo.
+    </li>
+    <li>
+      A escolha tem <strong>três passos</strong>: livro, capítulo e versículo. No terceiro,
+      <em>“Abrir o capítulo inteiro”</em> é o primeiro botão — o versículo é opcional e serve
+      para começar a leitura já nele, com liberdade de subir e descer dali.
+    </li>
+    <li>
+      Quem já sabe o endereço pula os três passos: escreva a referência no campo de filtrar —
+      <code>Jo 3:16</code>, <code>Sl 23:1</code>, <code>1co 13:4</code> — e toque no atalho
+      <strong>“Ir para”</strong>.
+    </li>
+  </ul>
+
+  <h3>Aparência do texto</h3>
+  <p>
+    O botão <strong>“Aa”</strong> ajusta tamanho da letra, espaçamento entre linhas, largura da
+    coluna, tema (claro/escuro), tipo de letra e alinhamento. O botão ao lado troca a tradução
+    e liga a <strong>comparação lado a lado</strong> com uma segunda versão.
+  </p>
+
+  <h3>Trabalhar com o versículo</h3>
+  <ul>
+    <li>Toque em um versículo para selecioná-lo; toque em outros para selecionar vários.</li>
+    <li>
+      Aparece a barra de ações: <strong>destacar, favoritar, anotar, compartilhar, copiar</strong>,
+      ou criar um estudo e um sermão já a partir daquele texto.
+    </li>
+  </ul>
+</section>
+
+<!-- ==================================================================== -->
+<section id="buscar">
+  <h2><span class="num">5</span>Buscar no texto</h2>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>O que você digita</th><th>O que o app faz</th></tr></thead>
+      <tbody>
+        <tr><td><code>graça</code></td><td>Todos os versículos que contenham a palavra.</td></tr>
+        <tr><td><code>graça salvação</code></td><td>Versículos em que <em>todas</em> as palavras aparecem.</td></tr>
+        <tr><td><code>"não temas"</code></td><td>A expressão exata. O filtro “Frase exata” faz o mesmo.</td></tr>
+        <tr><td><code>João 3:16</code></td><td>Um atalho leva direto à passagem.</td></tr>
+        <tr><td><code>Sl 23:1-6</code></td><td>Intervalo de versículos.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>A busca pode ser restrita ao Antigo Testamento, ao Novo, ou a um livro específico.</p>
+</section>
+
+<!-- ==================================================================== -->
+<section id="marcacoes">
+  <h2><span class="num">6</span>Marcações, favoritos e anotações</h2>
+  <ul>
+    <li>
+      <strong>Marcações</strong> são grifos coloridos por tema: Promessas, Fé, Cura, Liderança
+      e outros. Você pode criar categorias suas em Configurações.
+    </li>
+    <li><strong>Favoritos</strong> guardam o versículo com categoria e uma observação sua.</li>
+    <li>
+      <strong>Anotações</strong> podem nascer de um versículo ou ser livres, e ficam ligadas ao
+      texto para sempre.
+    </li>
+  </ul>
+  <p>Tudo o que você marca aparece reunido nas telas próprias: Favoritos e Anotações.</p>
+</section>
+
+<!-- ==================================================================== -->
+<section id="sermao">
+  <h2><span class="num">7</span>Preparar um sermão</h2>
+  <p class="section-lead">O sermão é montado em blocos, como se monta no Word.</p>
+
+  <h3>Os cinco tipos de bloco</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Bloco</th><th>Para que serve</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Seção</strong></td><td>O subtítulo com o filete. No Modo Pregação, cada Seção vira um passo.</td></tr>
+        <tr><td><strong>Parágrafo</strong></td><td>O texto corrido.</td></tr>
+        <tr><td><strong>Destaque</strong></td><td>O quadro que chama a atenção — continua destacado no púlpito.</td></tr>
+        <tr><td><strong>Citação bíblica</strong></td><td>Escreva a referência e toque em “Trazer texto”: o versículo vem do próprio aplicativo, com a referência por baixo.</td></tr>
+        <tr><td><strong>Lista</strong></td><td>Tópicos numerados ou com marcador.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Como escrever</h3>
+  <ul>
+    <li>Todo sermão novo já abre com <strong>Introdução, Desenvolvimento, Conclusão e Aplicação</strong> — apague, renomeie ou acrescente as suas.</li>
+    <li>A barra do alto formata o trecho selecionado: <strong>negrito</strong>, <em>itálico</em>, sublinhado e cor. O botão de girar limpa a formatação.</li>
+    <li>Cada bloco tem os próprios botões: trocar o tipo, subir, descer, inserir outro abaixo e excluir.</li>
+    <li><strong>Enter</strong> abre um bloco novo; <strong>Shift+Enter</strong> quebra a linha dentro do mesmo bloco.</li>
+    <li>O sermão <strong>salva sozinho</strong> enquanto você escreve — não existe botão de salvar.</li>
+  </ul>
+
+  <div class="note">
+    <span class="note-title">O texto bíblico nunca é inventado</span>
+    <p>
+      Em qualquer lugar em que o sermão traz um versículo, ele vem da Bíblia instalada no
+      aplicativo. O sistema não digita nem parafraseia Escritura.
+    </p>
+  </div>
+
+  <h3>Exportar</h3>
+  <p>
+    No menu <strong>“…”</strong> você exporta em <strong>Markdown, TXT ou PDF</strong>,
+    compartilha, ou exclui. O PDF sai com o mesmo desenho da tela: título, filetes, destaques
+    e citações.
+  </p>
+</section>
+
+<!-- ==================================================================== -->
+<section id="importar-sermao">
+  <h2><span class="num">8</span>Importar um sermão pronto</h2>
+  <p class="section-lead">Para o sermão que você já escreveu e não quer digitar de novo.</p>
+  <ol class="steps">
+    <li><span class="path">Sermões › Importar</span> e escolha o arquivo.</li>
+    <li>O título vem do nome do arquivo e pode ser trocado.</li>
+    <li>
+      O documento é exibido <strong>exatamente como foi feito</strong> — fontes, negritos,
+      títulos, tabelas e quebras de página. Nada é convertido para texto simples.
+    </li>
+    <li>Ele entra na lista de sermões como qualquer outro: categoria, etiquetas, anotações, e aparece na Biblioteca Ministerial.</li>
+    <li>No Modo Pregação, o documento ocupa a tela com o cronômetro por cima, e a Bíblia pode ficar ao lado.</li>
+  </ol>
+  <p>
+    <strong>Formatos:</strong> PDF e Word <code>.docx</code>, até 35 MB. O <code>.doc</code>
+    antigo não abre — no Word, use “Salvar como” para <code>.docx</code> ou PDF.
+  </p>
+</section>
+
+<!-- ==================================================================== -->
+<section id="rhema">
+  <h2><span class="num">9</span>Rhema — estudos e apostilas</h2>
+  <p class="section-lead">Guarda duas coisas: os estudos que você escreve aqui e as apostilas que já tem prontas.</p>
+  <ul>
+    <li><span class="path">Rhema › Importar</span> — cada apostila entra como um item da lista, com categoria e etiquetas suas.</li>
+    <li>A apostila é exibida como foi feita: fontes, imagens, quadros e quebras de página.</li>
+    <li>
+      O botão <strong>“Modo Aula”</strong> abre a apostila em tela cheia com a Bíblia à esquerda
+      e o material à direita. O botão de dividir fecha a Bíblia quando você quiser só estudar.
+    </li>
+    <li>Você pode escrever observações e vincular versículos — o material continua intacto, o que é seu fica separado.</li>
+  </ul>
+  <p>
+    <strong>Formatos:</strong> PDF e Word <code>.docx</code>, até 35 MB cada. As páginas são
+    desenhadas conforme você rola, então apostilas de 60 páginas abrem sem travar.
+  </p>
+</section>
+
+<!-- ==================================================================== -->
+<section id="cursos">
+  <h2><span class="num">10</span>Cursos — material de aula</h2>
+  <ul>
+    <li>Funciona como o Rhema, para o material de aula que você já tem pronto.</li>
+    <li>
+      <span class="path">Cursos › Importar</span> — aceita <strong>PDF, Word (.docx) e
+      PowerPoint (.pptx)</strong>, até 35 MB cada.
+    </li>
+    <li>O botão “Modo Aula” abre o material com a Bíblia à esquerda — a mesma tela do Rhema.</li>
+    <li>Os devocionais que você já tinha continuam aqui: nada se perdeu, a aba só mudou de nome.</li>
+  </ul>
+  <div class="note">
+    <span class="note-title">Sobre apresentações</span>
+    <p>
+      O PDF e o Word saem idênticos ao original. O <code>.pptx</code> é reconstruído pelo
+      aplicativo e chega perto, mas pode escorregar em algum detalhe de desenho. Se um slide
+      sair diferente, salve a apresentação como PDF no PowerPoint — aí sai igualzinho.
+    </p>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section id="pregacao">
+  <h2><span class="num">11</span>Modo Pregação e Modo Aula</h2>
+  <p class="section-lead">Tela cheia, letra grande, poucos elementos — para o púlpito e para a sala de aula.</p>
+
+  <h3>O cronômetro</h3>
+  <p>
+    Fica no alto: 30, 40, 45 ou 50 minutos, ou tempo livre. <strong>Verde</strong> dentro do
+    tempo, <strong>âmbar</strong> nos últimos cinco minutos e <strong>vermelho</strong> quando
+    passa, mostrando quanto passou.
+  </p>
+
+  <h3>A tela dividida</h3>
+  <ul>
+    <li>O botão de dividir coloca a <strong>Bíblia à esquerda</strong> e a mensagem à direita.</li>
+    <li>
+      A Bíblia ao lado é a <strong>Bíblia inteira</strong>, não um resumo: abre onde você parou,
+      troca de livro e de tradução, mostra suas marcações e deixa marcar, favoritar e copiar
+      ali mesmo. O que você faz ali aparece no leitor, e vice-versa.
+    </li>
+    <li>
+      A <strong>linha entre as colunas é arrastável</strong>: puxe para dar mais espaço a um dos
+      lados. A posição fica gravada.
+    </li>
+    <li>No tablet as colunas ficam lado a lado; só no celular a Bíblia vai para cima, porque não cabem.</li>
+  </ul>
+
+  <h3>Tamanho e margens</h3>
+  <ul>
+    <li><strong>A-</strong> e <strong>A+</strong> ajustam só a pregação, sem mexer no leitor. Com a Bíblia ao lado, ela tem os próprios.</li>
+    <li>
+      O <strong>botão de esquadro</strong> apara as margens brancas da folha. Como a apostila é
+      A4 e quase um quarto da largura é margem, a letra fica cerca de 25% maior sem ampliar
+      nada. Se alguma página aparecer cortada, toque de novo para ver a folha inteira.
+    </li>
+  </ul>
+
+  <h3>A barra de baixo</h3>
+  <p>
+    Some sozinha depois de três segundos parada, e na hora em que você começa a rolar o
+    material. Um toque no documento traz de volta; outro recolhe. Recolhida, fica um risquinho
+    no rodapé — toque nele e ela volta.
+  </p>
+  <p><strong>A tela não apaga sozinha</strong> enquanto o Modo Pregação ou o Modo Aula estiver aberto.</p>
+</section>
+
+<!-- ==================================================================== -->
+<section id="traducoes">
+  <h2><span class="num">12</span>Traduções e direitos autorais</h2>
+
+  <h3>As que já vêm no aplicativo</h3>
+  <p>
+    Almeida, Bíblia Livre, Tradução Brasileira e Almeida 1911, em português, mais a King James
+    em inglês. Todas em <strong>domínio público</strong>, livres para usar e distribuir.
+  </p>
+
+  <h3>As que dependem da sua cópia</h3>
+  <p>
+    ACF, ARA, ARC, AS21, JFAA, KJA, KJF, NAA, NBV, NTLH, NVI, NVT, O Livro, A Mensagem e VFL
+    têm direitos autorais das editoras e <strong>não acompanham o aplicativo</strong>. Elas
+    aparecem no catálogo esperando a sua cópia.
+  </p>
+  <ul>
+    <li>
+      Tendo o arquivo, importe por <span class="path">Configurações › Traduções</span>, ou pelo
+      botão da sigla enquanto lê.
+    </li>
+    <li>
+      Se o arquivo tiver o nome da sigla (<code>ARA.json</code>, <code>NVI.json</code>…), o app
+      reconhece sozinho a qual tradução pertence.
+    </li>
+    <li>
+      <strong>O texto fica gravado só neste aparelho.</strong> Não sobe para lugar nenhum e não
+      vai junto para quem instalar o aplicativo depois.
+    </li>
+  </ul>
+
+  <h3>Módulos do MyBible e números Strong</h3>
+  <p>
+    Arquivos <code>.SQLite3</code> do MyBible entram do jeito que estão — é por aí que vem uma
+    Bíblia com <strong>números Strong</strong>. No Android os módulos ficam na pasta
+    <code>MyBible</code> da memória interna. Se a pasta não aparecer no seletor, copie o arquivo
+    para <code>Download</code> primeiro.
+  </p>
+  <p>
+    O aviso da importação diz quantos livros entraram e a cobertura — <em>“Bíblia completa”</em>,
+    <em>“Só o Novo Testamento”</em> ou quantos livros faltam. Muitos módulos trazem só o Novo
+    Testamento.
+  </p>
+
+  <div class="warn">
+    <span class="warn-title">A regra que o aplicativo segue</span>
+    <p>
+      Uma tradução licenciada que você importou vale <strong>para você</strong>. Ela não é
+      distribuída com o aplicativo e não deve ser repassada. É o que separa “uso a minha cópia”
+      de “distribuo a Bíblia da editora”.
+    </p>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section id="backup">
+  <h2><span class="num">13</span>Backup e seus dados</h2>
+  <p class="section-lead">A seção mais importante deste manual.</p>
+
+  <p>
+    Tudo o que você cria fica gravado <strong>apenas no seu aparelho</strong>, na memória do
+    navegador. Nada é enviado para servidor nenhum. Isso protege a sua privacidade — e faz do
+    backup a sua única rede de segurança.
+  </p>
+
+  <h3>Fazer a cópia</h3>
+  <p>
+    <span class="path">Configurações › Exportar meus dados</span> gera um arquivo com favoritos,
+    marcações, anotações, sermões, Rhema, cursos, planos e histórico de leitura.
+    <strong>Guarde esse arquivo fora do aparelho</strong> — Google Drive, e-mail para você
+    mesmo, computador.
+  </p>
+
+  <h3>Restaurar</h3>
+  <p>
+    Em aparelho novo ou depois de reinstalar:
+    <span class="path">Configurações › Restaurar backup</span> e escolha o arquivo.
+  </p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Entra no backup</th><th>Não entra</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Favoritos, marcações e anotações</td>
+          <td>O texto bíblico (é recarregado do aplicativo)</td>
+        </tr>
+        <tr>
+          <td>Sermões escritos, Rhema e cursos</td>
+          <td>Os arquivos importados: PDFs, Word, apresentações</td>
+        </tr>
+        <tr>
+          <td>Planos de leitura e histórico</td>
+          <td>As traduções que você importou</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    As apostilas e as traduções importadas ficam de fora porque são grandes — uma só passa de
+    30 MB. Guarde os arquivos originais e importe de novo quando precisar.
+  </p>
+
+  <div class="warn">
+    <span class="warn-title">Sem backup, não há recuperação</span>
+    <p>
+      Se você limpar os dados do navegador, perder o aparelho ou desinstalar o aplicativo sem
+      ter exportado, o conteúdo se perde e ninguém consegue trazer de volta. Faça a cópia hoje,
+      e depois toda semana.
+    </p>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section id="compartilhar">
+  <h2><span class="num">14</span>Compartilhar o aplicativo</h2>
+  <ul>
+    <li>Basta enviar o endereço para quem você quiser. Não há cadastro nem loja de aplicativos.</li>
+    <li>Cada pessoa instala e passa a ter o <strong>próprio conteúdo</strong>, separado do seu.</li>
+    <li>Quando sair versão nova, todos recebem o aviso — não é preciso reenviar nada.</li>
+    <li>
+      As traduções livres seguem junto. As que você importou, <strong>não</strong> — elas ficam
+      no seu aparelho, como deve ser.
+    </li>
+  </ul>
+</section>
+
+<!-- ==================================================================== -->
+<section id="problemas">
+  <h2><span class="num">15</span>Problemas comuns</h2>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Aconteceu</th><th>O que fazer</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>“Não foi possível abrir este capítulo”</td>
+          <td>A tradução escolhida não tem aquele livro — módulos só do Novo Testamento são comuns. O app leva ao primeiro livro que ela tem. Troque de tradução para ler o Antigo.</td>
+        </tr>
+        <tr>
+          <td>A Bíblia pede internet</td>
+          <td>Falta baixar para uso offline: <span class="path">Configurações › Traduções › Baixar para uso offline</span>.</td>
+        </tr>
+        <tr>
+          <td>O arquivo não aparece no seletor</td>
+          <td>Copie-o para a pasta <code>Download</code> pelo gerenciador de arquivos e importe de lá.</td>
+        </tr>
+        <tr>
+          <td>O <code>.doc</code> não abre</td>
+          <td>No Word, “Salvar como” <code>.docx</code> ou PDF.</td>
+        </tr>
+        <tr>
+          <td>A exportação em PDF não abre (iPhone)</td>
+          <td>É o bloqueio de pop-up do Safari: Ajustes › Safari › desligue “Bloquear Pop-ups”, ou exporte em Markdown/TXT.</td>
+        </tr>
+        <tr>
+          <td>A tela apaga durante a pregação (iPad antigo)</td>
+          <td>Ajustes › Tela e Brilho › Bloqueio Automático › Nunca, enquanto estiver pregando.</td>
+        </tr>
+        <tr>
+          <td>A versão nova não chegou</td>
+          <td>Feche o aplicativo por completo (tire dos recentes) e abra de novo.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section id="limites">
+  <h2><span class="num">16</span>O que ainda não existe</h2>
+  <p class="section-lead">Para você saber o que esperar — e o que não procurar.</p>
+  <ul>
+    <li>
+      <strong>Consulta dos números Strong.</strong> Bíblias com Strong já são importadas e os
+      números ficam guardados, mas ainda não há tela para tocar na palavra e ver o termo
+      original. Falta também um dicionário que dê significado ao código.
+    </li>
+    <li>
+      <strong>Sincronização entre aparelhos.</strong> Hoje cada aparelho tem os seus dados. Levar
+      de um para outro é pelo arquivo de backup.
+    </li>
+    <li>
+      <strong>Títulos de seção e notas de rodapé</strong> no texto bíblico: as traduções livres
+      disponíveis não trazem esse material na origem.
+    </li>
+    <li>
+      <strong>Versão de loja (APK e App Store).</strong> Hoje a instalação é pelo navegador.
+    </li>
+    <li>
+      <strong>Bloqueio por senha.</strong> Quem pegar o aparelho destravado lê suas anotações.
+    </li>
+  </ul>
+</section>
+
+<footer>
+  <p>
+    <strong>Hub Bible</strong> — Bíblia e ministério. Aplicativo instalável, sem cadastro e sem
+    servidor: seus dados ficam no seu aparelho.
+  </p>
+  <p class="no-print">
+    Para guardar em PDF: use a opção <strong>Imprimir</strong> do navegador e escolha
+    “Salvar como PDF”.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>
