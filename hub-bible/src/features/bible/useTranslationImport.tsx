@@ -20,6 +20,13 @@ import type { BookMeta, TranslationInfo } from '../../core/db/types';
 /** Módulo do MyBible — o nome do arquivo é o que distingue os dois caminhos. */
 const isModule = (file: File) => /\.(sqlite3?|db)$/i.test(file.name);
 
+/** O próprio arquivo diz se é Bíblia ou dicionário — basta olhar as tabelas. */
+async function isDictionaryModule(buffer: ArrayBuffer): Promise<boolean> {
+  const { SQLiteFile } = await import('../../core/sqlite/reader');
+  const { moduleKind } = await import('../../core/bible/mybible');
+  return moduleKind(SQLiteFile.open(buffer)) === 'dictionary';
+}
+
 /**
  * Dizer na hora se o módulo é a Bíblia toda ou só uma parte.
  *
@@ -66,7 +73,7 @@ interface Options {
   /** Catálogo atual — usado para reconhecer o slot pelo nome do arquivo. */
   catalog: TranslationInfo[];
   /** Chamado depois de importar, para recarregar as listas. */
-  onImported?: (info: TranslationInfo) => void;
+  onImported?: (info: TranslationInfo | null) => void;
 }
 
 export function useTranslationImport({ catalog, onImported }: Options) {
@@ -113,6 +120,21 @@ export function useTranslationImport({ catalog, onImported }: Options) {
   const importModule = async (file: File, chosen: TranslationInfo | null) => {
     const { importMyBibleBible } = await import('../../core/bible/mybibleImport');
     const buffer = await file.arrayBuffer();
+
+    /* Bíblia e dicionário chegam no mesmo formato e pelo mesmo botão. Mandar o
+       usuário escolher "qual tipo" antes seria pedir que ele soubesse o que
+       tem no arquivo — o arquivo sabe. */
+    if (await isDictionaryModule(buffer)) {
+      const { importDictionaryModule } = await import('../../core/data/dictionaries');
+      const dic = await importDictionaryModule(buffer, file.name);
+      notify(
+        `${dic.dictionary.name}: ${dic.entries.toLocaleString('pt-BR')} verbetes` +
+          (dic.dictionary.isStrong ? ', ligados aos números Strong.' : '.'),
+      );
+      onImported?.(null);
+      return;
+    }
+
     const result = await importMyBibleBible(buffer, chosen, file.name);
     const name = result.translation.shortName;
     const extras = [

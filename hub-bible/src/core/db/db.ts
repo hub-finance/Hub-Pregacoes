@@ -3,6 +3,8 @@ import type {
   Attachment,
   BackupSnapshot,
   CachedBook,
+  DictionaryEntry,
+  DictionaryInfo,
   Devotional,
   Favorite,
   Highlight,
@@ -40,6 +42,8 @@ export class HubBibleDB extends Dexie {
   books!: Table<CachedBook, string>;
   attachments!: Table<Attachment, string>;
   backups!: Table<BackupSnapshot, string>;
+  dictionaries!: Table<DictionaryInfo, string>;
+  dictionaryEntries!: Table<DictionaryEntry, string>;
 
   constructor() {
     super('hub-bible');
@@ -68,6 +72,14 @@ export class HubBibleDB extends Dexie {
     // acrescenta tabela: nada do que já existe é tocado.
     this.version(3).stores({
       backups: 'id, at',
+    });
+
+    // v4 — dicionários importados (léxico de Strong e afins). `topicKey` é o
+    // verbete normalizado: é por ele que a consulta acha "H430" venha o
+    // arquivo com "H0430", "0430" ou "H430".
+    this.version(4).stores({
+      dictionaries: 'id, name, createdAt',
+      dictionaryEntries: 'id, dictionaryId, topicKey, [dictionaryId+topicKey]',
     });
   }
 }

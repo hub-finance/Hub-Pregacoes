@@ -166,13 +166,27 @@ const TOPICS: Topic[] = [
     ],
   },
   {
+    icon: 'search',
+    title: 'Palavras no original — números de Strong',
+    steps: [
+      'Os números de Strong dão um código a cada palavra do hebraico e do grego (H430 para "elohim", G26 para "agapē"). Com eles dá para ver qual palavra original está por trás da tradução.',
+      'São precisos dois arquivos: uma Bíblia com números Strong e um dicionário Strong (.dictionary.SQLite3). Sem o dicionário aparece só o código, que não ajuda ninguém.',
+      'Os dois entram pelo mesmo botão, em Configurações › Traduções: o próprio arquivo diz se é Bíblia ou dicionário.',
+      'Para consultar: toque no versículo e escolha "No original" na barra de ações. O versículo aparece palavra por palavra; toque numa palavra para ver a definição.',
+      'A ação só aparece quando a tradução aberta tem Strong. As que vêm no aplicativo não têm — essa marcação é trabalho editorial e não existe livre em português.',
+      { to: '/config', label: 'Abrir configurações', text: 'Os dicionários importados ficam listados junto com as traduções.' },
+    ],
+  },
+  {
     icon: 'download',
     title: 'Backup dos seus dados',
     steps: [
       'Tudo o que você cria fica gravado apenas no seu aparelho. Nada é enviado para servidor nenhum.',
-      'Por isso o backup importa: Configurações › "Exportar meus dados" gera um arquivo com favoritos, anotações, sermões, Rhema, cursos e planos.',
-      'Para restaurar em outro aparelho, ou depois de reinstalar: Configurações › "Restaurar backup".',
-      'Se você limpar os dados do navegador sem ter backup, o conteúdo se perde. Exporte de tempos em tempos.',
+      'Em Configurações › Backup e privacidade o app mostra há quanto tempo você guardou uma cópia fora do aparelho. Enquanto não houver nenhuma, o aviso fica vermelho.',
+      '"Salvar no Google Drive" abre a folha de compartilhamento do aparelho — escolha Drive, e-mail ou o que preferir. É a cópia que salva de verdade.',
+      'O app também guarda sozinho as últimas cópias neste aparelho, uma a cada poucos dias. Servem para desfazer um engano, como apagar um sermão sem querer — mas se o navegador for limpo, vão junto.',
+      'Para restaurar: pelo botão Restaurar de uma cópia da lista, ou em "Restaurar de um arquivo". Nos dois casos o estado atual é gravado antes, para haver caminho de volta.',
+      'A cópia não leva os arquivos importados (PDF, Word, apresentações) nem as traduções importadas — são grandes demais. Guarde os originais.',
     ],
   },
   {

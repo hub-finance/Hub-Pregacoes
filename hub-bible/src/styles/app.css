@@ -1131,3 +1131,56 @@
   color: var(--accent-strong);
   text-decoration: underline;
 }
+
+/* -------------------------- versículo no original ------------------------- */
+/* As palavras viram alvos do tamanho do dedo: no tablet, palavra dentro de um
+   parágrafo é pequena demais para tocar com precisão. */
+.strong-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1) var(--sp-2);
+  align-items: baseline;
+  font-family: var(--font-reader);
+  font-size: 1.05rem;
+  line-height: 2.1;
+}
+.strong-word {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 2px 8px;
+  min-height: 34px;
+  background: var(--accent-soft);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.strong-word:hover {
+  border-color: var(--accent);
+}
+.strong-word.active {
+  background: var(--accent);
+  border-color: var(--accent-strong);
+  color: var(--accent-contrast);
+}
+.strong-code {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  opacity: 0.75;
+}
+/* palavra sem número: fica como texto, para a frase continuar legível */
+.strong-plain {
+  color: var(--text-2);
+}
+.strong-definition {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.strong-definition p {
+  margin: 0 0 0.5em;
+}

@@ -10,6 +10,7 @@ import {
   loadCatalog,
   removeImportedTranslation,
 } from '../../core/bible/repository';
+import { listDictionaries, removeDictionary } from '../../core/data/dictionaries';
 import { clearScriptureCache } from '../../core/db/db';
 import type { TranslationInfo } from '../../core/db/types';
 
@@ -24,6 +25,7 @@ import type { TranslationInfo } from '../../core/db/types';
 export function TranslationManager() {
   const { notify } = useToast();
   const catalog = useAsync(() => loadCatalog(true), []);
+  const dictionaries = useAsync(() => listDictionaries(), []);
   const [progress, setProgress] = useState<{ id: string; done: number; total: number } | null>(null);
   const [installedMap, setInstalledMap] = useState<Record<string, number>>({});
 
@@ -46,6 +48,7 @@ export function TranslationManager() {
     catalog: catalog.data ?? [],
     onImported: () => {
       catalog.reload();
+      dictionaries.reload();
       setInstalledMap({});
     },
   });
@@ -176,13 +179,47 @@ export function TranslationManager() {
         </div>
       )}
 
+      {!!dictionaries.data?.length && (
+        <div className="card stack" style={{ gap: 'var(--sp-3)' }}>
+          <span>
+            <span className="list-title">Dicionários importados</span>
+            <span className="list-meta">
+              Usados na consulta &ldquo;No original&rdquo;, ao selecionar um versículo.
+            </span>
+          </span>
+          {dictionaries.data.map((d) => (
+            <div key={d.id} className="list-item">
+              <span className="list-body">
+                <span className="list-title">{d.name}</span>
+                <span className="list-meta">
+                  {d.entries.toLocaleString('pt-BR')} verbetes
+                  {d.isStrong ? ' · ligado aos números Strong' : ''}
+                </span>
+              </span>
+              <button
+                className="btn btn-sm btn-danger"
+                onClick={async () => {
+                  await removeDictionary(d.id);
+                  notify('Dicionário removido.');
+                  dictionaries.reload();
+                }}
+              >
+                Remover
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <details className="card">
         <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Formatos aceitos na importação</summary>
         <div className="stack small muted" style={{ marginTop: 'var(--sp-3)' }}>
           <p>
             <strong>Módulo do MyBible</strong> (<code>.SQLite3</code>): escolha o arquivo do módulo
             como ele está. No Android os módulos ficam na pasta <code>MyBible</code> da memória
-            interna. Se a Bíblia tiver números Strong, eles vêm junto.
+            interna. Se a Bíblia tiver números Strong ou títulos de seção, eles vêm junto. Este
+            mesmo botão aceita <strong>dicionários</strong> (<code>.dictionary.SQLite3</code>) —
+            o próprio arquivo diz o que é.
           </p>
           <p>Ou <strong>JSON</strong>, em um destes formatos:</p>
           <pre

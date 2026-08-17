@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { BookPicker } from './BookPicker';
 import { TranslationPicker } from './TranslationPicker';
+import { StrongSheet } from './StrongSheet';
 import { ReaderSettingsSheet } from './ReaderSettingsSheet';
 import { ReaderScrollbar, useReadingProgress } from './ReaderScrollbar';
 import { VerseActionBar } from './VerseActionBar';
@@ -101,6 +102,7 @@ export default function BiblePage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
+  const [strongOpen, setStrongOpen] = useState(false);
   const readerRef = useRef<HTMLDivElement>(null);
   const readingProgress = useReadingProgress();
 
@@ -465,6 +467,9 @@ export default function BiblePage() {
             { id: 'hl', icon: 'highlighter', label: 'Destacar', onClick: () => setPickingHighlight(true) },
             { id: 'fav', icon: 'star', label: 'Favoritar', onClick: toggleFavorites },
             { id: 'note', icon: 'note', label: 'Anotar', onClick: () => setNoteOpen(true) },
+            ...(meta.data?.hasStrong && selection.length === 1
+              ? [{ id: 'strong', icon: 'search' as const, label: 'No original', onClick: () => setStrongOpen(true) }]
+              : []),
             { id: 'share', icon: 'share', label: 'Compartilhar', onClick: () => setShareOpen(true) },
             {
               id: 'copy',
@@ -503,6 +508,18 @@ export default function BiblePage() {
         onCompare={(id) => update({ compareTranslation: id })}
         onImported={() => catalog.reload()}
       />
+
+      {selection.length === 1 && (
+        <StrongSheet
+          open={strongOpen}
+          onClose={() => setStrongOpen(false)}
+          translation={translation}
+          book={book}
+          chapter={chapter}
+          verse={selection[0]}
+          reference={selectionReference}
+        />
+      )}
 
       <ReaderScrollbar />
 
