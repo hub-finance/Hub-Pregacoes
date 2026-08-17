@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { Sheet } from '../../components/Sheet';
-import { normalize } from '../../core/bible/canon';
-import { bookName } from '../../core/bible/canon';
+import { bookName, normalize } from '../../core/bible/canon';
 import { parseReference } from '../../core/bible/reference';
 import type { BookMeta } from '../../core/db/types';
 
@@ -12,21 +11,33 @@ interface Props {
   book: string;
   chapter: number;
   onClose: () => void;
-  /** `verse` presente quando a referência digitada trouxe o versículo. */
+  /** `verse` presente quando o versículo foi escolhido ou digitado. */
   onSelect: (book: string, chapter: number, verse?: number) => void;
 }
 
-/** Seleção de livro e capítulo em dois passos, com filtro por nome. */
+/**
+ * Escolha da passagem em três passos: livro → capítulo → versículo.
+ *
+ * O terceiro passo não obriga a nada — "Capítulo inteiro" é o primeiro botão da
+ * grade, e é o caminho de quem só quer ler. Mas quem procura um versículo
+ * chega nele sem rolar o capítulo à mão, e o texto abre com ele em foco,
+ * livre para subir e descer a partir dali.
+ *
+ * Quem já sabe o endereço não precisa de passo nenhum: digitar "Jo 3:16" no
+ * filtro faz aparecer o atalho direto.
+ */
 export function BookPicker({ open, books, book, chapter, onClose, onSelect }: Props) {
   const [testament, setTestament] = useState<'AT' | 'NT'>('AT');
   const [query, setQuery] = useState('');
   const [pending, setPending] = useState<BookMeta | null>(null);
+  const [pendingChapter, setPendingChapter] = useState<number | null>(null);
 
   useEffect(() => {
     if (!open) return;
     const current = books.find((b) => b.osis === book);
     setTestament(current?.testament ?? 'AT');
     setPending(current ?? null);
+    setPendingChapter(null);
     setQuery('');
   }, [open, book, books]);
 
@@ -36,27 +47,43 @@ export function BookPicker({ open, books, book, chapter, onClose, onSelect }: Pr
     return books.filter((b) => b.testament === testament);
   }, [books, query, testament]);
 
-  const showChapters = pending && !query;
+  const showChapters = pending && !query && !pendingChapter;
+  const showVerses = pending && !query && !!pendingChapter;
   /* "Jo 3:16" digitado no filtro vale como endereço, não como nome de livro:
-     em vez de obrigar a passar pelo livro e pela grade de capítulos, o atalho
-     leva direto ao versículo. */
+     em vez de obrigar a passar pelos três passos, o atalho leva direto. */
   const reference = parseReference(query);
+
+  /* Quantos versículos tem o capítulo escolhido. Vem do catálogo da tradução;
+     se por algum motivo faltar, 176 cobre o maior capítulo da Bíblia. */
+  const verseCount = pendingChapter
+    ? pending?.verseCounts?.[pendingChapter - 1] || 176
+    : 0;
+
+  const title = showVerses
+    ? `${pending!.name} ${pendingChapter}`
+    : showChapters
+      ? pending!.name
+      : 'Escolher livro';
 
   return (
     <Sheet
       open={open}
-      title={showChapters ? pending!.name : 'Escolher livro'}
+      title={title}
       onClose={onClose}
       size="lg"
       footer={
-        showChapters ? (
+        showVerses ? (
+          <button className="btn btn-ghost btn-block" onClick={() => setPendingChapter(null)}>
+            ← Voltar aos capítulos
+          </button>
+        ) : showChapters ? (
           <button className="btn btn-ghost btn-block" onClick={() => setPending(null)}>
             ← Voltar aos livros
           </button>
         ) : undefined
       }
     >
-      {!showChapters && (
+      {!showChapters && !showVerses && (
         <>
           <div className="search-field">
             <Icon name="search" size={18} className="dim" />
@@ -126,12 +153,40 @@ export function BookPicker({ open, books, book, chapter, onClose, onSelect }: Pr
               key={c}
               className={`chip mono-num${pending!.osis === book && c === chapter ? ' active' : ''}`}
               style={{ justifyContent: 'center', minHeight: 46 }}
-              onClick={() => onSelect(pending!.osis, c)}
+              onClick={() => setPendingChapter(c)}
             >
               {c}
             </button>
           ))}
         </div>
+      )}
+
+      {showVerses && (
+        <>
+          {/* quem só quer ler o capítulo não precisa escolher versículo nenhum */}
+          <button
+            className="btn btn-primary btn-block"
+            onClick={() => onSelect(pending!.osis, pendingChapter!)}
+          >
+            Abrir o capítulo inteiro
+          </button>
+          <p className="small dim">Ou comece por um versículo:</p>
+          <div
+            className="grid"
+            style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(52px, 1fr))', gap: 'var(--sp-2)' }}
+          >
+            {Array.from({ length: verseCount }, (_, i) => i + 1).map((v) => (
+              <button
+                key={v}
+                className="chip mono-num"
+                style={{ justifyContent: 'center', minHeight: 46 }}
+                onClick={() => onSelect(pending!.osis, pendingChapter!, v)}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </Sheet>
   );

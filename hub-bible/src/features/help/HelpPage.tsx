@@ -54,7 +54,8 @@ const TOPICS: Topic[] = [
     title: 'Ler a Bíblia',
     steps: [
       'Toque na pílula com o nome do livro para trocar de livro ou capítulo. Ela acompanha a rolagem, e a mesma pílula está no fim do capítulo — não é preciso voltar ao topo.',
-      'No campo de filtrar, além do nome do livro, você pode escrever a referência inteira: "Jo 3:16", "Sl 23:1", "1co 13:4". Aparece o atalho "Ir para" e o aplicativo abre já no versículo, com ele destacado.',
+      'A escolha tem três passos: livro, capítulo e versículo. No terceiro, "Abrir o capítulo inteiro" é o primeiro botão — escolher o versículo é opcional, e serve para começar a leitura já nele, com liberdade de subir e descer dali.',
+      'Quem já sabe o endereço pula os três passos: escreva a referência inteira no campo de filtrar — "Jo 3:16", "Sl 23:1", "1co 13:4" — e toque no atalho "Ir para".',
       'O botão ao lado troca a tradução; ali também se liga a comparação lado a lado com uma segunda versão.',
       'Use "Aa" para ajustar tamanho da letra, espaçamento, largura da coluna, tema e alinhamento.',
       'Toque em um versículo para selecioná-lo. Toque em outros para selecionar vários de uma vez.',
