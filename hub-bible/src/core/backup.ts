@@ -1,13 +1,25 @@
 import { db } from './db/db';
+import { forgetMemoryCache } from './bible/repository';
 import { downloadBlob } from './share/share';
 
 /**
  * Backup e portabilidade (seção 21 da especificação).
  * O usuário é dono dos seus dados: exportação completa, restauração e exclusão.
- * O texto bíblico não entra no backup — ele é reconstituível a partir da fonte.
+ *
+ * As traduções **embutidas** não entram: são reconstituíveis a partir do próprio
+ * aplicativo, e incluí-las só engordaria o arquivo. As **importadas** entram
+ * quando o usuário pede — ver `includeTranslations` abaixo.
  */
 
-export const BACKUP_VERSION = 1;
+export const BACKUP_VERSION = 2;
+
+/** Texto de uma tradução importada, para viajar junto com os dados do usuário. */
+export interface BackupTranslations {
+  /** Registros de `settings` com a chave `translation:meta:*`. */
+  meta: unknown[];
+  /** Registros de `books` das traduções importadas. */
+  books: unknown[];
+}
 
 export interface BackupFile {
   app: 'hub-bible';
@@ -16,6 +28,24 @@ export interface BackupFile {
   counts: Record<string, number>;
   data: Record<string, unknown[]>;
   settings?: unknown;
+  /**
+   * Bíblias importadas pelo usuário, quando ele pede para levá-las.
+   *
+   * Isto é a **cópia dele indo do aparelho dele para o aparelho dele** — o
+   * mesmo princípio da importação. Não muda a regra do projeto: nada de texto
+   * protegido entra no que é publicado, e este arquivo é gerado no aparelho,
+   * não distribuído com o aplicativo.
+   */
+  translations?: BackupTranslations;
+}
+
+export interface BackupOptions {
+  /**
+   * Levar também as Bíblias importadas. Custa caro em tamanho — uma tradução
+   * passa de 4 MB, e com números Strong pode triplicar — então é escolha
+   * explícita, não padrão.
+   */
+  includeTranslations?: boolean;
 }
 
 const TABLES = [
@@ -30,7 +60,10 @@ const TABLES = [
   'readingEvents',
 ] as const;
 
-export async function createBackup(settings?: unknown): Promise<BackupFile> {
+export async function createBackup(
+  settings?: unknown,
+  options: BackupOptions = {},
+): Promise<BackupFile> {
   const data: Record<string, unknown[]> = {};
   const counts: Record<string, number> = {};
   for (const name of TABLES) {
@@ -38,7 +71,8 @@ export async function createBackup(settings?: unknown): Promise<BackupFile> {
     data[name] = rows;
     counts[name] = rows.length;
   }
-  return {
+
+  const backup: BackupFile = {
     app: 'hub-bible',
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
@@ -46,10 +80,38 @@ export async function createBackup(settings?: unknown): Promise<BackupFile> {
     data,
     settings,
   };
+
+  if (options.includeTranslations) {
+    const translations = await collectImportedTranslations();
+    if (translations) {
+      backup.translations = translations;
+      counts.translations = translations.meta.length;
+    }
+  }
+
+  return backup;
 }
 
-export async function downloadBackup(settings?: unknown): Promise<BackupFile> {
-  const backup = await createBackup(settings);
+/**
+ * Junta o texto das traduções importadas.
+ *
+ * Só as importadas: as que acompanham o aplicativo voltam sozinhas, e pô-las
+ * aqui acrescentaria 20 MB sem necessidade nenhuma.
+ */
+async function collectImportedTranslations(): Promise<BackupTranslations | null> {
+  const metaRows = await db.settings.where('key').startsWith('translation:meta:').toArray();
+  if (!metaRows.length) return null;
+
+  const ids = metaRows.map((r) => r.key.replace('translation:meta:', ''));
+  const books = await db.books.where('translation').anyOf(ids).toArray();
+  return { meta: metaRows, books };
+}
+
+export async function downloadBackup(
+  settings?: unknown,
+  options?: BackupOptions,
+): Promise<BackupFile> {
+  const backup = await createBackup(settings, options);
   const stamp = new Date().toISOString().slice(0, 10);
   downloadBlob(
     new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }),
@@ -85,6 +147,21 @@ export async function restoreBackup(
       restored[name] = rows.length;
     }
   });
+
+  /* As Bíblias importadas, quando o arquivo as trouxer. Ficam fora da
+     transação acima porque são outras tabelas e o volume é bem maior: um erro
+     aqui não pode desfazer a restauração dos sermões, que é o que importa. */
+  const translations = backup.translations;
+  if (translations?.meta?.length) {
+    await db.transaction('rw', [db.settings, db.books], async () => {
+      await db.settings.bulkPut(translations.meta as Parameters<typeof db.settings.bulkPut>[0]);
+      await db.books.bulkPut(translations.books as Parameters<typeof db.books.bulkPut>[0]);
+    });
+    restored.translations = translations.meta.length;
+    // o catálogo em memória guarda a lista antiga; sem isto elas não aparecem
+    forgetMemoryCache();
+  }
+
   return { restored, settings: backup.settings };
 }
 

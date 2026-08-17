@@ -66,6 +66,9 @@ export function BackupPanel() {
   const [busy, setBusy] = useState<string | null>(null);
   const [exportedAt, setExportedAt] = useState<number | null>(lastExportAt());
   const [storage, setStorage] = useState<StorageStatus | null>(null);
+  /* Levar as Bíblias importadas na cópia. Desligado por padrão porque engorda
+     muito o arquivo; ligado, é o que faz uma instalação nova nascer completa. */
+  const [withBibles, setWithBibles] = useState(false);
   const restoreInput = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
@@ -84,11 +87,14 @@ export function BackupPanel() {
   const send = async (targetId: string) => {
     setBusy(targetId);
     try {
-      const { result, records } = await sendBackupTo(targetId, settings);
+      const { result, records, bytes } = await sendBackupTo(targetId, settings, {
+        includeTranslations: withBibles,
+      });
+      const tamanho = formatBytes(bytes);
       notify(
         result === 'sent'
-          ? `Cópia enviada — ${records.toLocaleString('pt-BR')} registros.`
-          : `Arquivo baixado — ${records.toLocaleString('pt-BR')} registros. Guarde-o fora do aparelho.`,
+          ? `Cópia enviada — ${records.toLocaleString('pt-BR')} registros, ${tamanho}.`
+          : `Arquivo baixado — ${records.toLocaleString('pt-BR')} registros, ${tamanho}. Guarde-o fora do aparelho.`,
       );
       await refresh();
     } catch (err) {
@@ -194,10 +200,28 @@ export function BackupPanel() {
         </span>
       </div>
 
+      <label className="card row" style={{ gap: 'var(--sp-3)', cursor: 'pointer' }}>
+        <input
+          type="checkbox"
+          checked={withBibles}
+          onChange={(e) => setWithBibles(e.target.checked)}
+          style={{ width: 22, height: 22, flex: 'none' }}
+        />
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span className="list-title">Levar também as Bíblias que importei</span>
+          <span className="list-meta">
+            Para uma instalação nova nascer completa — inclusive o aplicativo Android — sem
+            reimportar nada. O arquivo fica bem maior: cada tradução passa de 4 MB, e com números
+            Strong pode triplicar.
+          </span>
+        </span>
+      </label>
+
       <p className="small muted">
         A cópia leva favoritos, marcações, anotações, sermões, Rhema, cursos, planos e histórico.
-        Não leva os arquivos importados (PDF, Word, apresentações) nem as traduções que você
-        importou — são grandes demais; guarde os originais e importe de novo quando precisar.
+        Não leva os arquivos importados (PDF, Word, apresentações) — são grandes demais; guarde os
+        originais e importe de novo quando precisar. As Bíblias importadas só vão se você marcar a
+        opção acima.
       </p>
 
       {/* -------------------- as cópias que ficam aqui -------------------- */}
