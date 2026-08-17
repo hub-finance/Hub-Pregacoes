@@ -6,6 +6,7 @@ import { Spinner } from './components/ui';
 import HomePage from './features/home/HomePage';
 import BiblePage from './features/bible/BiblePage';
 import { autoBackupIfDue } from './core/backupStore';
+import { ensurePersistenceQuietly } from './core/storage';
 import { useSettings } from './core/settings/SettingsContext';
 
 /**
@@ -53,6 +54,11 @@ function LegacyDevotionalRedirect() {
 function useAutoBackup() {
   const { settings } = useSettings();
   useEffect(() => {
+    /* Antes de tudo: pedir ao navegador que não descarte estes dados sozinho.
+       É barato, é silencioso, e é a diferença entre "o Android liberou espaço"
+       e "sumiram os sermões". */
+    ensurePersistenceQuietly();
+
     const timer = window.setTimeout(() => {
       void autoBackupIfDue(settings).catch(() => undefined);
     }, 8000);

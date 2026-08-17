@@ -15,6 +15,12 @@ import {
   saveSnapshot,
   sendBackupTo,
 } from '../../core/backupStore';
+import {
+  formatBytes,
+  requestPersistence,
+  storageStatus,
+  type StorageStatus,
+} from '../../core/storage';
 import type { BackupSnapshot } from '../../core/db/types';
 
 type SnapshotMeta = Omit<BackupSnapshot, 'payload' | 'signature'>;
@@ -33,11 +39,13 @@ export function BackupPanel() {
   const [snapshots, setSnapshots] = useState<SnapshotMeta[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [exportedAt, setExportedAt] = useState<number | null>(lastExportAt());
+  const [storage, setStorage] = useState<StorageStatus | null>(null);
   const restoreInput = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
     setSnapshots(await listSnapshots());
     setExportedAt(lastExportAt());
+    setStorage(await storageStatus());
   }, []);
 
   useEffect(() => {
@@ -84,6 +92,47 @@ export function BackupPanel() {
         </span>
       </div>
 
+      {/* ------------- o navegador pode apagar isto sozinho? ------------- */}
+      {storage && (
+        <div className="card row" style={{ gap: 'var(--sp-3)' }}>
+          <Icon
+            name={storage.persisted ? 'check' : 'lock'}
+            size={20}
+            style={{ flex: 'none', color: storage.persisted ? 'var(--accent-strong)' : 'var(--danger)' }}
+          />
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span className="list-title">
+              {storage.persisted
+                ? 'Armazenamento protegido neste aparelho'
+                : 'O navegador pode apagar estes dados sozinho'}
+            </span>
+            <span className="list-meta">
+              {storage.persisted
+                ? 'O navegador não vai descartar seus dados para liberar espaço.'
+                : 'Sem a marca de permanente, o Android pode limpar o app quando faltar espaço.'}
+              {storage.usage !== undefined && ` · ${formatBytes(storage.usage)} em uso`}
+            </span>
+          </span>
+          {!storage.persisted && storage.supported && (
+            <button
+              className="btn btn-sm"
+              onClick={async () => {
+                const ok = await requestPersistence();
+                notify(
+                  ok
+                    ? 'Armazenamento protegido.'
+                    : 'O navegador não concedeu. A cópia fora do aparelho continua sendo a garantia.',
+                  ok ? undefined : 'error',
+                );
+                await refresh();
+              }}
+            >
+              Proteger
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="row row-wrap">
         {targets.map((target) => (
           <button
@@ -99,6 +148,15 @@ export function BackupPanel() {
         <button className="btn btn-ghost" disabled={!!busy} onClick={() => restoreInput.current?.click()}>
           Restaurar de um arquivo
         </button>
+      </div>
+
+      <div className="notice">
+        <Icon name="info" size={20} style={{ flex: 'none' }} />
+        <span>
+          <strong>Nada protege de você limpar os dados do navegador</strong> — nem a marca de
+          permanente, nem as cópias guardadas aqui. Se isso acontecer, o que traz tudo de volta é
+          o arquivo que você guardou fora do aparelho. É por isso que ele é o botão em destaque.
+        </span>
       </div>
 
       <p className="small muted">
