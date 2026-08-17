@@ -1,0 +1,64 @@
+# Gera o APK do Hub Bible.
+#
+# Existe porque o app precisa rodar com armazenamento próprio, fora da área do
+# Chrome: instalado pelo navegador, limpar os dados do Chrome apaga anos de
+# sermões. Aqui o Capacitor empacota o mesmo app numa WebView com dados
+# próprios do aplicativo.
+#
+# A compilação acontece aqui, e não na máquina de ninguém, porque o runner do
+# GitHub já vem com o SDK do Android instalado. Ao terminar, o APK fica anexado
+# à execução: Actions › a execução › Artifacts › hub-bible-apk.
+name: APK Android
+
+on:
+  workflow_dispatch: # botão "Run workflow" na aba Actions
+  push:
+    tags: ['v*'] # publicar uma tag v1.2.3 também gera o APK
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: hub-bible/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: hub-bible
+        run: npm ci
+
+      - name: Compilar o app web
+        working-directory: hub-bible
+        run: npm run build
+
+      # copia dist/ para dentro do projeto Android; é o passo que o .gitignore
+      # dispensa de versionar
+      - name: Sincronizar com o projeto Android
+        working-directory: hub-bible
+        run: npx cap sync android
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Gerar o APK
+        working-directory: hub-bible/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      # `assembleDebug` sai assinado com a chave de depuração do Android, que é
+      # o suficiente para instalar no próprio aparelho. Publicar na Play Store
+      # exigiria uma chave de release, guardada como secret do repositório.
+      - name: Anexar o APK à execução
+        uses: actions/upload-artifact@v4
+        with:
+          name: hub-bible-apk
+          path: hub-bible/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 90

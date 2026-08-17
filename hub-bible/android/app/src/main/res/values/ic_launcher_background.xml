@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- dourado da marca: o mesmo --accent-strong dos tokens do app -->
+    <color name="ic_launcher_background">#6F5423</color>
+</resources>

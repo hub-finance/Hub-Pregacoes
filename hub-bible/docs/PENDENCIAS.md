@@ -411,20 +411,47 @@ compartilhamento se mostrar insuficiente.
 
 ---
 
-## 8. Rodar como APK e como aplicativo de iOS — planejar, não hoje
+## 8. Rodar como aplicativo empacotado
 
-Pedido registrado em 17/08/2026, explicitamente para depois. O que já joga a
-favor: o app é um PWA completo, com service worker, manifesto e ícones, e usa
-`HashRouter` justamente para funcionar dentro de uma WebView sem reescrita de
-rotas no servidor.
+### Android — feito em 17/08/2026, com Capacitor
 
-Caminhos a comparar quando chegar a hora:
+**Capacitor e não TWA**, e a razão é uma só: armazenamento. O TWA é mais simples
+de montar, mas quem roda por baixo é o próprio Chrome, com os dados do Chrome —
+limpar o navegador continuaria apagando tudo, que é exatamente o problema que
+motivou empacotar. No Capacitor a WebView tem armazenamento próprio, na pasta do
+aplicativo.
 
-| Caminho | O que dá | O que custa |
-|---|---|---|
-| **TWA / Bubblewrap** (Android) | APK que embrulha o PWA; publicável na Play Store | conta de desenvolvedor (US$ 25, uma vez), assinatura, Digital Asset Links |
-| **Capacitor** (Android + iOS) | um projeto para os dois; acesso a arquivos, biometria e armazenamento nativos | build nativo, e para iOS exige Mac + conta Apple (US$ 99/ano) |
-| **Continuar só PWA** | zero custo, atualização instantânea, sem revisão de loja | não aparece nas lojas; instalação depende do navegador |
+- `capacitor.config.ts` — `appId: app.hubbible.leitor`, `webDir: dist`,
+  `androidScheme: 'https'` (mantém origem segura, e com ela IndexedDB, service
+  worker e a API de armazenamento persistente).
+- `android/` versionado, menos o que é gerado: `assets/public/` sai de `dist/`
+  a cada build e são 24 MB — versionar duplicaria o repositório e ficaria
+  desatualizado no primeiro commit.
+- Ícones gerados de `public/icons/` para as cinco densidades; fundo adaptativo
+  no dourado da marca.
+- `UpdatePrompt` não monta no app: não há servidor de onde buscar versão nova, e
+  um service worker cacheando por cima dos arquivos do próprio pacote só criaria
+  chance de servir tela velha. Lá, atualizar é instalar o APK novo.
+- `core/platform.ts` — `isNativeApp()` e `installKind()`. O painel de backup usa
+  para dizer em qual instalação o usuário está, porque **as duas não compartilham
+  dados**: sermão escrito numa não aparece na outra.
 
-Antes de decidir, verificar o app num iPhone/iPad de verdade (§6): parte da
-motivação para empacotar costuma ser justamente o que a Apple limita no PWA.
+**A compilação é no GitHub, não aqui.** `.github/workflows/android.yml` roda em
+`workflow_dispatch` ou em tag `v*`, e o APK sai como artefato da execução.
+Motivo: `dl.google.com` responde **403** nesta rede — conferido, o
+`assembleDebug` falha em `com.google.gms:google-services`. O runner do GitHub já
+traz o SDK.
+
+`assembleDebug` sai assinado com a chave de depuração, suficiente para instalar
+no aparelho. Play Store exigiria chave de release guardada como secret.
+
+**As duas formas convivem, por decisão do usuário.** O endereço na web continua
+sendo o caminho recomendado para quem só quer usar; o APK é para quem quer os
+dados fora do alcance da limpeza do navegador.
+
+### iOS — continua pendente
+
+Exige **Mac** para compilar e conta Apple de **US$ 99/ano**. Não é limitação de
+ferramenta: é regra da Apple. Enquanto isso, no iPhone e no iPad o caminho segue
+sendo instalar pelo Safari. Antes de investir nisso, verificar o app num aparelho
+Apple de verdade (§6).
