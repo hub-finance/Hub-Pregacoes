@@ -146,6 +146,17 @@ o número recebem a letra pelo testamento: `H` no Antigo, `G` no Novo.
 Livros fora do cânone de 66 (Tobias, Judite…) são ignorados, e o aviso diz
 quais.
 
+A numeração de livros do MyBible vai de dez em dez (10 = Gênesis, 470 = Mateus),
+mas há módulos numerados 1..66. A escolha é feita uma vez por arquivo: se quase
+todos os números forem os do formato, vale o número; se não, vale o nome que o
+próprio módulo declara em `books`. Sem isso, um módulo sequencial leria o
+livro 10 como Gênesis — calado e errado.
+
+**Módulos parciais.** Muitos trazem só o Novo Testamento. O aviso da importação
+diz a cobertura ("Só o Novo Testamento", "faltam N livros"), a escolha de livro
+passa a mostrar apenas o que existe, e trocar para essa tradução enquanto se lê
+em Êxodo leva ao primeiro livro dela, com aviso — não a um erro.
+
 > **Ainda não há tela para ver os números Strong.** Eles são importados e ficam
 > guardados; falta a consulta (tocar na palavra e ver o termo original). Sem um
 > dicionário Strong importado também não haveria o que mostrar além do código.

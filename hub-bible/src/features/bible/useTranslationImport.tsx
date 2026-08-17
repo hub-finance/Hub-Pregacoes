@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useToast } from '../../components/Toast';
 import { readJsonFile } from '../../core/backup';
 import { importTranslation } from '../../core/bible/repository';
-import type { TranslationInfo } from '../../core/db/types';
+import type { BookMeta, TranslationInfo } from '../../core/db/types';
 
 /**
  * Importação de uma tradução que o usuário já tem direito de usar.
@@ -19,6 +19,21 @@ import type { TranslationInfo } from '../../core/db/types';
 
 /** Módulo do MyBible — o nome do arquivo é o que distingue os dois caminhos. */
 const isModule = (file: File) => /\.(sqlite3?|db)$/i.test(file.name);
+
+/**
+ * Dizer na hora se o módulo é a Bíblia toda ou só uma parte.
+ *
+ * Sem isso, importar um módulo só do Novo Testamento parece ter dado certo —
+ * e o erro só aparece depois, ao abrir um livro do Antigo que não existe ali.
+ */
+function coverage(books: BookMeta[]): string {
+  if (books.length >= 66) return 'Bíblia completa.';
+  const at = books.filter((b) => b.testament === 'AT').length;
+  const nt = books.length - at;
+  if (!at) return 'Só o Novo Testamento.';
+  if (!nt) return 'Só o Antigo Testamento.';
+  return `Cânone parcial — faltam ${66 - books.length} livros.`;
+}
 
 /** Sem slot escolhido, o nome do arquivo decide o lugar dele. */
 function slotForFile(file: File, catalog: TranslationInfo[]): TranslationInfo {
@@ -102,7 +117,8 @@ export function useTranslationImport({ catalog, onImported }: Options) {
     const name = result.translation.shortName;
     notify(
       `${name}: ${result.books} livros e ${result.verses.toLocaleString('pt-BR')} versículos` +
-        (result.strong ? ', com números Strong.' : '.'),
+        (result.strong ? ', com números Strong' : '') +
+        `. ${coverage(result.translation.books)}`,
     );
     onImported?.(result.translation);
   };

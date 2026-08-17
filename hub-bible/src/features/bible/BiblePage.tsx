@@ -114,6 +114,18 @@ export default function BiblePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /* Uma tradução importada pode trazer só parte do cânone — módulos só do Novo
+     Testamento são comuns. Trocar para uma delas enquanto se lia em Êxodo não
+     pode virar erro de capítulo: vai-se para o primeiro livro que ela tem. */
+  useEffect(() => {
+    const books = meta.data?.books;
+    if (!books?.length || books.some((b) => b.osis === book)) return;
+    const target = books[0];
+    notify(`${meta.data?.shortName ?? 'Esta tradução'} não traz ${bookName(book)}. Abrindo ${target.name}.`);
+    navigate(`/biblia/${target.osis}/1`, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meta.data, book]);
+
   useEffect(() => {
     if (!verses.length) return;
     update({ lastPosition: { translation, book, chapter, at: Date.now() } });

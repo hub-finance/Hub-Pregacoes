@@ -7,7 +7,7 @@ import type {
   TranslationMeta,
   VerseRef,
 } from '../db/types';
-import { CANON, CANON_BY_OSIS, findBook } from './canon';
+import { CANON, CANON_BY_OSIS, bookName, findBook } from './canon';
 
 /**
  * Repositório do texto bíblico.
@@ -92,6 +92,14 @@ export async function getMeta(translation: string): Promise<TranslationMeta> {
   return meta;
 }
 
+/** Metadados de uma tradução importada, sem tocar na rede. */
+async function storedMeta(translation: string): Promise<TranslationMeta | undefined> {
+  const cached = memMeta.get(translation);
+  if (cached?.imported) return cached;
+  const stored = await db.settings.get(META_KEY(translation)).catch(() => undefined);
+  return stored?.value as TranslationMeta | undefined;
+}
+
 export async function getBookMeta(translation: string, book: string): Promise<BookMeta | undefined> {
   const meta = await getMeta(translation);
   return meta.books.find((b) => b.osis === book);
@@ -108,6 +116,15 @@ export async function getBook(translation: string, book: string): Promise<Cached
   if (stored) {
     memBooks.set(key, stored);
     return stored;
+  }
+
+  /* Tradução importada não tem cópia no servidor: o que não foi gravado no
+     aparelho simplesmente não existe. Buscar na rede daria um 404 cru na cara
+     de quem só queria ler — a resposta certa é dizer que aquela tradução não
+     traz aquele livro. Módulos só do Novo Testamento são comuns. */
+  const local = await storedMeta(translation);
+  if (local) {
+    throw new Error(`${local.shortName} não traz o livro de ${bookName(book)}.`);
   }
 
   const payload = await fetchJson<{ chapters: string[][] }>(`${BASE}${translation}/${book}.json`);

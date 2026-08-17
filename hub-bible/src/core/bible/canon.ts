@@ -75,6 +75,24 @@ export function findBook(input: string): CanonBook | undefined {
     const matches = CANON.filter((b) => normalize(b.name).replace(/\s+/g, '').startsWith(key.replace(/\s+/g, '')));
     if (matches.length === 1) return matches[0];
   }
+
+  /* Nome estendido: "Lamentações de Jeremias", "Apocalipse de João" — comuns em
+     arquivos de Bíblia. O nome canônico é o começo do que veio, e o que sobra
+     tem de ser palavra: assim "Jó" não engole "Jo 3", cujo resto é número.
+     Ganha o nome mais longo, para "Cântico dos Cânticos" não perder para
+     um começo mais curto. */
+  const spaced = key.replace(/\s+/g, ' ');
+  let best: { book: CanonBook; length: number } | undefined;
+  for (const b of CANON) {
+    // apelidos curtos ("jo", "ex") fora: engoliriam qualquer frase que comece assim
+    for (const label of [normalize(b.name), ...b.aliases].filter((l) => l.length >= 4)) {
+      if (!spaced.startsWith(`${label} `)) continue;
+      if (!/[a-z]/.test(spaced.slice(label.length + 1))) continue;
+      if (!best || label.length > best.length) best = { book: b, length: label.length };
+    }
+  }
+  if (best) return best.book;
+
   return undefined;
 }
 
