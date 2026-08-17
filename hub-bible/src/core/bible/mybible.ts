@@ -167,6 +167,16 @@ export function readBible(db: SQLiteFile): MyBibleBible {
     }
   }
 
+  /* Qual identificação mandar: o número ou o nome.
+     A numeração de dez em dez é a do formato, e é exata quando o módulo a
+     segue. Mas há módulos numerados 1..66 — e aí o número 10 seria lido como
+     Gênesis, calado e errado. Por isso a escolha é feita uma vez, olhando o
+     conjunto: se quase todos os números são conhecidos, vale o número; se não,
+     vale o nome que o próprio arquivo declara. */
+  const numbers = [...nameByNumber.keys()];
+  const known = numbers.filter((n) => NUMBER_TO_OSIS.has(n)).length;
+  const trustNumbers = !numbers.length || known / numbers.length > 0.8;
+
   const books: Record<string, string[][]> = {};
   const strongs: Record<string, StrongTag[][][]> = {};
   const skipped = new Set<string>();
@@ -178,7 +188,9 @@ export function readBible(db: SQLiteFile): MyBibleBible {
     const verse = Number(row.verse);
     if (!Number.isFinite(number) || !Number.isFinite(chapter) || !Number.isFinite(verse)) continue;
 
-    const osis = NUMBER_TO_OSIS.get(number) ?? resolveByName(nameByNumber.get(number));
+    const byNumber = NUMBER_TO_OSIS.get(number);
+    const byName = resolveByName(nameByNumber.get(number));
+    const osis = trustNumbers ? (byNumber ?? byName) : (byName ?? byNumber);
     if (!osis) {
       skipped.add(nameByNumber.get(number) ?? `livro ${number}`);
       continue;
