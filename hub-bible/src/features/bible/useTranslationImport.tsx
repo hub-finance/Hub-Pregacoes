@@ -115,9 +115,13 @@ export function useTranslationImport({ catalog, onImported }: Options) {
     const buffer = await file.arrayBuffer();
     const result = await importMyBibleBible(buffer, chosen, file.name);
     const name = result.translation.shortName;
+    const extras = [
+      result.strong ? 'números Strong' : '',
+      result.pericopes ? `${result.pericopes.toLocaleString('pt-BR')} títulos de seção` : '',
+    ].filter(Boolean);
     notify(
       `${name}: ${result.books} livros e ${result.verses.toLocaleString('pt-BR')} versículos` +
-        (result.strong ? ', com números Strong' : '') +
+        (extras.length ? `, com ${extras.join(' e ')}` : '') +
         `. ${coverage(result.translation.books)}`,
     );
     onImported?.(result.translation);

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { TranslationManager } from './TranslationManager';
 import { Sheet } from '../../components/Sheet';
@@ -13,7 +13,7 @@ import {
 import { useToast } from '../../components/Toast';
 import { useAsync } from '../../hooks';
 import { DEFAULT_SETTINGS, useSettings, type ThemeChoice } from '../../core/settings/SettingsContext';
-import { downloadBackup, readJsonFile, restoreBackup } from '../../core/backup';
+import { BackupPanel } from './BackupPanel';
 import { clearScriptureCache, clearUserData } from '../../core/db/db';
 import { loadAvailableTranslations } from '../../core/bible/repository';
 import { isAiEnabled } from '../../core/ai/provider';
@@ -27,7 +27,6 @@ export default function SettingsPage() {
   const { settings, update, reset, categories } = useSettings();
   const { notify } = useToast();
   const translations = useAsync(() => loadAvailableTranslations(), []);
-  const restoreInput = useRef<HTMLInputElement>(null);
 
   const [confirmWipe, setConfirmWipe] = useState(false);
   const [categorySheet, setCategorySheet] = useState(false);
@@ -214,21 +213,10 @@ export default function SettingsPage() {
         <div className="card stack">
           <p className="small muted">
             Suas anotações, sermões e estudos ficam somente neste dispositivo, em banco local. Nada é
-            enviado para servidores.
+            enviado para servidores — e por isso a cópia de segurança é sua única rede.
           </p>
+          <BackupPanel />
           <div className="row row-wrap">
-            <button
-              className="btn"
-              onClick={async () => {
-                await downloadBackup(settings);
-                notify('Backup exportado.');
-              }}
-            >
-              Exportar meus dados
-            </button>
-            <button className="btn" onClick={() => restoreInput.current?.click()}>
-              Restaurar backup
-            </button>
             <button
               className="btn btn-ghost"
               onClick={async () => {
@@ -242,27 +230,6 @@ export default function SettingsPage() {
               Excluir todos os meus dados
             </button>
           </div>
-          <input
-            ref={restoreInput}
-            type="file"
-            accept="application/json,.json"
-            className="sr-only"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              try {
-                const data = await readJsonFile(file);
-                const result = await restoreBackup(data, 'merge');
-                notify(
-                  `Backup restaurado: ${Object.values(result.restored).reduce((a, b) => a + b, 0)} registro(s).`,
-                );
-              } catch (err) {
-                notify((err as Error).message, 'error');
-              } finally {
-                e.target.value = '';
-              }
-            }}
-          />
         </div>
       </section>
 

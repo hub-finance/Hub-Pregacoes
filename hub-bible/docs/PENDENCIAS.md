@@ -11,7 +11,35 @@ Os subtítulos que aparecem no meio do texto em leitores como o Olive Tree —
 por exemplo *"A criação dos céus e da terra e de tudo o que neles há"* antes de
 Gênesis 1.
 
-**Situação:** os arquivos que temos **não trazem** esses títulos.
+### Resolvido em 17/08/2026 — pela mesma porta do Strong
+
+Não pelo lado que estava sendo procurado. Nenhuma tradução **embutível** traz
+títulos, e isso não mudou; o que mudou é que o app passou a ler módulos do
+MyBible, e esses **trazem**, na tabela `stories`.
+
+- `readPericopes()` em `core/bible/mybible.ts` lê `stories` e resolve o livro
+  pela mesma regra do texto (número ou nome, decidida por arquivo).
+- Guardados em `CachedBook.pericopes` (`Pericope = { chapter, verse, title }`),
+  ao lado do texto, que continua puro.
+- `getChapterPericopes()` no repositório devolve um mapa versículo → título;
+  vazio nas traduções que não têm, e a tela não sabe a diferença.
+- Desenhados por `.pericope` em `reader.css`: itálico, sem numeração, cor de
+  destaque — aparato editorial, e a tipografia diz isso. Ficam **fora** do
+  `<span>` do versículo, então não entram na seleção nem na cópia.
+
+Conferido: módulo com 7 títulos importado, "A criação dos céus e da terra" e
+"A criação do homem" aparecendo em Gênesis 1, zero títulos na Almeida embutida,
+e o título fora da seleção ao tocar no versículo 1.
+
+**A restrição de direitos continua valendo** e é o motivo de isto só existir por
+importação: títulos de perícope são trabalho editorial de quem os escreveu.
+Vindos do arquivo de quem já tem a edição, ficam no aparelho como o resto —
+nunca embutidos no aplicativo.
+
+### O levantamento que continua valendo
+
+**Situação das fontes embutíveis:** os arquivos que temos **não trazem** esses
+títulos.
 
 O `por-almeida.usfx.xml` (fonte da tradução `pt_almeida`) contém apenas cinco
 tipos de marcação — conferido com contagem de tags:
@@ -328,12 +356,26 @@ Para não repetir trabalho:
 Hoje tudo vive no IndexedDB de um aparelho só. O usuário decidiu o caminho, em
 duas etapas:
 
-1. **Agora — cópia no Google.** Sem servidor e sem conta: o app gera o arquivo
-   de backup e o entrega à folha de compartilhamento do Android, onde "Salvar no
-   Drive" é um toque. Some com o "lembrar de exportar". Vale acrescentar cópias
-   automáticas guardadas no próprio Dexie (as N últimas), que protegem do erro
-   mais comum — apagar um sermão sem querer — sem depender de nada externo.
-   *Não construído ainda.*
+1. **Agora — cópia no Google. ✅ construído em 17/08/2026.**
+   `core/backupStore.ts` traz as duas camadas: cópias automáticas no próprio
+   Dexie (tabela `backups`, as 6 últimas, uma a cada 3 dias, disparadas 8 s
+   depois da abertura) e o envio para fora pelo contrato `BackupTarget` — hoje
+   a folha de compartilhamento do Android, onde "Salvar no Drive" é um toque, e
+   o arquivo baixado. A tela é `features/settings/BackupPanel.tsx`, organizada
+   pela pergunta *"se eu perder este tablet agora, o que sobra?"*: o estado da
+   cópia **fora** do aparelho vem primeiro, em vermelho enquanto não houver
+   nenhuma. Restaurar — de arquivo ou de uma cópia local — grava antes o estado
+   atual, para haver caminho de volta.
+
+   Duas armadilhas encontradas na verificação: a assinatura que evita cópias
+   repetidas **não pode** incluir `exportedAt`, que muda a cada chamada de
+   `createBackup` (sem isso nada nunca é igual e a lista enche de repetições); e
+   `navigator.share` não existe no Chromium sem interface, então o destino da
+   folha some no teste — o do arquivo cobre a verificação.
+
+   *O upload automático de verdade no Drive (sem o toque) exigiria um client ID
+   OAuth criado pelo usuário no Google Cloud; entra como mais um `BackupTarget`
+   se a folha se mostrar insuficiente.*
 2. **Depois — servidor com conta e sincronização.** Foi a opção que ele quis
    para o futuro ("muito bom essa segunda opção"). O contrato já existe em
    `core/sync/syncAdapter.ts`: `SYNCABLE_TABLES`, `collectLocalChanges`,

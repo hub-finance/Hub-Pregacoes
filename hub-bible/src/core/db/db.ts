@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 import type {
   Attachment,
+  BackupSnapshot,
   CachedBook,
   Devotional,
   Favorite,
@@ -38,6 +39,7 @@ export class HubBibleDB extends Dexie {
   readingEvents!: Table<ReadingEvent, string>;
   books!: Table<CachedBook, string>;
   attachments!: Table<Attachment, string>;
+  backups!: Table<BackupSnapshot, string>;
 
   constructor() {
     super('hub-bible');
@@ -60,6 +62,12 @@ export class HubBibleDB extends Dexie {
     // nova; nenhuma tabela existente muda, então não há migração de dados.
     this.version(2).stores({
       attachments: 'id, userId, docId, createdAt',
+    });
+
+    // v3 — cópias de segurança guardadas no próprio aparelho. Também só
+    // acrescenta tabela: nada do que já existe é tocado.
+    this.version(3).stores({
+      backups: 'id, at',
     });
   }
 }

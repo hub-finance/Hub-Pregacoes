@@ -288,11 +288,49 @@ export interface CachedBook {
    * `chapters` para que o texto continue sendo texto puro na busca e na cópia.
    */
   strongs?: StrongTag[][][];
+  /** Títulos de perícope do livro, quando a tradução os traz. */
+  pericopes?: Pericope[];
   savedAt: number;
 }
 
 /** [posição da palavra no versículo, código Strong] — ex.: `[0, 'H430']`. */
 export type StrongTag = [word: number, code: string];
+
+/**
+ * Título de perícope — o subtítulo que abre um trecho ("A criação dos céus e da
+ * terra"). Vem de módulos que o trazem; as traduções embutidas não têm.
+ */
+export interface Pericope {
+  chapter: number;
+  verse: number;
+  title: string;
+}
+
+/**
+ * Cópia de segurança guardada no próprio aparelho.
+ *
+ * Protege do acidente mais comum — apagar um sermão sem querer — sem depender
+ * de internet, conta ou de o usuário lembrar de exportar. Não substitui a cópia
+ * fora do aparelho: se o navegador for limpo, estas vão junto.
+ */
+export interface BackupSnapshot {
+  id: ID;
+  at: number;
+  /** Feita sozinha pelo app ou a pedido. */
+  reason: 'auto' | 'manual';
+  records: number;
+  counts: Record<string, number>;
+  /** Tamanho do conteúdo em bytes, para mostrar na lista. */
+  size: number;
+  /** O arquivo de backup inteiro, serializado. */
+  payload: string;
+  /**
+   * Conteúdo sem o carimbo de hora, para reconhecer duas cópias iguais.
+   * `createBackup` grava `exportedAt` com o instante da exportação: comparar o
+   * payload inteiro diria "mudou" toda vez, e a lista encheria de repetições.
+   */
+  signature: string;
+}
 
 /* -------------------------------- catálogo ------------------------------- */
 

@@ -1008,3 +1008,25 @@
 .preach-pane-body {
   font-size: calc(clamp(1rem, calc(0.5vw + 0.9rem), 1.35rem) * var(--pane-scale));
 }
+
+/* --------------------------- títulos de perícope -------------------------- */
+/* O subtítulo que abre um trecho ("A criação dos céus e da terra"). Vem de
+   traduções que o trazem; some sem deixar rastro nas que não têm. Fica em
+   itálico e sem numeração para não competir com o texto sagrado — é aparato
+   editorial, e a tipografia diz isso. */
+.reader-verses .pericope {
+  display: block;
+  margin: 1.6em 0 0.5em;
+  font-family: var(--font-reader);
+  font-size: 0.9em;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--accent-strong);
+  letter-spacing: 0.01em;
+  text-align: left;
+}
+/* o primeiro título do capítulo não precisa do respiro de cima */
+.reader-verses .pericope:first-child {
+  margin-top: 0.2em;
+}
