@@ -7,6 +7,7 @@ import HomePage from './features/home/HomePage';
 import BiblePage from './features/bible/BiblePage';
 import { autoBackupIfDue } from './core/backupStore';
 import { ensurePersistenceQuietly } from './core/storage';
+import { unregisterServiceWorkerInApp } from './core/platform';
 import { useSettings } from './core/settings/SettingsContext';
 
 /**
@@ -58,6 +59,14 @@ function useAutoBackup() {
        É barato, é silencioso, e é a diferença entre "o Android liberou espaço"
        e "sumiram os sermões". */
     ensurePersistenceQuietly();
+
+    /* No aplicativo empacotado, tirar do caminho qualquer service worker que
+       tenha sobrado de uma versão anterior. Ele serviria telas antigas por cima
+       dos arquivos novos do pacote — e recarregar é a única forma de a tela
+       atual passar a vir do lugar certo. */
+    void unregisterServiceWorkerInApp().then((precisaRecarregar) => {
+      if (precisaRecarregar) window.location.reload();
+    });
 
     const timer = window.setTimeout(() => {
       void autoBackupIfDue(settings).catch(() => undefined);

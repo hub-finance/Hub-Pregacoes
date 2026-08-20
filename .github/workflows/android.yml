@@ -35,6 +35,16 @@ jobs:
         working-directory: hub-bible
         run: npm run build
 
+      # O service worker não entra no APK. Dentro do aplicativo ele não tem
+      # função — os arquivos já vêm no pacote — e o cache dele sobrevive à
+      # atualização, fazendo uma versão nova continuar mostrando telas antigas.
+      # Sem `sw.js` no pacote, um service worker que tenha sobrado de uma
+      # instalação anterior recebe 404 na verificação e o próprio sistema o
+      # remove.
+      - name: Tirar o service worker do pacote Android
+        working-directory: hub-bible
+        run: rm -f dist/sw.js dist/workbox-*.js dist/registerSW.js
+
       # copia dist/ para dentro do projeto Android; é o passo que o .gitignore
       # dispensa de versionar
       - name: Sincronizar com o projeto Android
