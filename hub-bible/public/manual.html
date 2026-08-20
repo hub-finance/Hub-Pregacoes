@@ -161,6 +161,22 @@
     overflow-wrap: anywhere;
   }
 
+  /* volta para o aplicativo — fixa no alto, porque quem precisa dela pode
+     estar no meio da página, e no aplicativo não há barra de navegador */
+  .back-bar {
+    position: sticky; top: 0; z-index: 10;
+    margin: -2.5rem -1.25rem 1.5rem;
+    padding: 0.6rem 1.25rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+  }
+  .back-bar a {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    min-height: 44px;
+    font-weight: 600; text-decoration: none;
+  }
+
   footer {
     margin-top: 4rem; padding-top: 1.5rem;
     border-top: 1px solid var(--border);
@@ -183,6 +199,15 @@
 </head>
 <body>
 <div class="wrap">
+
+<!-- Link simples de propósito. A primeira versão usava `history.back()` para
+     devolver o leitor à tela exata de onde veio; só que o histórico nem sempre
+     tem o que se espera — aberto direto, o "voltar" caía numa página em branco,
+     que é o mesmo beco sem saída que este botão veio resolver. O endereço fixo
+     acerta em todos os casos. -->
+<div class="back-bar no-print">
+  <a href="./index.html#/ajuda">← Voltar ao aplicativo</a>
+</div>
 
 <header class="cover">
   <div class="brand">
@@ -907,5 +932,6 @@
 </footer>
 
 </div>
+
 </body>
 </html>

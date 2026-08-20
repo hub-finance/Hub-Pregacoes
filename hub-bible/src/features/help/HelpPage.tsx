@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/ui';
 import { Icon, type IconName } from '../../components/Icon';
+import { isNativeApp } from '../../core/platform';
 
 interface Topic {
   icon: IconName;
@@ -235,10 +236,14 @@ export default function HelpPage() {
             Tudo em uma página só — para imprimir, salvar em PDF ou enviar a quem for usar com você.
           </span>
         </span>
+        {/* No navegador abre em outra aba, que tem os botões do próprio
+            navegador. No aplicativo não existe aba nem barra de endereço: abrir
+            em "_blank" prendia o leitor numa tela sem saída. Lá vai na mesma
+            tela, e o manual traz o botão de voltar. */}
         <a
           className="btn btn-sm"
           href={`${import.meta.env.BASE_URL}manual.html`}
-          target="_blank"
+          target={isNativeApp() ? undefined : '_blank'}
           rel="noreferrer"
           style={{ flex: 'none' }}
         >
