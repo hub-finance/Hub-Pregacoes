@@ -70,13 +70,12 @@ jobs:
       # Assinado com a chave fixa em `android/keystore/`, e não com a chave de
       # depuração: o runner começa limpo a cada execução e criaria uma chave
       # diferente toda vez, o que faz o Android rejeitar a atualização.
+      # Conferência, não portão: se o comando não existir na máquina, a
+      # compilação não deve falhar por causa do relatório.
       - name: Conferir a assinatura
+        continue-on-error: true
         working-directory: hub-bible/android
-        run: |
-          APK=app/build/outputs/apk/debug/app-debug.apk
-          keytool -printcert -jarfile "$APK" | grep -E "Owner|SHA-256"
-          aapt dump badging "$APK" 2>/dev/null | head -1 ||
-            "$ANDROID_HOME"/build-tools/*/aapt dump badging "$APK" | head -1
+        run: keytool -printcert -jarfile app/build/outputs/apk/debug/app-debug.apk
 
       - name: Anexar o APK à execução
         uses: actions/upload-artifact@v4

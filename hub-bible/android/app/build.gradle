@@ -1,5 +1,11 @@
 apply plugin: 'com.android.application'
 
+/* Número desta compilação. Vem da execução na nuvem; fora dela, 1 basta para
+   rodar na máquina. Calculado aqui, e não dentro de `defaultConfig`, porque em
+   linha o Groovy lê `versionCode (...) as int` como uma chamada de método
+   seguida de conversão do retorno — e o retorno é nulo. */
+def hubBuild = (System.getenv("HUB_BUILD") ?: "1").toInteger()
+
 android {
     namespace "app.hubbible.leitor"
     compileSdk rootProject.ext.compileSdkVersion
@@ -10,10 +16,9 @@ android {
         /* O Android só aceita instalar por cima quando o número da versão sobe.
            Com `versionCode` fixo, cada APK novo era recusado em silêncio e o
            aparelho seguia com a versão antiga — que foi o que fez três consertos
-           seguidos "não funcionarem" no tablet. A compilação recebe o número da
-           execução em `HUB_BUILD`; fora dela, 1 serve para rodar localmente. */
-        versionCode (System.getenv("HUB_BUILD") ?: "1") as int
-        versionName "1.0." + (System.getenv("HUB_BUILD") ?: "0")
+           seguidos "não funcionarem" no tablet. */
+        versionCode hubBuild
+        versionName "1.0.$hubBuild"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
