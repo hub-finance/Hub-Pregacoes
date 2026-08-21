@@ -56,19 +56,32 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      # `HUB_BUILD` vira o versionCode. Sem ele todo APK saía como versão 1, e o
+      # Android recusa instalar por cima quando o número não sobe — era por isso
+      # que consertos entregues aqui não chegavam ao aparelho.
       - name: Gerar o APK
         working-directory: hub-bible/android
+        env:
+          HUB_BUILD: ${{ github.run_number }}
         run: |
           chmod +x ./gradlew
           ./gradlew assembleDebug --no-daemon
 
-      # `assembleDebug` sai assinado com a chave de depuração do Android, que é
-      # o suficiente para instalar no próprio aparelho. Publicar na Play Store
-      # exigiria uma chave de release, guardada como secret do repositório.
+      # Assinado com a chave fixa em `android/keystore/`, e não com a chave de
+      # depuração: o runner começa limpo a cada execução e criaria uma chave
+      # diferente toda vez, o que faz o Android rejeitar a atualização.
+      - name: Conferir a assinatura
+        working-directory: hub-bible/android
+        run: |
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          keytool -printcert -jarfile "$APK" | grep -E "Owner|SHA-256"
+          aapt dump badging "$APK" 2>/dev/null | head -1 ||
+            "$ANDROID_HOME"/build-tools/*/aapt dump badging "$APK" | head -1
+
       - name: Anexar o APK à execução
         uses: actions/upload-artifact@v4
         with:
-          name: hub-bible-apk
+          name: hub-bible-apk-v${{ github.run_number }}
           path: hub-bible/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 90

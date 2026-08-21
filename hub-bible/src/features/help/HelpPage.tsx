@@ -225,26 +225,25 @@ export default function HelpPage() {
         lead="Como usar o Hub Bible no dia a dia e na hora de pregar."
       />
 
-      {/* O mesmo conteúdo em uma página só, para guardar, imprimir ou enviar a
-          quem vai usar o aplicativo junto. Vive em `public/manual.html`: abre
-          offline, porque o service worker o guarda com o resto do app. */}
+      {/* O mesmo conteúdo em uma página só, para imprimir ou enviar a quem vai
+          usar o aplicativo junto. Vive em `public/manual.html`.
+
+          Dentro do aplicativo esse cartão não traz botão nenhum, de propósito.
+          Ali não há aba nem barra de endereço: qualquer coisa que substitua a
+          tela é um lugar de onde se pode não conseguir voltar, e não vale o
+          risco — o conteúdo do manual é o mesmo que está logo abaixo, nos
+          tópicos. Imprimir só faz sentido no computador, de qualquer forma. */}
       <div className="card row" style={{ marginBottom: 'var(--sp-4)', gap: 'var(--sp-3)' }}>
         <Icon name="download" size={22} style={{ flex: 'none', color: 'var(--accent-strong)' }} />
-        <span style={{ flex: 1, minWidth: 0 }}>
+        <span className="list-body" style={{ flex: 1, minWidth: 0 }}>
           <span className="list-title">Manual completo</span>
           <span className="list-meta">
-            Tudo em uma página só — para imprimir, salvar em PDF ou enviar a quem for usar com você.
+            {isNativeApp()
+              ? 'Para imprimir ou enviar a alguém, abra o Hub Bible no navegador e use a Ajuda de lá. Aqui, tudo está nos tópicos abaixo.'
+              : 'Tudo em uma página só — para imprimir, salvar em PDF ou enviar a quem for usar com você.'}
           </span>
         </span>
-        {/* No navegador abre em outra aba, que já tem os botões de voltar,
-            imprimir e salvar do próprio navegador. No aplicativo não existe aba
-            nem barra de endereço — lá o manual abre numa tela do app, com o
-            menu do Hub Bible por perto, para nunca faltar caminho de volta. */}
-        {isNativeApp() ? (
-          <Link className="btn btn-sm" to="/manual" style={{ flex: 'none' }}>
-            Abrir
-          </Link>
-        ) : (
+        {!isNativeApp() && (
           <a
             className="btn btn-sm"
             href={`${import.meta.env.BASE_URL}manual.html`}
