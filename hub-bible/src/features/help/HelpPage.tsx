@@ -236,19 +236,25 @@ export default function HelpPage() {
             Tudo em uma página só — para imprimir, salvar em PDF ou enviar a quem for usar com você.
           </span>
         </span>
-        {/* No navegador abre em outra aba, que tem os botões do próprio
-            navegador. No aplicativo não existe aba nem barra de endereço: abrir
-            em "_blank" prendia o leitor numa tela sem saída. Lá vai na mesma
-            tela, e o manual traz o botão de voltar. */}
-        <a
-          className="btn btn-sm"
-          href={`${import.meta.env.BASE_URL}manual.html`}
-          target={isNativeApp() ? undefined : '_blank'}
-          rel="noreferrer"
-          style={{ flex: 'none' }}
-        >
-          Abrir
-        </a>
+        {/* No navegador abre em outra aba, que já tem os botões de voltar,
+            imprimir e salvar do próprio navegador. No aplicativo não existe aba
+            nem barra de endereço — lá o manual abre numa tela do app, com o
+            menu do Hub Bible por perto, para nunca faltar caminho de volta. */}
+        {isNativeApp() ? (
+          <Link className="btn btn-sm" to="/manual" style={{ flex: 'none' }}>
+            Abrir
+          </Link>
+        ) : (
+          <a
+            className="btn btn-sm"
+            href={`${import.meta.env.BASE_URL}manual.html`}
+            target="_blank"
+            rel="noreferrer"
+            style={{ flex: 'none' }}
+          >
+            Abrir
+          </a>
+        )}
       </div>
 
       <div className="stack">
