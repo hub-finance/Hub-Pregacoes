@@ -895,6 +895,17 @@
   font-weight: 700;
 }
 
+/* o manual completo aberto dentro do aplicativo: rola por dentro, para que o
+   cabeçalho com o botão de voltar continue no lugar enquanto se lê */
+.manual-frame {
+  width: 100%;
+  height: calc(100dvh - 15rem);
+  min-height: 24rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+
 /* abas */
 .tabs {
   display: flex;
