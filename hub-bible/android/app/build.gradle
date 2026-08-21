@@ -7,8 +7,13 @@ android {
         applicationId "app.hubbible.leitor"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        /* O Android só aceita instalar por cima quando o número da versão sobe.
+           Com `versionCode` fixo, cada APK novo era recusado em silêncio e o
+           aparelho seguia com a versão antiga — que foi o que fez três consertos
+           seguidos "não funcionarem" no tablet. A compilação recebe o número da
+           execução em `HUB_BUILD`; fora dela, 1 serve para rodar localmente. */
+        versionCode (System.getenv("HUB_BUILD") ?: "1") as int
+        versionName "1.0." + (System.getenv("HUB_BUILD") ?: "0")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +21,29 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    /* Chave de assinatura fixa, guardada no repositório.
+       O Android recusa instalar por cima de um aplicativo assinado com outra
+       chave. A compilação na nuvem começa de uma máquina limpa, então a chave
+       de depuração era criada do zero a cada vez, diferente da anterior — e
+       toda atualização era rejeitada pelo aparelho. Com a chave aqui, todos os
+       APKs são reconhecidos como o mesmo aplicativo.
+       É uma chave de uso pessoal, para instalar fora da loja; não serve para
+       publicar na Play Store, que exige chave guardada em segredo. */
+    signingConfigs {
+        hubbible {
+            storeFile file('../keystore/hubbible.p12')
+            storePassword 'hubbible'
+            keyAlias 'hubbible'
+            keyPassword 'hubbible'
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig signingConfigs.hubbible
+        }
         release {
+            signingConfig signingConfigs.hubbible
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

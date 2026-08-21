@@ -31,7 +31,6 @@ const PlanDetailPage = lazy(() => import('./features/plans/PlanDetailPage'));
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const SettingsPage = lazy(() => import('./features/settings/SettingsPage'));
 const HelpPage = lazy(() => import('./features/help/HelpPage'));
-const ManualPage = lazy(() => import('./features/help/ManualPage'));
 const PreachingPage = lazy(() => import('./features/preaching/PreachingPage'));
 
 /** `/estudos/:id` de antes do nome Rhema continua abrindo o mesmo documento. */
@@ -140,7 +139,6 @@ export default function App() {
                   <Route path="/painel" element={<DashboardPage />} />
                   <Route path="/config" element={<SettingsPage />} />
                   <Route path="/ajuda" element={<HelpPage />} />
-                  <Route path="/manual" element={<ManualPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
