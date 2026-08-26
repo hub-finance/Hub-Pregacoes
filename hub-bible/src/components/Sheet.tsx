@@ -19,25 +19,44 @@ export function Sheet({ open, title, onClose, children, footer, size = 'md' }: S
   const panelRef = useRef<HTMLDivElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
 
+  /* `onClose` quase sempre é uma função criada na hora pela tela que abre a
+     folha, e portanto diferente a cada desenho dela. Com ela nas dependências
+     do efeito, digitar num campo aqui dentro refazia todo o efeito a cada
+     tecla: o foco voltava para fora e o teclado do Android fechava. Guardada
+     numa ref, o efeito depende só de `open` — que é quando ele de fato precisa
+     acontecer. */
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+
   useEffect(() => {
     if (!open) return;
     previousFocus.current = document.activeElement as HTMLElement;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') closeRef.current();
     };
     document.addEventListener('keydown', onKey);
     const { overflow } = document.body.style;
     document.body.style.overflow = 'hidden';
-    const focusTarget = panelRef.current?.querySelector<HTMLElement>(
-      'input, textarea, select, button, [tabindex]',
-    );
+
+    /* O primeiro campo do corpo, e não o primeiro elemento focável da folha: o
+       botão de fechar vem antes no HTML, e mandar o foco para ele deixaria o
+       teclado fechado justamente onde há o que digitar. O seletor de cor fica
+       de fora porque abre a paleta do sistema. */
+    const body = panelRef.current?.querySelector<HTMLElement>('.sheet-body');
+    const focusTarget =
+      body?.querySelector<HTMLElement>(
+        'input:not([type="color"]):not([type="hidden"]), textarea, select',
+      ) ??
+      body?.querySelector<HTMLElement>('button, [tabindex]') ??
+      panelRef.current?.querySelector<HTMLElement>('button');
     focusTarget?.focus({ preventScroll: true });
+
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = overflow;
       previousFocus.current?.focus?.({ preventScroll: true });
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
