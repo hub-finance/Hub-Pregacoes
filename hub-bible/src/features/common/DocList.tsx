@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ConfirmDialog, EmptyState, PageHeader } from '../../components/ui';
 import { Icon, type IconName } from '../../components/Icon';
+import { useRegisterSearch } from '../../app/SearchScope';
 import { useToast } from '../../components/Toast';
 import { normalize } from '../../core/bible/canon';
 import { CONTENT_CATEGORIES } from '../../core/categories';
@@ -51,6 +52,15 @@ export function DocList<T extends BaseDoc>({
   const { notify } = useToast();
   const docs = useLiveQuery(() => listDocs<T>(kind), [kind], [] as T[]);
   const [query, setQuery] = useState('');
+
+  /* A lupa do alto da tela procura nesta lista, e não na Bíblia: quem está em
+     Cursos e toca nela quer achar um curso. Levar o foco ao campo é o bastante
+     — o campo já existe e já filtra. */
+  const searchRef = useRef<HTMLInputElement>(null);
+  useRegisterSearch(() => {
+    searchRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    searchRef.current?.focus();
+  });
   const [category, setCategory] = useState('Todas');
   const [removing, setRemoving] = useState<T | null>(null);
   const [importing, setImporting] = useState(false);
@@ -128,6 +138,7 @@ export function DocList<T extends BaseDoc>({
       <div className="search-field" style={{ marginBottom: 'var(--sp-3)' }}>
         <Icon name="search" size={18} className="dim" />
         <input
+          ref={searchRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={`Buscar em ${title.toLowerCase()}`}

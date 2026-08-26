@@ -44,6 +44,10 @@ export function Sheet({ open, title, onClose, children, footer, size = 'md' }: S
        de fora porque abre a paleta do sistema. */
     const body = panelRef.current?.querySelector<HTMLElement>('.sheet-body');
     const focusTarget =
+      /* `data-autofocus` deixa a folha dizer qual campo importa. Na anotação, o
+         primeiro campo do HTML é a referência, que é opcional — quem abre ali
+         quer escrever a anotação, não preencher o endereço do versículo. */
+      body?.querySelector<HTMLElement>('[data-autofocus]') ??
       body?.querySelector<HTMLElement>(
         'input:not([type="color"]):not([type="hidden"]), textarea, select',
       ) ??
