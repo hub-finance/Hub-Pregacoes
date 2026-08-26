@@ -895,6 +895,53 @@
   font-weight: 700;
 }
 
+/* ------------------------- anotações: bloco de notas ---------------------- */
+/* Uma anotação atrás da outra, separadas por um filete. Sem caixa, sem sombra:
+   o que se lê aqui é o próprio texto, e cada moldura era uma interrupção. */
+.notepad {
+  border-top: 1px solid var(--border);
+}
+.notepad-entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-1);
+  border-bottom: 1px solid var(--border);
+}
+.notepad-ref {
+  color: var(--accent-strong);
+  font-weight: 650;
+  font-size: 0.86rem;
+  text-align: left;
+}
+.notepad-title {
+  font-size: 1.02rem;
+  font-weight: 620;
+  margin: 0;
+}
+.notepad-text {
+  /* a quebra de linha que o usuário digitou é conteúdo, não formatação */
+  white-space: pre-wrap;
+  line-height: 1.7;
+  color: var(--text-2);
+  margin: 0;
+}
+/* os botões esperam a vez: a anotação é para ler, editar é o segundo passo */
+.notepad-actions {
+  opacity: 0.55;
+  transition: opacity var(--dur) var(--ease);
+}
+.notepad-entry:hover .notepad-actions,
+.notepad-entry:focus-within .notepad-actions {
+  opacity: 1;
+}
+/* no toque não existe "passar o mouse": lá os botões ficam sempre legíveis */
+@media (hover: none) {
+  .notepad-actions {
+    opacity: 1;
+  }
+}
+
 
 /* abas */
 .tabs {
@@ -1192,4 +1239,62 @@
   font-family: var(--font-reader);
   font-size: 1.35rem;
   line-height: 1.4;
+}
+
+/* ------------------- busca dentro do material aberto ---------------------- */
+/* Colada ao arquivo, logo abaixo da barra dele: numa apostila longa, o que se
+   procura e onde se procura precisam estar à mesma vista. */
+.doc-search {
+  padding: var(--sp-3) var(--sp-3) var(--sp-2);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.doc-hits {
+  list-style: none;
+  margin: var(--sp-2) 0 0;
+  padding: 0;
+  /* a lista rola por dentro: sessenta achados não podem empurrar o documento
+     para fora da tela */
+  max-height: 15rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.doc-hits li + li {
+  border-top: 1px solid var(--border);
+}
+.doc-hits button {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-1);
+  text-align: left;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.doc-hits button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.doc-hit-page {
+  flex: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--accent-strong);
+  text-transform: uppercase;
+}
+.doc-hit-text {
+  min-width: 0;
+}
+.doc-hits mark {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 650;
+  border-radius: 3px;
+  padding: 0 2px;
 }

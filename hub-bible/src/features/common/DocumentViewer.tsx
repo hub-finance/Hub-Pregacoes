@@ -3,6 +3,11 @@ import { Icon } from '../../components/Icon';
 import { downloadBlob } from '../../core/share/share';
 import { formatBytes } from '../../core/data/attachments';
 import type { Attachment } from '../../core/db/types';
+import {
+  PdfTextIndex,
+  searchRendered,
+  type DocumentHit,
+} from '../../core/data/documentSearch';
 
 /**
  * Exibe o arquivo importado com a formatação que ele já tem.
@@ -110,6 +115,67 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
   const zoom = outerZoom ?? ownZoom;
   const [hostWidth, setHostWidth] = useState(0);
 
+  /* Busca dentro do material. Fica aqui, e não na tela que abre o documento,
+     porque é aqui que se sabe onde cada página foi parar. */
+  const indexRef = useRef<PdfTextIndex | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [hits, setHits] = useState<Array<DocumentHit & { node?: HTMLElement }>>([]);
+  const [searching, setSearching] = useState(false);
+
+  /**
+   * Procura o termo e leva ao trecho.
+   *
+   * No PDF o texto vem do próprio arquivo, página a página, porque as páginas
+   * só viram imagem ao chegarem perto da tela. Em Word e apresentação o
+   * conteúdo já está desenhado, e aí quem responde é o texto da tela.
+   *
+   * A busca começa depois de uma pausa na digitação: numa apostila de sessenta
+   * páginas, procurar a cada letra é procurar seis vezes o que se queria uma.
+   */
+  useEffect(() => {
+    const termo = query.trim();
+    if (!searchOpen || termo.length < 2) {
+      setHits([]);
+      setSearching(false);
+      return;
+    }
+
+    let cancelado = false;
+    setSearching(true);
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        const index = indexRef.current;
+        if (index) {
+          await index.search(
+            termo,
+            (parciais) => {
+              // mostrar o que já se achou enquanto o resto é lido
+              if (!cancelado) setHits([...parciais]);
+            },
+            () => cancelado,
+          );
+        } else if (hostRef.current) {
+          if (!cancelado) setHits(searchRendered(hostRef.current, termo));
+        }
+        if (!cancelado) setSearching(false);
+      })();
+    }, 300);
+
+    return () => {
+      cancelado = true;
+      window.clearTimeout(timer);
+    };
+  }, [query, searchOpen, status]);
+
+  /** Rola até o achado. No PDF, até a página; nos demais, até o parágrafo. */
+  const goTo = (hit: DocumentHit & { node?: HTMLElement }) => {
+    const alvo =
+      hit.node ??
+      hostRef.current?.querySelector<HTMLElement>(`.doc-page-slot[data-page="${hit.page}"]`);
+    alvo?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   /**
    * A largura da coluna manda no tamanho da página — e ela muda: ao arrastar a
    * divisão da tela, ao girar o tablet. Redesenhar a cada pixel travaria o
@@ -160,7 +226,13 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
           }
           setPages(doc.numPages);
           onPages?.(doc.numPages);
-          cleanups.push(() => void doc.destroy());
+          /* O índice guarda o texto já extraído: sem ele, cada letra digitada
+             na busca releria a apostila inteira. */
+          indexRef.current = new PdfTextIndex(doc);
+          cleanups.push(() => {
+            indexRef.current = null;
+            void doc.destroy();
+          });
 
           // largura disponível vira a escala: o documento ocupa a coluna toda.
           // Em `dense` não sobra folga nenhuma nas laterais — é o que dá à
@@ -333,6 +405,19 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
           {pages ? `${pages} pág · ` : ''}
           {formatBytes(attachment.size)}
         </span>
+        {/* A busca vem antes do zoom: numa apostila de sessenta páginas, achar
+            o trecho é o que se faz primeiro. */}
+        <button
+          className={`icon-btn${searchOpen ? ' active' : ''}`}
+          onClick={() => {
+            setSearchOpen((open) => !open);
+            if (searchOpen) setQuery('');
+          }}
+          aria-label="Procurar neste material"
+          aria-pressed={searchOpen}
+        >
+          <Icon name="search" size={18} />
+        </button>
         <button
           className="icon-btn"
           onClick={() => setOwnZoom((z) => Math.max(0.5, Number((z - 0.15).toFixed(2))))}
@@ -355,6 +440,55 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
           <Icon name="download" size={18} />
         </button>
       </div>
+      )}
+
+      {/* O painel de busca fica logo abaixo da barra, colado ao arquivo a que
+          se refere, e some junto com ela no modo sem moldura. */}
+      {!dense && searchOpen && (
+        <div className="doc-search">
+          <div className="search-field">
+            <Icon name="search" size={18} className="dim" />
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Procurar neste material"
+              aria-label="Procurar neste material"
+            />
+            {query && (
+              <button className="icon-btn" onClick={() => setQuery('')} aria-label="Limpar">
+                <Icon name="close" size={16} />
+              </button>
+            )}
+          </div>
+
+          {query.trim().length >= 2 && (
+            <p className="small dim" style={{ margin: 'var(--sp-2) 0 0' }}>
+              {searching
+                ? `Procurando… ${hits.length} até agora`
+                : hits.length
+                  ? `${hits.length} ${hits.length === 1 ? 'trecho encontrado' : 'trechos encontrados'}`
+                  : 'Nada encontrado neste material.'}
+            </p>
+          )}
+
+          {hits.length > 0 && (
+            <ol className="doc-hits">
+              {hits.map((hit, i) => (
+                <li key={i}>
+                  <button onClick={() => goTo(hit)}>
+                    {hit.page && <span className="doc-hit-page">pág. {hit.page}</span>}
+                    <span className="doc-hit-text">
+                      {hit.snippet.slice(0, hit.at)}
+                      <mark>{hit.snippet.slice(hit.at, hit.at + hit.length)}</mark>
+                      {hit.snippet.slice(hit.at + hit.length)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
       )}
 
       {status === 'loading' && (
