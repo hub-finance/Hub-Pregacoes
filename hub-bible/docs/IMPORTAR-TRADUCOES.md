@@ -128,8 +128,9 @@ Importar*. Passe o arquivo para o tablet por Google Drive, e-mail ou cabo.
 ### Módulo do MyBible (`.SQLite3`)
 
 Escolha o arquivo do módulo como ele está. No Android eles ficam na pasta
-`MyBible` da memória interna. É o caminho das **Bíblias com números Strong** em
-português, que não existem em JSON.
+`MyBible` da memória interna. É a forma mais comum de circularem as **Bíblias
+com números Strong** em português — mas não a única: o JSON também os aceita,
+mais abaixo.
 
 O app lê o arquivo por conta própria: `src/core/sqlite/reader.ts` é um leitor de
 SQLite somente-leitura escrito para isto (cabeçalho, árvore-B, registros e
@@ -157,14 +158,31 @@ diz a cobertura ("Só o Novo Testamento", "faltam N livros"), a escolha de livro
 passa a mostrar apenas o que existe, e trocar para essa tradução enquanto se lê
 em Êxodo leva ao primeiro livro dela, com aviso — não a um erro.
 
-> **Ainda não há tela para ver os números Strong.** Eles são importados e ficam
-> guardados; falta a consulta (tocar na palavra e ver o termo original). Sem um
-> dicionário Strong importado também não haveria o que mostrar além do código.
+> **Para consultar:** toque no versículo e escolha **"No original"**. O léxico
+> de Strong acompanha o aplicativo (ver `LICENCAS-BIBLIA.md`), então há o que
+> mostrar mesmo sem importar dicionário nenhum.
 
 ### JSON
 
 Em um destes três formatos. A conversão está em `normalizeImportedBible()`
 (`src/core/bible/repository.ts`).
+
+**Números Strong valem nos três.** Se o texto trouxer a marcação `<S>430</S>`
+depois da palavra — a mesma dos módulos do MyBible —, ela é reconhecida na
+importação: o texto é gravado limpo e os códigos ficam ao lado, amarrados à
+posição da palavra. Nada precisa ser convertido antes, e um arquivo **sem**
+marcação nenhuma continua entrando exatamente como sempre entrou.
+
+```json
+[{ "abbrev": "gn", "chapters": [[
+  "No princípio<S>7225</S> criou<S>1254</S> Deus<S>430</S> os céus<S>8064</S> e a terra<S>776</S>."
+]] }]
+```
+
+Códigos só com número recebem a letra pelo testamento (`H` no Antigo, `G` no
+Novo), como nos módulos. Quem gera o próprio arquivo pode, em vez da marcação,
+usar o campo `strongs` do formato nativo — `{ OSIS: capítulo → versículo →
+[[posição da palavra, código]] }`; quando ele existe, manda sobre o texto.
 
 ### 1. Formato do Hub Bible
 
@@ -195,8 +213,9 @@ públicos:
 ]
 ```
 
-> A ordem é o que vale — o campo `abbrev` é ignorado. O 1º item é tratado como
-> Gênesis, o 43º como João, o 66º como Apocalipse.
+> A sigla manda quando é reconhecida (`gn`, `Gn`, `Gênesis`, `Genesis`…), e a
+> ordem entra como reserva. Assim, um livro faltando no meio da lista não
+> desloca todos os seguintes — o que aconteceria se valesse só a posição.
 
 ### 3. Tabela de versículos
 

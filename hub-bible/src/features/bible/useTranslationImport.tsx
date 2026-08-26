@@ -110,13 +110,16 @@ export function useTranslationImport({ catalog, onImported }: Options) {
     const info = chosen ?? slotForFile(file, catalog);
     const result = await importTranslation(info, data);
     notify(
-      `${info.shortName}: ${result.books} livros e ${result.verses.toLocaleString('pt-BR')} versículos neste aparelho.`,
+      `${info.shortName}: ${result.books} livros e ${result.verses.toLocaleString('pt-BR')} versículos` +
+        (result.translation.hasStrong ? ', com números Strong' : '') +
+        ` neste aparelho. ${coverage(result.translation.books)}`,
     );
-    onImported?.(info);
+    onImported?.(result.translation);
   };
 
-  /* Módulo do MyBible: um banco SQLite inteiro, lido aqui mesmo. É por onde
-     entram as Bíblias com números Strong, que não existem em JSON. */
+  /* Módulo do MyBible: um banco SQLite inteiro, lido aqui mesmo. É a forma mais
+     comum de uma Bíblia com números Strong circular — mas não a única: um JSON
+     que traga a marcação `<S>` no texto também entra, por `importJson`. */
   const importModule = async (file: File, chosen: TranslationInfo | null) => {
     const { importMyBibleBible } = await import('../../core/bible/mybibleImport');
     const buffer = await file.arrayBuffer();

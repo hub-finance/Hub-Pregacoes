@@ -187,6 +187,7 @@ const TOPICS: Topic[] = [
       'O léxico de Strong já vem no aplicativo: 8.674 verbetes do hebraico e 5.523 do grego, com o termo original, a transliteração, a pronúncia e a definição. Funciona offline, sem importar nada.',
       'Ele é em inglês — é o único com licença que permite distribuir junto. Se você tiver um léxico em português, importe o módulo (.dictionary.SQLite3) e ele passa a aparecer primeiro, antes do que vem no app.',
       'O que ainda precisa vir de fora é a Bíblia com números Strong: as traduções que acompanham o aplicativo não os trazem, porque essa marcação é trabalho editorial e não existe livre em português.',
+      'Ela entra tanto como módulo do MyBible (.SQLite3) quanto como JSON — se o texto do JSON trouxer a marcação <S>430</S> depois da palavra, o app reconhece sozinho. E um JSON sem marcação nenhuma continua entrando como sempre.',
       'Bíblias e dicionários entram pelo mesmo botão, em Configurações › Traduções: o próprio arquivo diz o que é.',
       'Para consultar: toque no versículo e escolha "No original" na barra de ações. O versículo aparece palavra por palavra; toque numa palavra para ver a definição.',
       'A ação "No original" só aparece quando a tradução aberta tem números Strong.',
