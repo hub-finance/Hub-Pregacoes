@@ -2,15 +2,17 @@ import { db, now, uid } from '../db/db';
 import { sanitizeHtml } from '../sanitizeHtml';
 import { SQLiteFile } from '../sqlite/reader';
 import { isStrongDictionary, moduleKind, moduleName, readDictionary } from '../bible/mybible';
+import { LEXICON_CREDIT, LEXICON_NAME, lookupLexicon, type LexiconEntry } from '../bible/lexicon';
 import type { DictionaryEntry, DictionaryInfo } from '../db/types';
 
 /**
  * Dicionários importados pelo usuário.
  *
- * O caso que motivou isto é o léxico de Strong: sem ele, tocar numa palavra
- * mostraria "H430" e nada mais. Nenhum léxico bíblico em português tem licença
- * que permita embutir — mas quem já tem um módulo do MyBible tem o conteúdo, e
- * o app agora sabe ler esse formato. Como as traduções: fica no aparelho.
+ * O aplicativo já traz o léxico de Strong embutido (ver `bible/lexicon.ts`),
+ * mas em inglês — é o único com licença que permite distribuir. Nenhum léxico
+ * em português tem, todos derivam de edições protegidas. Quem já possui um
+ * módulo do MyBible tem o conteúdo, e o app sabe ler esse formato: como as
+ * traduções, fica no aparelho, e aparece antes do embutido.
  */
 
 /**
@@ -98,28 +100,56 @@ export interface StrongDefinition {
   dictionary: string;
   topic: string;
   definition: string;
+  /** verbete do léxico embutido; a tela o desenha campo a campo */
+  lexicon?: LexiconEntry;
+  /** crédito exigido pela licença da fonte, quando houver */
+  credit?: string;
 }
 
 /**
- * Procura um código Strong em todos os dicionários importados.
+ * Procura um código Strong nos dicionários importados e no léxico embutido.
  *
- * Devolve lista, e não um só: quem tem dois léxicos quer ver os dois, e é
- * assim que se compara uma definição curta com uma extensa.
+ * Devolve lista, e não um só: quem tem dois léxicos quer ver os dois, e é assim
+ * que se compara uma definição curta com uma extensa.
+ *
+ * Os importados vêm primeiro de propósito. O léxico embutido é em inglês —
+ * quem se deu ao trabalho de instalar um em português quer ler o dele antes.
  */
 export async function lookupStrong(code: string): Promise<StrongDefinition[]> {
   const keys = candidateKeys(code);
-  const rows = await db.dictionaryEntries.where('topicKey').anyOf(keys).toArray();
-  if (!rows.length) return [];
+  const [rows, entry] = await Promise.all([
+    db.dictionaryEntries.where('topicKey').anyOf(keys).toArray(),
+    lookupLexicon(code),
+  ]);
 
   const names = new Map((await listDictionaries()).map((d) => [d.id, d.name]));
-  return rows.map((r) => ({
+  const imported = rows.map((r) => ({
     dictionary: names.get(r.dictionaryId) ?? 'Dicionário',
     topic: r.topic,
     definition: r.definition,
   }));
+
+  if (!entry) return imported;
+  return [
+    ...imported,
+    {
+      dictionary: LEXICON_NAME,
+      topic: entry.code,
+      definition: '',
+      lexicon: entry,
+      credit: LEXICON_CREDIT,
+    },
+  ];
 }
 
-/** Há algum dicionário de Strong instalado? Decide o que a tela promete. */
+/**
+ * Há léxico para consultar?
+ *
+ * Sempre há: o de Strong vem dentro do aplicativo. A função continua existindo
+ * porque a tela usa a resposta para decidir se vale convidar o leitor a
+ * importar um léxico em português — o que só faz sentido para quem ainda não
+ * tem nenhum importado.
+ */
 export async function hasStrongDictionary(): Promise<boolean> {
   const all = await listDictionaries();
   return all.some((d) => d.isStrong);

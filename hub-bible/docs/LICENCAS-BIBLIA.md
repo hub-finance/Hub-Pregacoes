@@ -95,3 +95,29 @@ em Configurações › Sobre e no seletor de traduções.
 ```
 
 A conversão está em `normalizeImportedBible()` (`core/bible/repository.ts`).
+
+## Léxico de Strong — o que vem dentro do aplicativo
+
+Diferente das traduções, o léxico **acompanha o app**. Ele pode, e a razão importa:
+
+| | |
+|---|---|
+| Obra | *A Concise Dictionary of the Words in the Hebrew Bible* (1894) e *Dictionary of Greek Words* (1890), de James Strong |
+| Situação da obra | **Domínio público** — publicada há mais de um século |
+| Transcrição digital | [openscriptures/strongs](https://github.com/openscriptures/strongs) |
+| Licença da transcrição | **CC BY-SA** — permite distribuir, **exige crédito** |
+| Onde fica | `public/lexicon/strongs-{grego,hebraico}.json`, gerado por `npm run lexicon:build` |
+| Verbetes | 5.523 gregos, 8.674 hebraicos |
+
+**A atribuição não é opcional.** A constante `LEXICON_CREDIT`, em
+`src/core/bible/lexicon.ts`, é desenhada por `StrongSheet` no rodapé de todo verbete.
+Se a tela mudar, o crédito vai junto — retirá-lo rompe a licença.
+
+O léxico é **em inglês**, e isso não é escolha: todo léxico de Strong em português que
+circula deriva da edição da Sociedade Bíblica do Brasil (2002), protegida. Vale para ela
+a mesma regra das traduções — o usuário importa a dele, ela fica no aparelho, e não
+entra no repositório nem no APK. Ver `core/data/dictionaries.ts`.
+
+Antes de embutir qualquer outro léxico ou dicionário, aplique o mesmo teste das
+traduções: obra em domínio público **e** transcrição com licença que permita
+distribuição, com o crédito exigido escrito na tela.

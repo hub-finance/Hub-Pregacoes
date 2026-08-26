@@ -13,6 +13,7 @@
     "preview": "vite preview --host",
     "typecheck": "tsc -b --noEmit false --pretty",
     "bible:build": "node scripts/build-bible-data.mjs",
+    "lexicon:build": "node scripts/build-lexicon.mjs",
     "android:sync": "npm run build && rm -f dist/sw.js dist/workbox-*.js dist/registerSW.js && cap sync android",
     "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug"
   },
