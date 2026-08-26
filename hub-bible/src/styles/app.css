@@ -1185,3 +1185,11 @@
 .strong-definition p {
   margin: 0 0 0.5em;
 }
+
+/* o termo em hebraico ou grego: corpo maior porque é o que se veio ver, e a
+   fonte de leitura porque as do sistema costumam errar os pontos vocálicos */
+.lexicon-lemma {
+  font-family: var(--font-reader);
+  font-size: 1.35rem;
+  line-height: 1.4;
+}

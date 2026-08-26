@@ -665,22 +665,31 @@
     trás de cada palavra da tradução.
   </p>
 
-  <h3>São precisos dois arquivos</h3>
-  <ol class="steps">
-    <li>
-      Uma <strong>Bíblia com números Strong</strong> — um módulo do MyBible que os traga. É ela
-      que liga cada palavra do versículo a um código.
-    </li>
-    <li>
-      Um <strong>dicionário Strong</strong> — outro módulo (<code>.dictionary.SQLite3</code>),
-      que diz o que cada código significa. Sem ele aparece só <code>H430</code>, que não ajuda
-      ninguém.
-    </li>
-  </ol>
+  <h3>O léxico já vem no aplicativo</h3>
   <p>
-    Os dois entram pelo <strong>mesmo botão</strong>:
+    O <strong>Léxico de Strong</strong> acompanha o Hub Bible: <strong>8.674</strong> verbetes do
+    hebraico e <strong>5.523</strong> do grego, cada um com o termo original, a transliteração, a
+    pronúncia, a derivação e a definição. Funciona offline, no aplicativo Android e no navegador,
+    sem importar nada.
+  </p>
+  <p>
+    Ele é <strong>em inglês</strong>. É o único léxico de Strong com licença que permite
+    distribuir junto com o aplicativo — os que existem em português derivam de edições protegidas.
+    Se você tiver um em português, importe o módulo
+    (<code>.dictionary.SQLite3</code>) e ele passa a aparecer <strong>antes</strong> do que vem no
+    app.
+  </p>
+
+  <h3>O que ainda precisa vir de fora</h3>
+  <p>
+    Uma <strong>Bíblia com números Strong</strong> — um módulo do MyBible que os traga. É ela que
+    liga cada palavra do versículo a um código. As traduções que acompanham o aplicativo não têm
+    essa marcação: é trabalho editorial, e não existe livre em português.
+  </p>
+  <p>
+    Bíblias e dicionários entram pelo <strong>mesmo botão</strong>:
     <span class="path">Configurações › Importar um arquivo de tradução</span>. O próprio arquivo
-    diz se é Bíblia ou dicionário — você não precisa escolher.
+    diz o que é — você não precisa escolher.
   </p>
 
   <h3>Como consultar</h3>
@@ -690,9 +699,18 @@
     <li>Na barra de ações, toque em <strong>&ldquo;No original&rdquo;</strong>.</li>
     <li>
       O versículo aparece palavra por palavra, cada uma com o código. Toque numa palavra para
-      ver a definição do dicionário.
+      ver o termo original e a definição.
     </li>
   </ol>
+  <div class="note">
+    <span class="note-title">Crédito do léxico</span>
+    <p>
+      O texto é de James Strong (grego, 1890; hebraico, 1894), em domínio público. A transcrição
+      digital é da <strong>Open Scriptures</strong>, publicada sob licença
+      <strong>CC BY-SA</strong> — que exige o crédito. Por isso ele aparece no rodapé de cada
+      verbete, dentro do aplicativo.
+    </p>
+  </div>
   <div class="note">
     <span class="note-title">Por que não é só tocar na palavra no texto</span>
     <p>

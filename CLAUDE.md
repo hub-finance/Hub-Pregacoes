@@ -77,7 +77,8 @@ authenticated network calls.
 vercel.json          # build config; points Vercel at hub-bible/
 hub-bible/
   public/bible/      # scripture as static JSON, one file per book per translation
-  scripts/           # ETL that generates public/bible/ and the PWA icons
+  public/lexicon/    # Strong's Hebrew/Greek lexicon (CC BY-SA, credit required)
+  scripts/           # ETL that generates public/bible/, public/lexicon/ and the PWA icons
   src/
     core/            # business logic; must not import from features/
       bible/         # canon, reference parsing, repository, search
@@ -92,7 +93,8 @@ hub-bible/
 
 The dependency rule is one-way: `features → core`, never the reverse.
 
-`hub-bible/public/bible/` is **generated** — edit `scripts/build-bible-data.mjs`
+`hub-bible/public/bible/` and `public/lexicon/` are **generated** — edit
+`scripts/build-bible-data.mjs` or `scripts/build-lexicon.mjs`
 and re-run it rather than hand-editing the JSON.
 
 ---
@@ -109,6 +111,7 @@ Run from `hub-bible/` (or use `npm --prefix hub-bible <script>` from the root).
 | Serve the build | `npm run preview` |
 | Type-check | `npx tsc --noEmit` |
 | Regenerate scripture data | `npm run bible:build` |
+| Regenerate the Strong lexicon | `npm run lexicon:build` (needs network) |
 | Regenerate PWA icons | `node scripts/generate-icons.mjs` |
 
 There is **no automated test suite and no linter configured.** Verification so

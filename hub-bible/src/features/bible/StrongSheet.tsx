@@ -6,7 +6,40 @@ import { useAsync } from '../../hooks';
 import { getBook } from '../../core/bible/repository';
 import { verseWords } from '../../core/bible/mybible';
 import { hasStrongDictionary, lookupStrong } from '../../core/data/dictionaries';
+import type { LexiconEntry } from '../../core/bible/lexicon';
 import type { StrongTag } from '../../core/db/types';
+
+/**
+ * O verbete do léxico embutido, campo a campo.
+ *
+ * Vem em dados separados, e não num bloco de texto, então desenhar é melhor do
+ * que emendar tudo numa frase: o termo original em corpo grande, a pronúncia ao
+ * lado, e a definição em seguida. É a ordem em que se lê um léxico impresso.
+ */
+function LexiconBody({ entry }: { entry: LexiconEntry }) {
+  return (
+    <div className="stack" style={{ gap: 'var(--sp-1)' }}>
+      {entry.lemma && (
+        <div className="row row-wrap" style={{ gap: 'var(--sp-2)', alignItems: 'baseline' }}>
+          <span className="lexicon-lemma">{entry.lemma}</span>
+          {entry.translit && <span style={{ fontStyle: 'italic' }}>{entry.translit}</span>}
+          {entry.pron && <span className="small dim">{entry.pron}</span>}
+        </div>
+      )}
+      {entry.definition && <p className="strong-definition">{entry.definition}</p>}
+      {entry.derivation && (
+        <p className="small dim">
+          <strong>Derivação:</strong> {entry.derivation}
+        </p>
+      )}
+      {entry.kjv && (
+        <p className="small dim">
+          <strong>Na King James:</strong> {entry.kjv}
+        </p>
+      )}
+    </div>
+  );
+}
 
 interface Props {
   open: boolean;
@@ -111,27 +144,38 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
                   <span className="list-meta">
                     {d.dictionary} · {d.topic}
                   </span>
-                  <div
-                    className="strong-definition"
-                    dangerouslySetInnerHTML={{ __html: d.definition }}
-                  />
+
+                  {d.lexicon ? (
+                    <LexiconBody entry={d.lexicon} />
+                  ) : (
+                    <div
+                      className="strong-definition"
+                      dangerouslySetInnerHTML={{ __html: d.definition }}
+                    />
+                  )}
+
+                  {/* crédito exigido pela licença da fonte; não é enfeite */}
+                  {d.credit && <span className="small dim">{d.credit}</span>}
                 </div>
               ))}
 
               {definitions.data && !definitions.data.length && (
                 <div className="notice">
-                  <span>
-                    {data.data.hasDictionary
-                      ? 'Nenhum dicionário instalado traz este verbete.'
-                      : 'Você ainda não importou um dicionário, então só o código aparece. '}
-                    {!data.data.hasDictionary && (
-                      <Link to="/config" onClick={onClose} style={{ fontWeight: 600 }}>
-                        Importar um dicionário
-                      </Link>
-                    )}
-                  </span>
+                  <span>Nenhum léxico traz este verbete.</span>
                 </div>
               )}
+
+              {/* Convite, não aviso de falta: o léxico embutido já respondeu.
+                  Só faz sentido para quem ainda não tem um em português. */}
+              {definitions.data?.length && !data.data.hasDictionary ? (
+                <p className="small dim">
+                  O léxico que vem no aplicativo é em inglês.{' '}
+                  <Link to="/config" onClick={onClose} style={{ fontWeight: 600 }}>
+                    Importe um em português
+                  </Link>{' '}
+                  se você tiver um — ele passa a aparecer primeiro.
+                </p>
+              ) : null}
             </div>
           )}
         </>

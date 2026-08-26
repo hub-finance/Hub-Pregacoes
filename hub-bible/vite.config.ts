@@ -52,7 +52,7 @@ export default defineConfig({
         // O texto bíblico (≈8 MB) não entra no precache: é baixado sob demanda
         // e guardado em cache de runtime + IndexedDB.
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        globIgnores: ['**/bible/**'],
+        globIgnores: ['**/bible/**', '**/lexicon/**'],
         navigateFallback: 'index.html',
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         cleanupOutdatedCaches: true,
@@ -63,6 +63,18 @@ export default defineConfig({
             options: {
               cacheName: 'hub-bible-scriptures',
               expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // O léxico de Strong (2,6 MB em dois arquivos) segue a mesma regra
+            // do texto bíblico: fora do precache, guardado na primeira consulta
+            // e disponível offline daí em diante.
+            urlPattern: ({ url }) => url.pathname.includes('/lexicon/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'hub-bible-lexicon',
+              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
