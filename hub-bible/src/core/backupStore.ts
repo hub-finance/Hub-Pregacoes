@@ -7,6 +7,8 @@ import {
   type RestoreResult,
 } from './backup';
 import type { BackupSnapshot } from './db/types';
+import { isNativeApp } from './platform';
+import { saveFileNatively, shareFileNatively } from './nativeFiles';
 
 /**
  * Cópias de segurança: as automáticas no aparelho e o envio para fora dele.
@@ -121,7 +123,8 @@ export interface BackupTarget {
   hint: string;
   /** O destino funciona neste aparelho/navegador? */
   available(): boolean;
-  send(blob: Blob, filename: string): Promise<'sent' | 'downloaded'>;
+  /** `path` aparece quando o arquivo ficou numa pasta que o usuário pode abrir. */
+  send(blob: Blob, filename: string): Promise<{ result: 'sent' | 'downloaded'; path?: string }>;
 }
 
 const targets = new Map<string, BackupTarget>();
@@ -148,21 +151,26 @@ const shareTarget: BackupTarget = {
   id: 'share',
   label: 'Salvar no Google Drive',
   hint: 'Abre a folha de compartilhamento: escolha Drive, e-mail ou o que preferir.',
+  /* No aplicativo empacotado a folha vem do lado nativo — a WebView do Android
+     não traz `navigator.share`, e testar só por ele escondia o botão justamente
+     onde ele é mais necessário. */
   available: () =>
-    typeof navigator !== 'undefined' && !!navigator.share && !!navigator.canShare,
+    isNativeApp() || (typeof navigator !== 'undefined' && !!navigator.share && !!navigator.canShare),
   async send(blob, filename) {
+    if (await shareFileNatively(blob, filename)) return { result: 'sent' };
+
     const file = new File([blob], filename, { type: 'application/json' });
     if (navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({ files: [file], title: filename });
-        return 'sent';
+        return { result: 'sent' };
       } catch (err) {
         // desistir da folha não é erro: o usuário fechou
-        if ((err as Error)?.name === 'AbortError') return 'sent';
+        if ((err as Error)?.name === 'AbortError') return { result: 'sent' };
       }
     }
     downloadFile(blob, filename);
-    return 'downloaded';
+    return { result: 'downloaded' };
   },
 };
 
@@ -172,8 +180,12 @@ const fileTarget: BackupTarget = {
   hint: 'Guarda na pasta Download, para você mover para onde quiser.',
   available: () => true,
   async send(blob, filename) {
+    /* Um download `blob:` some sem erro nenhum dentro da WebView. Gravar pelo
+       lado nativo é a diferença entre a cópia existir e só parecer que existe. */
+    const path = await saveFileNatively(blob, filename);
+    if (path) return { result: 'downloaded', path };
     downloadFile(blob, filename);
-    return 'downloaded';
+    return { result: 'downloaded' };
   },
 };
 
@@ -204,7 +216,7 @@ export async function sendBackupTo(
   targetId: string,
   settings?: unknown,
   options?: BackupOptions,
-): Promise<{ result: 'sent' | 'downloaded'; records: number; bytes: number }> {
+): Promise<{ result: 'sent' | 'downloaded'; path?: string; records: number; bytes: number }> {
   const target = targets.get(targetId);
   if (!target) throw new Error('Destino desconhecido.');
 
@@ -215,7 +227,7 @@ export async function sendBackupTo(
   const payload = backup.translations
     ? JSON.stringify(backup)
     : JSON.stringify(backup, null, 2);
-  const result = await target.send(
+  const { result, path } = await target.send(
     new Blob([payload], { type: 'application/json' }),
     backupFileName(),
   );
@@ -226,6 +238,7 @@ export async function sendBackupTo(
 
   return {
     result,
+    path,
     records: Object.values(backup.counts).reduce((a, b) => a + b, 0),
     bytes: payload.length,
   };

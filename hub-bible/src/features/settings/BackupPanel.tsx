@@ -87,14 +87,18 @@ export function BackupPanel() {
   const send = async (targetId: string) => {
     setBusy(targetId);
     try {
-      const { result, records, bytes } = await sendBackupTo(targetId, settings, {
+      const { result, path, records, bytes } = await sendBackupTo(targetId, settings, {
         includeTranslations: withBibles,
       });
-      const tamanho = formatBytes(bytes);
+      const resumo = `${records.toLocaleString('pt-BR')} registros, ${formatBytes(bytes)}`;
       notify(
         result === 'sent'
-          ? `Cópia enviada — ${records.toLocaleString('pt-BR')} registros, ${tamanho}.`
-          : `Arquivo baixado — ${records.toLocaleString('pt-BR')} registros, ${tamanho}. Guarde-o fora do aparelho.`,
+          ? `Cópia enviada — ${resumo}.`
+          : path
+            // dizer a pasta importa: no aplicativo não há aba de downloads para
+            // conferir se o arquivo saiu mesmo
+            ? `Arquivo salvo em ${path} — ${resumo}. Leve-o para fora do aparelho.`
+            : `Arquivo baixado — ${resumo}. Guarde-o fora do aparelho.`,
       );
       await refresh();
     } catch (err) {

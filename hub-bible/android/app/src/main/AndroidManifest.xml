@@ -38,4 +38,12 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Gravar a cópia de segurança na pasta Documentos, onde o gerenciador de
+         arquivos a encontra. Do Android 10 em diante o sistema cuida disso
+         sozinho e a permissão não é nem pedida; ela existe só para os aparelhos
+         antigos que o app ainda atende (minSdk 23). -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
 </manifest>
