@@ -265,8 +265,14 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
           const available = (hostWidth || host.clientWidth || 960) - (dense ? 0 : 8);
           const width = Math.max(320, available * zoom);
           const previewer = init(host, { width, height: Math.round((width * 9) / 16) });
-          const buffer = await attachment.blob.arrayBuffer();
+
+          /* Antes de desenhar, tirar do manifesto as partes que ele declara e o
+             arquivo não traz. É uma sujeira comum em apresentações que trocaram
+             de modelo, e o desenhista para na primeira que não encontra. */
+          const { repairPptx } = await import('../../core/data/pptxRepair');
+          const { buffer } = await repairPptx(await attachment.blob.arrayBuffer());
           if (cancelled) return;
+
           await previewer.preview(buffer);
           if (cancelled) return;
 
