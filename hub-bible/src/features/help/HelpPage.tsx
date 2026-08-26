@@ -150,6 +150,7 @@ const TOPICS: Topic[] = [
     steps: [
       'A aba Cursos funciona como o Rhema, para o material de aula que você já tem pronto: importe e ensine a partir dele, com a Bíblia ao lado.',
       'Cursos › Importar › escolha o arquivo. Aceita PDF, Word (.docx) e apresentação do PowerPoint (.pptx), até 35 MB cada.',
+      'Com o material aberto, a lupa na barra do arquivo procura dentro dele. Numa apostila de sessenta páginas, ela lista os trechos com o número da página — toque num deles e a apostila salta até lá. Acentos não atrapalham: "oracao" acha "oração".',
       'O botão "Modo Aula" abre o material em tela cheia com a Bíblia à esquerda — a mesma tela do Rhema, com cronômetro, divisão arrastável e a tela que não apaga.',
       'Sobre as apresentações: o PDF e o Word saem idênticos ao original. O .pptx é reconstruído pelo aplicativo e chega perto, mas pode escorregar em algum detalhe de desenho. Se algum slide sair diferente, salve a apresentação como PDF no PowerPoint — sai igualzinho.',
       'Os devocionais que você já tinha continuam aqui, com os mesmos campos de sempre: nada se perdeu, a aba só mudou de nome.',

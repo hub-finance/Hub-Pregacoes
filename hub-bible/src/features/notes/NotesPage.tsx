@@ -107,12 +107,16 @@ export default function NotesPage() {
           }
         />
       ) : (
-        <div className="stack">
+        /* Bloco de anotações, e não fichário: uma anotação atrás da outra,
+           separadas por um filete. Cada quadro em volta acrescentava borda,
+           sombra e recuo — três interrupções entre um pensamento e o seguinte,
+           numa tela onde o que importa é reler o que se escreveu. */
+        <div className="notepad">
           {filtered.map((note) => (
-            <article key={note.id} className="card stack" style={{ gap: 'var(--sp-2)' }}>
+            <article key={note.id} className="notepad-entry">
               <div className="row">
                 <button
-                  style={{ color: 'var(--accent-strong)', fontWeight: 650, fontSize: '0.86rem', textAlign: 'left' }}
+                  className="notepad-ref"
                   onClick={() => {
                     if (note.ref) navigate(`/biblia/${note.ref.book}/${note.ref.chapter}?v=${note.ref.verse}`);
                   }}
@@ -122,10 +126,10 @@ export default function NotesPage() {
                 <div className="spacer" />
                 <span className="small dim">{new Date(note.updatedAt).toLocaleDateString('pt-BR')}</span>
               </div>
-              {note.title && <h2 className="card-title">{note.title}</h2>}
-              <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }} className="muted">
-                {note.content}
-              </p>
+
+              {note.title && <h2 className="notepad-title">{note.title}</h2>}
+              <p className="notepad-text">{note.content}</p>
+
               {note.tags.length > 0 && (
                 <div className="row row-wrap">
                   {note.tags.map((t) => (
@@ -135,7 +139,10 @@ export default function NotesPage() {
                   ))}
                 </div>
               )}
-              <div className="row row-wrap">
+
+              {/* discretos até a anotação receber atenção: numa lista longa,
+                  dois botões por anotação competem com o texto */}
+              <div className="row row-wrap notepad-actions">
                 <button className="btn btn-sm btn-ghost" onClick={() => openEdit(note)}>
                   Editar
                 </button>
