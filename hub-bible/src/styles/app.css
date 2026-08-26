@@ -1298,3 +1298,57 @@
   border-radius: 3px;
   padding: 0 2px;
 }
+
+/* ------------------ folha de anotação: bloco de notas --------------------- */
+/* Sem rótulo em cima nem quadro em volta: o que cada linha espera está escrito
+   nela mesma. Três caixas empilhadas faziam parecer formulário; aqui se escreve. */
+.note-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.note-form-ref,
+.note-form-title,
+.note-form-text {
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-family: inherit;
+  padding: var(--sp-2) 0;
+}
+.note-form-ref:focus,
+.note-form-title:focus,
+.note-form-text:focus {
+  outline: none;
+}
+/* a linha fina marca onde se escreve, e engrossa no campo em uso — o bastante
+   para saber onde está o cursor, sem devolver a moldura */
+.note-form-ref,
+.note-form-title {
+  border-bottom: 1px solid var(--border);
+  min-height: var(--tap);
+}
+.note-form-ref:focus,
+.note-form-title:focus {
+  border-bottom-color: var(--accent);
+}
+.note-form-ref {
+  font-size: 0.9rem;
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+.note-form-title {
+  font-size: 1.15rem;
+  font-weight: 620;
+}
+.note-form-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  resize: vertical;
+  min-height: 40vh;
+}
+.note-form ::placeholder {
+  color: var(--text-3);
+  font-weight: 400;
+}

@@ -3,6 +3,7 @@ import { Icon } from '../../components/Icon';
 import { downloadBlob } from '../../core/share/share';
 import { formatBytes } from '../../core/data/attachments';
 import type { Attachment } from '../../core/db/types';
+import { useRegisterSearch } from '../../app/SearchScope';
 import {
   PdfTextIndex,
   searchRendered,
@@ -122,6 +123,10 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<Array<DocumentHit & { node?: HTMLElement }>>([]);
   const [searching, setSearching] = useState(false);
+
+  /* A lupa do alto da tela abre esta busca. Só enquanto o material está
+     desenhado: numa apostila que falhou não há o que procurar. */
+  useRegisterSearch(() => setSearchOpen(true), !dense && status === 'ready');
 
   /**
    * Procura o termo e leva ao trecho.

@@ -3,14 +3,7 @@ import { Icon } from '../../components/Icon';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Sheet } from '../../components/Sheet';
-import {
-  ConfirmDialog,
-  EmptyState,
-  PageHeader,
-  TagInput,
-  TextArea,
-  TextInput,
-} from '../../components/ui';
+import { ConfirmDialog, EmptyState, PageHeader, TagInput } from '../../components/ui';
 import { useToast } from '../../components/Toast';
 import { createNote, filterNotes, listNotes, removeNote, updateNote } from '../../core/data/notes';
 import { parseReference } from '../../core/bible/reference';
@@ -170,26 +163,37 @@ export default function NotesPage() {
           </>
         }
       >
-        <TextInput
-          label="Referência"
-          hint="Opcional. Ex.: João 15:5"
-          value={draft.reference}
-          onChange={(reference) => setDraft((d) => ({ ...d, reference }))}
-          placeholder="João 15:5"
-        />
-        <TextInput
-          label="Título"
-          value={draft.title}
-          onChange={(title) => setDraft((d) => ({ ...d, title }))}
-          placeholder="Dependência gera fruto"
-        />
-        <TextArea
-          label="Anotação"
-          value={draft.content}
-          onChange={(content) => setDraft((d) => ({ ...d, content }))}
-          rows={8}
-        />
-        <TagInput label="Etiquetas" tags={draft.tags} onChange={(tags) => setDraft((d) => ({ ...d, tags }))} />
+        {/* Folha de bloco de notas: sem rótulo em cima nem quadro em volta de
+            cada campo. Três caixas empilhadas faziam parecer um formulário a
+            preencher; o que se vai fazer aqui é escrever. O que cada linha
+            espera está escrito nela mesma, em cinza. */}
+        <div className="note-form">
+          <input
+            className="note-form-ref"
+            value={draft.reference}
+            onChange={(e) => setDraft((d) => ({ ...d, reference: e.target.value }))}
+            placeholder="João 15:5 — opcional"
+            aria-label="Referência (opcional)"
+          />
+          <input
+            className="note-form-title"
+            value={draft.title}
+            onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+            placeholder="Título"
+            aria-label="Título"
+          />
+          {/* o campo grande é o motivo da tela existir, e ocupa o que sobrar */}
+          <textarea
+            data-autofocus
+            className="note-form-text"
+            value={draft.content}
+            onChange={(e) => setDraft((d) => ({ ...d, content: e.target.value }))}
+            placeholder="Escreva aqui…"
+            aria-label="Anotação"
+            rows={10}
+          />
+          <TagInput label="Etiquetas" tags={draft.tags} onChange={(tags) => setDraft((d) => ({ ...d, tags }))} />
+        </div>
       </Sheet>
 
       <ConfirmDialog

@@ -5,15 +5,28 @@ import { useOnline } from '../hooks';
 import { useSettings } from '../core/settings/SettingsContext';
 import { Sheet } from '../components/Sheet';
 import { Icon } from '../components/Icon';
+import { SearchScopeProvider, useScopedSearch } from './SearchScope';
 
 const groups: NavItem['group'][] = ['principal', 'ministerio', 'sistema'];
 
 export function AppLayout({ children }: { children: ReactNode }) {
+  /* O provider precisa envolver `children` para que as telas registrem a busca
+     delas, e a barra precisa ler o registro — por isso a casca fica aqui e o
+     conteúdo, num componente de dentro. */
+  return (
+    <SearchScopeProvider>
+      <AppShell>{children}</AppShell>
+    </SearchScopeProvider>
+  );
+}
+
+function AppShell({ children }: { children: ReactNode }) {
   const online = useOnline();
   const location = useLocation();
   const navigate = useNavigate();
   const { settings, update, resolvedTheme } = useSettings();
   const [menuOpen, setMenuOpen] = useState(false);
+  const searchHere = useScopedSearch();
 
   const cycleTheme = () => {
     const order = ['light', 'dark', 'sepia'] as const;
@@ -90,7 +103,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
               )?.label ?? 'Hub Bible'}
             </span>
           </div>
-          <button className="icon-btn" onClick={() => navigate('/busca')} aria-label="Buscar">
+          {/* Em Cursos, Rhema e Sermões a lupa procura naquilo que está aberto.
+              Só na falta de uma busca da tela é que ela leva à busca bíblica. */}
+          <button
+            className="icon-btn"
+            onClick={() => (searchHere ? searchHere() : navigate('/busca'))}
+            aria-label={searchHere ? 'Procurar nesta tela' : 'Buscar na Bíblia'}
+          >
             <Icon name="search" />
           </button>
           <button
