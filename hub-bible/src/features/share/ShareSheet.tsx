@@ -3,7 +3,12 @@ import { Sheet } from '../../components/Sheet';
 import { useToast } from '../../components/Toast';
 import { useSettings } from '../../core/settings/SettingsContext';
 import { copyToClipboard, formatShareText, shareImage, shareText } from '../../core/share/share';
-import { renderVerseImage } from '../../core/share/verseImage';
+import {
+  VERSE_BACKGROUNDS,
+  VERSE_BACKGROUND_IDS,
+  renderVerseImage,
+  type VerseBackground,
+} from '../../core/share/verseImage';
 
 interface Props {
   open: boolean;
@@ -17,11 +22,18 @@ interface Props {
 
 /** Compartilhamento de texto e de imagem (seção 17). */
 export function ShareSheet({ open, onClose, reference, text, translationLabel, title }: Props) {
-  const { resolvedTheme } = useSettings();
+  const { settings, update, resolvedTheme } = useSettings();
   const { notify } = useToast();
   const [preview, setPreview] = useState<string | null>(null);
   const [blob, setBlob] = useState<Blob | null>(null);
   const [busy, setBusy] = useState(false);
+
+  /* O fundo escolhido fica guardado: quem gosta de um não quer reescolher a
+     cada versículo. Sem escolha ainda, vale o tema em que se está lendo — é o
+     palpite mais provável e o menos surpreendente. */
+  const background: VerseBackground =
+    (settings.shareBackground as VerseBackground | undefined) ??
+    (resolvedTheme in VERSE_BACKGROUNDS ? (resolvedTheme as VerseBackground) : 'dark');
 
   useEffect(() => {
     if (!open) {
@@ -38,7 +50,7 @@ export function ShareSheet({ open, onClose, reference, text, translationLabel, t
       text,
       reference,
       translation: translationLabel,
-      theme: resolvedTheme,
+      background,
     })
       .then((generated) => {
         if (cancelled) return;
@@ -50,7 +62,7 @@ export function ShareSheet({ open, onClose, reference, text, translationLabel, t
     return () => {
       cancelled = true;
     };
-  }, [open, text, reference, translationLabel, resolvedTheme, notify]);
+  }, [open, text, reference, translationLabel, background, notify]);
 
   const plain = formatShareText(text, reference, translationLabel);
 
@@ -73,6 +85,31 @@ export function ShareSheet({ open, onClose, reference, text, translationLabel, t
 
       {busy && <p className="small dim center">Gerando imagem…</p>}
       {preview && <img className="share-preview" src={preview} alt={`Imagem com o texto de ${reference}`} />}
+
+      {/* As cores vêm depois da prévia, e não antes: escolher fundo faz sentido
+          olhando o resultado, não imaginando-o. */}
+      <div className="share-bg-row" role="radiogroup" aria-label="Cor do fundo da imagem">
+        {VERSE_BACKGROUND_IDS.map((id) => {
+          const cor = VERSE_BACKGROUNDS[id];
+          const escolhido = id === background;
+          return (
+            <button
+              key={id}
+              role="radio"
+              aria-checked={escolhido}
+              aria-label={cor.label}
+              title={cor.label}
+              className={`share-bg${escolhido ? ' active' : ''}`}
+              style={{ background: `linear-gradient(135deg, ${cor.bg[0]}, ${cor.bg[1]})` }}
+              onClick={() => update({ shareBackground: id })}
+            >
+              {/* a bolinha usa a cor de realce do próprio fundo: dá para prever
+                  como a referência vai aparecer antes de escolher */}
+              <span style={{ background: cor.accent }} />
+            </button>
+          );
+        })}
+      </div>
 
       <div className="grid grid-2">
         <button

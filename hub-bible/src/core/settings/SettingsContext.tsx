@@ -10,7 +10,18 @@ import {
 import type { HighlightCategory } from '../categories';
 import { HIGHLIGHT_CATEGORIES } from '../categories';
 
-export type ThemeChoice = 'system' | 'light' | 'dark' | 'sepia';
+export type ThemeChoice = 'system' | 'light' | 'dark' | 'sepia' | 'azul';
+
+/** O tema de fato aplicado — `system` já resolvido em claro ou escuro. */
+export type ResolvedTheme = Exclude<ThemeChoice, 'system'>;
+
+/** Cor da barra do sistema, por tema. */
+const THEME_COLOR: Record<ResolvedTheme, string> = {
+  light: '#faf8f5',
+  sepia: '#f3e9d8',
+  dark: '#181b21',
+  azul: '#16253a',
+};
 
 export interface ReadingPosition {
   translation: string;
@@ -23,6 +34,8 @@ export interface ReadingPosition {
 export interface AppSettings {
   userName: string;
   theme: ThemeChoice;
+  /** Fundo escolhido para a imagem do versículo. Vazio = seguir o tema. */
+  shareBackground?: string;
   contrast: 'normal' | 'high';
   fontScale: number;
   leading: number;
@@ -70,6 +83,7 @@ const STORAGE_KEY = 'hub-bible:appearance';
 export const DEFAULT_SETTINGS: AppSettings = {
   userName: '',
   theme: 'system',
+  shareBackground: undefined,
   contrast: 'normal',
   fontScale: 1,
   leading: 1.75,
@@ -123,7 +137,7 @@ interface SettingsContextValue {
   update: (patch: Partial<AppSettings>) => void;
   reset: () => void;
   categories: HighlightCategory[];
-  resolvedTheme: 'light' | 'dark' | 'sepia';
+  resolvedTheme: ResolvedTheme;
 }
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -141,7 +155,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
-  const resolvedTheme = useMemo<'light' | 'dark' | 'sepia'>(() => {
+  const resolvedTheme = useMemo<ResolvedTheme>(() => {
     if (settings.theme === 'system') return systemDark ? 'dark' : 'light';
     return settings.theme;
   }, [settings.theme, systemDark]);
@@ -160,7 +174,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       settings.readerFont === 'serif' ? 'var(--font-serif)' : 'var(--font-ui)',
     );
     const meta = document.querySelector('meta[name="theme-color"]:not([media])');
-    if (meta) meta.setAttribute('content', resolvedTheme === 'dark' ? '#0f1115' : '#faf8f5');
+    if (meta) meta.setAttribute('content', THEME_COLOR[resolvedTheme]);
   }, [resolvedTheme, settings.contrast, settings.fontScale, settings.leading, settings.measure, settings.readerFont]);
 
   useEffect(() => {

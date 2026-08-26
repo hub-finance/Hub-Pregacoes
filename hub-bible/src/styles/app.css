@@ -1352,3 +1352,40 @@
   color: var(--text-3);
   font-weight: 400;
 }
+
+/* ---------------- cor de fundo da imagem do versículo --------------------- */
+.share-bg-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin: var(--sp-3) 0;
+}
+.share-bg {
+  width: var(--tap);
+  height: var(--tap);
+  flex: none;
+  border-radius: var(--r-md);
+  border: 2px solid var(--border);
+  display: grid;
+  place-content: center;
+  transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.share-bg:active {
+  transform: scale(0.94);
+}
+.share-bg.active {
+  border-color: var(--accent);
+}
+/* a bolinha traz a cor de realce daquele fundo: é como a referência vai sair */
+.share-bg span {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--r-full);
+  opacity: 0.9;
+}
+.share-bg.active span {
+  width: 14px;
+  height: 14px;
+  opacity: 1;
+}

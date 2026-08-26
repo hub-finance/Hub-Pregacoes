@@ -72,6 +72,7 @@ const TOPICS: Topic[] = [
       'Quem já sabe o endereço pula os três passos: escreva a referência inteira no campo de filtrar — "Jo 3:16", "Sl 23:1", "1co 13:4" — e toque no atalho "Ir para".',
       'O botão ao lado troca a tradução; ali também se liga a comparação lado a lado com uma segunda versão.',
       'Use "Aa" para ajustar tamanho da letra, espaçamento, largura da coluna, tema e alinhamento.',
+      'São quatro temas: Claro, Sépia, Escuro e Noite azul. O botão de tema, no alto, passa por eles em ordem — do papel ao mais escuro. O Escuro é cinza-noite, e não preto: contra texto claro, o preto puro cansa a vista numa leitura longa.',
       'Toque em um versículo para selecioná-lo. Toque em outros para selecionar vários de uma vez.',
       'Com o versículo selecionado aparece a barra de ações: destacar, favoritar, anotar, compartilhar, copiar, ou criar um estudo e um sermão já a partir daquele texto.',
     ],
@@ -93,6 +94,7 @@ const TOPICS: Topic[] = [
     steps: [
       'Marcações são grifos coloridos por tema: Promessas, Fé, Cura, Liderança e outros. Você pode criar categorias suas em Configurações.',
       'Favoritos guardam o versículo com categoria e uma observação sua.',
+      'Ao compartilhar um versículo como imagem, escolha a cor do fundo logo abaixo da prévia: Noite, Papel, Sépia, Azul, Oliveira, Púrpura ou Vinho. A escolha fica guardada para as próximas.',
       'Anotações podem nascer de um versículo ou ser livres, e ficam ligadas ao texto para sempre.',
       { to: '/favoritos', label: 'Abrir favoritos', text: 'Tudo o que você marcar aparece reunido nas telas próprias.' },
     ],
