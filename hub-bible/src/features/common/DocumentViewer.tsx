@@ -268,6 +268,20 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
           const buffer = await attachment.blob.arrayBuffer();
           if (cancelled) return;
           await previewer.preview(buffer);
+          if (cancelled) return;
+
+          /* O desenhista de apresentações não reclama quando não entende o
+             arquivo: termina sem erro nenhum e deixa o quadro vazio. Sem esta
+             conferência, a tela dava tudo por certo e não mostrava nada — nem
+             slide, nem aviso, nem caminho de saída. Contar os slides é a única
+             forma de saber se ele fez alguma coisa. */
+          if (!host.querySelector('.pptx-preview-slide-wrapper')) {
+            throw new Error(
+              'O aplicativo não conseguiu redesenhar esta apresentação. ' +
+                'No PowerPoint, abra o arquivo e use "Salvar como" escolhendo PDF: ' +
+                'o PDF é exibido aqui exatamente como no original.',
+            );
+          }
         } else {
           const { renderAsync } = await import('docx-preview');
           const buffer = await attachment.blob.arrayBuffer();
@@ -284,6 +298,10 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
         if (!cancelled) setStatus('ready');
       } catch (err) {
         if (cancelled) return;
+        /* Limpar o que ficou pela metade: escondido, o quadro vazio continua
+           ocupando a altura que reservou, e o aviso apareceria empurrado para
+           longe do arquivo a que se refere. */
+        host.innerHTML = '';
         setMessage((err as Error).message || 'Não foi possível abrir o arquivo.');
         setStatus('error');
       }
