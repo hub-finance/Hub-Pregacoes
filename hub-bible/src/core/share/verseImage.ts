@@ -3,20 +3,36 @@
  * <canvas>, sem dependências externas — funciona offline e no WebView Android.
  */
 
+/**
+ * Fundos disponíveis para a imagem do versículo.
+ *
+ * O fundo não é enfeite: a imagem vai para o WhatsApp e para o status, onde
+ * dividirá a tela com outras. Cada opção é uma dupla de cores da mesma família,
+ * com o texto e o realce já escolhidos para ler bem em cima dela — não são
+ * cores soltas que o usuário combina por conta e erra.
+ */
+export const VERSE_BACKGROUNDS = {
+  dark: { label: 'Noite', bg: ['#12151b', '#1d232e'], fg: '#f1f3f7', accent: '#d7b174', dim: '#98a1b0' },
+  light: { label: 'Papel', bg: ['#fbf9f6', '#f0eae0'], fg: '#1b1a17', accent: '#8a6a2f', dim: '#6d675f' },
+  sepia: { label: 'Sépia', bg: ['#f7edda', '#eadcc0'], fg: '#3f321f', accent: '#8c5a24', dim: '#7b6a4d' },
+  azul: { label: 'Azul', bg: ['#0e1a2b', '#1b3a5c'], fg: '#e8eef7', accent: '#7cbcee', dim: '#a2b8d2' },
+  oliveira: { label: 'Oliveira', bg: ['#12201a', '#1d362b'], fg: '#e9f2ec', accent: '#8fc9a4', dim: '#9db3a6' },
+  purpura: { label: 'Púrpura', bg: ['#1c1230', '#2e1d48'], fg: '#f0eaf8', accent: '#c39ce8', dim: '#b0a3c4' },
+  vinho: { label: 'Vinho', bg: ['#25121a', '#3d1d2b'], fg: '#f7e9ed', accent: '#e099ac', dim: '#c2a2ac' },
+} as const;
+
+export type VerseBackground = keyof typeof VERSE_BACKGROUNDS;
+
+export const VERSE_BACKGROUND_IDS = Object.keys(VERSE_BACKGROUNDS) as VerseBackground[];
+
 export interface VerseImageOptions {
   text: string;
   reference: string;
   translation?: string;
-  theme?: 'dark' | 'light' | 'sepia';
+  background?: VerseBackground;
   width?: number;
   height?: number;
 }
-
-const PALETTES = {
-  dark: { bg: ['#12151b', '#1d232e'], fg: '#f1f3f7', accent: '#d7b174', dim: '#98a1b0' },
-  light: { bg: ['#fbf9f6', '#f0eae0'], fg: '#1b1a17', accent: '#8a6a2f', dim: '#6d675f' },
-  sepia: { bg: ['#f7edda', '#eadcc0'], fg: '#3f321f', accent: '#8c5a24', dim: '#7b6a4d' },
-} as const;
 
 function wrap(
   ctx: CanvasRenderingContext2D,
@@ -42,7 +58,7 @@ function wrap(
 export async function renderVerseImage(options: VerseImageOptions): Promise<Blob> {
   const width = options.width ?? 1080;
   const height = options.height ?? 1080;
-  const palette = PALETTES[options.theme ?? 'dark'];
+  const palette = VERSE_BACKGROUNDS[options.background ?? 'dark'];
 
   const canvas = document.createElement('canvas');
   canvas.width = width;

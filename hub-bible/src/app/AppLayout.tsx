@@ -2,12 +2,24 @@ import { useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BOTTOM_NAV, GROUP_LABEL, NAV_ITEMS, type NavItem } from './navigation';
 import { useOnline } from '../hooks';
-import { useSettings } from '../core/settings/SettingsContext';
+import { useSettings, type ResolvedTheme } from '../core/settings/SettingsContext';
 import { Sheet } from '../components/Sheet';
-import { Icon } from '../components/Icon';
+import { Icon, type IconName } from '../components/Icon';
 import { SearchScopeProvider, useScopedSearch } from './SearchScope';
 
 const groups: NavItem['group'][] = ['principal', 'ministerio', 'sistema'];
+
+const THEME_LABEL: Record<ResolvedTheme, string> = {
+  light: 'claro',
+  sepia: 'sépia',
+  dark: 'escuro',
+  azul: 'noite azul',
+};
+
+/* A lua serve aos dois temas escuros: o que muda entre eles é a cor da tela,
+   e o ícone já vem tingido por ela. */
+const themeIcon = (theme: ResolvedTheme): IconName =>
+  theme === 'light' ? 'sun' : theme === 'sepia' ? 'sepia' : 'moon';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   /* O provider precisa envolver `children` para que as telas registrem a busca
@@ -29,7 +41,8 @@ function AppShell({ children }: { children: ReactNode }) {
   const searchHere = useScopedSearch();
 
   const cycleTheme = () => {
-    const order = ['light', 'dark', 'sepia'] as const;
+    // do papel ao mais escuro, na ordem em que a vista desce a luz
+    const order = ['light', 'sepia', 'dark', 'azul'] as const;
     const current = order.indexOf(resolvedTheme);
     update({ theme: order[(current + 1) % order.length] });
   };
@@ -73,10 +86,10 @@ function AppShell({ children }: { children: ReactNode }) {
         <div className="spacer" />
         <button className="rail-item" onClick={cycleTheme}>
           <span className="ico">
-            <Icon name={resolvedTheme === 'dark' ? 'moon' : resolvedTheme === 'sepia' ? 'sepia' : 'sun'} />
+            <Icon name={themeIcon(resolvedTheme)} />
           </span>
           <span>
-            Tema: {resolvedTheme === 'dark' ? 'escuro' : resolvedTheme === 'sepia' ? 'sépia' : 'claro'}
+            Tema: {THEME_LABEL[resolvedTheme]}
           </span>
         </button>
       </nav>
@@ -115,9 +128,9 @@ function AppShell({ children }: { children: ReactNode }) {
           <button
             className="icon-btn"
             onClick={cycleTheme}
-            aria-label={`Alternar tema (atual: ${resolvedTheme})`}
+            aria-label={`Alternar tema (atual: ${THEME_LABEL[resolvedTheme]})`}
           >
-            <Icon name={resolvedTheme === 'dark' ? 'moon' : resolvedTheme === 'sepia' ? 'sepia' : 'sun'} />
+            <Icon name={themeIcon(resolvedTheme)} />
           </button>
         </header>
 
