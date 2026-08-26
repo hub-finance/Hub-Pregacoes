@@ -284,7 +284,7 @@ const NT = new Set(CANON.filter((b) => b.testament === 'NT').map((b) => b.osis))
  * porém, são indexados por `H430` e `G26`, então a letra tem de entrar aqui,
  * ou nada casa depois.
  */
-function normalizeCodes(tags: StrongTag[], osis: string): void {
+export function normalizeCodes(tags: StrongTag[], osis: string): void {
   const prefix = NT.has(osis) ? 'G' : 'H';
   for (const tag of tags) {
     if (/^\d+$/.test(tag[1])) tag[1] = prefix + tag[1];

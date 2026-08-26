@@ -9,6 +9,7 @@ import type {
   VerseRef,
 } from '../db/types';
 import { CANON, CANON_BY_OSIS, bookName, findBook } from './canon';
+import { normalizeCodes, parseVerse } from './mybible';
 
 /**
  * Repositório do texto bíblico.
@@ -232,6 +233,48 @@ export interface ImportResult {
 }
 
 type BookMap = Record<string, string[][]>;
+type StrongMap = Record<string, StrongTag[][][]>;
+
+interface NormalizedBible {
+  books: BookMap;
+  meta?: Partial<TranslationMeta>;
+  /** Números Strong, quando o arquivo os trazia. */
+  strongs?: StrongMap;
+}
+
+/**
+ * Extrai os números Strong escritos no meio do texto.
+ *
+ * Arquivos JSON exportados de programas de estudo costumam guardar o código
+ * dentro do próprio versículo — `criou<S>1254</S> Deus<S>430</S>`. É a mesma
+ * marcação dos módulos do MyBible, então quem lê é o mesmo `parseVerse`: o
+ * texto sai limpo e cada código fica amarrado à palavra a que pertence.
+ *
+ * A varredura preliminar existe para não pagar o preço à toa: a esmagadora
+ * maioria dos arquivos não tem marcação nenhuma, e aí não se toca no texto.
+ */
+function extractStrongs(books: BookMap): StrongMap | undefined {
+  const marked = Object.values(books).some((chapters) =>
+    chapters.some((verses) => verses.some((v) => v.includes('<S>'))),
+  );
+  if (!marked) return undefined;
+
+  const strongs: StrongMap = {};
+  for (const [osis, chapters] of Object.entries(books)) {
+    chapters.forEach((verses, c) => {
+      verses.forEach((verse, v) => {
+        const parsed = parseVerse(verse);
+        normalizeCodes(parsed.strongs, osis);
+        chapters[c][v] = parsed.text;
+        if (!parsed.strongs.length) return;
+        const sChapters = (strongs[osis] ||= []);
+        const sVerses = (sChapters[c] ||= []);
+        sVerses[v] = parsed.strongs;
+      });
+    });
+  }
+  return Object.keys(strongs).length ? strongs : undefined;
+}
 
 /**
  * Normaliza formatos comuns de arquivos bíblicos para `{ OSIS: string[][] }`.
@@ -240,12 +283,26 @@ type BookMap = Record<string, string[][]>;
  *  - Hub Bible: `{ translation: {...}, books: { GEN: [[...]] } }`
  *  - Lista por livro na ordem canônica: `[{ abbrev, chapters: [[...]] }, ...]`
  *  - bibleapi: `{ resultset: { row: [{ field: [id, livro, cap, ver, texto] }] } }`
+ *
+ * Em qualquer um deles, números Strong escritos no texto (`<S>430</S>`) são
+ * reconhecidos e separados — ver `extractStrongs`. O formato nativo aceita
+ * ainda um campo `strongs` já pronto, para quem gera o arquivo por conta.
  */
-export function normalizeImportedBible(data: unknown): { books: BookMap; meta?: Partial<TranslationMeta> } {
+export function normalizeImportedBible(data: unknown): NormalizedBible {
   // formato nativo
   if (data && typeof data === 'object' && 'books' in (data as Record<string, unknown>)) {
-    const obj = data as { books: BookMap; translation?: Partial<TranslationMeta> };
-    return { books: obj.books, meta: obj.translation };
+    const obj = data as {
+      books: BookMap;
+      translation?: Partial<TranslationMeta>;
+      strongs?: StrongMap;
+    };
+    const books = fill(obj.books);
+    return {
+      books,
+      meta: obj.translation,
+      // o campo explícito manda: quem o escreveu sabe o que quis dizer
+      strongs: obj.strongs ?? extractStrongs(books),
+    };
   }
 
   // bibleapi
@@ -261,7 +318,8 @@ export function normalizeImportedBible(data: unknown): { books: BookMap; meta?: 
       const c = (b[chapter - 1] ||= []);
       c[verse - 1] = String(text ?? '').trim();
     }
-    return { books: fill(books) };
+    const filled = fill(books);
+    return { books: filled, strongs: extractStrongs(filled) };
   }
 
   // lista de livros na ordem canônica
@@ -277,7 +335,8 @@ export function normalizeImportedBible(data: unknown): { books: BookMap; meta?: 
       if (!osis) return;
       books[osis] = chapters.map((c) => c.map((v) => String(v ?? '').trim()));
     });
-    return { books: fill(books) };
+    const filled = fill(books);
+    return { books: filled, strongs: extractStrongs(filled) };
   }
 
   throw new Error('Formato de arquivo não reconhecido.');
@@ -301,8 +360,9 @@ export async function importTranslation(
   info: TranslationInfo,
   data: unknown,
 ): Promise<ImportResult> {
-  const { books, meta } = normalizeImportedBible(data);
-  return storeTranslation(info, books, { meta });
+  const { books, meta, strongs } = normalizeImportedBible(data);
+  // `hasStrong` é o que faz a ação "No original" aparecer na barra do versículo
+  return storeTranslation({ ...info, hasStrong: !!strongs }, books, { meta, strongs });
 }
 
 interface StoreOptions {
