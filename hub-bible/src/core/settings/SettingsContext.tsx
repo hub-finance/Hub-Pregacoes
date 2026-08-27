@@ -19,8 +19,8 @@ export type ResolvedTheme = Exclude<ThemeChoice, 'system'>;
 const THEME_COLOR: Record<ResolvedTheme, string> = {
   light: '#faf8f5',
   sepia: '#f3e9d8',
-  dark: '#181b21',
-  azul: '#16253a',
+  dark: '#22262e',
+  azul: '#24374f',
 };
 
 export interface ReadingPosition {
