@@ -74,20 +74,20 @@
 /* ---------------------------------- escuro ------------------------------- */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  /* Cinza-noite, e não preto. O preto puro contra texto claro cansa a vista
-     numa leitura longa — a borda das letras "vibra". Este fundo é claro o
-     bastante para acalmar isso e escuro o bastante para ler no escuro. */
-  --bg: #181b21;
-  --bg-elevated: #20242b;
-  --bg-sunken: #121419;
-  --surface: #20242b;
-  --surface-2: #282d36;
-  --surface-hover: #313742;
-  --border: #2f353f;
-  --border-strong: #414855;
-  --text: #eceef2;
-  --text-2: #a8afbb;
-  --text-3: #757d8a;
+  /* Cinza-ardósia, longe do preto. O preto puro contra texto claro cansa a
+     vista numa leitura longa — a borda das letras "vibra". Este fundo é
+     claramente cinza: descansa a vista e ainda serve para ler no escuro. */
+  --bg: #22262e;
+  --bg-elevated: #2a2f38;
+  --bg-sunken: #1b1f26;
+  --surface: #2a2f38;
+  --surface-2: #333844;
+  --surface-hover: #3d4350;
+  --border: #3a404b;
+  --border-strong: #4c5361;
+  --text: #eef0f4;
+  --text-2: #b3bac6;
+  --text-3: #8891a0;
   --accent: #d7b174;
   --accent-strong: #e6c68f;
   --accent-soft: #241f16;
@@ -106,24 +106,24 @@
    mesma família de cor do fundo ao destaque, para a tela ter uma nota só. */
 :root[data-theme='azul'] {
   color-scheme: dark;
-  /* Azul-ardósia, e não azul-tinta. O marinho fechado tem o mesmo defeito do
-     preto: escuro e saturado, ele endurece a borda das letras claras. Um passo
-     mais claro e um pouco menos saturado mantém a cor e tira o peso. */
-  --bg: #16253a;
-  --bg-elevated: #1e3049;
-  --bg-sunken: #111d2e;
-  --surface: #1e3049;
-  --surface-2: #253a56;
-  --surface-hover: #2d4464;
-  --border: #2a4261;
-  --border-strong: #3b587c;
-  --text: #eaf0f8;
-  --text-2: #b3c4d9;
-  --text-3: #8299b6;
-  --accent: #6fb3e8;
-  --accent-strong: #93c9f5;
-  --accent-soft: #1b3252;
-  --accent-contrast: #0b1726;
+  /* Azul-ardósia claro, e não azul-tinta. O marinho fechado tem o mesmo defeito
+     do preto: escuro e saturado, ele endurece a borda das letras claras. Aqui o
+     azul aparece como cor, e não como escuridão com um tom por cima. */
+  --bg: #24374f;
+  --bg-elevated: #2d425d;
+  --bg-sunken: #1c2d42;
+  --surface: #2d425d;
+  --surface-2: #364d6b;
+  --surface-hover: #41597a;
+  --border: #3c5573;
+  --border-strong: #4e6b8c;
+  --text: #eef3fa;
+  --text-2: #becddf;
+  --text-3: #97acc6;
+  --accent: #8cc5f0;
+  --accent-strong: #aad7f8;
+  --accent-soft: #2b4666;
+  --accent-contrast: #0e1c2b;
   --danger: #e88b83;
   --success: #74c9a2;
   --info: #8fc3ef;
