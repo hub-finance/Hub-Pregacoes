@@ -226,6 +226,11 @@ export default function BiblePage() {
     for (const verse of selection) {
       await setHighlight(translation, book, chapter, verse, categoryId);
     }
+    /* A marcação consome a seleção. Sem isto, o versículo marcado continuava
+       selecionado; o toque seguinte somava outro à seleção, e a cor nova caía
+       nos dois — era assim que marcar um versículo de azul repintava de azul o
+       que já estava amarelo. */
+    setSelection([]);
     setPickingHighlight(false);
     notify(categoryId ? 'Marcação aplicada.' : 'Marcação removida.');
   };

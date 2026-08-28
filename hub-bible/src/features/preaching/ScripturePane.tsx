@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
@@ -70,11 +70,17 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
     return map;
   }, [highlights]);
 
-  /** Toda navegação daqui é leitura de verdade: guarda onde parou. */
-  const goTo = (nextBook: string, nextChapter: number) => {
+  /**
+   * Toda navegação daqui é leitura de verdade: guarda onde parou.
+   *
+   * `nextVerse` chega quando o leitor escolheu o versículo no seletor. Sem ele,
+   * a escolha do versículo era jogada fora e o painel abria sempre no alto do
+   * capítulo — quem procurou Salmo 23:4 caía no versículo 1 e tinha de rolar.
+   */
+  const goTo = (nextBook: string, nextChapter: number, nextVerse?: number) => {
     setBook(nextBook);
     setChapter(nextChapter);
-    setHighlightVerse(null);
+    setHighlightVerse(nextVerse ?? null);
     setSelection([]);
     setManual(true);
     update({ lastPosition: { translation, book: nextBook, chapter: nextChapter, at: Date.now() } });
@@ -86,8 +92,14 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
     goTo(book, next);
   };
 
+  /* Rolar até o versículo pedido — dentro **deste** painel. Na tela dividida
+     existem dois textos bíblicos abertos, e uma busca no documento inteiro
+     acharia o do outro lado. */
+  const paneRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    document.querySelector('.pane-verse.target')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    paneRef.current
+      ?.querySelector('.pane-verse.target')
+      ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [verses.data, highlight]);
 
   /* ------------------------------ ações do versículo ----------------------- */
@@ -100,6 +112,10 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
     for (const verse of selection) {
       await setHighlight(translation, book, chapter, verse, categoryId);
     }
+    /* A marcação consome a seleção. Sem isto, o versículo marcado continuava
+       selecionado, o toque seguinte somava outro à seleção, e a cor nova caía
+       nos dois — era assim que o amarelo virava azul junto com o resto. */
+    setSelection([]);
     setPickingHighlight(false);
     setSelection([]);
     notify(categoryId ? 'Marcado.' : 'Marcação removida.');
@@ -199,7 +215,7 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
         </button>
       )}
 
-      <div className="preach-pane-body">
+      <div className="preach-pane-body" ref={paneRef}>
         {verses.loading && <p className="small dim center">Carregando…</p>}
         {rows.map((text, index) => {
           const verse = index + 1;
@@ -268,9 +284,9 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
         book={book}
         chapter={chapter}
         onClose={() => setPicker(false)}
-        onSelect={(nextBook, nextChapter) => {
+        onSelect={(nextBook, nextChapter, nextVerse) => {
           setPicker(false);
-          goTo(nextBook, nextChapter);
+          goTo(nextBook, nextChapter, nextVerse);
         }}
       />
 
