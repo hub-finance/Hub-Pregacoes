@@ -37,20 +37,41 @@ interface Placement {
 
 const STORAGE = 'hub-bible:notepad';
 const MIN_W = 260;
-const MIN_H = 200;
+const MIN_H = 220;
 /** Abaixo disto a janela vira uma faixa colada embaixo: arrastar não ajuda. */
 const WIDE = 640;
+
+/**
+ * O tamanho de partida: um retângulo em pé, mais alto que largo.
+ *
+ * A primeira versão saiu quase quadrada e cabia pouca coisa — anotação de culto
+ * é uma coluna de linhas curtas, uma embaixo da outra, e quem escreve quer ver
+ * o que já escreveu sem rolar.
+ */
+const FORMATO = 3;
+const PADRAO = { w: 360, h: 620 };
 
 interface Stored extends Placement {
   open: boolean;
   noteId?: string;
+  /** Versão do formato de partida; ver `FORMATO`. */
+  v?: number;
 }
 
 function read(): Stored {
-  const vazio: Stored = { open: false, x: 0, y: 0, w: 380, h: 320 };
+  const vazio: Stored = { open: false, x: 0, y: 0, ...PADRAO, v: FORMATO };
   try {
     const raw = localStorage.getItem(STORAGE);
-    return raw ? { ...vazio, ...JSON.parse(raw) } : vazio;
+    if (!raw) return vazio;
+    /* a versão é lida do que estava gravado, e não da mistura com o padrão —
+       o padrão já traz `v`, e misturar antes de comparar esconderia o formato
+       antigo de quem tem a janela quadrada guardada */
+    const bruto = JSON.parse(raw) as Partial<Stored>;
+    const guardado = { ...vazio, ...bruto };
+    // quem já usou a janela antiga recebe o formato novo; a anotação aberta
+    // continua sendo a mesma
+    if (bruto.v !== FORMATO) return { ...guardado, ...PADRAO, x: 0, y: 0, v: FORMATO };
+    return guardado;
   } catch {
     return vazio;
   }
@@ -72,11 +93,14 @@ export function FloatingNotepad({ reference, verseRef }: Props) {
     const { x, y, w, h } = inicial.current;
     // primeira abertura: encostada no canto inferior direito, longe do texto
     if (x === 0 && y === 0) {
+      // uma janela mais alta que a tela não serve a ninguém: ela encolhe até
+      // caber, e continua encostada no canto de baixo
+      const altura = Math.min(h, window.innerHeight - 120);
       return {
-        w,
-        h,
+        w: Math.min(w, window.innerWidth - 32),
+        h: altura,
         x: Math.max(12, window.innerWidth - w - 20),
-        y: Math.max(12, window.innerHeight - h - 90),
+        y: Math.max(12, window.innerHeight - altura - 90),
       };
     }
     return { x, y, w, h };
@@ -121,7 +145,7 @@ export function FloatingNotepad({ reference, verseRef }: Props) {
   }, []);
 
   useEffect(() => {
-    write({ ...place, open, noteId: noteId.current });
+    write({ ...place, open, noteId: noteId.current, v: FORMATO });
   }, [place, open, savedAt]);
 
   useEffect(() => {
