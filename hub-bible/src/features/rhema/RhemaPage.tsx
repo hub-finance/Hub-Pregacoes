@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { mainTextOf } from '../../core/data/studySections';
 import { DocList } from '../common/DocList';
 import { newStudy, saveDoc } from '../../core/data/documents';
 import {
@@ -45,7 +46,7 @@ export default function RhemaPage() {
       route="/rhema"
       create={newStudy}
       subtitleOf={(s) =>
-        [s.attachmentId ? 'Apostila' : '', s.theme, s.mainText].filter(Boolean).join(' · ')
+        [s.attachmentId ? 'Apostila' : '', s.theme, mainTextOf(s)].filter(Boolean).join(' · ')
       }
       emptyDescription="Escreva um estudo — ou importe uma apostila em PDF e ensine com a Bíblia ao lado."
       onImportFile={importFile}

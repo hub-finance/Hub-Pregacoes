@@ -7,8 +7,7 @@ import { EditorShell } from '../common/EditorShell';
 import { ScriptureField } from '../common/ScriptureField';
 import { SermonBlocksEditor } from './SermonBlocksEditor';
 import { useDocEditor } from '../common/useDocEditor';
-import { NotesPanel } from '../common/NotesPanel';
-import { SelectInput, Spinner, TagInput, TextArea, TextInput } from '../../components/ui';
+import { SelectInput, Spinner, TagInput, TextInput } from '../../components/ui';
 import { useToast } from '../../components/Toast';
 import { Icon } from '../../components/Icon';
 import { CONTENT_CATEGORIES } from '../../core/categories';
@@ -28,7 +27,8 @@ import type { Sermon, SermonBlock } from '../../core/db/types';
  * citação bíblica e lista — com formatação dentro de cada um, para chegar perto
  * do que se faz no Word. Sermões antigos, escritos nos quatro campos de texto
  * corrido, são convertidos em blocos na primeira abertura, sem perder nada.
- * Sermão importado em PDF ou Word não é editado: aparece como veio.
+ * Sermão importado em PDF ou Word não é reescrito: aparece como veio, e o
+ * painel de blocos abaixo dele recebe o que o pastor acrescenta ao material.
  */
 export default function SermonEditorPage() {
   const { id } = useParams();
@@ -44,17 +44,28 @@ export default function SermonEditorPage() {
   // porque o mesmo texto passa a viver em `content` — mantê-los duplicaria o
   // sermão na busca e deixaria sobras ao editar
   const needsSeed = !!doc && !doc.attachmentId && !doc.content;
+  // as "Observações" saíram da tela como campo à parte; o que já foi escrito
+  // ali entra no corpo do sermão, com esse mesmo título, em vez de sumir
+  const hasNotes = !!doc?.notes?.trim();
   useEffect(() => {
-    if (!doc || !needsSeed) return;
+    if (!doc || (!needsSeed && !hasNotes)) return;
+    const base = needsSeed ? blocksFromSermon(doc) : doc.content ?? [];
     set({
-      content: blocksFromSermon(doc),
+      content: hasNotes
+        ? [
+            ...base,
+            newBlock('section', 'Observações'),
+            newBlock('text', escapeHtml(doc.notes).replace(/\n/g, '<br>')),
+          ]
+        : base,
       introduction: '',
       development: '',
       conclusion: '',
       application: '',
+      notes: '',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doc?.id, needsSeed]);
+  }, [doc?.id, needsSeed, hasNotes]);
 
   if (loading) return <Spinner label="Abrindo sermão…" />;
   if (!doc) {
@@ -108,7 +119,6 @@ export default function SermonEditorPage() {
       doc.date && `**Data:** ${doc.date}`,
       doc.attachmentId && '_Sermão importado — o conteúdo está no arquivo original._',
       blocksToMarkdown(content),
-      doc.notes && `## Observações\n\n${doc.notes}`,
     ]
       .filter(Boolean)
       .join('\n\n');
@@ -145,8 +155,8 @@ export default function SermonEditorPage() {
           placeholder="A videira verdadeira"
         />
 
-        {/* Sermão importado: o documento aparece como foi escrito, e os campos
-            de redação dão lugar a ele — reescrever seria trabalho perdido. */}
+        {/* Sermão importado: o documento aparece como foi escrito — reescrevê-lo
+            seria trabalho perdido. */}
         {doc.attachmentId && (
           <section className="stack">
             {attachment.loading && <p className="small dim">Carregando o arquivo…</p>}
@@ -177,9 +187,10 @@ export default function SermonEditorPage() {
           onResolve={(text) => set({ mainTextContent: text })}
         />
 
-        {!doc.attachmentId && (
-          <SermonBlocksEditor blocks={content} onChange={(next) => set({ content: next })} />
-        )}
+        {/* O corpo do sermão, num painel só — inclusive quando há arquivo
+            importado: ali o painel começa vazio e serve para o que o pastor
+            acrescenta ao material, que antes ia para as "Observações". */}
+        <SermonBlocksEditor blocks={content} onChange={(next) => set({ content: next })} />
 
         {hasLegacy && (
           <details className="card">
@@ -222,9 +233,6 @@ export default function SermonEditorPage() {
           <TextInput label="Data" value={doc.date} onChange={(date) => set({ date })} type="date" />
           <TagInput label="Etiquetas" tags={doc.tags} onChange={(tags) => set({ tags })} />
         </div>
-        <TextArea label="Observações" value={doc.notes} onChange={(notes) => set({ notes })} rows={3} />
-
-        <NotesPanel parentId={doc.id} targetType="sermon" contextLabel={doc.title || 'Sermão'} />
       </div>
     </EditorShell>
   );
