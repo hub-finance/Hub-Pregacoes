@@ -1451,3 +1451,122 @@ input.study-section-title:focus {
 .study-add {
   align-self: flex-start;
 }
+
+/* ==========================================================================
+   Bloco de anotações flutuante (sobre a Bíblia)
+
+   É uma janela, e não uma tela: quem escreve durante a pregação continua com o
+   texto à vista por baixo. Por isso ela é pequena, some com um toque e volta
+   onde estava. Em tela estreita não flutua — vira uma faixa colada embaixo,
+   porque arrastar janela em celular é briga perdida.
+   ========================================================================== */
+.notepad-fab {
+  position: fixed;
+  right: var(--sp-4);
+  bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + var(--sp-4));
+  z-index: 55;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: none;
+  box-shadow: var(--shadow-2);
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.notepad-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-3);
+}
+@media (min-width: 900px) {
+  .notepad-fab {
+    bottom: var(--sp-5);
+  }
+}
+
+.notepad-float {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-3);
+  overflow: hidden;
+}
+/* tela estreita: faixa embaixo, acima da navegação */
+.notepad-float.docked {
+  left: 0;
+  right: 0;
+  bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom));
+  height: 44dvh;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  border-bottom: none;
+}
+.notepad-float-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  cursor: grab;
+  /* a barra é a alça: arrastar não pode virar seleção de texto */
+  user-select: none;
+  touch-action: none;
+}
+.notepad-float-head:active {
+  cursor: grabbing;
+}
+.notepad-float.docked .notepad-float-head {
+  cursor: default;
+}
+.notepad-float-title {
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* folha em branco: sem moldura, sem rótulo — é bloco de notas */
+.notepad-float-area {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--text-1);
+  font: inherit;
+  line-height: 1.65;
+  padding: var(--sp-3);
+}
+.notepad-float-foot {
+  display: flex;
+  align-items: center;
+  padding: 2px var(--sp-2) 2px var(--sp-3);
+  border-top: 1px solid var(--border);
+}
+.notepad-float-resize {
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+  touch-action: none;
+  background:
+    linear-gradient(135deg, transparent 50%, var(--border) 50%, var(--border) 62%, transparent 62%),
+    linear-gradient(135deg, transparent 72%, var(--border) 72%, var(--border) 84%, transparent 84%);
+}
+/* a alça: diz sem palavras que a janela se arrasta */
+.notepad-float-grip {
+  width: 26px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-strong);
+  opacity: 0.8;
+}

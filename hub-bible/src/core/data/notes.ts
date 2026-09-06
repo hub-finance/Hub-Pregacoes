@@ -9,6 +9,10 @@ export async function listNotes(): Promise<Note[]> {
   return rows.sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
+export async function getNote(id: string): Promise<Note | undefined> {
+  return db.notes.get(id);
+}
+
 export async function listNotesFor(parentId: string): Promise<Note[]> {
   const rows = await db.notes.where('parentId').equals(parentId).toArray();
   return rows.sort((a, b) => b.updatedAt - a.updatedAt);

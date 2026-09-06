@@ -48,6 +48,9 @@ node scripts/generate-icons.mjs   # regenera os ícones do PWA
 - **Marcações** em 11 categorias (Promessas, Fé, Cura, Santidade, Espírito Santo, Liderança,
   Família, Salvação, Graça, Amor, Ministério) + categorias personalizadas com cor própria.
 - **Anotações** vinculadas a versículo, capítulo, livro, sermão, estudo ou devocional.
+- **Bloco de anotações flutuante** sobre a Bíblia — uma janela arrastável e redimensionável
+  para escrever durante a pregação sem sair do capítulo. Salva sozinho, lembra a posição e
+  continua a mesma anotação ao virar a página. Em tela estreita vira uma faixa embaixo.
 - **Sermões** montados em blocos — Seção, Parágrafo, Destaque, Citação bíblica e Lista —
   com negrito, itálico, sublinhado e cor dentro de cada bloco, na mesma liberdade de um
   documento do Word. Blocos se inserem, movem, trocam de tipo e são excluídos; a citação
