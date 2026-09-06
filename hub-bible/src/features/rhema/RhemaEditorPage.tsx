@@ -3,16 +3,24 @@ import { Icon } from '../../components/Icon';
 import { useNavigate, useParams } from 'react-router-dom';
 import { EditorShell } from '../common/EditorShell';
 import { ScriptureField } from '../common/ScriptureField';
-import { NotesPanel } from '../common/NotesPanel';
 import { DocumentViewer } from '../common/DocumentViewer';
 import { useDocEditor } from '../common/useDocEditor';
 import { useAsync } from '../../hooks';
 import { getAttachment } from '../../core/data/attachments';
-import { SelectInput, Spinner, TagInput, TextArea, TextInput } from '../../components/ui';
+import { SelectInput, Spinner, TagInput, TextInput } from '../../components/ui';
+import { Sheet } from '../../components/Sheet';
+import {
+  SECTION_KINDS,
+  SECTION_LABEL,
+  filledSections,
+  newSection,
+  sectionTitle,
+  sectionsOf,
+} from '../../core/data/studySections';
 import { CONTENT_CATEGORIES } from '../../core/categories';
 import { escapeHtml } from '../../core/backup';
 import { formatReference, parseReference } from '../../core/bible/reference';
-import type { Study } from '../../core/db/types';
+import type { Study, StudySection, StudySectionKind } from '../../core/db/types';
 
 /**
  * Rhema — o estudo escrito no aplicativo ou a apostila importada em PDF.
@@ -27,6 +35,7 @@ export default function RhemaEditorPage() {
   const navigate = useNavigate();
   const { doc, loading, dirty, saving, set } = useDocEditor<Study>('study', id);
   const [verseDraft, setVerseDraft] = useState('');
+  const [addingSection, setAddingSection] = useState(false);
   const attachment = useAsync(
     () => (doc?.attachmentId ? getAttachment(doc.attachmentId) : Promise.resolve(undefined)),
     [doc?.attachmentId],
@@ -44,6 +53,32 @@ export default function RhemaEditorPage() {
     );
   }
 
+  /* As seções do corpo. Estudos escritos antes desta mudança são convertidos na
+     leitura por `sectionsOf`; a primeira edição grava a lista, e os campos
+     antigos ficam onde estão — nada do que já foi escrito se perde. */
+  const sections = sectionsOf(doc);
+  const setSections = (next: StudySection[]) => set({ sections: next });
+
+  const addSection = (kind: StudySectionKind) => {
+    setSections([...sections, newSection(kind)]);
+    setAddingSection(false);
+  };
+
+  const editSection = (sectionId: string, patch: Partial<StudySection>) =>
+    setSections(sections.map((s) => (s.id === sectionId ? { ...s, ...patch } : s)));
+
+  const removeSection = (sectionId: string) =>
+    setSections(sections.filter((s) => s.id !== sectionId));
+
+  /** Sobe ou desce a seção. `delta` é -1 ou 1. */
+  const moveSection = (index: number, delta: number) => {
+    const alvo = index + delta;
+    if (alvo < 0 || alvo >= sections.length) return;
+    const next = [...sections];
+    [next[index], next[alvo]] = [next[alvo], next[index]];
+    setSections(next);
+  };
+
   const addVerse = () => {
     const parsed = parseReference(verseDraft);
     if (!parsed) return;
@@ -59,14 +94,12 @@ export default function RhemaEditorPage() {
       `# ${doc.title || 'Rhema sem título'}`,
       doc.attachmentId && '_Apostila importada — o conteúdo está no arquivo original._',
       doc.theme && `**Tema:** ${doc.theme}`,
-      doc.mainText && `**Texto principal:** ${doc.mainText}`,
-      doc.introduction && `## Introdução\n\n${doc.introduction}`,
-      doc.development && `## Desenvolvimento\n\n${doc.development}`,
+      ...filledSections(doc).map((s) =>
+        s.kind === 'texto'
+          ? `**Texto principal:** ${s.text}`
+          : `## ${sectionTitle(s)}\n\n${s.text}`,
+      ),
       doc.relatedVerses.length && `## Versículos relacionados\n\n${doc.relatedVerses.map((v) => `- ${v}`).join('\n')}`,
-      doc.comments && `## Comentários\n\n${doc.comments}`,
-      doc.application && `## Aplicações\n\n${doc.application}`,
-      doc.conclusion && `## Conclusão\n\n${doc.conclusion}`,
-      doc.notes && `## Anotações\n\n${doc.notes}`,
     ]
       .filter(Boolean)
       .join('\n\n');
@@ -75,15 +108,15 @@ export default function RhemaEditorPage() {
     const p = (v: string) => `<p>${escapeHtml(v)}</p>`;
     return [
       `<h1>${escapeHtml(doc.title || 'Rhema')}</h1>`,
-      `<div class="meta">${escapeHtml([doc.theme, doc.mainText].filter(Boolean).join(' · '))}</div>`,
-      doc.introduction ? `<h2>Introdução</h2>${p(doc.introduction)}` : '',
-      doc.development ? `<h2>Desenvolvimento</h2>${p(doc.development)}` : '',
+      `<div class="meta">${escapeHtml(doc.theme)}</div>`,
+      ...filledSections(doc).map((s) =>
+        s.kind === 'texto'
+          ? `<div class="meta">${escapeHtml(s.text)}</div>`
+          : `<h2>${escapeHtml(sectionTitle(s))}</h2>${p(s.text)}`,
+      ),
       doc.relatedVerses.length
         ? `<h2>Versículos relacionados</h2><p>${doc.relatedVerses.map(escapeHtml).join(' · ')}</p>`
         : '',
-      doc.comments ? `<h2>Comentários</h2>${p(doc.comments)}` : '',
-      doc.application ? `<h2>Aplicações</h2>${p(doc.application)}` : '',
-      doc.conclusion ? `<h2>Conclusão</h2>${p(doc.conclusion)}` : '',
     ].join('');
   };
 
@@ -139,13 +172,77 @@ export default function RhemaEditorPage() {
             options={CONTENT_CATEGORIES.map((c) => ({ value: c, label: c }))}
           />
         </div>
-        <ScriptureField label="Texto principal" value={doc.mainText} onChange={(mainText) => set({ mainText })} />
-        {!doc.attachmentId && (
-          <>
-            <TextArea label="Introdução" value={doc.introduction} onChange={(introduction) => set({ introduction })} rows={4} />
-            <TextArea label="Desenvolvimento" value={doc.development} onChange={(development) => set({ development })} rows={8} />
-          </>
-        )}
+
+        {/* O corpo do estudo, num painel só. Antes eram campos fixos sempre na
+            tela, vazios ou não; agora o autor acrescenta a seção que precisa,
+            na ordem que precisa, quantas vezes precisar. */}
+        <section className="stack study-body">
+          {sections.map((section, index) => (
+            <article key={section.id} className="study-section">
+              <header className="study-section-head">
+                {section.kind === 'livre' ? (
+                  <input
+                    className="study-section-title"
+                    value={section.title ?? ''}
+                    onChange={(e) => editSection(section.id, { title: e.target.value })}
+                    placeholder="Título da seção"
+                    aria-label="Título da seção"
+                  />
+                ) : (
+                  <h2 className="study-section-title">{SECTION_LABEL[section.kind]}</h2>
+                )}
+                <div className="spacer" />
+                <button
+                  className="icon-btn"
+                  onClick={() => moveSection(index, -1)}
+                  disabled={index === 0}
+                  aria-label={`Subir ${sectionTitle(section)}`}
+                >
+                  <Icon name="arrow-up" size={17} />
+                </button>
+                <button
+                  className="icon-btn"
+                  onClick={() => moveSection(index, 1)}
+                  disabled={index === sections.length - 1}
+                  aria-label={`Descer ${sectionTitle(section)}`}
+                >
+                  <Icon name="arrow-down" size={17} />
+                </button>
+                <button
+                  className="icon-btn"
+                  onClick={() => removeSection(section.id)}
+                  aria-label={`Excluir ${sectionTitle(section)}`}
+                >
+                  <Icon name="close" size={17} />
+                </button>
+              </header>
+
+              {section.kind === 'texto' ? (
+                /* referência bíblica: o texto vem do próprio aplicativo, e
+                   nunca é digitado pelo sistema */
+                <ScriptureField
+                  label=""
+                  value={section.text}
+                  onChange={(text) => editSection(section.id, { text })}
+                />
+              ) : (
+                <textarea
+                  className="textarea"
+                  value={section.text}
+                  onChange={(e) => editSection(section.id, { text: e.target.value })}
+                  rows={section.kind === 'desenvolvimento' ? 10 : 5}
+                  placeholder="Escreva aqui…"
+                  aria-label={sectionTitle(section)}
+                />
+              )}
+            </article>
+          ))}
+
+          <button className="btn btn-outline study-add" onClick={() => setAddingSection(true)}>
+            <Icon name="plus" size={18} />
+            Acrescentar seção
+          </button>
+        </section>
 
         <section className="stack">
           <div className="section-head">
@@ -190,22 +287,30 @@ export default function RhemaEditorPage() {
           </div>
         </section>
 
-        <TextArea
-          label={doc.attachmentId ? 'Suas observações sobre a apostila' : 'Comentários'}
-          value={doc.comments}
-          onChange={(comments) => set({ comments })}
-          rows={5}
-        />
-        {!doc.attachmentId && (
-          <>
-            <TextArea label="Aplicações" value={doc.application} onChange={(application) => set({ application })} rows={4} />
-            <TextArea label="Conclusão" value={doc.conclusion} onChange={(conclusion) => set({ conclusion })} rows={4} />
-          </>
-        )}
         <TagInput label="Etiquetas" tags={doc.tags} onChange={(tags) => set({ tags })} />
-
-        <NotesPanel parentId={doc.id} targetType="study" contextLabel={doc.title || 'Rhema'} />
       </div>
+
+      {/* O "+" pergunta qual seção antes de criá-la: é a escolha que dá a este
+          editor a forma do estudo, e ela não cabe num botão só. */}
+      <Sheet open={addingSection} title="Acrescentar seção" onClose={() => setAddingSection(false)}>
+        <div className="list">
+          {SECTION_KINDS.map((kind) => (
+            <button key={kind} className="list-item" onClick={() => addSection(kind)}>
+              <Icon name={kind === 'texto' ? 'book' : 'note'} size={20} />
+              <span className="list-body">
+                <span className="list-title">{SECTION_LABEL[kind]}</span>
+                {kind === 'texto' && (
+                  <span className="list-meta">O texto bíblico vem do próprio aplicativo.</span>
+                )}
+                {kind === 'livre' && (
+                  <span className="list-meta">Com o título que você escolher.</span>
+                )}
+              </span>
+              <Icon name="chevron-right" size={18} className="dim" />
+            </button>
+          ))}
+        </div>
+      </Sheet>
     </EditorShell>
   );
 }

@@ -144,6 +144,30 @@ export interface Sermon {
 }
 
 /**
+ * Que parte do estudo uma seção é.
+ *
+ * `texto` é referência bíblica, e o app busca o versículo; `livre` é uma seção
+ * com título escolhido pelo autor. As demais são as partes clássicas de uma
+ * exposição, guardadas como tipo — e não como campo fixo — para que cada estudo
+ * tenha só as que precisa, na ordem que precisa.
+ */
+export type StudySectionKind =
+  | 'texto'
+  | 'introducao'
+  | 'desenvolvimento'
+  | 'aplicacao'
+  | 'conclusao'
+  | 'livre';
+
+export interface StudySection {
+  id: ID;
+  kind: StudySectionKind;
+  /** Só nas seções livres; nas demais o título vem do tipo. */
+  title?: string;
+  text: string;
+}
+
+/**
  * Estudo bíblico. Na tela chama-se **Rhema**, e é onde vivem também as
  * apostilas do Rhema Brasil importadas em PDF — o identificador `study`
  * permanece porque é o nome da tabela desde a primeira versão do banco.
@@ -169,6 +193,14 @@ export interface Study {
   /** Apostila que chegou pronta em arquivo: exibida como veio, sem reescrever. */
   attachmentId?: ID;
   attachmentFormat?: AttachmentFormat;
+  /**
+   * O corpo do estudo, em seções escolhidas pelo autor.
+   *
+   * Ausente nos estudos escritos antes disto — aí o corpo vem dos campos fixos
+   * acima, convertido na leitura por `sectionsOf`. Os campos antigos continuam
+   * gravados de propósito: nada do que já foi escrito se perde.
+   */
+  sections?: StudySection[];
 }
 
 /**
