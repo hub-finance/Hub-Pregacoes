@@ -23,6 +23,23 @@ export const BLOCK_LABEL: Record<SermonBlockType, string> = {
   list: 'Lista',
 };
 
+/**
+ * As partes que um sermão costuma ter, oferecidas pelo "+".
+ *
+ * Elas não são um tipo de bloco: cada uma é um bloco de Seção com esse título,
+ * seguido de um parágrafo em branco para começar a escrever. O sermão não nasce
+ * mais com as quatro na tela — quem escreve é que diz de quais precisa, e em
+ * que ordem.
+ */
+export const SERMON_PARTS = [
+  'Texto principal',
+  'Introdução',
+  'Desenvolvimento',
+  'Aplicações',
+  'Conclusão',
+  'Apelo',
+] as const;
+
 export function newBlock(type: SermonBlockType = 'text', html = ''): SermonBlock {
   return {
     id: uid('blc_'),
@@ -82,14 +99,26 @@ export function blocksFromSermon(doc: Sermon): SermonBlock[] {
   addSection('Conclusão', doc.conclusion ?? '');
   addSection('Aplicação', doc.application ?? '');
 
-  // sermão em branco começa com o esqueleto na tela, não com uma folha vazia
-  if (!blocks.length) {
-    return ['Introdução', 'Desenvolvimento', 'Conclusão', 'Aplicação'].flatMap((title) => [
-      newBlock('section', title),
-      newBlock('text'),
-    ]);
-  }
+  // Sermão em branco começa em branco. Antes abria com as quatro partes já na
+  // tela, o que voltava a impor uma forma: quem escreve é que escolhe as partes,
+  // pelo "+", e o sermão que não tem introdução não fica com uma caixa vazia.
   return blocks;
+}
+
+/**
+ * A referência principal do sermão: a primeira citação bíblica do corpo.
+ *
+ * Ela alimenta o subtítulo na lista, a busca e a abertura do Modo Pregação —
+ * papéis que antes cabiam a um campo "Texto principal" fora do corpo. Com o
+ * sermão inteiro num painel só, a referência vem do próprio texto.
+ */
+export function mainScriptureOf(
+  blocks: SermonBlock[],
+): { reference: string; text: string } | undefined {
+  const block = blocks.find(
+    (b) => b.type === 'scripture' && (b.reference?.trim() || htmlToPlain(b.html)),
+  );
+  return block ? { reference: block.reference?.trim() ?? '', text: htmlToPlain(block.html) } : undefined;
 }
 
 /* ------------------------------- exportação ------------------------------ */

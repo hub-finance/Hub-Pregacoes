@@ -51,9 +51,11 @@ node scripts/generate-icons.mjs   # regenera os ícones do PWA
 - **Sermões** montados em blocos — Seção, Parágrafo, Destaque, Citação bíblica e Lista —
   com negrito, itálico, sublinhado e cor dentro de cada bloco, na mesma liberdade de um
   documento do Word. Blocos se inserem, movem, trocam de tipo e são excluídos; a citação
-  bíblica traz o texto do próprio aplicativo. Tudo num painel só — não há campo de
-  observações à parte. Sermão já pronto pode ser **importado em PDF ou .docx** e é exibido
-  com a formatação original, com o painel de blocos abaixo para o que se acrescenta a ele.
+  bíblica traz o texto do próprio aplicativo. Tudo num painel só: o "Acrescentar" oferece
+  as partes do sermão — Texto principal, Introdução, Desenvolvimento, Aplicações, Conclusão,
+  Apelo — e os tipos de bloco, e o sermão novo começa em branco. Sermão já pronto pode ser
+  **importado em PDF ou .docx** e é exibido com a formatação original, com o painel de
+  blocos abaixo para o que se acrescenta a ele.
 - **Rhema** — estudo bíblico escrito num painel só: pelo “+” você escolhe a seção que vai
   usar — Texto principal, Introdução, Desenvolvimento, Aplicações, Conclusão ou uma seção
   livre com o título que quiser —, na ordem que quiser e quantas vezes precisar. Fora do

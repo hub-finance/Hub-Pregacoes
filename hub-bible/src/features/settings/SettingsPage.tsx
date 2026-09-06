@@ -20,7 +20,12 @@ import { isAiEnabled } from '../../core/ai/provider';
 import { isSyncEnabled } from '../../core/sync/syncAdapter';
 import { slugify } from '../../core/categories';
 
-const APP_VERSION = '1.0.0';
+/**
+ * A versão que a tela mostra. O número depois do ponto é a compilação — o mesmo
+ * do APK —, para que dê para olhar para o aparelho e saber se a atualização
+ * entrou, em vez de deduzir pela tela.
+ */
+const APP_VERSION = `1.0.${__HUB_BUILD__}`;
 
 /** Configurações — aparência, traduções, backup, privacidade e sobre. */
 export default function SettingsPage() {

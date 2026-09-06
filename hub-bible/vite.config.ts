@@ -7,6 +7,12 @@ import path from 'node:path';
 // empacotado em WebView Android (Capacitor/TWA), onde a raiz não é "/".
 export default defineConfig({
   base: './',
+  // O número da compilação (o mesmo `HUB_BUILD` que vira o versionCode do APK)
+  // aparece em Configurações › Sobre. Sem ele não há como olhar para o aparelho
+  // e saber se a atualização entrou — e essa dúvida já custou tempo demais.
+  define: {
+    __HUB_BUILD__: JSON.stringify(process.env.HUB_BUILD ?? '0'),
+  },
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },
   },
