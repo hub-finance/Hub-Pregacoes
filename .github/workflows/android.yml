@@ -31,8 +31,13 @@ jobs:
         working-directory: hub-bible
         run: npm ci
 
+      # O mesmo `HUB_BUILD` do versionCode entra no app web, que o mostra em
+      # Configurações › Sobre: é assim que se confere no aparelho se a versão
+      # instalada é a nova.
       - name: Compilar o app web
         working-directory: hub-bible
+        env:
+          HUB_BUILD: ${{ github.run_number }}
         run: npm run build
 
       # O service worker não entra no APK. Dentro do aplicativo ele não tem

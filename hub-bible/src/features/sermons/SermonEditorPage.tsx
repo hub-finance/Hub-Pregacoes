@@ -1,10 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAsync } from '../../hooks';
 import { DocumentViewer } from '../common/DocumentViewer';
 import { getAttachment } from '../../core/data/attachments';
 import { EditorShell } from '../common/EditorShell';
-import { ScriptureField } from '../common/ScriptureField';
 import { SermonBlocksEditor } from './SermonBlocksEditor';
 import { useDocEditor } from '../common/useDocEditor';
 import { SelectInput, Spinner, TagInput, TextInput } from '../../components/ui';
@@ -16,6 +15,7 @@ import {
   blocksFromSermon,
   blocksToHtml,
   blocksToMarkdown,
+  mainScriptureOf,
   newBlock,
 } from '../../core/data/sermonContent';
 import type { Sermon, SermonBlock } from '../../core/db/types';
@@ -40,24 +40,37 @@ export default function SermonEditorPage() {
     [doc?.attachmentId],
   );
 
-  // conversão do formato antigo: os quatro campos viram blocos e são esvaziados,
-  // porque o mesmo texto passa a viver em `content` — mantê-los duplicaria o
-  // sermão na busca e deixaria sobras ao editar
-  const needsSeed = !!doc && !doc.attachmentId && !doc.content;
-  // as "Observações" saíram da tela como campo à parte; o que já foi escrito
-  // ali entra no corpo do sermão, com esse mesmo título, em vez de sumir
-  const hasNotes = !!doc?.notes?.trim();
+  /* Tudo o que vivia fora do corpo entra no corpo, uma vez só por sermão.
+     Uma vez só, e não a cada mudança: se a conversão pudesse rodar de novo, o
+     bloco que o autor apagasse voltaria sozinho na edição seguinte. */
+  const migrated = useRef<string | null>(null);
   useEffect(() => {
-    if (!doc || (!needsSeed && !hasNotes)) return;
-    const base = needsSeed ? blocksFromSermon(doc) : doc.content ?? [];
+    if (!doc || migrated.current === doc.id) return;
+    migrated.current = doc.id;
+
+    const semCorpo = !doc.content;
+    // o "Texto principal" era um campo à parte; vira a primeira citação bíblica
+    const semTextoPrincipal =
+      !!doc.mainText?.trim() && !(doc.content ?? []).some((b) => b.type === 'scripture');
+    // as "Observações" também saíram da tela; o que estava ali vai para o fim
+    const comObservacoes = !!doc.notes?.trim();
+    if (!semCorpo && !semTextoPrincipal && !comObservacoes) return;
+
+    let corpo = doc.content ?? blocksFromSermon(doc);
+    if (semTextoPrincipal) {
+      const citacao = newBlock('scripture', escapeHtml(doc.mainTextContent ?? ''));
+      citacao.reference = doc.mainText;
+      corpo = [newBlock('section', 'Texto principal'), citacao, ...corpo];
+    }
+    if (comObservacoes) {
+      corpo = [
+        ...corpo,
+        newBlock('section', 'Observações'),
+        newBlock('text', escapeHtml(doc.notes).replace(/\n/g, '<br>')),
+      ];
+    }
     set({
-      content: hasNotes
-        ? [
-            ...base,
-            newBlock('section', 'Observações'),
-            newBlock('text', escapeHtml(doc.notes).replace(/\n/g, '<br>')),
-          ]
-        : base,
+      content: corpo,
       introduction: '',
       development: '',
       conclusion: '',
@@ -65,7 +78,7 @@ export default function SermonEditorPage() {
       notes: '',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doc?.id, needsSeed, hasNotes]);
+  }, [doc?.id]);
 
   if (loading) return <Spinner label="Abrindo sermão…" />;
   if (!doc) {
@@ -80,6 +93,22 @@ export default function SermonEditorPage() {
   }
 
   const content = doc.content ?? [];
+
+  /**
+   * Grava o corpo e mantém a referência principal em dia.
+   *
+   * `mainText` deixou de ser um campo na tela, mas continua alimentando o
+   * subtítulo na lista, a busca e a abertura do Modo Pregação — então segue a
+   * primeira citação bíblica do corpo. Sem citação nenhuma, o que já estava
+   * gravado fica: apagar um bloco não pode apagar o sermão da busca.
+   */
+  const setContent = (next: SermonBlock[]) => {
+    const principal = mainScriptureOf(next);
+    set({
+      content: next,
+      ...(principal ? { mainText: principal.reference, mainTextContent: principal.text } : {}),
+    });
+  };
 
   const legacyBlocks = (doc.blocks ?? []).filter(
     (b) => b.title || b.comment || b.application || b.scripture,
@@ -107,7 +136,14 @@ export default function SermonEditorPage() {
       converted.push(newBlock('section', 'Apelo'));
       converted.push(newBlock('text', escapeHtml(doc.appeal).replace(/\n/g, '<br>')));
     }
-    set({ content: [...content, ...converted], blocks: [], appeal: '' });
+    const merged = [...content, ...converted];
+    const principal = mainScriptureOf(merged);
+    set({
+      content: merged,
+      blocks: [],
+      appeal: '',
+      ...(principal ? { mainText: principal.reference, mainTextContent: principal.text } : {}),
+    });
     notify('Conteúdo antigo trazido para os blocos.');
   };
 
@@ -180,17 +216,10 @@ export default function SermonEditorPage() {
           />
         </div>
 
-        <ScriptureField
-          label="Texto principal"
-          value={doc.mainText}
-          onChange={(mainText) => set({ mainText })}
-          onResolve={(text) => set({ mainTextContent: text })}
-        />
-
         {/* O corpo do sermão, num painel só — inclusive quando há arquivo
             importado: ali o painel começa vazio e serve para o que o pastor
             acrescenta ao material, que antes ia para as "Observações". */}
-        <SermonBlocksEditor blocks={content} onChange={(next) => set({ content: next })} />
+        <SermonBlocksEditor blocks={content} onChange={setContent} />
 
         {hasLegacy && (
           <details className="card">

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon, type IconName } from '../../components/Icon';
+import { Sheet } from '../../components/Sheet';
 import { useToast } from '../../components/Toast';
 import { escapeHtml } from '../../core/backup';
 import { sanitizeHtml } from '../../core/sanitizeHtml';
-import { BLOCK_LABEL, htmlToPlain, newBlock } from '../../core/data/sermonContent';
+import { BLOCK_LABEL, SERMON_PARTS, htmlToPlain, newBlock } from '../../core/data/sermonContent';
 import { useSettings } from '../../core/settings/SettingsContext';
 import { formatReference, parseReference } from '../../core/bible/reference';
 import { getVerses } from '../../core/bible/repository';
@@ -68,6 +69,7 @@ export function SermonBlocksEditor({ blocks, onChange }: Props) {
   const { settings } = useSettings();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [pendingFocus, setPendingFocus] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   /** Campo em foco — a barra de formatação age sobre ele. */
   const activeEl = useRef<HTMLDivElement | null>(null);
   /** Gravação do campo em foco, avisando-o de que o HTML mudou por nossa mão. */
@@ -84,6 +86,27 @@ export function SermonBlocksEditor({ blocks, onChange }: Props) {
     setPendingFocus(block.id);
   };
 
+  /**
+   * Uma parte do sermão — Introdução, Desenvolvimento, Aplicações… — não é um
+   * tipo de bloco: é o subtítulo seguido do espaço para escrever. O "Texto
+   * principal" ganha uma citação bíblica, porque o versículo vem do próprio
+   * aplicativo e não é digitado à mão.
+   */
+  const addPart = (part: string) => {
+    const novos =
+      part === 'Texto principal'
+        ? [newBlock('section', part), newBlock('scripture')]
+        : [newBlock('section', part), newBlock('text')];
+    onChange([...blocks, ...novos]);
+    setPendingFocus(novos[novos.length - 1].id);
+    setAdding(false);
+  };
+
+  const addType = (type: SermonBlockType) => {
+    insertAt(blocks.length, type);
+    setAdding(false);
+  };
+
   const move = (index: number, delta: number) => {
     const to = index + delta;
     if (to < 0 || to >= blocks.length) return;
@@ -94,8 +117,10 @@ export function SermonBlocksEditor({ blocks, onChange }: Props) {
   };
 
   const remove = (index: number) => {
+    // some tudo: o painel fica vazio mesmo, com o "+" à espera. Repor um bloco
+    // aqui seria devolver na tela o que o autor acabou de tirar.
     const next = blocks.filter((_, i) => i !== index);
-    onChange(next.length ? next : [newBlock('text')]);
+    onChange(next);
     const previous = next[Math.max(0, index - 1)];
     if (previous) setPendingFocus(previous.id);
   };
@@ -313,18 +338,49 @@ export function SermonBlocksEditor({ blocks, onChange }: Props) {
         </div>
       ))}
 
-      <div className="row row-wrap block-add">
-        {BLOCK_ORDER.map((type) => (
-          <button
-            key={type}
-            type="button"
-            className="btn btn-sm btn-ghost"
-            onClick={() => insertAt(blocks.length, type)}
-          >
-            <Icon name={BLOCK_ICON[type]} size={16} /> {BLOCK_LABEL[type]}
-          </button>
-        ))}
+      <div className="block-add">
+        {!blocks.length && (
+          <p className="small dim">
+            O sermão começa em branco. Toque em "Acrescentar" e escolha por onde começar.
+          </p>
+        )}
+        <button type="button" className="btn btn-outline study-add" onClick={() => setAdding(true)}>
+          <Icon name="plus" size={18} />
+          Acrescentar
+        </button>
       </div>
+
+      {/* O "+" pergunta o que acrescentar antes de acrescentar: primeiro as
+          partes do sermão, que é como se pensa a mensagem, e só depois os tipos
+          de bloco, que é como ela se escreve. */}
+      <Sheet open={adding} title="Acrescentar" onClose={() => setAdding(false)}>
+        <div className="list">
+          <p className="list-group">Partes do sermão</p>
+          {SERMON_PARTS.map((part) => (
+            <button key={part} className="list-item" onClick={() => addPart(part)}>
+              <Icon name={part === 'Texto principal' ? 'book' : 'note'} size={20} />
+              <span className="list-body">
+                <span className="list-title">{part}</span>
+                {part === 'Texto principal' && (
+                  <span className="list-meta">O texto bíblico vem do próprio aplicativo.</span>
+                )}
+              </span>
+              <Icon name="chevron-right" size={18} className="dim" />
+            </button>
+          ))}
+          <p className="list-group">Blocos</p>
+          {BLOCK_ORDER.map((type) => (
+            <button key={type} className="list-item" onClick={() => addType(type)}>
+              <Icon name={BLOCK_ICON[type]} size={20} />
+              <span className="list-body">
+                <span className="list-title">{BLOCK_LABEL[type]}</span>
+                {type === 'section' && <span className="list-meta">Um subtítulo seu.</span>}
+              </span>
+              <Icon name="chevron-right" size={18} className="dim" />
+            </button>
+          ))}
+        </div>
+      </Sheet>
     </div>
   );
 }
