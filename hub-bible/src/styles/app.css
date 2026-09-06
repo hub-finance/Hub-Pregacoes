@@ -1503,7 +1503,7 @@ input.study-section-title:focus {
   left: 0;
   right: 0;
   bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom));
-  height: 44dvh;
+  height: 58dvh;
   border-radius: var(--r-lg) var(--r-lg) 0 0;
   border-bottom: none;
 }
