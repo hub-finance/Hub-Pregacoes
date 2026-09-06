@@ -8,6 +8,7 @@ import { ReaderSettingsSheet } from './ReaderSettingsSheet';
 import { ReaderScrollbar, useReadingProgress } from './ReaderScrollbar';
 import { VerseActionBar } from './VerseActionBar';
 import { ShareSheet } from '../share/ShareSheet';
+import { FloatingNotepad } from '../notes/FloatingNotepad';
 import { Sheet } from '../../components/Sheet';
 import { Spinner, TextArea } from '../../components/ui';
 import { Icon } from '../../components/Icon';
@@ -527,6 +528,14 @@ export default function BiblePage() {
       )}
 
       <ReaderScrollbar />
+
+      {/* O bloco de anotações fica sobre o texto, e não numa tela à parte: é
+          para escrever o que vem à cabeça durante a pregação sem largar a
+          Bíblia. Ele acompanha a virada de capítulo — a anotação continua. */}
+      <FloatingNotepad
+        reference={`${bookName(book)} ${chapter}`}
+        verseRef={{ translation, book, chapter, verse: 1 }}
+      />
 
       <ReaderSettingsSheet open={readerSettings} onClose={() => setReaderSettings(false)} />
 

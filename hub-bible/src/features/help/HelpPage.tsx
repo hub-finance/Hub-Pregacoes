@@ -96,6 +96,8 @@ const TOPICS: Topic[] = [
       'Favoritos guardam o versículo com categoria e uma observação sua.',
       'Ao compartilhar um versículo como imagem, escolha a cor do fundo logo abaixo da prévia: Noite, Papel, Sépia, Azul, Oliveira, Púrpura ou Vinho. A escolha fica guardada para as próximas.',
       'Anotações podem nascer de um versículo ou ser livres, e ficam ligadas ao texto para sempre.',
+      'Na Bíblia, o botão redondo no canto inferior direito abre o bloco de anotações flutuante: uma janelinha por cima do texto, para escrever enquanto ouve a pregação sem sair do capítulo. Arraste pela barra do alto, puxe o canto para aumentar, e feche no X.',
+      'O bloco salva sozinho — não existe botão de salvar. O botão do livrinho escreve a referência do capítulo aberto no meio do texto; o "+" guarda a anotação e abre uma folha em branco. Ele lembra onde estava e continua de onde parou na próxima vez.',
       { to: '/favoritos', label: 'Abrir favoritos', text: 'Tudo o que você marcar aparece reunido nas telas próprias.' },
     ],
   },
