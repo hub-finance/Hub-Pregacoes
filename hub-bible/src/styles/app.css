@@ -1589,6 +1589,7 @@ input.study-section-title:focus {
   display: none;
 }
 .app-shell.immersive .app-main {
+  padding-top: env(safe-area-inset-top);
   padding-bottom: 0;
 }
 /* sem a barra lateral, o hambúrguer volta a ser a porta do menu no tablet */
