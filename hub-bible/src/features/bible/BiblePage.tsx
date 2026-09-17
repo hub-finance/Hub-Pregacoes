@@ -9,6 +9,7 @@ import { ReaderScrollbar, useReadingProgress } from './ReaderScrollbar';
 import { VerseActionBar } from './VerseActionBar';
 import { ShareSheet } from '../share/ShareSheet';
 import { FloatingNotepad } from '../notes/FloatingNotepad';
+import { useImmersive, useImmersiveScreen } from '../../app/Immersive';
 import { Sheet } from '../../components/Sheet';
 import { Spinner, TextArea } from '../../components/ui';
 import { Icon } from '../../components/Icon';
@@ -106,6 +107,47 @@ export default function BiblePage() {
   const [strongOpen, setStrongOpen] = useState(false);
   const readerRef = useRef<HTMLDivElement>(null);
   const readingProgress = useReadingProgress();
+
+  /* Leitura imersiva: enquanto se lê, só o texto. As barras somem ao rolar para
+     baixo e voltam ao rolar para cima ou a um toque no espaço em branco —
+     tocar no versículo continua sendo selecionar o versículo. */
+  useImmersiveScreen(settings.immersiveReading);
+  const { toggle: toggleChrome, show: showChrome, hide: hideChrome } = useImmersive();
+
+  useEffect(() => {
+    if (!settings.immersiveReading) return;
+    let anterior = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      // um limiar evita que o tranco do dedo conte como mudança de direção
+      if (Math.abs(y - anterior) < 10) return;
+      const descendo = y > anterior;
+      anterior = y;
+      if (descendo && y > 60) hideChrome();
+      else if (!descendo) showChrome();
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [settings.immersiveReading, showChrome, hideChrome]);
+
+  /* Toque na tela mostra ou esconde as barras.
+     O ouvinte fica no documento inteiro, e não no artigo do texto: numa tela
+     larga a maior parte do que se vê é margem, e um toque ali é tão "tocar na
+     tela" quanto no meio do parágrafo. O que não conta é o que já tem dono —
+     o versículo, que se seleciona, os botões, e as próprias barras. */
+  useEffect(() => {
+    if (!settings.immersiveReading) return;
+    const DONO =
+      '.verse, button, a, input, select, textarea, [role="button"], .sheet, .sheet-backdrop,' +
+      ' .topbar, .reader-bar, .bottom-nav, .rail, .verse-actions, .reader-scrollbar, .notepad-float';
+    const onClick = (e: MouseEvent) => {
+      const alvo = e.target as HTMLElement | null;
+      if (alvo?.closest(DONO)) return;
+      toggleChrome();
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, [settings.immersiveReading, toggleChrome]);
 
   const bookInfo = meta.data?.books.find((b) => b.osis === book);
   const totalChapters = bookInfo?.chapters ?? 1;

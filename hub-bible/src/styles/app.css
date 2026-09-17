@@ -1570,3 +1570,67 @@ input.study-section-title:focus {
   background: var(--border-strong);
   opacity: 0.8;
 }
+
+/* ==========================================================================
+   Leitura imersiva
+
+   Enquanto se lê, a tela é só o texto: o menu lateral sai, e a barra do alto,
+   a do leitor e a navegação de baixo saem de cena — sem sumir do documento,
+   para que voltem no lugar de sempre a um toque. Numa tela de tablet essas três
+   barras comiam mais de um terço do espaço que deveria ser Escritura.
+
+   Quando voltam, flutuam por cima do texto em vez de empurrá-lo: assim o
+   versículo que estava sendo lido não pula de lugar.
+   ========================================================================== */
+.app-shell.immersive {
+  grid-template-columns: 1fr;
+}
+.app-shell.immersive .rail {
+  display: none;
+}
+.app-shell.immersive .app-main {
+  padding-bottom: 0;
+}
+/* sem a barra lateral, o hambúrguer volta a ser a porta do menu no tablet */
+.app-shell.immersive .topbar .menu-toggle {
+  display: inline-grid;
+}
+
+.app-shell.immersive .topbar,
+.app-shell.immersive .reader-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  transition: transform var(--dur-2, 220ms) var(--ease), opacity var(--dur-2, 220ms) var(--ease);
+}
+.app-shell.immersive .topbar {
+  top: 0;
+}
+.app-shell.immersive .reader-bar {
+  top: calc(var(--topbar-h) + env(safe-area-inset-top));
+}
+.app-shell.immersive .bottom-nav {
+  transition: transform var(--dur-2, 220ms) var(--ease), opacity var(--dur-2, 220ms) var(--ease);
+}
+
+.app-shell.immersive:not(.chrome) .topbar,
+.app-shell.immersive:not(.chrome) .reader-bar {
+  transform: translateY(-120%);
+  opacity: 0;
+  pointer-events: none;
+}
+.app-shell.immersive:not(.chrome) .bottom-nav {
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+/* com a navegação de baixo fora, o bloco de anotações desce com ela */
+.app-shell.immersive:not(.chrome) .notepad-fab {
+  bottom: calc(env(safe-area-inset-bottom) + var(--sp-4));
+}
+
+@media (min-width: 900px) {
+  .app-shell.immersive .page {
+    padding-top: var(--sp-4);
+  }
+}
