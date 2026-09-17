@@ -6,6 +6,7 @@ import { useSettings, type ResolvedTheme } from '../core/settings/SettingsContex
 import { Sheet } from '../components/Sheet';
 import { Icon, type IconName } from '../components/Icon';
 import { SearchScopeProvider, useScopedSearch } from './SearchScope';
+import { ImmersiveProvider, useImmersive } from './Immersive';
 
 const groups: NavItem['group'][] = ['principal', 'ministerio', 'sistema'];
 
@@ -27,7 +28,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
      conteúdo, num componente de dentro. */
   return (
     <SearchScopeProvider>
-      <AppShell>{children}</AppShell>
+      <ImmersiveProvider>
+        <AppShell>{children}</AppShell>
+      </ImmersiveProvider>
     </SearchScopeProvider>
   );
 }
@@ -39,6 +42,7 @@ function AppShell({ children }: { children: ReactNode }) {
   const { settings, update, resolvedTheme } = useSettings();
   const [menuOpen, setMenuOpen] = useState(false);
   const searchHere = useScopedSearch();
+  const immersive = useImmersive();
 
   const cycleTheme = () => {
     // do papel ao mais escuro, na ordem em que a vista desce a luz
@@ -50,7 +54,13 @@ function AppShell({ children }: { children: ReactNode }) {
   const bottomItems = BOTTOM_NAV.map((to) => NAV_ITEMS.find((i) => i.to === to)!).filter(Boolean);
 
   return (
-    <div className="app-shell">
+    /* Em leitura imersiva as barras saem de cena e voltam a um toque; as regras
+       ficam no CSS, e o que a casca diz é só em que estado ela está. */
+    <div
+      className={`app-shell${immersive.active ? ' immersive' : ''}${
+        immersive.active && immersive.chrome ? ' chrome' : ''
+      }`}
+    >
       <nav className="rail" aria-label="Menu principal">
         <div className="brand" style={{ padding: 'var(--sp-2) var(--sp-3) var(--sp-4)' }}>
           <span className="brand-mark" aria-hidden="true">

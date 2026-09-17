@@ -33,6 +33,8 @@ node scripts/generate-icons.mjs   # regenera os ícones do PWA
 - Leitor com fonte ajustável (80–190%), espaçamento, largura de coluna, tipo de letra,
   texto corrido ou um versículo por linha.
 - Temas claro, escuro e sépia + modo de alto contraste.
+- **Leitura imersiva**: ao rolar, o menu lateral e as barras saem de cena e a tela fica só com
+  o texto; um toque em qualquer espaço em branco traz tudo de volta. Desligável em "Aa".
 - Comparação lado a lado com uma segunda tradução.
 - Seleção de um ou vários versículos → destacar, favoritar, anotar, compartilhar, copiar,
   criar estudo ou criar sermão a partir do texto.

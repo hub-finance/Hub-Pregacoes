@@ -46,6 +46,8 @@ export interface AppSettings {
   textAlign: 'left' | 'justify';
   /** Capitular: número do capítulo em corpo grande no início do texto. */
   dropCap: boolean;
+  /** Leitura imersiva: as barras somem ao rolar e voltam a um toque. */
+  immersiveReading: boolean;
   defaultTranslation: string;
   compareTranslation: string | null;
   customCategories: HighlightCategory[];
@@ -92,6 +94,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   verseLayout: 'paragraph',
   textAlign: 'left',
   dropCap: true,
+  immersiveReading: true,
   defaultTranslation: 'pt_almeida',
   compareTranslation: null,
   customCategories: [],

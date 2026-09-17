@@ -121,6 +121,15 @@ export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose:
         ]}
       />
       <SelectInput
+        label="Leitura imersiva"
+        value={settings.immersiveReading ? 'on' : 'off'}
+        onChange={(v) => update({ immersiveReading: v === 'on' })}
+        options={[
+          { value: 'on', label: 'Só o texto — as barras voltam a um toque' },
+          { value: 'off', label: 'Barras sempre à vista' },
+        ]}
+      />
+      <SelectInput
         label="Contraste"
         value={settings.contrast}
         onChange={(v) => update({ contrast: v as 'normal' | 'high' })}
