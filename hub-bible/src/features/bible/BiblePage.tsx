@@ -116,18 +116,43 @@ export default function BiblePage() {
 
   useEffect(() => {
     if (!settings.immersiveReading) return;
-    let anterior = window.scrollY;
+
+    const scrollY = () =>
+      window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+
+    // Touch: detecção de direção que funciona em qualquer WebView Android
+    let lastTouchY = 0;
+    const onTouchStart = (e: TouchEvent) => {
+      lastTouchY = e.touches[0].clientY;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const y = e.touches[0].clientY;
+      const delta = lastTouchY - y;
+      if (Math.abs(delta) < 8) return;
+      lastTouchY = y;
+      if (delta > 0 && scrollY() > 60) hideChrome();
+      else if (delta < 0) showChrome();
+    };
+
+    // Scroll: cobre teclado, mouse wheel e fallback geral
+    let anterior = scrollY();
     const onScroll = () => {
-      const y = window.scrollY;
-      // um limiar evita que o tranco do dedo conte como mudança de direção
+      const y = scrollY();
       if (Math.abs(y - anterior) < 10) return;
       const descendo = y > anterior;
       anterior = y;
       if (descendo && y > 60) hideChrome();
       else if (!descendo) showChrome();
     };
+
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('scroll', onScroll);
+    };
   }, [settings.immersiveReading, showChrome, hideChrome]);
 
   /* Toque na tela mostra ou esconde as barras.

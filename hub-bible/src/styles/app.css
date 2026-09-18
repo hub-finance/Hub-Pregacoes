@@ -1606,6 +1606,8 @@ input.study-section-title:focus {
 }
 .app-shell.immersive .topbar {
   top: 0;
+  background: var(--bg);
+  backdrop-filter: none;
 }
 .app-shell.immersive .reader-bar {
   top: calc(var(--topbar-h) + var(--status-h, env(safe-area-inset-top, 0px)));
