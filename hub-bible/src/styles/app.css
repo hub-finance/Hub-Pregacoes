@@ -37,7 +37,7 @@
   align-items: center;
   gap: var(--sp-2);
   min-height: var(--topbar-h);
-  padding: calc(env(safe-area-inset-top) + var(--sp-2)) var(--sp-3) var(--sp-2);
+  padding: calc(var(--status-h, env(safe-area-inset-top, 0px)) + var(--sp-2)) var(--sp-3) var(--sp-2);
   background: color-mix(in srgb, var(--bg) 86%, transparent);
   backdrop-filter: saturate(1.4) blur(14px);
   border-bottom: 1px solid var(--border);
@@ -715,7 +715,7 @@
 /* avisos do sistema (atualização/offline) vão para o topo, para nunca cobrir a
    barra de ações do leitor nem a navegação inferior */
 .toast-wrap.top {
-  top: calc(env(safe-area-inset-top) + var(--sp-3));
+  top: calc(var(--status-h, env(safe-area-inset-top, 0px)) + var(--sp-3));
   bottom: auto;
 }
 .toast {
@@ -987,7 +987,7 @@
 /* barra de formatação — acompanha a rolagem, logo abaixo da barra do topo */
 .format-bar {
   position: sticky;
-  top: calc(var(--topbar-h) + env(safe-area-inset-top));
+  top: calc(var(--topbar-h) + var(--status-h, env(safe-area-inset-top, 0px)));
   z-index: 20;
   display: flex;
   align-items: center;
@@ -1589,7 +1589,7 @@ input.study-section-title:focus {
   display: none;
 }
 .app-shell.immersive .app-main {
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--status-h, env(safe-area-inset-top, 0px));
   padding-bottom: 0;
 }
 /* sem a barra lateral, o hambúrguer volta a ser a porta do menu no tablet */
@@ -1608,7 +1608,7 @@ input.study-section-title:focus {
   top: 0;
 }
 .app-shell.immersive .reader-bar {
-  top: calc(var(--topbar-h) + env(safe-area-inset-top));
+  top: calc(var(--topbar-h) + var(--status-h, env(safe-area-inset-top, 0px)));
 }
 .app-shell.immersive .bottom-nav {
   transition: transform var(--dur-2, 220ms) var(--ease), opacity var(--dur-2, 220ms) var(--ease);

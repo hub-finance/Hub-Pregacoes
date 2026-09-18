@@ -23,6 +23,18 @@ const capacitor = (): CapacitorGlobal | undefined =>
 export const isNativeApp = (): boolean => capacitor()?.isNativePlatform?.() === true;
 
 /**
+ * Injeta variáveis CSS que dependem da plataforma.
+ *
+ * No Android, `env(safe-area-inset-top)` retorna 0 mesmo quando a WebView
+ * desenha por trás da barra de status. Quem precisa do espaço real (o modo
+ * imersivo, por exemplo) usa `var(--status-h)` em vez de confiar no env().
+ */
+export function applyPlatformCssVars(): void {
+  if (!isNativeApp()) return;
+  document.documentElement.style.setProperty('--status-h', '28px');
+}
+
+/**
  * Como o app foi instalado — usado para explicar ao usuário onde os dados dele
  * moram, que é a diferença que de fato importa entre as duas versões.
  */

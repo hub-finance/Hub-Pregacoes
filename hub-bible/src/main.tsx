@@ -4,10 +4,13 @@ import { HashRouter } from 'react-router-dom';
 import App from './App';
 import { SettingsProvider } from './core/settings/SettingsContext';
 import { ToastProvider } from './components/Toast';
+import { applyPlatformCssVars } from './core/platform';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/app.css';
 import './styles/reader.css';
+
+applyPlatformCssVars();
 
 /**
  * HashRouter: o app precisa funcionar servido de subdiretório, de arquivo local
