@@ -8,7 +8,6 @@ import { ReaderSettingsSheet } from './ReaderSettingsSheet';
 import { ReaderScrollbar, useReadingProgress } from './ReaderScrollbar';
 import { VerseActionBar } from './VerseActionBar';
 import { ShareSheet } from '../share/ShareSheet';
-import { FloatingNotepad } from '../notes/FloatingNotepad';
 import { useImmersive, useImmersiveScreen } from '../../app/Immersive';
 import { Sheet } from '../../components/Sheet';
 import { Spinner, TextArea } from '../../components/ui';
@@ -164,7 +163,7 @@ export default function BiblePage() {
     if (!settings.immersiveReading) return;
     const DONO =
       '.verse, button, a, input, select, textarea, [role="button"], .sheet, .sheet-backdrop,' +
-      ' .topbar, .reader-bar, .bottom-nav, .rail, .verse-actions, .reader-scrollbar, .notepad-float';
+      ' .topbar, .reader-bar, .bottom-nav, .rail, .verse-actions, .reader-scrollbar';
     const onClick = (e: MouseEvent) => {
       const alvo = e.target as HTMLElement | null;
       if (alvo?.closest(DONO)) return;
@@ -595,14 +594,6 @@ export default function BiblePage() {
       )}
 
       <ReaderScrollbar />
-
-      {/* O bloco de anotações fica sobre o texto, e não numa tela à parte: é
-          para escrever o que vem à cabeça durante a pregação sem largar a
-          Bíblia. Ele acompanha a virada de capítulo — a anotação continua. */}
-      <FloatingNotepad
-        reference={`${bookName(book)} ${chapter}`}
-        verseRef={{ translation, book, chapter, verse: 1 }}
-      />
 
       <ReaderSettingsSheet open={readerSettings} onClose={() => setReaderSettings(false)} />
 
