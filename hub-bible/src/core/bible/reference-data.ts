@@ -137,6 +137,65 @@ export async function findEntriesForVerse(
   return all.filter((e) => e.textos.includes(key));
 }
 
+/* ─────────────────── Tipologia AT → NT ─────────────────── */
+
+export interface TypologyPair {
+  id: string;
+  titulo: string;
+  at: { nome: string; textos: string[] };
+  nt: { nome: string; textos: string[] };
+  explicacao: string;
+  textosChave: string[];
+}
+
+let typologyEntries: TypologyPair[] | null = null;
+let typologyPromise: Promise<TypologyPair[]> | null = null;
+
+async function loadTypology(): Promise<TypologyPair[]> {
+  if (typologyEntries) return typologyEntries;
+  if (typologyPromise) return typologyPromise;
+  typologyPromise = fetch(`${import.meta.env.BASE_URL}reference/typology.json`)
+    .then((r) => {
+      if (!r.ok) throw new Error(`Tipologia indisponível (${r.status}).`);
+      return r.json() as Promise<TypologyPair[]>;
+    })
+    .then((data) => {
+      typologyEntries = data;
+      return data;
+    })
+    .catch((err) => {
+      typologyPromise = null;
+      throw err;
+    });
+  return typologyPromise;
+}
+
+export async function getTypology(): Promise<TypologyPair[]> {
+  try {
+    return await loadTypology();
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Encontra pares tipológicos que citam um versículo (em qualquer lado).
+ */
+export async function findTypologyForVerse(
+  book: string,
+  chapter: number,
+  verse: number,
+): Promise<TypologyPair[]> {
+  const key = `${book}.${chapter}.${verse}`;
+  const all = await getTypology();
+  return all.filter(
+    (t) =>
+      t.at.textos.includes(key) ||
+      t.nt.textos.includes(key) ||
+      t.textosChave.includes(key),
+  );
+}
+
 /* ──────────────── Famílias semânticas ──────────────── */
 
 export interface SemanticTerm {

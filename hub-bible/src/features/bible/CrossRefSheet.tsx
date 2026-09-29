@@ -4,7 +4,8 @@ import { Sheet } from '../../components/Sheet';
 import { Icon } from '../../components/Icon';
 import { Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
-import { getCrossReferences, findEntriesForVerse } from '../../core/bible/reference-data';
+import { getCrossReferences, findEntriesForVerse, findTypologyForVerse } from '../../core/bible/reference-data';
+import type { TypologyPair } from '../../core/bible/reference-data';
 import { CANON_BY_OSIS } from '../../core/bible/canon';
 
 interface Props {
@@ -26,19 +27,53 @@ function formatRef(key: string): { label: string; path: string } {
   };
 }
 
-/**
- * Painel de referências cruzadas e verbetes teológicos de um versículo.
- *
- * Segue o mesmo padrão do StrongSheet: abre por baixo, mostra dados estáticos
- * carregados sob demanda, e cada referência é um link para o texto.
- */
+function TypologyCard({ pair, onClose }: { pair: TypologyPair; onClose: () => void }) {
+  return (
+    <div className="card stack" style={{ gap: 'var(--sp-2)' }}>
+      <strong style={{ fontSize: '1.05rem' }}>{pair.titulo}</strong>
+      <p className="small strong-definition">{pair.explicacao}</p>
+      <div className="row" style={{ gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 140px', minWidth: 0 }}>
+          <h4 className="list-meta" style={{ marginBottom: 'var(--sp-1)' }}>Antigo Testamento</h4>
+          <p className="small dim" style={{ marginBottom: 'var(--sp-1)' }}>{pair.at.nome}</p>
+          <div className="crossref-list">
+            {pair.at.textos.map((r) => {
+              const { label, path } = formatRef(r);
+              return (
+                <Link key={r} to={path} className="crossref-chip" onClick={onClose}>
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ flex: '1 1 140px', minWidth: 0 }}>
+          <h4 className="list-meta" style={{ marginBottom: 'var(--sp-1)' }}>Novo Testamento</h4>
+          <p className="small dim" style={{ marginBottom: 'var(--sp-1)' }}>{pair.nt.nome}</p>
+          <div className="crossref-list">
+            {pair.nt.textos.map((r) => {
+              const { label, path } = formatRef(r);
+              return (
+                <Link key={r} to={path} className="crossref-chip" onClick={onClose}>
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CrossRefSheet({ open, onClose, book, chapter, verse, reference }: Props) {
   const data = useAsync(async () => {
-    const [refs, entries] = await Promise.all([
+    const [refs, entries, typology] = await Promise.all([
       getCrossReferences(book, chapter, verse),
       findEntriesForVerse(book, chapter, verse),
+      findTypologyForVerse(book, chapter, verse),
     ]);
-    return { refs, entries };
+    return { refs, entries, typology };
   }, [book, chapter, verse, open]);
 
   const grouped = useMemo(() => {
@@ -54,7 +89,7 @@ export function CrossRefSheet({ open, onClose, book, chapter, verse, reference }
     return { at, nt };
   }, [data.data]);
 
-  const empty = data.data && !data.data.refs.length && !data.data.entries.length;
+  const empty = data.data && !data.data.refs.length && !data.data.entries.length && !data.data.typology.length;
 
   return (
     <Sheet open={open} title={`${reference} — referências`} onClose={onClose} size="lg">
@@ -133,6 +168,18 @@ export function CrossRefSheet({ open, onClose, book, chapter, verse, reference }
                 </p>
               )}
             </div>
+          ))}
+        </div>
+      ) : null}
+
+      {data.data?.typology.length ? (
+        <div className="stack" style={{ gap: 'var(--sp-3)', marginTop: 'var(--sp-4)' }}>
+          <p className="small dim">
+            <Icon name="layers" size={14} style={{ verticalAlign: '-2px' }} />{' '}
+            Tipologia — Antigo e Novo Testamento
+          </p>
+          {data.data.typology.map((pair) => (
+            <TypologyCard key={pair.id} pair={pair} onClose={onClose} />
           ))}
         </div>
       ) : null}
