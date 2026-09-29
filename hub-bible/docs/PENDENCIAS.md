@@ -1,7 +1,85 @@
 # Pendências — retomar daqui
 
-Estado em **12/08/2026**. Tudo o que está descrito abaixo foi levantado e
+Estado em **29/09/2026**. Tudo o que está descrito abaixo foi levantado e
 verificado; nada aqui é suposição. O que já foi entregue está no `README.md`.
+
+---
+
+## PRÓXIMA SESSÃO — três alvos prioritários
+
+Combinado com o usuário em 29/09/2026. Atacar os três juntos.
+
+### A. Referências cruzadas: 418 → ~30.000 versículos
+
+Hoje temos 418 versículos com referências cruzadas (1.678 conexões). O
+**Treasury of Scripture Knowledge** (1836, domínio público) tem ~340.000
+conexões cobrindo ~30.000 versículos. É a fonte de referência do Olive Tree
+e do Blue Letter Bible.
+
+Fontes no GitHub: `scrollmapper/bible_databases` tem o TSK em SQLite. O ETL
+em `scripts/build-theological-dict.mjs` já gera `cross-references.json` —
+ampliar para incluir o TSK, mantendo o formato `OSIS.capítulo.versículo`.
+
+Atenção ao tamanho do JSON: ~30.000 chaves com ~10 referências cada pode
+passar de 2 MB. Considerar dividir por livro ou comprimir as chaves.
+
+### B. Dicionário teológico: 22 → 200+ verbetes
+
+O prompt mestre (`Prompt_Mestre_Palavra_da_Fe.md`) cita dezenas de termos
+hebraicos e gregos nos §4 (Doutrina Base), §11 (Palavra e Confissão),
+§12 (Cura), §13 (Provisão), §14 (Autoridade), §15 (Identidade em Cristo).
+Todos devem virar verbetes do dicionário, em linguagem prática (como os 22
+atuais). Termos a cobrir:
+
+- **§4.5 Graça:** χάρις (charis)
+- **§4.6 Fé:** πίστις (pistis), אֱמוּנָה (emunah)
+- **§4.7 Justificação:** δικαιόω, δικαιοσύνη, δίκαιος, δικαίωσις, צֶדֶק, צְדָקָה
+- **§11 Palavra:** λόγος, ῥῆμα, λέγω, ὁμολογέω
+- **§12 Cura:** רפא (rapha), θεραπεύω, ἰάομαι, σῴζω, σωτηρία
+- **§13 Provisão:** בְּרָכָה (berakah), εὐοδόω, πλουτέω, πλοῦτος
+- **§14 Autoridade:** ἐξουσία, δύναμις, κράτος, ἰσχύς
+- **§15 Identidade:** ἐν Χριστῷ, καινὴ κτίσις, υἱοθεσία, ἅγιος
+- Conceitos-chave: redenção, reconciliação, propiciação, expiação, aliança,
+  santificação, glorificação, eleição, predestinação, arrependimento,
+  batismo, ressurreição, segunda vinda, reino de Deus, etc.
+
+Cada verbete segue o padrão já estabelecido: `id`, `termo`, `hebraico`/`grego`
+(com transliteração e Strong), `definicao` em linguagem prática, `distincao`,
+`textos` e `relacionados`.
+
+### C. Guias doutrinários por tema — recurso NOVO
+
+O prompt descreve fluxos doutrinários que conectam conceitos em cadeia.
+Transformar em uma seção acessível no app: **"Temas da Palavra da Fé"**.
+
+Temas a construir (extraídos do prompt):
+
+1. **Justificação pela fé** — Cristo → Redenção → Justificação → Justiça
+   pela fé → Nova identidade → Vida em Cristo → Santificação (§4.7)
+2. **Identidade em Cristo** — Cristo → União com Cristo → Nova criação →
+   Justificação → Justiça → Filiação → Herança → Autoridade → Vida no
+   Espírito (§15)
+3. **Palavra e confissão** — Coração → Fé → Palavra → Confissão → Ação (§11)
+4. **Cura divina** — Rapha → Ministério de Jesus → Dons de cura → Oração
+   da fé (§12)
+5. **Provisão e prosperidade** — Bênção da aliança → Trabalho → Semeadura →
+   Generosidade → Mordomia (§13)
+6. **Autoridade do crente** — Exousia → Dynamis → Nome de Jesus → Vida no
+   Espírito (§14)
+7. **Graça** — Favor → Dom → Capacitação → Fundamento da salvação →
+   Fundamento da vida cristã (§4.5)
+8. **AT → NT** — Promessa → Cumprimento / Tipo → Antítipo / Sombra →
+   Realidade / Lei → Graça (§8)
+
+Cada tema traz: título, descrição, o fluxo de conceitos (com setas visuais),
+os versículos-chave de cada passo, e links para os verbetes do dicionário.
+
+Formato de dados: novo JSON em `public/reference/doctrinal-guides.json`.
+Tela: nova rota `/guias` ou seção dentro da Biblioteca Ministerial.
+O `CrossRefSheet` também pode linkar para o guia relevante quando um
+versículo aparece num tema.
+
+---
 
 ---
 
