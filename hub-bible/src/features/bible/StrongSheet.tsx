@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sheet } from '../../components/Sheet';
+import { Icon } from '../../components/Icon';
 import { Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
 import { getBook } from '../../core/bible/repository';
 import { verseWords } from '../../core/bible/mybible';
 import { hasStrongDictionary, lookupStrong } from '../../core/data/dictionaries';
+import { findGroupForStrong, type SemanticGroup } from '../../core/bible/reference-data';
 import type { LexiconEntry } from '../../core/bible/lexicon';
 import type { StrongTag } from '../../core/db/types';
 
@@ -92,6 +94,12 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
     [codes.join(','), open],
   );
 
+  const semanticGroup = useAsync(
+    async (): Promise<SemanticGroup | null> =>
+      codes.length === 1 ? findGroupForStrong(codes[0]) : null,
+    [codes.join(','), open],
+  );
+
   return (
     <Sheet open={open} title={`${reference} — no original`} onClose={onClose} size="lg">
       {data.loading && <Spinner />}
@@ -162,6 +170,28 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
               {definitions.data && !definitions.data.length && (
                 <div className="notice">
                   <span>Nenhum léxico traz este verbete.</span>
+                </div>
+              )}
+
+              {semanticGroup.data && (
+                <div className="card stack" style={{ gap: 'var(--sp-2)' }}>
+                  <div className="row" style={{ gap: 'var(--sp-2)', alignItems: 'center' }}>
+                    <Icon name="layers" size={16} className="dim" />
+                    <strong className="small">{semanticGroup.data.nome}</strong>
+                  </div>
+                  <p className="small dim">{semanticGroup.data.descricao}</p>
+                  <div className="crossref-list">
+                    {semanticGroup.data.termos.map((t) => (
+                      <span
+                        key={t.strong}
+                        className={`crossref-chip${t.strong === codes[0] ? ' active' : ''}`}
+                        style={t.strong === codes[0] ? { background: 'var(--accent-soft)', borderColor: 'var(--accent)' } : undefined}
+                      >
+                        <span style={{ fontStyle: 'italic' }}>{t.lemma}</span>
+                        <span className="dim">— {t.sentido}</span>
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
 
