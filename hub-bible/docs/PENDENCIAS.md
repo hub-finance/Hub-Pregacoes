@@ -79,6 +79,40 @@ Tela: nova rota `/guias` ou seção dentro da Biblioteca Ministerial.
 O `CrossRefSheet` também pode linkar para o guia relevante quando um
 versículo aparece num tema.
 
+### D. Importação de dicionário em JSON — recurso NOVO
+
+Mesmo padrão da importação de traduções bíblicas: o app embute o que é
+livre, e o usuário importa o que ele tem no aparelho.
+
+Casos de uso:
+- Strong em português (Sociedade Bíblica do Brasil — protegido, não embutível)
+- Vine's traduzido
+- Qualquer léxico bíblico que o usuário tenha em JSON
+
+Formato de importação a definir (sugestão):
+```json
+{
+  "nome": "Dicionário Strong Português",
+  "tipo": "strong",
+  "idioma": "pt",
+  "verbetes": {
+    "H1": { "lemma": "אָב", "translit": "av", "definicao": "pai..." },
+    "G26": { "lemma": "ἀγάπη", "translit": "agapē", "definicao": "amor..." }
+  }
+}
+```
+
+Implementação:
+- Tabela Dexie `importedDictionaries` + `importedDictEntries` (como
+  `dictionaries` + `dictionaryEntries` que já existem para MyBible).
+- Tela de importação em Configurações, ao lado da importação de traduções.
+- Consulta unificada: o `StrongSheet` procura primeiro no dicionário
+  importado, depois no embutido (inglês).
+- O texto importado fica apenas no dispositivo — nunca sobe para servidor.
+
+**Regra de licença:** igual às traduções. O app aceita o arquivo; quem
+responde pela origem é o usuário.
+
 ---
 
 ---
