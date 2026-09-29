@@ -1589,47 +1589,19 @@ input.study-section-title:focus {
   display: none;
 }
 .app-shell.immersive .app-main {
-  padding-top: var(--status-h, env(safe-area-inset-top, 0px));
   padding-bottom: 0;
 }
 /* sem a barra lateral, o hambúrguer volta a ser a porta do menu no tablet */
 .app-shell.immersive .topbar .menu-toggle {
   display: inline-grid;
 }
-
 .app-shell.immersive .topbar,
 .app-shell.immersive .reader-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  transition: transform var(--dur-2, 220ms) var(--ease), opacity var(--dur-2, 220ms) var(--ease);
-}
-.app-shell.immersive .topbar {
-  top: 0;
   background: var(--bg);
   backdrop-filter: none;
 }
-.app-shell.immersive .reader-bar {
-  top: calc(var(--topbar-h) + var(--status-h, env(safe-area-inset-top, 0px)));
-}
 .app-shell.immersive .bottom-nav {
-  transition: transform var(--dur-2, 220ms) var(--ease), opacity var(--dur-2, 220ms) var(--ease);
-}
-
-.app-shell.immersive:not(.chrome) .topbar,
-.app-shell.immersive:not(.chrome) .reader-bar {
-  transform: translateY(-120%);
-  opacity: 0;
-  pointer-events: none;
-}
-.app-shell.immersive:not(.chrome) .bottom-nav {
-  transform: translateY(100%);
-  opacity: 0;
-  pointer-events: none;
-}
-/* com a navegação de baixo fora, o bloco de anotações desce com ela */
-.app-shell.immersive:not(.chrome) .notepad-fab {
-  bottom: calc(env(safe-area-inset-bottom) + var(--sp-4));
+  display: none;
 }
 
 @media (min-width: 900px) {
