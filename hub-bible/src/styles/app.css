@@ -1589,6 +1589,7 @@ input.study-section-title:focus {
   display: none;
 }
 .app-shell.immersive .app-main {
+  padding-top: var(--status-h, env(safe-area-inset-top, 0px));
   padding-bottom: 0;
 }
 /* sem a barra lateral, o hambúrguer volta a ser a porta do menu no tablet */
@@ -1597,8 +1598,16 @@ input.study-section-title:focus {
 }
 .app-shell.immersive .topbar,
 .app-shell.immersive .reader-bar {
-  background: var(--bg);
-  backdrop-filter: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  transition: transform var(--dur-2, 220ms) var(--ease), opacity var(--dur-2, 220ms) var(--ease);
+}
+.app-shell.immersive .topbar {
+  top: 0;
+}
+.app-shell.immersive .reader-bar {
+  top: calc(var(--topbar-h) + var(--status-h, env(safe-area-inset-top, 0px)));
 }
 .app-shell.immersive .bottom-nav {
   display: none;
