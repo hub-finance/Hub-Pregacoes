@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { BookPicker } from './BookPicker';
 import { TranslationPicker } from './TranslationPicker';
 import { StrongSheet } from './StrongSheet';
+import { CommentarySheet } from './CommentarySheet';
 import { CrossRefSheet } from './CrossRefSheet';
 import { ReaderSettingsSheet } from './ReaderSettingsSheet';
 import { ReaderScrollbar, useReadingProgress } from './ReaderScrollbar';
@@ -106,6 +107,7 @@ export default function BiblePage() {
   const [noteText, setNoteText] = useState('');
   const [strongOpen, setStrongOpen] = useState(false);
   const [crossRefOpen, setCrossRefOpen] = useState(false);
+  const [commentaryOpen, setCommentaryOpen] = useState(false);
   const readerRef = useRef<HTMLDivElement>(null);
   const readingProgress = useReadingProgress();
 
@@ -483,6 +485,9 @@ export default function BiblePage() {
             ...(selection.length === 1
               ? [{ id: 'crossref', icon: 'link' as const, label: 'Referências', onClick: () => setCrossRefOpen(true) }]
               : []),
+            ...(selection.length === 1
+              ? [{ id: 'commentary', icon: 'book' as const, label: 'Comentários', onClick: () => setCommentaryOpen(true) }]
+              : []),
             { id: 'share', icon: 'share', label: 'Compartilhar', onClick: () => setShareOpen(true) },
             {
               id: 'copy',
@@ -536,6 +541,14 @@ export default function BiblePage() {
           <CrossRefSheet
             open={crossRefOpen}
             onClose={() => setCrossRefOpen(false)}
+            book={book}
+            chapter={chapter}
+            verse={selection[0]}
+            reference={selectionReference}
+          />
+          <CommentarySheet
+            open={commentaryOpen}
+            onClose={() => setCommentaryOpen(false)}
             book={book}
             chapter={chapter}
             verse={selection[0]}

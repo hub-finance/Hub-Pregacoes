@@ -16,7 +16,7 @@ import type { Pericope, StrongTag } from '../db/types';
 
 export type { StrongTag, Pericope } from '../db/types';
 
-export type MyBibleKind = 'bible' | 'dictionary' | 'unknown';
+export type MyBibleKind = 'bible' | 'dictionary' | 'commentary' | 'unknown';
 
 export interface MyBibleBible {
   kind: 'bible';
@@ -35,6 +35,21 @@ export interface MyBibleDictionary {
   kind: 'dictionary';
   info: Record<string, string>;
   entries: Array<{ topic: string; definition: string }>;
+}
+
+export interface MyBibleCommentaryEntry {
+  book: number;
+  chapterFrom: number;
+  verseFrom: number;
+  chapterTo: number;
+  verseTo: number;
+  text: string;
+}
+
+export interface MyBibleCommentary {
+  kind: 'commentary';
+  info: Record<string, string>;
+  entries: MyBibleCommentaryEntry[];
 }
 
 /**
@@ -61,10 +76,15 @@ const NUMBER_TO_OSIS = new Map<number, string>(
   MYBIBLE_BOOK_NUMBERS.map((n, i) => [n, CANON[i].osis]),
 );
 
+export const OSIS_TO_MYBIBLE_NUMBER = new Map<string, number>(
+  MYBIBLE_BOOK_NUMBERS.map((n, i) => [CANON[i].osis, n]),
+);
+
 /* --------------------------- que módulo é este --------------------------- */
 
 export function moduleKind(db: SQLiteFile): MyBibleKind {
   if (db.has('verses')) return 'bible';
+  if (db.has('commentaries')) return 'commentary';
   if (db.has('dictionary')) return 'dictionary';
   return 'unknown';
 }
@@ -319,4 +339,24 @@ export function isStrongDictionary(dict: MyBibleDictionary): boolean {
 /** Nome legível do módulo, para mostrar na lista. */
 export function moduleName(info: Record<string, string>, fallback: string): string {
   return (info.description || info.origin || info.name || fallback).trim() || fallback;
+}
+
+/* ----------------------------- comentário -------------------------------- */
+
+export function readCommentary(db: SQLiteFile): MyBibleCommentary {
+  const info = readInfo(db);
+  const entries: MyBibleCommentaryEntry[] = [];
+
+  for (const row of db.rows('commentaries')) {
+    const book = Number(row.book_number);
+    const chapterFrom = Number(row.chapter_number_from);
+    const verseFrom = Number(row.verse_number_from);
+    const chapterTo = Number(row.chapter_number_to ?? chapterFrom);
+    const verseTo = Number(row.verse_number_to ?? verseFrom);
+    const text = String(row.text ?? '').trim();
+    if (!Number.isFinite(book) || !text) continue;
+    entries.push({ book, chapterFrom, verseFrom, chapterTo, verseTo, text });
+  }
+
+  return { kind: 'commentary', info, entries };
 }

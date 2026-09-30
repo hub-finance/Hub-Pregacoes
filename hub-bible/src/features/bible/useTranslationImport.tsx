@@ -20,11 +20,11 @@ import type { BookMeta, TranslationInfo } from '../../core/db/types';
 /** Módulo do MyBible — o nome do arquivo é o que distingue os dois caminhos. */
 const isModule = (file: File) => /\.(sqlite3?|db)$/i.test(file.name);
 
-/** O próprio arquivo diz se é Bíblia ou dicionário — basta olhar as tabelas. */
-async function isDictionaryModule(buffer: ArrayBuffer): Promise<boolean> {
+/** O próprio arquivo diz se é Bíblia, dicionário ou comentário. */
+async function detectModuleKind(buffer: ArrayBuffer) {
   const { SQLiteFile } = await import('../../core/sqlite/reader');
   const { moduleKind } = await import('../../core/bible/mybible');
-  return moduleKind(SQLiteFile.open(buffer)) === 'dictionary';
+  return moduleKind(SQLiteFile.open(buffer));
 }
 
 /**
@@ -124,15 +124,28 @@ export function useTranslationImport({ catalog, onImported }: Options) {
     const { importMyBibleBible } = await import('../../core/bible/mybibleImport');
     const buffer = await file.arrayBuffer();
 
-    /* Bíblia e dicionário chegam no mesmo formato e pelo mesmo botão. Mandar o
-       usuário escolher "qual tipo" antes seria pedir que ele soubesse o que
-       tem no arquivo — o arquivo sabe. */
-    if (await isDictionaryModule(buffer)) {
+    /* Bíblia, dicionário e comentário chegam no mesmo formato e pelo mesmo
+       botão. Mandar o usuário escolher "qual tipo" antes seria pedir que ele
+       soubesse o que tem no arquivo — o arquivo sabe. */
+    const kind = await detectModuleKind(buffer);
+
+    if (kind === 'dictionary') {
       const { importDictionaryModule } = await import('../../core/data/dictionaries');
       const dic = await importDictionaryModule(buffer, file.name);
       notify(
         `${dic.dictionary.name}: ${dic.entries.toLocaleString('pt-BR')} verbetes` +
           (dic.dictionary.isStrong ? ', ligados aos números Strong.' : '.'),
+      );
+      onImported?.(null);
+      return;
+    }
+
+    if (kind === 'commentary') {
+      const { importCommentaryModule } = await import('../../core/data/commentaries');
+      const com = await importCommentaryModule(buffer, file.name);
+      notify(
+        `${com.commentary.name}: ${com.entries.toLocaleString('pt-BR')} notas` +
+          (com.commentary.isFootnotes ? ' (notas de rodapé).' : ' de comentário.'),
       );
       onImported?.(null);
       return;
@@ -156,7 +169,7 @@ export function useTranslationImport({ catalog, onImported }: Options) {
     <input
       ref={inputRef}
       type="file"
-      accept="application/json,.json,.SQLite3,.sqlite3,.sqlite,application/octet-stream"
+      accept="application/json,.json,.SQLite3,.sqlite3,.sqlite,.db,application/octet-stream"
       className="sr-only"
       onChange={(e) => void onFile(e.target.files?.[0])}
     />

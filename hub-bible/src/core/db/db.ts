@@ -3,6 +3,8 @@ import type {
   Attachment,
   BackupSnapshot,
   CachedBook,
+  CommentaryEntry,
+  CommentaryInfo,
   DictionaryEntry,
   DictionaryInfo,
   Devotional,
@@ -44,6 +46,8 @@ export class HubBibleDB extends Dexie {
   backups!: Table<BackupSnapshot, string>;
   dictionaries!: Table<DictionaryInfo, string>;
   dictionaryEntries!: Table<DictionaryEntry, string>;
+  commentaries!: Table<CommentaryInfo, string>;
+  commentaryEntries!: Table<CommentaryEntry, string>;
 
   constructor() {
     super('hub-bible');
@@ -80,6 +84,14 @@ export class HubBibleDB extends Dexie {
     this.version(4).stores({
       dictionaries: 'id, name, createdAt',
       dictionaryEntries: 'id, dictionaryId, topicKey, [dictionaryId+topicKey]',
+    });
+
+    // v5 — comentários bíblicos importados (Bíblia de Estudo, Genebra, NVT…).
+    // `chapterKey` é `${commentaryId}:${book}:${chapter}` — busca rápida dos
+    // comentários que aparecem num capítulo aberto.
+    this.version(5).stores({
+      commentaries: 'id, name, createdAt',
+      commentaryEntries: 'id, commentaryId, chapterKey, [commentaryId+chapterKey]',
     });
   }
 }

@@ -429,3 +429,34 @@ export interface DictionaryEntry {
   /** HTML restrito — passa pelo mesmo saneador dos sermões. */
   definition: string;
 }
+
+/* ----------------------------- comentários ----------------------------- */
+
+/**
+ * Comentário bíblico importado pelo usuário — tipicamente um módulo
+ * `*.commentaries.SQLite3` do MyBible (Bíblia de Estudo NTLH, Genebra, NVT…).
+ * Como as traduções e os dicionários, o conteúdo fica só neste aparelho.
+ */
+export interface CommentaryInfo {
+  id: ID;
+  name: string;
+  entries: number;
+  /** Notas de rodapé em vez de comentário (is_footnotes = true no módulo). */
+  isFootnotes: boolean;
+  language?: string;
+  createdAt: number;
+}
+
+export interface CommentaryEntry {
+  id: ID;
+  commentaryId: ID;
+  book: number;
+  chapterFrom: number;
+  verseFrom: number;
+  chapterTo: number;
+  verseTo: number;
+  /** Chave de busca rápida `${commentaryId}:${book}:${chapter}`. */
+  chapterKey: string;
+  /** HTML restrito — passa pelo mesmo saneador dos sermões. */
+  text: string;
+}

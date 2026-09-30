@@ -11,6 +11,7 @@ import {
   removeImportedTranslation,
 } from '../../core/bible/repository';
 import { listDictionaries, removeDictionary } from '../../core/data/dictionaries';
+import { listCommentaries, removeCommentary } from '../../core/data/commentaries';
 import { clearScriptureCache } from '../../core/db/db';
 import type { TranslationInfo } from '../../core/db/types';
 
@@ -26,6 +27,7 @@ export function TranslationManager() {
   const { notify } = useToast();
   const catalog = useAsync(() => loadCatalog(true), []);
   const dictionaries = useAsync(() => listDictionaries(), []);
+  const commentaryList = useAsync(() => listCommentaries(), []);
   const [progress, setProgress] = useState<{ id: string; done: number; total: number } | null>(null);
   const [installedMap, setInstalledMap] = useState<Record<string, number>>({});
 
@@ -49,6 +51,7 @@ export function TranslationManager() {
     onImported: () => {
       catalog.reload();
       dictionaries.reload();
+      commentaryList.reload();
       setInstalledMap({});
     },
   });
@@ -155,7 +158,7 @@ export function TranslationManager() {
       </button>
       <p className="small dim" style={{ marginTop: 'calc(var(--sp-2) * -1)' }}>
         Aceita <strong>JSON</strong> e <strong>módulos do MyBible</strong> (<code>.SQLite3</code>) —
-        é por aqui que entra uma Bíblia com números Strong. Pelo nome do arquivo o app reconhece a
+        Bíblias, dicionários e comentários bíblicos. Pelo nome do arquivo o app reconhece a
         tradução (ARA.json, NVI.json…); nome desconhecido entra como tradução sua.
       </p>
 
@@ -211,6 +214,38 @@ export function TranslationManager() {
         </div>
       )}
 
+      {!!commentaryList.data?.length && (
+        <div className="card stack" style={{ gap: 'var(--sp-3)' }}>
+          <span>
+            <span className="list-title">Comentários bíblicos importados</span>
+            <span className="list-meta">
+              Aparecem ao selecionar um versículo — ação &ldquo;Comentários&rdquo;.
+            </span>
+          </span>
+          {commentaryList.data.map((c) => (
+            <div key={c.id} className="list-item">
+              <span className="list-body">
+                <span className="list-title">{c.name}</span>
+                <span className="list-meta">
+                  {c.entries.toLocaleString('pt-BR')} notas
+                  {c.isFootnotes ? ' · notas de rodapé' : ''}
+                </span>
+              </span>
+              <button
+                className="btn btn-sm btn-danger"
+                onClick={async () => {
+                  await removeCommentary(c.id);
+                  notify('Comentário removido.');
+                  commentaryList.reload();
+                }}
+              >
+                Remover
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <details className="card">
         <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Formatos aceitos na importação</summary>
         <div className="stack small muted" style={{ marginTop: 'var(--sp-3)' }}>
@@ -218,7 +253,8 @@ export function TranslationManager() {
             <strong>Módulo do MyBible</strong> (<code>.SQLite3</code>): escolha o arquivo do módulo
             como ele está. No Android os módulos ficam na pasta <code>MyBible</code> da memória
             interna. Se a Bíblia tiver números Strong ou títulos de seção, eles vêm junto. Este
-            mesmo botão aceita <strong>dicionários</strong> (<code>.dictionary.SQLite3</code>) —
+            mesmo botão aceita <strong>dicionários</strong> (<code>.dictionary.SQLite3</code>) e{' '}
+            <strong>comentários bíblicos</strong> (<code>.commentaries.SQLite3</code>) —
             o próprio arquivo diz o que é.
           </p>
           <p>Ou <strong>JSON</strong>, em um destes formatos:</p>
