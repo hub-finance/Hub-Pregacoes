@@ -22,7 +22,7 @@ const THEME_COLOR: Record<ResolvedTheme, string> = {
   dark: '#22262e',
   azul: '#24374f',
   celeste: '#eef4fb',
-  jardim: '#ecf5ee',
+  jardim: '#eef5f0',
 };
 
 export interface ReadingPosition {
