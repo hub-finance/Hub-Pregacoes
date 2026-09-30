@@ -20,6 +20,13 @@ import type { BookMeta, TranslationInfo } from '../../core/db/types';
 /** Módulo do MyBible — o nome do arquivo é o que distingue os dois caminhos. */
 const isModule = (file: File) => /\.(sqlite3?|db)$/i.test(file.name);
 
+/** Um JSON que tem `verbetes`/`entries` e não tem `books` é um dicionário. */
+function isDictionaryJson(data: unknown): boolean {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
+  const obj = data as Record<string, unknown>;
+  return !!(obj.verbetes || obj.entries) && !obj.books && !obj.resultset;
+}
+
 /** O próprio arquivo diz se é Bíblia, dicionário ou comentário. */
 async function detectModuleKind(buffer: ArrayBuffer) {
   const { SQLiteFile } = await import('../../core/sqlite/reader');
@@ -107,6 +114,18 @@ export function useTranslationImport({ catalog, onImported }: Options) {
 
   const importJson = async (file: File, chosen: TranslationInfo | null) => {
     const data = await readJsonFile(file);
+
+    if (isDictionaryJson(data)) {
+      const { importDictionaryJson } = await import('../../core/data/dictionaries');
+      const dic = await importDictionaryJson(data as Record<string, unknown>);
+      notify(
+        `${dic.dictionary.name}: ${dic.entries.toLocaleString('pt-BR')} verbetes` +
+          (dic.dictionary.isStrong ? ', ligados aos números Strong.' : '.'),
+      );
+      onImported?.(null);
+      return;
+    }
+
     const info = chosen ?? slotForFile(file, catalog);
     const result = await importTranslation(info, data);
     notify(

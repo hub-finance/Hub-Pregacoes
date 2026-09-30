@@ -96,6 +96,99 @@ export async function importDictionaryModule(
   return { dictionary: info, entries: rows.length };
 }
 
+/**
+ * Importa um dicionário em JSON.
+ *
+ * Formato esperado:
+ * ```json
+ * {
+ *   "nome": "Dicionário Strong Português",
+ *   "tipo": "strong",        // "strong" ou "geral"
+ *   "idioma": "pt",
+ *   "verbetes": {
+ *     "H1": { "definicao": "pai..." },
+ *     "G26": { "lemma": "ἀγάπη", "translit": "agapē", "definicao": "amor..." }
+ *   }
+ * }
+ * ```
+ *
+ * Também aceita array:
+ * ```json
+ * { "nome": "…", "verbetes": [ { "chave": "H1", "definicao": "…" } ] }
+ * ```
+ */
+export async function importDictionaryJson(
+  data: Record<string, unknown>,
+): Promise<DictionaryImportResult> {
+  const name = String(data.nome ?? data.name ?? 'Dicionário');
+  const tipo = String(data.tipo ?? data.type ?? '');
+  const idioma = String(data.idioma ?? data.language ?? '');
+
+  const raw = data.verbetes ?? data.entries;
+  if (!raw || (typeof raw !== 'object')) {
+    throw new Error('O JSON precisa ter uma chave "verbetes" com os verbetes do dicionário.');
+  }
+
+  const pairs: Array<{ topic: string; definition: string }> = [];
+
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (!item || typeof item !== 'object') continue;
+      const obj = item as Record<string, unknown>;
+      const topic = String(obj.chave ?? obj.key ?? obj.topic ?? '').trim();
+      const def = String(obj.definicao ?? obj.definition ?? '').trim();
+      if (topic && def) pairs.push({ topic, definition: def });
+    }
+  } else {
+    for (const [key, val] of Object.entries(raw as Record<string, unknown>)) {
+      const topic = key.trim();
+      if (!topic) continue;
+      if (typeof val === 'string') {
+        if (val.trim()) pairs.push({ topic, definition: val.trim() });
+        continue;
+      }
+      if (val && typeof val === 'object') {
+        const obj = val as Record<string, unknown>;
+        const parts: string[] = [];
+        if (obj.lemma) parts.push(`<strong>${obj.lemma}</strong>`);
+        if (obj.translit) parts.push(`<em>${obj.translit}</em>`);
+        if (obj.pron ?? obj.pronuncia) parts.push(`(${obj.pron ?? obj.pronuncia})`);
+        const def = String(obj.definicao ?? obj.definition ?? '').trim();
+        if (def) parts.push(def);
+        if (parts.length) pairs.push({ topic, definition: parts.join(' — ') });
+      }
+    }
+  }
+
+  if (!pairs.length) throw new Error('Nenhum verbete encontrado no JSON.');
+
+  const isStrong = tipo === 'strong' || pairs.slice(0, 40).filter((e) => /^[HG]?\d+$/i.test(e.topic)).length / Math.min(pairs.length, 40) > 0.7;
+
+  const info: DictionaryInfo = {
+    id: uid('dic_'),
+    name,
+    isStrong,
+    entries: pairs.length,
+    language: idioma || undefined,
+    createdAt: now(),
+  };
+
+  const rows: DictionaryEntry[] = pairs.map((e) => ({
+    id: uid('de_'),
+    dictionaryId: info.id,
+    topic: e.topic,
+    topicKey: topicKey(e.topic),
+    definition: sanitizeHtml(e.definition),
+  }));
+
+  await db.transaction('rw', [db.dictionaries, db.dictionaryEntries], async () => {
+    await db.dictionaries.put(info);
+    await db.dictionaryEntries.bulkPut(rows);
+  });
+
+  return { dictionary: info, entries: rows.length };
+}
+
 export interface StrongDefinition {
   dictionary: string;
   topic: string;

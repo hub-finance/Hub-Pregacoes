@@ -278,6 +278,26 @@ export function TranslationManager() {
             O formato 2 é o que sai das coletâneas abertas em JSON — é só escolher o arquivo, sem
             converter nada.
           </p>
+          <p>
+            <strong>Dicionário em JSON</strong> — reconhecido automaticamente pela chave{' '}
+            <code>verbetes</code>:
+          </p>
+          <pre
+            style={{
+              overflowX: 'auto',
+              background: 'var(--surface-2)',
+              padding: 'var(--sp-3)',
+              borderRadius: 'var(--r-sm)',
+              fontSize: '0.78rem',
+            }}
+          >{`{
+  "nome": "Léxico Strong Português",
+  "tipo": "strong",
+  "verbetes": {
+    "H430": { "definicao": "Deus, deuses…" },
+    "G26":  { "lemma": "ἀγάπη", "definicao": "amor…" }
+  }
+}`}</pre>
         </div>
       </details>
     </div>
