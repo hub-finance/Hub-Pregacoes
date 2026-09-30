@@ -1,117 +1,53 @@
 # Pendências — retomar daqui
 
-Estado em **29/09/2026**. Tudo o que está descrito abaixo foi levantado e
+Estado em **30/09/2026**. Tudo o que está descrito abaixo foi levantado e
 verificado; nada aqui é suposição. O que já foi entregue está no `README.md`.
 
 ---
 
-## PRÓXIMA SESSÃO — três alvos prioritários
+## Entregues em 29–30/09/2026
 
-Combinado com o usuário em 29/09/2026. Atacar os três juntos.
+### A. ✅ Referências cruzadas: 418 → 26.195 versículos
 
-### A. Referências cruzadas: 418 → ~30.000 versículos
+Expandido de 418 versículos (1.678 conexões) para **26.195 versículos**
+(148.745 conexões). Fonte: openbible.info (CC-BY), filtrado por votos ≥ 3 e
+limitado a 10 alvos por versículo para manter o JSON sob 2 MB.
 
-Hoje temos 418 versículos com referências cruzadas (1.678 conexões). O
-**Treasury of Scripture Knowledge** (1836, domínio público) tem ~340.000
-conexões cobrindo ~30.000 versículos. É a fonte de referência do Olive Tree
-e do Blue Letter Bible.
+As referências curadas por tema continuam presentes e bidirecionais.
+Corrigidos três códigos OSIS errados nas curadas (PHI→PHP, JDE→JUD, EZE→EZK)
+que deixavam esses versículos silenciosamente quebrados.
 
-Fontes no GitHub: `scrollmapper/bible_databases` tem o TSK em SQLite. O ETL
-em `scripts/build-theological-dict.mjs` já gera `cross-references.json` —
-ampliar para incluir o TSK, mantendo o formato `OSIS.capítulo.versículo`.
+O script baixa a fonte na primeira execução e guarda em `scripts/.cache/`.
+Comando: `npm run xrefs:build`.
 
-Atenção ao tamanho do JSON: ~30.000 chaves com ~10 referências cada pode
-passar de 2 MB. Considerar dividir por livro ou comprimir as chaves.
+### B. ✅ Dicionário teológico: 22 → 115 verbetes
 
-### B. Dicionário teológico: 22 → 200+ verbetes
+115 verbetes cobrindo todas as categorias previstas em §4-§15 — soteriologia,
+escatologia, eclesiologia, anjos e demônios, família cristã, ministério
+pastoral, hermenêutica, entre outras. Referências bíblicas e relacionamentos
+cruzados validados (zero referências pendentes).
 
-O prompt mestre (`Prompt_Mestre_Palavra_da_Fe.md`) cita dezenas de termos
-hebraicos e gregos nos §4 (Doutrina Base), §11 (Palavra e Confissão),
-§12 (Cura), §13 (Provisão), §14 (Autoridade), §15 (Identidade em Cristo).
-Todos devem virar verbetes do dicionário, em linguagem prática (como os 22
-atuais). Termos a cobrir:
+Famílias semânticas: 17 grupos, 72 termos.
+Comando: `npm run dict:build`.
 
-- **§4.5 Graça:** χάρις (charis)
-- **§4.6 Fé:** πίστις (pistis), אֱמוּנָה (emunah)
-- **§4.7 Justificação:** δικαιόω, δικαιοσύνη, δίκαιος, δικαίωσις, צֶדֶק, צְדָקָה
-- **§11 Palavra:** λόγος, ῥῆμα, λέγω, ὁμολογέω
-- **§12 Cura:** רפא (rapha), θεραπεύω, ἰάομαι, σῴζω, σωτηρία
-- **§13 Provisão:** בְּרָכָה (berakah), εὐοδόω, πλουτέω, πλοῦτος
-- **§14 Autoridade:** ἐξουσία, δύναμις, κράτος, ἰσχύς
-- **§15 Identidade:** ἐν Χριστῷ, καινὴ κτίσις, υἱοθεσία, ἅγιος
-- Conceitos-chave: redenção, reconciliação, propiciação, expiação, aliança,
-  santificação, glorificação, eleição, predestinação, arrependimento,
-  batismo, ressurreição, segunda vinda, reino de Deus, etc.
+### C. ✅ Guias doutrinários por tema — recurso NOVO
 
-Cada verbete segue o padrão já estabelecido: `id`, `termo`, `hebraico`/`grego`
-(com transliteração e Strong), `definicao` em linguagem prática, `distincao`,
-`textos` e `relacionados`.
+8 guias com 47 passos no total, em `public/reference/doctrinal-guides.json`.
+Cada passo liga a um verbete do dicionário e traz textos-chave.
 
-### C. Guias doutrinários por tema — recurso NOVO
+Tela acessível em `/guias`, com navegação pelo menu lateral (grupo Ministério).
+Cada guia mostra os passos numerados, com resumo, links para os versículos
+bíblicos e expansão para o verbete do dicionário teológico.
 
-O prompt descreve fluxos doutrinários que conectam conceitos em cadeia.
-Transformar em uma seção acessível no app: **"Temas da Palavra da Fé"**.
+Temas: Justificação pela fé, Identidade em Cristo, Palavra e confissão,
+Cura divina, Provisão e prosperidade, Autoridade do crente, Graça, AT → NT.
 
-Temas a construir (extraídos do prompt):
+### D. ✅ Importação de dicionário em JSON
 
-1. **Justificação pela fé** — Cristo → Redenção → Justificação → Justiça
-   pela fé → Nova identidade → Vida em Cristo → Santificação (§4.7)
-2. **Identidade em Cristo** — Cristo → União com Cristo → Nova criação →
-   Justificação → Justiça → Filiação → Herança → Autoridade → Vida no
-   Espírito (§15)
-3. **Palavra e confissão** — Coração → Fé → Palavra → Confissão → Ação (§11)
-4. **Cura divina** — Rapha → Ministério de Jesus → Dons de cura → Oração
-   da fé (§12)
-5. **Provisão e prosperidade** — Bênção da aliança → Trabalho → Semeadura →
-   Generosidade → Mordomia (§13)
-6. **Autoridade do crente** — Exousia → Dynamis → Nome de Jesus → Vida no
-   Espírito (§14)
-7. **Graça** — Favor → Dom → Capacitação → Fundamento da salvação →
-   Fundamento da vida cristã (§4.5)
-8. **AT → NT** — Promessa → Cumprimento / Tipo → Antítipo / Sombra →
-   Realidade / Lei → Graça (§8)
-
-Cada tema traz: título, descrição, o fluxo de conceitos (com setas visuais),
-os versículos-chave de cada passo, e links para os verbetes do dicionário.
-
-Formato de dados: novo JSON em `public/reference/doctrinal-guides.json`.
-Tela: nova rota `/guias` ou seção dentro da Biblioteca Ministerial.
-O `CrossRefSheet` também pode linkar para o guia relevante quando um
-versículo aparece num tema.
-
-### D. Importação de dicionário em JSON — recurso NOVO
-
-Mesmo padrão da importação de traduções bíblicas: o app embute o que é
-livre, e o usuário importa o que ele tem no aparelho.
-
-Casos de uso:
-- Strong em português (Sociedade Bíblica do Brasil — protegido, não embutível)
-- Vine's traduzido
-- Qualquer léxico bíblico que o usuário tenha em JSON
-
-Formato de importação a definir (sugestão):
-```json
-{
-  "nome": "Dicionário Strong Português",
-  "tipo": "strong",
-  "idioma": "pt",
-  "verbetes": {
-    "H1": { "lemma": "אָב", "translit": "av", "definicao": "pai..." },
-    "G26": { "lemma": "ἀγάπη", "translit": "agapē", "definicao": "amor..." }
-  }
-}
-```
-
-Implementação:
-- Tabela Dexie `importedDictionaries` + `importedDictEntries` (como
-  `dictionaries` + `dictionaryEntries` que já existem para MyBible).
-- Tela de importação em Configurações, ao lado da importação de traduções.
-- Consulta unificada: o `StrongSheet` procura primeiro no dicionário
-  importado, depois no embutido (inglês).
-- O texto importado fica apenas no dispositivo — nunca sobe para servidor.
-
-**Regra de licença:** igual às traduções. O app aceita o arquivo; quem
-responde pela origem é o usuário.
+Concluído em 29/09/2026. O mesmo botão de importação aceita JSON com
+`verbetes` (objeto ou array) e módulos `.dictionary.SQLite3` do MyBible.
+Auto-detecção de tipo Strong. Verbetes ficam no aparelho (IndexedDB).
+Consultados antes do léxico embutido em inglês.
 
 ---
 
