@@ -156,19 +156,6 @@
     "requiresLicense": true
   },
   {
-    "id": "pt_jfaa",
-    "name": "Almeida Atualizada",
-    "shortName": "JFAA",
-    "abbrev": "JFAA",
-    "language": "pt-BR",
-    "languageLabel": "Português",
-    "publisher": "João Ferreira de Almeida, edição atualizada",
-    "license": "Direitos reservados da editora",
-    "bundled": false,
-    "default": false,
-    "requiresLicense": true
-  },
-  {
     "id": "pt_kja",
     "name": "King James Atualizada",
     "shortName": "KJA",
