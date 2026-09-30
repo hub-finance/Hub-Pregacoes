@@ -6,42 +6,9 @@ import { Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
 import { getBook, findVersesWithStrong } from '../../core/bible/repository';
 import { verseWords } from '../../core/bible/mybible';
-import { hasStrongDictionary, lookupStrong } from '../../core/data/dictionaries';
+import { lookupStrong } from '../../core/data/dictionaries';
 import { findGroupForStrong, type SemanticGroup } from '../../core/bible/reference-data';
-import type { LexiconEntry } from '../../core/bible/lexicon';
 import type { StrongTag } from '../../core/db/types';
-
-/**
- * O verbete do léxico embutido, campo a campo.
- *
- * Vem em dados separados, e não num bloco de texto, então desenhar é melhor do
- * que emendar tudo numa frase: o termo original em corpo grande, a pronúncia ao
- * lado, e a definição em seguida. É a ordem em que se lê um léxico impresso.
- */
-function LexiconBody({ entry }: { entry: LexiconEntry }) {
-  return (
-    <div className="stack" style={{ gap: 'var(--sp-1)' }}>
-      {entry.lemma && (
-        <div className="row row-wrap" style={{ gap: 'var(--sp-2)', alignItems: 'baseline' }}>
-          <span className="lexicon-lemma">{entry.lemma}</span>
-          {entry.translit && <span style={{ fontStyle: 'italic' }}>{entry.translit}</span>}
-          {entry.pron && <span className="small dim">{entry.pron}</span>}
-        </div>
-      )}
-      {entry.definition && <p className="strong-definition">{entry.definition}</p>}
-      {entry.derivation && (
-        <p className="small dim">
-          <strong>Derivação:</strong> {entry.derivation}
-        </p>
-      )}
-      {entry.kjv && (
-        <p className="small dim">
-          <strong>Na King James:</strong> {entry.kjv}
-        </p>
-      )}
-    </div>
-  );
-}
 
 interface Props {
   open: boolean;
@@ -71,7 +38,7 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
     const record = await getBook(translation, book);
     const text = record.chapters[chapter - 1]?.[verse - 1] ?? '';
     const tags: StrongTag[] = record.strongs?.[chapter - 1]?.[verse - 1] ?? [];
-    return { words: verseWords(text), tags, hasDictionary: await hasStrongDictionary() };
+    return { words: verseWords(text), tags };
   }, [translation, book, chapter, verse, open]);
 
   /** Palavra -> códigos. Uma palavra pode carregar mais de um. */
@@ -159,24 +126,19 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
                   <span className="list-meta">
                     {d.dictionary} · {d.topic}
                   </span>
-
-                  {d.lexicon ? (
-                    <LexiconBody entry={d.lexicon} />
-                  ) : (
-                    <div
-                      className="strong-definition"
-                      dangerouslySetInnerHTML={{ __html: d.definition }}
-                    />
-                  )}
-
-                  {/* crédito exigido pela licença da fonte; não é enfeite */}
-                  {d.credit && <span className="small dim">{d.credit}</span>}
+                  <div
+                    className="strong-definition"
+                    dangerouslySetInnerHTML={{ __html: d.definition }}
+                  />
                 </div>
               ))}
 
               {definitions.data && !definitions.data.length && (
                 <div className="notice">
-                  <span>Nenhum léxico traz este verbete.</span>
+                  <span>Nenhum dicionário importado traz este verbete.</span>
+                  <Link to="/config" onClick={onClose} className="small" style={{ fontWeight: 600 }}>
+                    Importar dicionário
+                  </Link>
                 </div>
               )}
 
@@ -226,17 +188,6 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
                 </div>
               )}
 
-              {/* Convite, não aviso de falta: o léxico embutido já respondeu.
-                  Só faz sentido para quem ainda não tem um em português. */}
-              {definitions.data?.length && !data.data.hasDictionary ? (
-                <p className="small dim">
-                  O léxico que vem no aplicativo é em inglês.{' '}
-                  <Link to="/config" onClick={onClose} style={{ fontWeight: 600 }}>
-                    Importe um em português
-                  </Link>{' '}
-                  se você tiver um — ele passa a aparecer primeiro.
-                </p>
-              ) : null}
             </div>
           )}
         </>

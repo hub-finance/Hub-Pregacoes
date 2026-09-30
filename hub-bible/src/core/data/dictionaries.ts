@@ -2,17 +2,15 @@ import { db, now, uid } from '../db/db';
 import { sanitizeHtml } from '../sanitizeHtml';
 import { SQLiteFile } from '../sqlite/reader';
 import { isStrongDictionary, moduleKind, moduleName, readDictionary } from '../bible/mybible';
-import { LEXICON_CREDIT, LEXICON_NAME, lookupLexicon, type LexiconEntry } from '../bible/lexicon';
+
 import type { DictionaryEntry, DictionaryInfo } from '../db/types';
 
 /**
  * Dicionários importados pelo usuário.
  *
- * O aplicativo já traz o léxico de Strong embutido (ver `bible/lexicon.ts`),
- * mas em inglês — é o único com licença que permite distribuir. Nenhum léxico
- * em português tem, todos derivam de edições protegidas. Quem já possui um
- * módulo do MyBible tem o conteúdo, e o app sabe ler esse formato: como as
- * traduções, fica no aparelho, e aparece antes do embutido.
+ * O app lê módulos MyBible e JSON com verbetes de Strong ou dicionários
+ * gerais. O conteúdo fica no aparelho — nenhum léxico é distribuído junto
+ * com o aplicativo.
  */
 
 /**
@@ -193,56 +191,27 @@ export interface StrongDefinition {
   dictionary: string;
   topic: string;
   definition: string;
-  /** verbete do léxico embutido; a tela o desenha campo a campo */
-  lexicon?: LexiconEntry;
-  /** crédito exigido pela licença da fonte, quando houver */
-  credit?: string;
 }
 
 /**
- * Procura um código Strong nos dicionários importados e no léxico embutido.
+ * Procura um código Strong nos dicionários importados pelo usuário.
  *
  * Devolve lista, e não um só: quem tem dois léxicos quer ver os dois, e é assim
  * que se compara uma definição curta com uma extensa.
- *
- * Os importados vêm primeiro de propósito. O léxico embutido é em inglês —
- * quem se deu ao trabalho de instalar um em português quer ler o dele antes.
  */
 export async function lookupStrong(code: string): Promise<StrongDefinition[]> {
   const keys = candidateKeys(code);
-  const [rows, entry] = await Promise.all([
-    db.dictionaryEntries.where('topicKey').anyOf(keys).toArray(),
-    lookupLexicon(code),
-  ]);
+  const rows = await db.dictionaryEntries.where('topicKey').anyOf(keys).toArray();
 
   const names = new Map((await listDictionaries()).map((d) => [d.id, d.name]));
-  const imported = rows.map((r) => ({
+  return rows.map((r) => ({
     dictionary: names.get(r.dictionaryId) ?? 'Dicionário',
     topic: r.topic,
     definition: r.definition,
   }));
-
-  if (!entry) return imported;
-  return [
-    ...imported,
-    {
-      dictionary: LEXICON_NAME,
-      topic: entry.code,
-      definition: '',
-      lexicon: entry,
-      credit: LEXICON_CREDIT,
-    },
-  ];
 }
 
-/**
- * Há léxico para consultar?
- *
- * Sempre há: o de Strong vem dentro do aplicativo. A função continua existindo
- * porque a tela usa a resposta para decidir se vale convidar o leitor a
- * importar um léxico em português — o que só faz sentido para quem ainda não
- * tem nenhum importado.
- */
+/** Há algum dicionário de Strong importado pelo usuário? */
 export async function hasStrongDictionary(): Promise<boolean> {
   const all = await listDictionaries();
   return all.some((d) => d.isStrong);
