@@ -218,6 +218,68 @@ export async function installTranslation(
   await Promise.all(Array.from({ length: CONCURRENCY }, worker));
 }
 
+/* -------------------- versículos que usam um código Strong ---------------- */
+
+export interface StrongOccurrence {
+  book: string;
+  bookName: string;
+  chapter: number;
+  verse: number;
+  text: string;
+}
+
+/**
+ * Procura versículos que usam um código Strong na tradução indicada.
+ *
+ * Varre apenas os livros já gravados no aparelho (memória + IndexedDB) para não
+ * disparar dezenas de fetches. Devolve no máximo `limit` resultados.
+ */
+export async function findVersesWithStrong(
+  translation: string,
+  code: string,
+  limit = 20,
+): Promise<StrongOccurrence[]> {
+  const normalized = code.replace(/^([HG])0*/, '$1');
+  const keys = await db.books
+    .where('translation')
+    .equals(translation)
+    .primaryKeys() as string[];
+
+  const results: StrongOccurrence[] = [];
+
+  for (const key of keys) {
+    if (results.length >= limit) break;
+    const record = memBooks.get(key) ?? (await db.books.get(key));
+    if (!record?.strongs) continue;
+
+    const canon = CANON_BY_OSIS.get(record.book);
+    const bName = canon?.name ?? record.book;
+
+    for (let ci = 0; ci < record.strongs.length && results.length < limit; ci++) {
+      const verseTags = record.strongs[ci];
+      if (!verseTags) continue;
+      for (let vi = 0; vi < verseTags.length && results.length < limit; vi++) {
+        const tags = verseTags[vi];
+        if (!tags?.length) continue;
+        if (tags.some(([, c]) => c.replace(/^([HG])0*/, '$1') === normalized)) {
+          const text = record.chapters[ci]?.[vi] ?? '';
+          if (text) {
+            results.push({
+              book: record.book,
+              bookName: bName,
+              chapter: ci + 1,
+              verse: vi + 1,
+              text,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return results;
+}
+
 export function forgetMemoryCache(): void {
   memBooks.clear();
   memMeta.clear();

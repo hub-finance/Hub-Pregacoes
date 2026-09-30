@@ -4,7 +4,7 @@ import { Sheet } from '../../components/Sheet';
 import { Icon } from '../../components/Icon';
 import { Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
-import { getBook } from '../../core/bible/repository';
+import { getBook, findVersesWithStrong } from '../../core/bible/repository';
 import { verseWords } from '../../core/bible/mybible';
 import { hasStrongDictionary, lookupStrong } from '../../core/data/dictionaries';
 import { findGroupForStrong, type SemanticGroup } from '../../core/bible/reference-data';
@@ -102,6 +102,11 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
     [codes.join(','), open],
   );
 
+  const occurrences = useAsync(
+    async () => (codes.length ? findVersesWithStrong(translation, codes[0]) : []),
+    [codes.join(','), translation, open],
+  );
+
   return (
     <Sheet open={open} title={`${reference} — no original`} onClose={onClose} size="lg">
       {data.loading && <Spinner />}
@@ -192,6 +197,30 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
                         <span style={{ fontStyle: 'italic' }}>{t.lemma}</span>
                         <span className="dim">— {t.sentido}</span>
                       </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {occurrences.data && occurrences.data.length > 0 && (
+                <div className="card stack" style={{ gap: 'var(--sp-2)' }}>
+                  <div className="row" style={{ gap: 'var(--sp-2)', alignItems: 'center' }}>
+                    <Icon name="book" size={16} className="dim" />
+                    <strong className="small">Versículos com este termo</strong>
+                  </div>
+                  <div className="stack" style={{ gap: 'var(--sp-3)' }}>
+                    {occurrences.data.map((o, i) => (
+                      <div key={i} style={{ paddingLeft: 'var(--sp-2)', borderLeft: '2px solid var(--border)' }}>
+                        <Link
+                          to={`/biblia/${o.book}/${o.chapter}`}
+                          onClick={onClose}
+                          className="small"
+                          style={{ fontWeight: 650, color: 'var(--accent)' }}
+                        >
+                          {o.bookName} {o.chapter}:{o.verse}
+                        </Link>
+                        <p className="small" style={{ margin: '2px 0 0', color: 'var(--text-2)' }}>{o.text}</p>
+                      </div>
                     ))}
                   </div>
                 </div>
