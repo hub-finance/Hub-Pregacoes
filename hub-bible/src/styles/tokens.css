@@ -162,6 +162,35 @@
   --overlay: rgba(14, 28, 50, 0.4);
 }
 
+/* ---------------------------------- jardim ------------------------------- */
+/* Tema diurno com identidade verde: fundo verde-claro suave, destaques em
+   verde-escuro, texto escuro. Evoca calma e natureza para leitura devocional. */
+:root[data-theme='jardim'] {
+  color-scheme: light;
+  --bg: #eef6f0;
+  --bg-elevated: #f7fcf8;
+  --bg-sunken: #e2efe5;
+  --surface: #f7fcf8;
+  --surface-2: #e8f4eb;
+  --surface-hover: #daeede;
+  --border: #c0dbc6;
+  --border-strong: #a2c8aa;
+  --text: #1a2e1f;
+  --text-2: #3d5643;
+  --text-3: #6a8a72;
+  --accent: #2a7a45;
+  --accent-strong: #1d5c33;
+  --accent-soft: #d2edd9;
+  --accent-contrast: #ffffff;
+  --danger: #b23a35;
+  --success: #2a7a45;
+  --info: #2d6d5a;
+  --shadow-1: 0 1px 2px rgba(14, 40, 22, 0.06), 0 1px 3px rgba(14, 40, 22, 0.06);
+  --shadow-2: 0 6px 20px rgba(14, 40, 22, 0.1);
+  --shadow-3: 0 18px 48px rgba(14, 40, 22, 0.16);
+  --overlay: rgba(14, 40, 22, 0.4);
+}
+
 /* ---------------------------------- sépia -------------------------------- */
 :root[data-theme='sepia'] {
   color-scheme: light;
@@ -207,7 +236,15 @@
   --border-strong: #607d9e;
   --accent: #1a4a80;
 }
-:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']) {
+:root[data-contrast='high'][data-theme='jardim'] {
+  --text: #0a1e10;
+  --text-2: #163822;
+  --text-3: #2a5035;
+  --border: #7aaa84;
+  --border-strong: #5a8a64;
+  --accent: #155a2a;
+}
+:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']):not([data-theme='jardim']) {
   --text: #000000;
   --text-2: #2a2620;
   --text-3: #4a443b;
