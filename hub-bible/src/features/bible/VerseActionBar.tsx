@@ -59,8 +59,9 @@ export function VerseActionBar({
       {actions.map((a) => (
         <button key={a.id} className="verse-action" onClick={a.onClick} title={a.label} aria-label={a.label}>
           <span className="ico">
-            <Icon name={a.icon} size={22} />
+            <Icon name={a.icon} size={20} />
           </span>
+          <span className="action-label">{a.label}</span>
         </button>
       ))}
       <button className="verse-action" onClick={onClear}>

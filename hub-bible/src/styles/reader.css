@@ -243,17 +243,27 @@
 .verse-action {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
+  gap: var(--sp-1);
+  padding: var(--sp-2) var(--sp-3);
   border-radius: var(--r-full);
   color: var(--text-2);
   flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 550;
+  white-space: nowrap;
 }
 .verse-action .ico {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+.verse-action .action-label {
+  display: none;
+}
+@media (min-width: 700px) {
+  .verse-action .action-label {
+    display: inline;
+  }
 }
 .verse-action:hover {
   background: var(--surface-hover);
