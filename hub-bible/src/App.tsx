@@ -30,6 +30,7 @@ const PlansPage = lazy(() => import('./features/plans/PlansPage'));
 const PlanDetailPage = lazy(() => import('./features/plans/PlanDetailPage'));
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const SettingsPage = lazy(() => import('./features/settings/SettingsPage'));
+const GuidesPage = lazy(() => import('./features/guides/GuidesPage'));
 const HelpPage = lazy(() => import('./features/help/HelpPage'));
 const PreachingPage = lazy(() => import('./features/preaching/PreachingPage'));
 
@@ -132,6 +133,7 @@ export default function App() {
                   <Route path="/cursos/:id" element={<CourseEditorPage />} />
                   <Route path="/devocionais" element={<Navigate to="/cursos" replace />} />
                   <Route path="/devocionais/:id" element={<LegacyDevotionalRedirect />} />
+                  <Route path="/guias" element={<GuidesPage />} />
                   <Route path="/biblioteca" element={<LibraryPage />} />
                   <Route path="/biblioteca/material/:id" element={<LibraryDocEditorPage />} />
                   <Route path="/planos" element={<PlansPage />} />

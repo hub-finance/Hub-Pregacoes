@@ -251,3 +251,54 @@ export async function findGroupForStrong(strong: string): Promise<SemanticGroup 
   const normalized = strong.replace(/^([HG])0*/, '$1');
   return all.find((g) => g.termos.some((t) => t.strong === normalized)) ?? null;
 }
+
+/* ─────────────────── Guias doutrinários ─────────────────── */
+
+export interface GuideStep {
+  conceito: string;
+  resumo: string;
+  verbete: string;
+  textos: string[];
+}
+
+export interface DoctrinalGuide {
+  id: string;
+  titulo: string;
+  descricao: string;
+  passos: GuideStep[];
+}
+
+let guides: DoctrinalGuide[] | null = null;
+let guidesPromise: Promise<DoctrinalGuide[]> | null = null;
+
+async function loadGuides(): Promise<DoctrinalGuide[]> {
+  if (guides) return guides;
+  if (guidesPromise) return guidesPromise;
+  guidesPromise = fetch(`${import.meta.env.BASE_URL}reference/doctrinal-guides.json`)
+    .then((r) => {
+      if (!r.ok) throw new Error(`Guias indisponíveis (${r.status}).`);
+      return r.json() as Promise<DoctrinalGuide[]>;
+    })
+    .then((data) => {
+      guides = data;
+      return data;
+    })
+    .catch((err) => {
+      guidesPromise = null;
+      throw err;
+    });
+  return guidesPromise;
+}
+
+export async function getDoctrinalGuides(): Promise<DoctrinalGuide[]> {
+  try {
+    return await loadGuides();
+  } catch {
+    return [];
+  }
+}
+
+export async function getDoctrinalGuide(id: string): Promise<DoctrinalGuide | null> {
+  const all = await getDoctrinalGuides();
+  return all.find((g) => g.id === id) ?? null;
+}

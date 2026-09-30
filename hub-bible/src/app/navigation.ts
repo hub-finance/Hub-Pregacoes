@@ -22,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/cursos', label: 'Cursos', icon: 'library', quick: true, group: 'ministerio' },
   { to: '/rhema', label: 'Rhema', icon: 'study', quick: true, group: 'ministerio' },
   { to: '/sermoes', label: 'Sermões', icon: 'sermon', quick: true, group: 'ministerio' },
+  { to: '/guias', label: 'Guias Doutrinários', shortLabel: 'Guias', icon: 'layers', quick: true, group: 'ministerio' },
   { to: '/planos', label: 'Plano de leitura', icon: 'calendar', quick: true, group: 'ministerio' },
   {
     to: '/biblioteca',
