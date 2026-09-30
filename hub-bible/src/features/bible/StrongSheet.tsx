@@ -51,6 +51,7 @@ interface Props {
   chapter: number;
   verse: number;
   reference: string;
+  initialWord?: number | null;
 }
 
 /**
@@ -63,7 +64,7 @@ interface Props {
  * Sem dicionário importado, o código aparece sozinho — e a folha diz onde
  * arrumar um, em vez de mostrar "H430" e deixar o leitor no escuro.
  */
-export function StrongSheet({ open, onClose, translation, book, chapter, verse, reference }: Props) {
+export function StrongSheet({ open, onClose, translation, book, chapter, verse, reference, initialWord }: Props) {
   const [picked, setPicked] = useState<number | null>(null);
 
   const data = useAsync(async () => {
@@ -86,7 +87,8 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
 
   useEffect(() => {
     if (!open) setPicked(null);
-  }, [open]);
+    else if (initialWord != null) setPicked(initialWord);
+  }, [open, initialWord]);
 
   const codes = picked === null ? [] : (codesByWord.get(picked) ?? []);
   const definitions = useAsync(

@@ -167,28 +167,28 @@
    verde-escuro, texto escuro. Evoca calma e natureza para leitura devocional. */
 :root[data-theme='jardim'] {
   color-scheme: light;
-  --bg: #eef6f0;
-  --bg-elevated: #f7fcf8;
-  --bg-sunken: #e2efe5;
-  --surface: #f7fcf8;
-  --surface-2: #e8f4eb;
-  --surface-hover: #daeede;
-  --border: #c0dbc6;
-  --border-strong: #a2c8aa;
-  --text: #1a2e1f;
-  --text-2: #3d5643;
-  --text-3: #6a8a72;
-  --accent: #2a7a45;
-  --accent-strong: #1d5c33;
-  --accent-soft: #d2edd9;
+  --bg: #ecf5ee;
+  --bg-elevated: #f5faf6;
+  --bg-sunken: #dfeee2;
+  --surface: #f5faf6;
+  --surface-2: #e5f0e8;
+  --surface-hover: #d6eadb;
+  --border: #b0ccb6;
+  --border-strong: #8ab494;
+  --text: #112016;
+  --text-2: #2b4432;
+  --text-3: #4d6e56;
+  --accent: #1a6b35;
+  --accent-strong: #0f4d24;
+  --accent-soft: #c8e4cf;
   --accent-contrast: #ffffff;
-  --danger: #b23a35;
-  --success: #2a7a45;
-  --info: #2d6d5a;
-  --shadow-1: 0 1px 2px rgba(14, 40, 22, 0.06), 0 1px 3px rgba(14, 40, 22, 0.06);
-  --shadow-2: 0 6px 20px rgba(14, 40, 22, 0.1);
-  --shadow-3: 0 18px 48px rgba(14, 40, 22, 0.16);
-  --overlay: rgba(14, 40, 22, 0.4);
+  --danger: #a63530;
+  --success: #1a6b35;
+  --info: #1f5a48;
+  --shadow-1: 0 1px 2px rgba(10, 32, 16, 0.08), 0 1px 3px rgba(10, 32, 16, 0.08);
+  --shadow-2: 0 6px 20px rgba(10, 32, 16, 0.12);
+  --shadow-3: 0 18px 48px rgba(10, 32, 16, 0.18);
+  --overlay: rgba(10, 32, 16, 0.45);
 }
 
 /* ---------------------------------- sépia -------------------------------- */

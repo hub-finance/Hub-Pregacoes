@@ -1,9 +1,8 @@
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BOTTOM_NAV, GROUP_LABEL, NAV_ITEMS, type NavItem } from './navigation';
 import { useOnline } from '../hooks';
 import { useSettings, type ResolvedTheme } from '../core/settings/SettingsContext';
-import { Sheet } from '../components/Sheet';
 import { Icon, type IconName } from '../components/Icon';
 import { SearchScopeProvider, useScopedSearch } from './SearchScope';
 import { ImmersiveProvider, useImmersive } from './Immersive';
@@ -41,8 +40,7 @@ function AppShell({ children }: { children: ReactNode }) {
   const online = useOnline();
   const location = useLocation();
   const navigate = useNavigate();
-  const { settings, update, resolvedTheme } = useSettings();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { update, resolvedTheme } = useSettings();
   const searchHere = useScopedSearch();
   const immersive = useImmersive();
 
@@ -118,8 +116,8 @@ function AppShell({ children }: { children: ReactNode }) {
 
         <header className="topbar">
           {/* no tablet/desktop o menu lateral já está visível */}
-          <button className="icon-btn menu-toggle" onClick={() => setMenuOpen(true)} aria-label="Abrir menu">
-            <Icon name="menu" size={22} />
+          <button className="icon-btn menu-toggle" onClick={() => navigate('/')} aria-label="Ir para início">
+            <Icon name="home" size={22} />
           </button>
           <div className="brand" style={{ flex: 1, minWidth: 0 }}>
             <span className="topbar-title truncate">
@@ -163,36 +161,7 @@ function AppShell({ children }: { children: ReactNode }) {
             <span>{item.shortLabel ?? item.label}</span>
           </NavLink>
         ))}
-        <button className="bottom-nav-item" onClick={() => setMenuOpen(true)}>
-          <span className="ico">
-            <Icon name="more" size={22} />
-          </span>
-          <span>Mais</span>
-        </button>
       </nav>
-
-      <Sheet open={menuOpen} title="Menu" onClose={() => setMenuOpen(false)}>
-        <div className="list">
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/'}
-              className="list-item"
-              onClick={() => setMenuOpen(false)}
-            >
-              <Icon name={item.icon} size={22} />
-              <span className="list-body">
-                <span className="list-title">{item.label}</span>
-              </span>
-              <Icon name="chevron-right" size={18} className="dim" />
-            </NavLink>
-          ))}
-        </div>
-        {settings.userName && (
-          <p className="small dim center">Que Deus abençoe seu ministério, {settings.userName}.</p>
-        )}
-      </Sheet>
     </div>
   );
 }

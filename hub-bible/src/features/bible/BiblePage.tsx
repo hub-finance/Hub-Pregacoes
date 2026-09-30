@@ -20,7 +20,9 @@ import { useSettings } from '../../core/settings/SettingsContext';
 import { db } from '../../core/db/db';
 import { bookName } from '../../core/bible/canon';
 import { formatSelection } from '../../core/bible/reference';
-import { getChapter, getChapterPericopes, getMeta, loadCatalog } from '../../core/bible/repository';
+import { getBook, getChapter, getChapterPericopes, getMeta, loadCatalog } from '../../core/bible/repository';
+import { verseWords } from '../../core/bible/mybible';
+import type { StrongTag } from '../../core/db/types';
 import { categoryColor } from '../../core/categories';
 import { listChapterHighlights, setHighlight } from '../../core/data/highlights';
 import { addFavorite, findFavoriteFor, removeFavorite } from '../../core/data/favorites';
@@ -61,6 +63,29 @@ export default function BiblePage() {
   const chapter = Number(params.chapter) || settings.lastPosition?.chapter || 1;
 
   const chapterText = useAsync(() => getChapter(translation, book, chapter), [translation, book, chapter]);
+
+  const chapterStrongs = useAsync(
+    async (): Promise<Map<number, Map<number, string[]>>> => {
+      if (!meta.data?.hasStrong) return new Map();
+      const record = await getBook(translation, book);
+      const tags = record.strongs?.[chapter - 1];
+      if (!tags) return new Map();
+      const byVerse = new Map<number, Map<number, string[]>>();
+      tags.forEach((verseTags: StrongTag[], vi: number) => {
+        if (!verseTags.length) return;
+        const wordMap = new Map<number, string[]>();
+        for (const [wordIdx, code] of verseTags) {
+          const list = wordMap.get(wordIdx) ?? [];
+          list.push(code);
+          wordMap.set(wordIdx, list);
+        }
+        byVerse.set(vi + 1, wordMap);
+      });
+      return byVerse;
+    },
+    [translation, book, chapter, meta.data?.hasStrong],
+  );
+
   /* Títulos de perícope do capítulo. Só existem em traduções que os trazem —
      nas embutidas o mapa vem vazio e nada muda na tela. */
   const pericopes = useAsync(
@@ -106,6 +131,7 @@ export default function BiblePage() {
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [strongOpen, setStrongOpen] = useState(false);
+  const [strongWord, setStrongWord] = useState<number | null>(null);
   const [crossRefOpen, setCrossRefOpen] = useState(false);
   const [commentaryOpen, setCommentaryOpen] = useState(false);
   const readerRef = useRef<HTMLDivElement>(null);
@@ -413,7 +439,28 @@ export default function BiblePage() {
                   aria-label={`Versículo ${verse}`}
                 >
                   <span className="verse-num">{verse}</span>
-                  {text}
+                  {(() => {
+                    const wordMap = chapterStrongs.data?.get(verse);
+                    if (!wordMap?.size) return text;
+                    return verseWords(text).map((word, wi) => {
+                      const codes = wordMap.get(wi);
+                      if (!codes) return <span key={wi}>{wi > 0 ? ' ' : ''}{word}</span>;
+                      return (
+                        <span
+                          key={wi}
+                          className="strong-tap"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelection([verse]);
+                            setStrongWord(wi);
+                            setStrongOpen(true);
+                          }}
+                        >
+                          {wi > 0 ? ' ' : ''}{word}
+                        </span>
+                      );
+                    });
+                  })()}
                   {favoriteVerses.has(verse) && (
                     <span className="verse-mark" title="Favorito" aria-label="Favorito">
                       <Icon name="star" size={11} filled style={{ display: 'inline', color: 'var(--accent)' }} />
@@ -531,12 +578,13 @@ export default function BiblePage() {
         <>
           <StrongSheet
             open={strongOpen}
-            onClose={() => setStrongOpen(false)}
+            onClose={() => { setStrongOpen(false); setStrongWord(null); }}
             translation={translation}
             book={book}
             chapter={chapter}
             verse={selection[0]}
             reference={selectionReference}
+            initialWord={strongWord}
           />
           <CrossRefSheet
             open={crossRefOpen}
