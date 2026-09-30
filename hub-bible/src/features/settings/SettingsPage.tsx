@@ -78,6 +78,7 @@ export default function SettingsPage() {
               { value: 'dark', label: 'Escuro' },
               { value: 'sepia', label: 'Sépia' },
               { value: 'azul', label: 'Noite azul' },
+              { value: 'celeste', label: 'Azul e branco' },
             ]}
           />
           <Toggle

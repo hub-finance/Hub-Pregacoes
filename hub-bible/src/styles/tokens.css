@@ -1,8 +1,8 @@
 /* =========================================================================
    Hub Bible — Design tokens
    Paleta sóbria e ministerial: papel quente, tinta profunda, dourado discreto.
-   Quatro temas: light (papel), dark (noite), sepia (leitura prolongada)
-   e azul (noite azul).
+   Cinco temas: light (papel), dark (noite), sepia (leitura prolongada),
+   azul (noite azul) e celeste (azul e branco).
    ========================================================================= */
 
 :root {
@@ -133,6 +133,35 @@
   --overlay: rgba(8, 18, 32, 0.66);
 }
 
+/* ------------------------------ azul e branco ---------------------------- */
+/* Tema diurno com identidade azul: fundo claro levemente azulado, destaques
+   em azul-celeste, texto escuro. Limpo e sereno para leitura prolongada. */
+:root[data-theme='celeste'] {
+  color-scheme: light;
+  --bg: #eef4fb;
+  --bg-elevated: #f8fbff;
+  --bg-sunken: #e3edf7;
+  --surface: #f8fbff;
+  --surface-2: #e8f0fa;
+  --surface-hover: #dce8f5;
+  --border: #c5d6e8;
+  --border-strong: #a8bfd6;
+  --text: #1a2433;
+  --text-2: #445166;
+  --text-3: #7387a0;
+  --accent: #2563a8;
+  --accent-strong: #1d4e8a;
+  --accent-soft: #d6e6f5;
+  --accent-contrast: #ffffff;
+  --danger: #b23a35;
+  --success: #2f7a56;
+  --info: #2563a8;
+  --shadow-1: 0 1px 2px rgba(14, 28, 50, 0.06), 0 1px 3px rgba(14, 28, 50, 0.06);
+  --shadow-2: 0 6px 20px rgba(14, 28, 50, 0.1);
+  --shadow-3: 0 18px 48px rgba(14, 28, 50, 0.16);
+  --overlay: rgba(14, 28, 50, 0.4);
+}
+
 /* ---------------------------------- sépia -------------------------------- */
 :root[data-theme='sepia'] {
   color-scheme: light;
@@ -170,7 +199,15 @@
   --border-strong: #6b7382;
   --accent: #ffd79a;
 }
-:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']) {
+:root[data-contrast='high'][data-theme='celeste'] {
+  --text: #0a1628;
+  --text-2: #1e3050;
+  --text-3: #3a5070;
+  --border: #8aa4c0;
+  --border-strong: #607d9e;
+  --accent: #1a4a80;
+}
+:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']) {
   --text: #000000;
   --text-2: #2a2620;
   --text-3: #4a443b;

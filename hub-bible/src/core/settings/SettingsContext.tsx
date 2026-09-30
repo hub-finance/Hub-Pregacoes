@@ -10,7 +10,7 @@ import {
 import type { HighlightCategory } from '../categories';
 import { HIGHLIGHT_CATEGORIES } from '../categories';
 
-export type ThemeChoice = 'system' | 'light' | 'dark' | 'sepia' | 'azul';
+export type ThemeChoice = 'system' | 'light' | 'dark' | 'sepia' | 'azul' | 'celeste';
 
 /** O tema de fato aplicado — `system` já resolvido em claro ou escuro. */
 export type ResolvedTheme = Exclude<ThemeChoice, 'system'>;
@@ -21,6 +21,7 @@ const THEME_COLOR: Record<ResolvedTheme, string> = {
   sepia: '#f3e9d8',
   dark: '#22262e',
   azul: '#24374f',
+  celeste: '#eef4fb',
 };
 
 export interface ReadingPosition {
