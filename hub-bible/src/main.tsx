@@ -5,12 +5,14 @@ import App from './App';
 import { SettingsProvider } from './core/settings/SettingsContext';
 import { ToastProvider } from './components/Toast';
 import { applyPlatformCssVars } from './core/platform';
+import { repairJoinedWords } from './core/db/db';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/app.css';
 import './styles/reader.css';
 
 applyPlatformCssVars();
+repairJoinedWords();
 
 /**
  * HashRouter: o app precisa funcionar servido de subdiretório, de arquivo local

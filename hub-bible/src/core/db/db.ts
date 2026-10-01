@@ -153,3 +153,37 @@ export async function clearScriptureCache(translation?: string): Promise<void> {
   if (translation) await db.books.where('translation').equals(translation).delete();
   else await db.books.clear();
 }
+
+/**
+ * Corrige versículos onde a remoção de tags `<pb/>` / `<br/>` do MyBible colou
+ * palavras ("DaviContende" → "Davi Contende"). Roda uma única vez; o flag
+ * `repair:joined-words` evita repetição.
+ */
+const JOINED = /([a-záàâãéèêíìîóòôõúùûç,.;:!?])([A-ZÁÀÂÃÉÈÊÍÌÎÓÒÔÕÚÙÛ])/g;
+
+export async function repairJoinedWords(): Promise<void> {
+  const done = await db.settings.get('repair:joined-words');
+  if (done) return;
+
+  const allBooks = await db.books.toArray();
+  let fixed = 0;
+
+  for (const record of allBooks) {
+    let changed = false;
+    for (const chapter of record.chapters) {
+      for (let v = 0; v < chapter.length; v++) {
+        const original = chapter[v];
+        if (!original) continue;
+        const repaired = original.replace(JOINED, '$1 $2');
+        if (repaired !== original) {
+          chapter[v] = repaired;
+          changed = true;
+          fixed++;
+        }
+      }
+    }
+    if (changed) await db.books.put(record);
+  }
+
+  await db.settings.put({ key: 'repair:joined-words', value: fixed });
+}
