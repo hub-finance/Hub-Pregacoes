@@ -161,6 +161,37 @@
   backdrop-filter: saturate(1.4) blur(12px);
 }
 
+/* barra de retorno — aparece quando o leitor navegou para longe */
+.reader-back-bar {
+  position: sticky;
+  top: calc(var(--topbar-h) + var(--status-h, env(safe-area-inset-top, 0px)) + 52px);
+  z-index: 24;
+  padding: 0 var(--sp-4);
+  background: color-mix(in srgb, var(--accent-soft) 80%, transparent);
+  backdrop-filter: blur(8px);
+  animation: slide-down 180ms var(--ease);
+}
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reader-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-2) var(--sp-2);
+  min-height: var(--tap);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 620;
+  color: var(--accent-strong);
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+}
+.reader-back-btn:hover {
+  background: var(--accent-soft);
+}
+
 /* pílula de referência com linha de progresso do capítulo */
 .reader-pill {
   position: relative;

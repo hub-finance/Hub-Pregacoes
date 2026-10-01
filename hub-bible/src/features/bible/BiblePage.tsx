@@ -33,6 +33,14 @@ import { copyToClipboard } from '../../core/share/share';
 
 const DEFAULT_BOOK = 'JHN';
 const DOUBLE_TAP_MS = 350;
+const MAX_HISTORY = 10;
+
+interface NavPosition {
+  book: string;
+  chapter: number;
+  verse?: number;
+  label: string;
+}
 
 /**
  * Leitor bíblico.
@@ -149,6 +157,7 @@ export default function BiblePage() {
   const readerRef = useRef<HTMLDivElement>(null);
   const readingProgress = useReadingProgress();
   const lastTapRef = useRef<{ verse: number; time: number } | null>(null);
+  const [navHistory, setNavHistory] = useState<NavPosition[]>([]);
 
   useImmersiveScreen(settings.immersiveReading);
 
@@ -211,10 +220,32 @@ export default function BiblePage() {
     }
   }, [searchParams, verses.length]);
 
+  const pushHistory = useCallback(() => {
+    const label = `${bookName(book)} ${chapter}`;
+    setNavHistory((prev) => [...prev.slice(-(MAX_HISTORY - 1)), { book, chapter, label }]);
+  }, [book, chapter]);
+
+  const goBack = useCallback(() => {
+    setNavHistory((prev) => {
+      if (!prev.length) return prev;
+      const target = prev[prev.length - 1];
+      const next = prev.slice(0, -1);
+      if (target.verse) {
+        navigate(`/biblia/${target.book}/${target.chapter}?v=${target.verse}`);
+      } else {
+        setSearchParams({}, { replace: true });
+        navigate(`/biblia/${target.book}/${target.chapter}`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return next;
+    });
+  }, [navigate, setSearchParams]);
+
   const goToChapter = useCallback(
     (nextBook: string, nextChapter: number, verse?: number) => {
-      // com versículo, o endereço leva a âncora e a rolagem é feita por ela;
-      // sem versículo, começa-se o capítulo do alto
+      const samePlace = nextBook === book && nextChapter === chapter;
+      if (!samePlace) pushHistory();
+
       if (verse) {
         navigate(`/biblia/${nextBook}/${nextChapter}?v=${verse}`);
         return;
@@ -224,7 +255,7 @@ export default function BiblePage() {
       readerRef.current?.scrollIntoView({ block: 'start' });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
-    [navigate, setSearchParams],
+    [navigate, setSearchParams, book, chapter, pushHistory],
   );
 
   const prev = useCallback(() => {
@@ -421,6 +452,15 @@ export default function BiblePage() {
           <Icon name="preach" />
         </button>
       </div>
+
+      {navHistory.length > 0 && (
+        <div className="reader-back-bar">
+          <button className="reader-back-btn" onClick={goBack}>
+            <Icon name="chevron-left" size={16} />
+            <span>Voltar para {navHistory[navHistory.length - 1].label}</span>
+          </button>
+        </div>
+      )}
 
       <article className="reader" ref={readerRef}>
         <header className="reader-head">
