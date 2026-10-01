@@ -1199,62 +1199,56 @@
 }
 
 /* -------------------------- versículo no original ------------------------- */
-/* As palavras viram alvos do tamanho do dedo: no tablet, palavra dentro de um
-   parágrafo é pequena demais para tocar com precisão. */
 .strong-words {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 6px;
-  align-items: baseline;
   font-family: var(--font-reader);
-  font-size: 0.88rem;
-  line-height: 1.7;
+  font-size: var(--fs-reader, 1rem);
+  line-height: 1.85;
 }
 .strong-word {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 3px;
-  padding: 1px 6px;
-  background: var(--accent-soft);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
+  display: inline;
+  padding: 0;
+  background: none;
+  border: none;
+  border-bottom: 1px dotted var(--accent);
   color: var(--text);
   font: inherit;
   cursor: pointer;
-  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  transition: background var(--dur) var(--ease);
 }
 .strong-word:hover {
-  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .strong-word.active {
-  background: var(--accent);
-  border-color: var(--accent-strong);
-  color: var(--accent-contrast);
+  background: var(--accent-soft);
+  border-bottom: 2px solid var(--accent);
 }
 .strong-code {
   font-family: var(--font-ui);
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  opacity: 0.55;
+  font-size: 0.55em;
+  font-weight: 500;
+  vertical-align: super;
+  opacity: 0.4;
+  margin-left: 1px;
+}
+.strong-word.active .strong-code {
+  opacity: 0.7;
 }
 .strong-plain {
-  color: var(--text-3);
-  font-size: 0.84rem;
+  color: var(--text-2);
 }
 .strong-definition {
-  font-size: 0.9rem;
-  line-height: 1.55;
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 .strong-definition p {
-  margin: 0 0 0.4em;
+  margin: 0 0 0.3em;
 }
 
 /* o termo em hebraico ou grego: corpo maior porque é o que se veio ver, e a
    fonte de leitura porque as do sistema costumam errar os pontos vocálicos */
 .lexicon-lemma {
   font-family: var(--font-reader);
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   line-height: 1.4;
 }
 

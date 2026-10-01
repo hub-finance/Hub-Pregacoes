@@ -88,7 +88,7 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
             Toque numa palavra destacada para ver o termo original.
           </p>
 
-          <div className="strong-words">
+          <p className="strong-words">
             {data.data.words.map((word, index) => {
               const has = codesByWord.has(index);
               return has ? (
@@ -97,8 +97,7 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
                   className={`strong-word${picked === index ? ' active' : ''}`}
                   onClick={() => setPicked(index === picked ? null : index)}
                 >
-                  {word}
-                  <span className="strong-code">{codesByWord.get(index)![0]}</span>
+                  {word}<sup className="strong-code">{codesByWord.get(index)![0]}</sup>
                 </button>
               ) : (
                 <span key={index} className="strong-plain">
@@ -106,14 +105,14 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
                 </span>
               );
             })}
-          </div>
+          </p>
 
           {picked !== null && (
             <div className="stack" style={{ gap: 'var(--sp-2)' }}>
-              <div className="row" style={{ gap: 'var(--sp-2)' }}>
-                <strong style={{ fontSize: '1.05rem' }}>{data.data.words[picked]}</strong>
+              <div className="row" style={{ gap: 'var(--sp-2)', alignItems: 'baseline' }}>
+                <strong style={{ fontSize: '0.95rem' }}>{data.data.words[picked]}</strong>
                 {codes.map((c) => (
-                  <span key={c} className="badge">
+                  <span key={c} className="badge" style={{ fontSize: '0.65rem' }}>
                     {c}
                   </span>
                 ))}
