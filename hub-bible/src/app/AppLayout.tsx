@@ -137,6 +137,13 @@ function AppShell({ children }: { children: ReactNode }) {
           </button>
           <button
             className="icon-btn"
+            onClick={() => navigate('/config')}
+            aria-label="Configurações"
+          >
+            <Icon name="settings" />
+          </button>
+          <button
+            className="icon-btn"
             onClick={cycleTheme}
             aria-label={`Alternar tema (atual: ${THEME_LABEL[resolvedTheme]})`}
           >
