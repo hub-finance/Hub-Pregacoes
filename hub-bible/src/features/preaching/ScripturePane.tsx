@@ -39,7 +39,7 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
   const [picker, setPicker] = useState(false);
   const [translationPicker, setTranslationPicker] = useState(false);
   const [selection, setSelection] = useState<number[]>([]);
-  const [pickingHighlight, setPickingHighlight] = useState(false);
+  const [, setPickingHighlight] = useState(false);
 
   // segue a referência do sermão enquanto o usuário não navegar por conta própria
   useEffect(() => {
@@ -253,14 +253,12 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
       {selection.length > 0 && (
         <VerseActionBar
           reference={selectionReference}
-          highlightOpen={pickingHighlight}
           onPickHighlight={applyHighlight}
           onClear={() => {
             setSelection([]);
             setPickingHighlight(false);
           }}
           actions={[
-            { id: 'hl', icon: 'highlighter', label: 'Destacar', onClick: () => setPickingHighlight(true) },
             { id: 'fav', icon: 'star', label: 'Favoritar', onClick: toggleFavorites },
             {
               id: 'copy',
@@ -296,13 +294,15 @@ export function ScripturePane({ reference }: { reference?: string } = {}) {
         open={translationPicker}
         translations={catalog.data ?? []}
         current={translation}
-        compare={null}
+        compareTranslations={[]}
+        compareLayout="stacked"
         onClose={() => setTranslationPicker(false)}
         onSelect={(id) => {
           setTranslationPicker(false);
           setTranslation(id);
         }}
-        onCompare={() => undefined}
+        onCompareToggle={() => undefined}
+        onCompareLayout={() => undefined}
         onImported={() => catalog.reload()}
       />
     </aside>

@@ -7,30 +7,25 @@ interface Props {
   open: boolean;
   translations: TranslationInfo[];
   current: string;
-  compare: string | null;
+  compareTranslations: string[];
+  compareLayout: 'stacked' | 'columns';
   onClose: () => void;
   onSelect: (id: string) => void;
-  onCompare: (id: string | null) => void;
-  /** Recarrega o catálogo depois que uma tradução é importada aqui. */
+  onCompareToggle: (id: string) => void;
+  onCompareLayout: (layout: 'stacked' | 'columns') => void;
   onImported?: () => void;
 }
 
-/**
- * Seleção de tradução.
- *
- * As traduções protegidas por direitos autorais não acompanham o aplicativo —
- * mas quem já tem uma cópia importa o arquivo aqui mesmo, sem sair da leitura,
- * e a partir daí ela se comporta como qualquer outra: aparece na lista, entra
- * na comparação e vale para a busca.
- */
 export function TranslationPicker({
   open,
   translations,
   current,
-  compare,
+  compareTranslations,
+  compareLayout,
   onClose,
   onSelect,
-  onCompare,
+  onCompareToggle,
+  onCompareLayout,
   onImported,
 }: Props) {
   const available = translations.filter((t) => t.bundled || t.imported);
@@ -39,12 +34,13 @@ export function TranslationPicker({
     catalog: translations,
     onImported: (info) => {
       onImported?.();
-      // dicionário não é tradução: não há o que selecionar, a folha só recarrega
       if (!info) return;
       onSelect(info.id);
       onClose();
     },
   });
+
+  const comparables = available.filter((t) => t.id !== current);
 
   return (
     <Sheet open={open} title="Tradução" onClose={onClose}>
@@ -76,24 +72,37 @@ export function TranslationPicker({
 
       <div>
         <p className="section-title" style={{ marginBottom: 'var(--sp-2)' }}>
-          Comparar com
+          Comparar com{compareTranslations.length > 0 ? ` (${compareTranslations.length})` : ''}
         </p>
         <div className="chip-row">
-          <button className={`chip${compare ? '' : ' active'}`} onClick={() => onCompare(null)}>
-            Desligado
-          </button>
-          {available
-            .filter((t) => t.id !== current)
-            .map((t) => (
-              <button
-                key={t.id}
-                className={`chip${compare === t.id ? ' active' : ''}`}
-                onClick={() => onCompare(t.id)}
-              >
-                {t.abbrev}
-              </button>
-            ))}
+          {comparables.map((t) => (
+            <button
+              key={t.id}
+              className={`chip${compareTranslations.includes(t.id) ? ' active' : ''}`}
+              onClick={() => onCompareToggle(t.id)}
+            >
+              {t.abbrev}
+            </button>
+          ))}
         </div>
+        {compareTranslations.length > 0 && (
+          <div className="chip-row" style={{ marginTop: 'var(--sp-2)' }}>
+            <button
+              className={`chip${compareLayout === 'stacked' ? ' active' : ''}`}
+              onClick={() => onCompareLayout('stacked')}
+            >
+              <Icon name="list" size={14} />
+              <span>Empilhada</span>
+            </button>
+            <button
+              className={`chip${compareLayout === 'columns' ? ' active' : ''}`}
+              onClick={() => onCompareLayout('columns')}
+            >
+              <Icon name="columns" size={14} />
+              <span>Colunas</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {licensed.length > 0 && (

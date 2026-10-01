@@ -32,6 +32,7 @@ import { newSermon, newStudy, saveDoc } from '../../core/data/documents';
 import { copyToClipboard } from '../../core/share/share';
 
 const DEFAULT_BOOK = 'JHN';
+const DOUBLE_TAP_MS = 350;
 
 /**
  * Leitor bíblico.
@@ -92,12 +93,24 @@ export default function BiblePage() {
     () => getChapterPericopes(translation, book, chapter),
     [translation, book, chapter],
   );
-  const compareText = useAsync(
-    () =>
-      settings.compareTranslation
-        ? getChapter(settings.compareTranslation, book, chapter)
-        : Promise.resolve<string[]>([]),
-    [settings.compareTranslation, book, chapter],
+
+  /* Textos de comparação: carrega todas as traduções selecionadas de uma vez. */
+  const compareTexts = useAsync(
+    async () => {
+      const ids = settings.compareTranslations.filter((id) => id !== translation);
+      if (!ids.length) return new Map<string, string[]>();
+      const entries = await Promise.all(
+        ids.map(async (id) => {
+          try {
+            return [id, await getChapter(id, book, chapter)] as const;
+          } catch {
+            return [id, [] as string[]] as const;
+          }
+        }),
+      );
+      return new Map(entries);
+    },
+    [settings.compareTranslations, translation, book, chapter],
   );
 
   const highlights = useLiveQuery(
@@ -123,7 +136,6 @@ export default function BiblePage() {
   );
 
   const [selection, setSelection] = useState<number[]>([]);
-  const [pickingHighlight, setPickingHighlight] = useState(false);
   const [bookPicker, setBookPicker] = useState(false);
   const [translationPicker, setTranslationPicker] = useState(false);
   const [readerSettings, setReaderSettings] = useState(false);
@@ -136,12 +148,25 @@ export default function BiblePage() {
   const [commentaryOpen, setCommentaryOpen] = useState(false);
   const readerRef = useRef<HTMLDivElement>(null);
   const readingProgress = useReadingProgress();
+  const lastTapRef = useRef<{ verse: number; time: number } | null>(null);
 
   useImmersiveScreen(settings.immersiveReading);
 
   const bookInfo = meta.data?.books.find((b) => b.osis === book);
   const totalChapters = bookInfo?.chapters ?? 1;
   const verses = chapterText.data ?? [];
+
+  /* abreviação de cada tradução de comparação */
+  const compareAbbrevs = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const t of catalog.data ?? []) map.set(t.id, t.abbrev);
+    return map;
+  }, [catalog.data]);
+
+  const activeCompareIds = useMemo(
+    () => settings.compareTranslations.filter((id) => id !== translation),
+    [settings.compareTranslations, translation],
+  );
 
   /* ------------------------- posição e histórico ------------------------- */
 
@@ -229,10 +254,27 @@ export default function BiblePage() {
 
   /* ------------------------------- seleção ------------------------------- */
 
-  const toggleVerse = (verse: number) =>
-    setSelection((prevSel) =>
-      prevSel.includes(verse) ? prevSel.filter((v) => v !== verse) : [...prevSel, verse].sort((a, b) => a - b),
-    );
+  const handleVerseTap = useCallback(
+    (verse: number) => {
+      const now = Date.now();
+      const last = lastTapRef.current;
+
+      if (last && last.verse === verse && now - last.time < DOUBLE_TAP_MS) {
+        lastTapRef.current = null;
+        if (meta.data?.hasStrong) {
+          setSelection([verse]);
+          setStrongOpen(true);
+        }
+        return;
+      }
+
+      lastTapRef.current = { verse, time: now };
+      setSelection((prevSel) =>
+        prevSel.includes(verse) ? prevSel.filter((v) => v !== verse) : [...prevSel, verse].sort((a, b) => a - b),
+      );
+    },
+    [meta.data?.hasStrong],
+  );
 
   const selectionReference = formatSelection(book, chapter, selection);
   const selectionText = selection.map((v) => verses[v - 1]).filter(Boolean).join(' ');
@@ -259,12 +301,7 @@ export default function BiblePage() {
     for (const verse of selection) {
       await setHighlight(translation, book, chapter, verse, categoryId);
     }
-    /* A marcação consome a seleção. Sem isto, o versículo marcado continuava
-       selecionado; o toque seguinte somava outro à seleção, e a cor nova caía
-       nos dois — era assim que marcar um versículo de azul repintava de azul o
-       que já estava amarelo. */
     setSelection([]);
-    setPickingHighlight(false);
     notify(categoryId ? 'Marcação aplicada.' : 'Marcação removida.');
   };
 
@@ -320,6 +357,11 @@ export default function BiblePage() {
     }
   };
 
+  const openStrongForVerse = (verse: number) => {
+    setSelection([verse]);
+    setStrongOpen(true);
+  };
+
   /* ------------------------------- render -------------------------------- */
 
   if (catalog.loading || meta.loading) return <Spinner label="Abrindo a Bíblia…" />;
@@ -343,13 +385,14 @@ export default function BiblePage() {
     );
   }
 
+  const showColumns = activeCompareIds.length > 0 && settings.compareLayout === 'columns';
+  const colCount = activeCompareIds.length + 1;
+
   return (
     <>
       {/* a barra acompanha a rolagem: no meio de um capítulo longo, trocar de
           livro não pode exigir subir a página inteira */}
       <div className="row reader-bar">
-        {/* pílula de referência: livro, capítulo e tradução, com a linha de
-            progresso da leitura do capítulo — como nos leitores bíblicos */}
         <button className="reader-pill" onClick={() => setBookPicker(true)}>
           {bookName(book)} {chapter}
           <span className="dim" style={{ fontWeight: 500 }}>
@@ -389,7 +432,62 @@ export default function BiblePage() {
 
         {chapterText.loading ? (
           <Spinner label="Carregando capítulo…" />
+        ) : showColumns ? (
+          /* ===== modo colunas ===== */
+          <div
+            className="compare-columns"
+            style={{ '--compare-cols': colCount } as React.CSSProperties}
+          >
+            <div className="compare-columns-header">
+              <span className="compare-col-head">{translationLabel}</span>
+              {activeCompareIds.map((id) => (
+                <span key={id} className="compare-col-head">
+                  {compareAbbrevs.get(id) ?? id}
+                </span>
+              ))}
+            </div>
+            {verses.map((text, index) => {
+              const verse = index + 1;
+              const category = highlightByVerse.get(verse);
+              return (
+                <div
+                  key={verse}
+                  className="compare-row"
+                  style={category ? ({ '--hl-color': categoryColor(category) } as React.CSSProperties) : undefined}
+                >
+                  <div
+                    className={`compare-cell${category ? ' highlighted' : ''}`}
+                    onClick={() => handleVerseTap(verse)}
+                    role="button"
+                    tabIndex={0}
+                    style={category ? { background: `color-mix(in srgb, ${categoryColor(category)} 18%, transparent)` } : undefined}
+                  >
+                    <span className="verse-num">{verse}</span>
+                    {text}
+                    {meta.data?.hasStrong && chapterStrongs.data?.has(verse) && (
+                      <span
+                        className="verse-strong-btn"
+                        onClick={(e) => { e.stopPropagation(); openStrongForVerse(verse); }}
+                        title="No original"
+                        aria-label="Léxico grego/hebraico"
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <Icon name="cross" size={13} />
+                      </span>
+                    )}
+                  </div>
+                  {activeCompareIds.map((id) => (
+                    <div key={id} className="compare-cell compare-cell-alt">
+                      {compareTexts.data?.get(id)?.[index] ?? ''}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
         ) : (
+          /* ===== modo padrão (parágrafo/linhas, com comparação empilhada) ===== */
           <div
             className={[
               'reader-verses',
@@ -419,21 +517,19 @@ export default function BiblePage() {
               return (
                 <Fragment key={verse}>
                 {heading && (
-                  /* o título abre o trecho: fica fora do versículo para não
-                     entrar na seleção nem na cópia */
                   <h3 className="pericope">{heading}</h3>
                 )}
                 <span
                   id={`v-${verse}`}
                   className={classes}
                   style={category ? ({ '--hl-color': categoryColor(category) } as React.CSSProperties) : undefined}
-                  onClick={() => toggleVerse(verse)}
+                  onClick={() => handleVerseTap(verse)}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      toggleVerse(verse);
+                      handleVerseTap(verse);
                     }
                   }}
                   aria-label={`Versículo ${verse}`}
@@ -461,6 +557,18 @@ export default function BiblePage() {
                       );
                     });
                   })()}
+                  {meta.data?.hasStrong && chapterStrongs.data?.has(verse) && (
+                    <span
+                      className="verse-strong-btn"
+                      onClick={(e) => { e.stopPropagation(); openStrongForVerse(verse); }}
+                      title="No original"
+                      aria-label="Léxico grego/hebraico"
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <Icon name="cross" size={13} />
+                    </span>
+                  )}
                   {favoriteVerses.has(verse) && (
                     <span className="verse-mark" title="Favorito" aria-label="Favorito">
                       <Icon name="star" size={11} filled style={{ display: 'inline', color: 'var(--accent)' }} />
@@ -471,18 +579,20 @@ export default function BiblePage() {
                       <Icon name="note" size={11} style={{ display: 'inline', color: 'var(--text-3)' }} />
                     </span>
                   )}{' '}
-                  {settings.compareTranslation && compareText.data?.[index] && (
-                    <span
-                      style={{
-                        display: 'block',
-                        fontSize: '0.86em',
-                        color: 'var(--text-3)',
-                        margin: '0.35em 0 0.8em',
-                        paddingLeft: '0.8em',
-                        borderLeft: '2px solid var(--border)',
-                      }}
-                    >
-                      {compareText.data[index]}
+                  {activeCompareIds.length > 0 && (
+                    <span className="compare-stacked">
+                      {activeCompareIds.map((id) => {
+                        const ct = compareTexts.data?.get(id)?.[index];
+                        if (!ct) return null;
+                        return (
+                          <span key={id} className="compare-stacked-item">
+                            <span className="compare-stacked-abbrev">
+                              {compareAbbrevs.get(id) ?? id}
+                            </span>
+                            {ct}
+                          </span>
+                        );
+                      })}
                     </span>
                   )}
                 </span>
@@ -497,8 +607,6 @@ export default function BiblePage() {
         <button className="btn btn-ghost" onClick={prev}>
           ← Anterior
         </button>
-        {/* mesma pílula do alto: quem terminou o capítulo escolhe o próximo
-            destino sem voltar ao topo */}
         <button className="reader-pill" onClick={() => setBookPicker(true)}>
           {bookName(book)} {chapter}
           <span className="dim mono-num" style={{ fontWeight: 500 }}>
@@ -516,14 +624,9 @@ export default function BiblePage() {
       {selection.length > 0 && (
         <VerseActionBar
           reference={selectionReference}
-          highlightOpen={pickingHighlight}
           onPickHighlight={applyHighlight}
-          onClear={() => {
-            setSelection([]);
-            setPickingHighlight(false);
-          }}
+          onClear={() => setSelection([])}
           actions={[
-            { id: 'hl', icon: 'highlighter', label: 'Destacar', onClick: () => setPickingHighlight(true) },
             { id: 'fav', icon: 'star', label: 'Favoritar', onClick: toggleFavorites },
             { id: 'note', icon: 'note', label: 'Anotar', onClick: () => setNoteOpen(true) },
             ...(meta.data?.hasStrong && selection.length === 1
@@ -567,10 +670,16 @@ export default function BiblePage() {
         open={translationPicker}
         translations={catalog.data ?? []}
         current={translation}
-        compare={settings.compareTranslation}
+        compareTranslations={settings.compareTranslations}
+        compareLayout={settings.compareLayout}
         onClose={() => setTranslationPicker(false)}
         onSelect={(id) => update({ defaultTranslation: id })}
-        onCompare={(id) => update({ compareTranslation: id })}
+        onCompareToggle={(id) => {
+          const list = settings.compareTranslations;
+          const next = list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+          update({ compareTranslations: next });
+        }}
+        onCompareLayout={(layout) => update({ compareLayout: layout })}
         onImported={() => catalog.reload()}
       />
 

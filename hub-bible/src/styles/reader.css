@@ -270,6 +270,39 @@
   color: var(--text);
 }
 
+/* bolinhas de cor para marcação rápida */
+.hl-dot {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 120ms var(--ease), box-shadow 120ms var(--ease);
+}
+.hl-dot:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px var(--bg-elevated), 0 0 0 4px var(--text-3);
+}
+.hl-dot-clear {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  display: grid;
+  place-content: center;
+  color: var(--text-3);
+}
+.hl-dot-clear:hover {
+  color: var(--danger);
+}
+.verse-actions-sep {
+  width: 1px;
+  height: 20px;
+  flex-shrink: 0;
+  background: var(--border);
+  margin: 0 var(--sp-1);
+}
+
 /* resultados de busca */
 .hit {
   display: block;
@@ -1074,4 +1107,118 @@
 .crossref-chip:hover {
   background: var(--accent-soft);
   border-color: var(--accent);
+}
+
+/* ========================= cruz para Strong's ============================== */
+.verse-strong-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-left: 3px;
+  color: var(--accent);
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 150ms, color 150ms;
+  flex-shrink: 0;
+}
+.verse-strong-btn:hover,
+.verse-strong-btn:active {
+  opacity: 1;
+  color: var(--accent-strong);
+}
+
+/* ===================== comparação em colunas ============================== */
+.compare-columns {
+  font-family: var(--font-reader);
+  font-size: var(--reader-size);
+  line-height: var(--reader-leading);
+}
+.compare-columns-header {
+  display: grid;
+  gap: 1px;
+  position: sticky;
+  top: calc(var(--topbar-h) + var(--status-h, env(safe-area-inset-top, 0px)) + 52px);
+  z-index: 20;
+  background: var(--bg-elevated);
+  border-bottom: 2px solid var(--border);
+  margin-bottom: var(--sp-3);
+}
+.compare-col-head {
+  padding: var(--sp-2) var(--sp-3);
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  text-align: center;
+  white-space: nowrap;
+}
+.compare-row {
+  display: grid;
+  gap: 1px;
+  border-bottom: 1px solid var(--border);
+  transition: background 200ms var(--ease);
+}
+.compare-row:hover {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.compare-cell {
+  padding: var(--sp-2) var(--sp-3);
+  min-width: 0;
+}
+.compare-cell .verse-num {
+  font-family: var(--font-ui);
+  font-size: 0.68em;
+  font-weight: 700;
+  color: var(--accent);
+  vertical-align: super;
+  margin-right: 0.32em;
+  user-select: none;
+}
+.compare-cell-alt {
+  color: var(--text-2);
+  font-size: 0.92em;
+}
+
+/* grid dinâmico: 2 colunas em celular, 3–5 colunas em tela maior */
+.compare-columns-header,
+.compare-row {
+  grid-template-columns: repeat(var(--compare-cols, 2), minmax(0, 1fr));
+}
+
+/* stacked comparisons (abaixo do versículo) */
+.compare-stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  margin: 0.35em 0 0.8em;
+  padding-left: 0.8em;
+  border-left: 2px solid var(--border);
+}
+.compare-stacked-item {
+  display: block;
+  font-size: 0.86em;
+  color: var(--text-3);
+}
+.compare-stacked-abbrev {
+  font-family: var(--font-ui);
+  font-size: 0.72em;
+  font-weight: 700;
+  color: var(--accent);
+  margin-right: 0.4em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* no celular a coluna fica estreita — em telas < 600px, comparar 3+ forçaria
+   células ilegíveis. Nesses casos empilha automaticamente. */
+@media (max-width: 599px) {
+  .compare-columns-header,
+  .compare-row {
+    grid-template-columns: repeat(min(var(--compare-cols, 2), 2), minmax(0, 1fr));
+  }
 }

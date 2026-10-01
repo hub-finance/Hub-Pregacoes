@@ -172,10 +172,13 @@ export default function SettingsPage() {
             options={options.length ? options : [{ value: settings.defaultTranslation, label: 'Carregando…' }]}
           />
           <SelectInput
-            label="Comparação lado a lado"
-            value={settings.compareTranslation ?? ''}
-            onChange={(v) => update({ compareTranslation: v || null })}
-            options={[{ value: '', label: 'Desligada' }, ...options]}
+            label="Disposição da comparação"
+            value={settings.compareLayout}
+            onChange={(v) => update({ compareLayout: v as 'stacked' | 'columns' })}
+            options={[
+              { value: 'stacked', label: 'Empilhada' },
+              { value: 'columns', label: 'Colunas' },
+            ]}
           />
         </div>
         <div style={{ marginTop: 'var(--sp-3)' }}>

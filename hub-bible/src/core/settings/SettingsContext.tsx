@@ -52,6 +52,10 @@ export interface AppSettings {
   immersiveReading: boolean;
   defaultTranslation: string;
   compareTranslation: string | null;
+  /** Traduções extras para comparação (aceita mais de uma). */
+  compareTranslations: string[];
+  /** Disposição da comparação: empilhada ou em colunas. */
+  compareLayout: 'stacked' | 'columns';
   customCategories: HighlightCategory[];
   lastPosition: ReadingPosition | null;
   onboarded: boolean;
@@ -80,7 +84,7 @@ export const MEASURE_PRESETS = [
 ] as const;
 
 /** Versão atual das preferências. Ao subir, `migrate` reaplica o que mudou. */
-const SETTINGS_VERSION = 2;
+const SETTINGS_VERSION = 3;
 
 const STORAGE_KEY = 'hub-bible:appearance';
 
@@ -99,6 +103,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   immersiveReading: true,
   defaultTranslation: 'pt_almeida',
   compareTranslation: null,
+  compareTranslations: [],
+  compareLayout: 'stacked',
   customCategories: [],
   lastPosition: null,
   onboarded: false,
@@ -119,8 +125,13 @@ export const DEFAULT_SETTINGS: AppSettings = {
 function migrate(merged: AppSettings, storedVersion: number): AppSettings {
   let next = merged;
   if (storedVersion < 2) {
-    // 38rem era o padrão antigo: quem está nele nunca ajustou a largura
     next = { ...next, measure: next.measure === 38 ? DEFAULT_SETTINGS.measure : next.measure };
+  }
+  if (storedVersion < 3) {
+    // compareTranslation (single) → compareTranslations (array)
+    if (next.compareTranslation && !next.compareTranslations.length) {
+      next = { ...next, compareTranslations: [next.compareTranslation] };
+    }
   }
   return { ...next, settingsVersion: SETTINGS_VERSION };
 }
