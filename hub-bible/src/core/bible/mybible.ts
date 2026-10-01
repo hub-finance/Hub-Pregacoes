@@ -119,7 +119,9 @@ const DROP_WITH_CONTENT = /<(f|n)\b[^>]*>[\s\S]*?<\/\1>/gi;
  * amarrado à última delas. Uma palavra pode ter mais de um código.
  */
 export function parseVerse(raw: string): { text: string; strongs: StrongTag[] } {
-  const cleaned = String(raw ?? '').replace(DROP_WITH_CONTENT, '');
+  const cleaned = String(raw ?? '')
+    .replace(DROP_WITH_CONTENT, '')
+    .replace(/<(?:pb|br)\s*\/?>/gi, ' ');
   const strongs: StrongTag[] = [];
   let text = '';
   /** Quantas palavras já começaram. */
