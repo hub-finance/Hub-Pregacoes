@@ -388,9 +388,9 @@ export default function BiblePage() {
     }
   };
 
-  const openStrongForVerse = (verse: number) => {
+  const openCrossRefForVerse = (verse: number) => {
     setSelection([verse]);
-    setStrongOpen(true);
+    setCrossRefOpen(true);
   };
 
   /* ------------------------------- render -------------------------------- */
@@ -504,18 +504,16 @@ export default function BiblePage() {
                   >
                     <span className="verse-num">{verse}</span>
                     {text}
-                    {meta.data?.hasStrong && chapterStrongs.data?.has(verse) && (
-                      <span
-                        className="verse-strong-btn"
-                        onClick={(e) => { e.stopPropagation(); openStrongForVerse(verse); }}
-                        title="No original"
-                        aria-label="Léxico grego/hebraico"
-                        role="button"
-                        tabIndex={0}
-                      >
-                        <Icon name="cross" size={13} />
-                      </span>
-                    )}
+                    <span
+                      className="verse-crossref-btn"
+                      onClick={(e) => { e.stopPropagation(); openCrossRefForVerse(verse); }}
+                      title="Referências cruzadas"
+                      aria-label="Referências cruzadas"
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <Icon name="cross" size={13} />
+                    </span>
                   </div>
                   {activeCompareIds.map((id) => (
                     <div key={id} className="compare-cell compare-cell-alt">
@@ -597,18 +595,16 @@ export default function BiblePage() {
                       );
                     });
                   })()}
-                  {meta.data?.hasStrong && chapterStrongs.data?.has(verse) && (
-                    <span
-                      className="verse-strong-btn"
-                      onClick={(e) => { e.stopPropagation(); openStrongForVerse(verse); }}
-                      title="No original"
-                      aria-label="Léxico grego/hebraico"
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <Icon name="cross" size={13} />
-                    </span>
-                  )}
+                  <span
+                    className="verse-crossref-btn"
+                    onClick={(e) => { e.stopPropagation(); openCrossRefForVerse(verse); }}
+                    title="Referências cruzadas"
+                    aria-label="Referências cruzadas"
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <Icon name="cross" size={13} />
+                  </span>
                   {favoriteVerses.has(verse) && (
                     <span className="verse-mark" title="Favorito" aria-label="Favorito">
                       <Icon name="star" size={11} filled style={{ display: 'inline', color: 'var(--accent)' }} />

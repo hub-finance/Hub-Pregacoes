@@ -1141,7 +1141,7 @@
 }
 
 /* ========================= cruz para Strong's ============================== */
-.verse-strong-btn {
+.verse-crossref-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1155,8 +1155,8 @@
   transition: opacity 150ms, color 150ms;
   flex-shrink: 0;
 }
-.verse-strong-btn:hover,
-.verse-strong-btn:active {
+.verse-crossref-btn:hover,
+.verse-crossref-btn:active {
   opacity: 1;
   color: var(--accent-strong);
 }
