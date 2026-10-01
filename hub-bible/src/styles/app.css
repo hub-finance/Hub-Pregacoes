@@ -1204,20 +1204,19 @@
 .strong-words {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-1) var(--sp-2);
+  gap: 4px 6px;
   align-items: baseline;
   font-family: var(--font-reader);
-  font-size: 1.05rem;
-  line-height: 2.1;
+  font-size: 0.88rem;
+  line-height: 1.7;
 }
 .strong-word {
   display: inline-flex;
   align-items: baseline;
-  gap: 4px;
-  padding: 2px 8px;
-  min-height: 34px;
+  gap: 3px;
+  padding: 1px 6px;
   background: var(--accent-soft);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   border-radius: var(--r-sm);
   color: var(--text);
   font: inherit;
@@ -1234,21 +1233,21 @@
 }
 .strong-code {
   font-family: var(--font-ui);
-  font-size: 0.68rem;
-  font-weight: 700;
+  font-size: 0.6rem;
+  font-weight: 600;
   letter-spacing: 0.02em;
-  opacity: 0.75;
+  opacity: 0.55;
 }
-/* palavra sem número: fica como texto, para a frase continuar legível */
 .strong-plain {
-  color: var(--text-2);
+  color: var(--text-3);
+  font-size: 0.84rem;
 }
 .strong-definition {
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 0.9rem;
+  line-height: 1.55;
 }
 .strong-definition p {
-  margin: 0 0 0.5em;
+  margin: 0 0 0.4em;
 }
 
 /* o termo em hebraico ou grego: corpo maior porque é o que se veio ver, e a
