@@ -21,6 +21,7 @@ import { db } from '../../core/db/db';
 import { bookName } from '../../core/bible/canon';
 import { formatSelection } from '../../core/bible/reference';
 import { getBook, getChapter, getChapterPericopes, getMeta, loadCatalog } from '../../core/bible/repository';
+import { getChapterCrossRefs } from '../../core/bible/reference-data';
 import { verseWords } from '../../core/bible/mybible';
 import type { StrongTag } from '../../core/db/types';
 import { categoryColor } from '../../core/categories';
@@ -100,6 +101,12 @@ export default function BiblePage() {
   const pericopes = useAsync(
     () => getChapterPericopes(translation, book, chapter),
     [translation, book, chapter],
+  );
+
+  /* Versículos que têm referências cruzadas — a cruz só aparece nestes. */
+  const chapterCrossRefs = useAsync(
+    () => getChapterCrossRefs(book, chapter),
+    [book, chapter],
   );
 
   /* Textos de comparação: carrega todas as traduções selecionadas de uma vez. */
@@ -504,16 +511,18 @@ export default function BiblePage() {
                   >
                     <span className="verse-num">{verse}</span>
                     {text}
-                    <span
-                      className="verse-crossref-btn"
-                      onClick={(e) => { e.stopPropagation(); openCrossRefForVerse(verse); }}
-                      title="Referências cruzadas"
-                      aria-label="Referências cruzadas"
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <Icon name="cross" size={13} />
-                    </span>
+                    {chapterCrossRefs.data?.has(verse) && (
+                      <span
+                        className="verse-crossref-btn"
+                        onClick={(e) => { e.stopPropagation(); openCrossRefForVerse(verse); }}
+                        title="Referências cruzadas"
+                        aria-label="Referências cruzadas"
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <Icon name="cross" size={13} />
+                      </span>
+                    )}
                   </div>
                   {activeCompareIds.map((id) => (
                     <div key={id} className="compare-cell compare-cell-alt">
@@ -595,16 +604,18 @@ export default function BiblePage() {
                       );
                     });
                   })()}
-                  <span
-                    className="verse-crossref-btn"
-                    onClick={(e) => { e.stopPropagation(); openCrossRefForVerse(verse); }}
-                    title="Referências cruzadas"
-                    aria-label="Referências cruzadas"
-                    role="button"
-                    tabIndex={0}
-                  >
-                    <Icon name="cross" size={13} />
-                  </span>
+                  {chapterCrossRefs.data?.has(verse) && (
+                    <span
+                      className="verse-crossref-btn"
+                      onClick={(e) => { e.stopPropagation(); openCrossRefForVerse(verse); }}
+                      title="Referências cruzadas"
+                      aria-label="Referências cruzadas"
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <Icon name="cross" size={13} />
+                    </span>
+                  )}
                   {favoriteVerses.has(verse) && (
                     <span className="verse-mark" title="Favorito" aria-label="Favorito">
                       <Icon name="star" size={11} filled style={{ display: 'inline', color: 'var(--accent)' }} />
