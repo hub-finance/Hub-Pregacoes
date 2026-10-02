@@ -238,23 +238,32 @@ export async function lookupTopic(word: string, dictionaryId?: string): Promise<
     rows = rows.filter((r) => r.dictionaryId === dictionaryId);
   }
 
-  // sem resultado por chave: busca no início da definição (significado principal)
+  // sem resultado por chave: busca por texto, mas só em dicionários gerais
   if (!rows.length && key.length >= 3) {
-    const lower = word.trim().toLowerCase();
-    const collection = dictionaryId
-      ? db.dictionaryEntries.where('dictionaryId').equals(dictionaryId)
-      : db.dictionaryEntries.toCollection();
+    const dicts = await listDictionaries();
+    const strongIds = new Set(dicts.filter((d) => d.isStrong).map((d) => d.id));
 
-    const matches = await collection
-      .filter((r) => {
-        const plain = stripHtml(r.definition).toLowerCase();
-        const pos = plain.indexOf(lower);
-        // só aceita se a palavra aparece nos primeiros 120 caracteres
-        return pos >= 0 && pos < 120;
-      })
-      .limit(8)
-      .toArray();
-    rows = matches;
+    // se o filtro é um Strong, não faz busca por texto — Strong é só por código
+    if (dictionaryId && strongIds.has(dictionaryId)) {
+      // nada a fazer
+    } else {
+      const lower = word.trim().toLowerCase();
+      const generalIds = dicts.filter((d) => !d.isStrong).map((d) => d.id);
+      const idsToSearch = dictionaryId ? [dictionaryId] : generalIds;
+
+      if (idsToSearch.length) {
+        const matches = await db.dictionaryEntries
+          .where('dictionaryId').anyOf(idsToSearch)
+          .filter((r) => {
+            const plain = stripHtml(r.definition).toLowerCase();
+            const pos = plain.indexOf(lower);
+            return pos >= 0 && pos < 120;
+          })
+          .limit(8)
+          .toArray();
+        rows = matches;
+      }
+    }
   }
 
   const names = new Map((await listDictionaries()).map((d) => [d.id, d.name]));
