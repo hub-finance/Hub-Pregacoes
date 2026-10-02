@@ -217,13 +217,15 @@ export async function hasStrongDictionary(): Promise<boolean> {
   return all.some((d) => d.isStrong);
 }
 
-/** Busca uma palavra em todos os dicionários (Strong e gerais). */
-export async function lookupTopic(word: string): Promise<StrongDefinition[]> {
+/** Busca uma palavra em todos os dicionários ou num específico. */
+export async function lookupTopic(word: string, dictionaryId?: string): Promise<StrongDefinition[]> {
   const key = topicKey(word);
   if (!key) return [];
-  const rows = await db.dictionaryEntries.where('topicKey').equals(key).toArray();
+  let query = db.dictionaryEntries.where('topicKey').equals(key);
+  const rows = await query.toArray();
+  const filtered = dictionaryId ? rows.filter((r) => r.dictionaryId === dictionaryId) : rows;
   const names = new Map((await listDictionaries()).map((d) => [d.id, d.name]));
-  return rows.map((r) => ({
+  return filtered.map((r) => ({
     dictionary: names.get(r.dictionaryId) ?? 'Dicionário',
     topic: r.topic,
     definition: r.definition,
@@ -231,13 +233,14 @@ export async function lookupTopic(word: string): Promise<StrongDefinition[]> {
 }
 
 /** Busca por prefixo — para sugestões enquanto digita. */
-export async function searchTopics(prefix: string, limit = 20): Promise<Array<{ topic: string; dictionaryId: string }>> {
+export async function searchTopics(prefix: string, limit = 20, dictionaryId?: string): Promise<Array<{ topic: string; dictionaryId: string }>> {
   const key = topicKey(prefix);
   if (!key) return [];
-  return db.dictionaryEntries
+  const rows = await db.dictionaryEntries
     .where('topicKey')
     .startsWith(key)
-    .limit(limit)
-    .toArray()
-    .then((rows) => rows.map((r) => ({ topic: r.topic, dictionaryId: r.dictionaryId })));
+    .limit(dictionaryId ? limit * 3 : limit)
+    .toArray();
+  const filtered = dictionaryId ? rows.filter((r) => r.dictionaryId === dictionaryId) : rows;
+  return filtered.slice(0, limit).map((r) => ({ topic: r.topic, dictionaryId: r.dictionaryId }));
 }

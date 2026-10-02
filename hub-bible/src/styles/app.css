@@ -1300,6 +1300,42 @@
   line-height: 1.4;
 }
 
+/* ---------------------- filtros da tela de dicionário ---------------------- */
+.dict-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--sp-3);
+}
+.dict-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.dict-filter:hover {
+  border-color: var(--accent);
+}
+.dict-filter.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.dict-filter-count {
+  font-size: 0.65rem;
+  opacity: 0.5;
+}
+
 /* ------------------- busca dentro do material aberto ---------------------- */
 /* Colada ao arquivo, logo abaixo da barra dele: numa apostila longa, o que se
    procura e onde se procura precisam estar à mesma vista. */

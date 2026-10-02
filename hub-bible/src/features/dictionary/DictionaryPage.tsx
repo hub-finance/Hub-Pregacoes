@@ -8,19 +8,20 @@ import { listDictionaries, lookupTopic, searchTopics } from '../../core/data/dic
 export default function DictionaryPage() {
   const [query, setQuery] = useState('');
   const [searched, setSearched] = useState('');
+  const [selectedDict, setSelectedDict] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const dictionaries = useAsync(() => listDictionaries(), []);
   const hasDicts = (dictionaries.data?.length ?? 0) > 0;
 
   const suggestions = useAsync(
-    () => (query.length >= 2 ? searchTopics(query, 12) : Promise.resolve([])),
-    [query],
+    () => (query.length >= 2 ? searchTopics(query, 12, selectedDict ?? undefined) : Promise.resolve([])),
+    [query, selectedDict],
   );
 
   const results = useAsync(
-    () => (searched ? lookupTopic(searched) : Promise.resolve([])),
-    [searched],
+    () => (searched ? lookupTopic(searched, selectedDict ?? undefined) : Promise.resolve([])),
+    [searched, selectedDict],
   );
 
   const handleInput = useCallback((value: string) => {
@@ -62,7 +63,27 @@ export default function DictionaryPage() {
   return (
     <div className="page">
       <h1 className="page-title">Dicionário</h1>
-      <p className="page-lead">Consulte palavras e termos nos dicionários importados.</p>
+
+      {dictionaries.data && dictionaries.data.length > 0 && (
+        <div className="dict-filters">
+          <button
+            className={`dict-filter${selectedDict === null ? ' active' : ''}`}
+            onClick={() => { setSelectedDict(null); if (searched) setSearched(searched); }}
+          >
+            Todos
+          </button>
+          {dictionaries.data.map((d) => (
+            <button
+              key={d.id}
+              className={`dict-filter${selectedDict === d.id ? ' active' : ''}`}
+              onClick={() => { setSelectedDict(d.id); if (searched) setSearched(searched); }}
+            >
+              {d.name}
+              <span className="dict-filter-count">{d.entries}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <form className="search-bar" onSubmit={handleSubmit} style={{ marginBottom: 'var(--sp-4)' }}>
         <Icon name="search" size={18} className="dim" />
@@ -112,7 +133,7 @@ export default function DictionaryPage() {
         <EmptyState
           icon="search"
           title="Nenhum resultado"
-          description={`Não encontrei "${searched}" nos dicionários importados.`}
+          description={`Não encontrei "${searched}" nos dicionários${selectedDict ? ' selecionados' : ''}.`}
         />
       )}
     </div>
