@@ -1,7 +1,25 @@
 # Pendências — retomar daqui
 
-Estado em **30/09/2026**. Tudo o que está descrito abaixo foi levantado e
+Estado em **02/10/2026**. Tudo o que está descrito abaixo foi levantado e
 verificado; nada aqui é suposição. O que já foi entregue está no `README.md`.
+
+---
+
+## Próxima sessão (03/10/2026 à noite)
+
+### 1. Clique palavra por palavra no texto bíblico (estilo Olive Tree)
+
+Ao tocar numa palavra no texto bíblico, abrir o Strong's daquela palavra
+diretamente no painel lateral — sem precisar selecionar o versículo
+primeiro. Fluxo: tocar na palavra → painel lateral abre na aba Original
+com a palavra já selecionada e sua definição visível.
+
+### 2. Referências cruzadas sem sair do capítulo
+
+Ao clicar numa referência cruzada no painel lateral, o versículo referenciado
+deve aparecer **abaixo, dentro do próprio painel**, em vez de navegar para
+outro capítulo. O usuário continua no capítulo principal de estudo e vê o
+texto referenciado inline no painel.
 
 ---
 
