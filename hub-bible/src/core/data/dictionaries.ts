@@ -217,21 +217,47 @@ export async function hasStrongDictionary(): Promise<boolean> {
   return all.some((d) => d.isStrong);
 }
 
+/** Remove tags HTML para buscar no texto puro da definição. */
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '');
+}
+
 /** Busca uma palavra em todos os dicionários ou num específico. */
 export async function lookupTopic(word: string, dictionaryId?: string): Promise<StrongDefinition[]> {
   const key = topicKey(word);
   if (!key) return [];
 
   const keys = candidateKeys(word);
+  let collection = dictionaryId
+    ? db.dictionaryEntries.where('dictionaryId').equals(dictionaryId)
+    : db.dictionaryEntries.toCollection();
+
   let rows = await db.dictionaryEntries.where('topicKey').anyOf(keys).toArray();
 
   if (!rows.length) {
     rows = await db.dictionaryEntries.where('topicKey').startsWith(key).limit(50).toArray();
   }
 
-  const filtered = dictionaryId ? rows.filter((r) => r.dictionaryId === dictionaryId) : rows;
+  if (dictionaryId) {
+    rows = rows.filter((r) => r.dictionaryId === dictionaryId);
+  }
+
+  // sem resultado por chave: busca dentro do texto da definição e do tópico
+  if (!rows.length && key.length >= 3) {
+    const lower = word.trim().toLowerCase();
+    const textMatches = await collection
+      .filter((r) => {
+        const topicLower = r.topic.toLowerCase();
+        if (topicLower.includes(lower)) return true;
+        return stripHtml(r.definition).toLowerCase().includes(lower);
+      })
+      .limit(30)
+      .toArray();
+    rows = textMatches;
+  }
+
   const names = new Map((await listDictionaries()).map((d) => [d.id, d.name]));
-  return filtered.map((r) => ({
+  return rows.map((r) => ({
     dictionary: names.get(r.dictionaryId) ?? 'Dicionário',
     topic: r.topic,
     definition: r.definition,
