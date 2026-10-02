@@ -5,6 +5,11 @@ import { EmptyState, Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
 import { listDictionaries, lookupTopic } from '../../core/data/dictionaries';
 
+/** Parece código Strong? (H430, G2316, 430, etc.) */
+function looksLikeCode(s: string): boolean {
+  return /^[HGhg]?\d+$/.test(s.trim());
+}
+
 export default function DictionaryPage() {
   const [query, setQuery] = useState('');
   const [searched, setSearched] = useState('');
@@ -13,6 +18,8 @@ export default function DictionaryPage() {
 
   const dictionaries = useAsync(() => listDictionaries(), []);
   const hasDicts = (dictionaries.data?.length ?? 0) > 0;
+
+  const selectedIsStrong = dictionaries.data?.find((d) => d.id === selectedDict)?.isStrong ?? false;
 
   const results = useAsync(
     () => (searched ? lookupTopic(searched, selectedDict ?? undefined) : Promise.resolve([])),
@@ -37,6 +44,9 @@ export default function DictionaryPage() {
     setSelectedDict(id);
     if (query.trim().length >= 2) setSearched(query.trim());
   };
+
+  const noResults = searched && results.data && results.data.length === 0 && !results.loading;
+  const isWordInStrong = noResults && selectedIsStrong && !looksLikeCode(searched);
 
   if (!hasDicts && !dictionaries.loading) {
     return (
@@ -86,7 +96,7 @@ export default function DictionaryPage() {
         <input
           type="search"
           className="search-input"
-          placeholder="Digite uma palavra ou código Strong…"
+          placeholder={selectedIsStrong ? 'Digite um código Strong (ex: G2316, H430)…' : 'Digite uma palavra ou código Strong…'}
           value={query}
           onChange={(e) => handleInput(e.target.value)}
           autoFocus
@@ -110,7 +120,20 @@ export default function DictionaryPage() {
         </div>
       )}
 
-      {searched && results.data && results.data.length === 0 && !results.loading && (
+      {isWordInStrong && (
+        <EmptyState
+          icon="search"
+          title="O Strong usa códigos"
+          description={`Para buscar "${searched}" por palavra, use "Todos" ou o Dicionário Português.`}
+          action={
+            <button className="btn btn-primary btn-sm" onClick={() => selectDict(null)}>
+              Buscar em todos
+            </button>
+          }
+        />
+      )}
+
+      {noResults && !isWordInStrong && (
         <EmptyState
           icon="search"
           title="Nenhum resultado"
