@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { EmptyState, Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
-import { listDictionaries, lookupTopic, searchTopics } from '../../core/data/dictionaries';
+import { listDictionaries, lookupTopic } from '../../core/data/dictionaries';
 
 export default function DictionaryPage() {
   const [query, setQuery] = useState('');
@@ -14,11 +14,6 @@ export default function DictionaryPage() {
   const dictionaries = useAsync(() => listDictionaries(), []);
   const hasDicts = (dictionaries.data?.length ?? 0) > 0;
 
-  const suggestions = useAsync(
-    () => (query.length >= 2 ? searchTopics(query, 12, selectedDict ?? undefined) : Promise.resolve([])),
-    [query, selectedDict],
-  );
-
   const results = useAsync(
     () => (searched ? lookupTopic(searched, selectedDict ?? undefined) : Promise.resolve([])),
     [searched, selectedDict],
@@ -26,20 +21,21 @@ export default function DictionaryPage() {
 
   const handleInput = useCallback((value: string) => {
     setQuery(value);
+    setSearched('');
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       if (value.trim().length >= 2) setSearched(value.trim());
-    }, 400);
+    }, 500);
   }, []);
-
-  const pickSuggestion = (topic: string) => {
-    setQuery(topic);
-    setSearched(topic);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) setSearched(query.trim());
+  };
+
+  const selectDict = (id: string | null) => {
+    setSelectedDict(id);
+    if (query.trim().length >= 2) setSearched(query.trim());
   };
 
   if (!hasDicts && !dictionaries.loading) {
@@ -68,7 +64,7 @@ export default function DictionaryPage() {
         <div className="dict-filters">
           <button
             className={`dict-filter${selectedDict === null ? ' active' : ''}`}
-            onClick={() => { setSelectedDict(null); if (searched) setSearched(searched); }}
+            onClick={() => selectDict(null)}
           >
             Todos
           </button>
@@ -76,7 +72,7 @@ export default function DictionaryPage() {
             <button
               key={d.id}
               className={`dict-filter${selectedDict === d.id ? ' active' : ''}`}
-              onClick={() => { setSelectedDict(d.id); if (searched) setSearched(searched); }}
+              onClick={() => selectDict(d.id)}
             >
               {d.name}
               <span className="dict-filter-count">{d.entries}</span>
@@ -96,21 +92,6 @@ export default function DictionaryPage() {
           autoFocus
         />
       </form>
-
-      {query.length >= 2 && !searched && suggestions.data && suggestions.data.length > 0 && (
-        <div className="list" style={{ marginBottom: 'var(--sp-4)' }}>
-          {[...new Map(suggestions.data.map((s) => [s.topic, s])).values()].map((s) => (
-            <button
-              key={s.topic}
-              className="list-item"
-              onClick={() => pickSuggestion(s.topic)}
-              style={{ cursor: 'pointer', width: '100%', textAlign: 'left', background: 'none', border: 'none', font: 'inherit', color: 'inherit' }}
-            >
-              <span className="list-title">{s.topic}</span>
-            </button>
-          ))}
-        </div>
-      )}
 
       {searched && results.loading && <Spinner />}
 

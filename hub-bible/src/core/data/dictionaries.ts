@@ -221,8 +221,14 @@ export async function hasStrongDictionary(): Promise<boolean> {
 export async function lookupTopic(word: string, dictionaryId?: string): Promise<StrongDefinition[]> {
   const key = topicKey(word);
   if (!key) return [];
-  let query = db.dictionaryEntries.where('topicKey').equals(key);
-  const rows = await query.toArray();
+
+  const keys = candidateKeys(word);
+  let rows = await db.dictionaryEntries.where('topicKey').anyOf(keys).toArray();
+
+  if (!rows.length) {
+    rows = await db.dictionaryEntries.where('topicKey').startsWith(key).limit(50).toArray();
+  }
+
   const filtered = dictionaryId ? rows.filter((r) => r.dictionaryId === dictionaryId) : rows;
   const names = new Map((await listDictionaries()).map((d) => [d.id, d.name]));
   return filtered.map((r) => ({
@@ -236,11 +242,21 @@ export async function lookupTopic(word: string, dictionaryId?: string): Promise<
 export async function searchTopics(prefix: string, limit = 20, dictionaryId?: string): Promise<Array<{ topic: string; dictionaryId: string }>> {
   const key = topicKey(prefix);
   if (!key) return [];
-  const rows = await db.dictionaryEntries
+
+  const keys = candidateKeys(prefix);
+  let rows = await db.dictionaryEntries.where('topicKey').anyOf(keys).toArray();
+
+  const prefixRows = await db.dictionaryEntries
     .where('topicKey')
     .startsWith(key)
     .limit(dictionaryId ? limit * 3 : limit)
     .toArray();
+
+  const seen = new Set(rows.map((r) => r.id));
+  for (const r of prefixRows) {
+    if (!seen.has(r.id)) rows.push(r);
+  }
+
   const filtered = dictionaryId ? rows.filter((r) => r.dictionaryId === dictionaryId) : rows;
   return filtered.slice(0, limit).map((r) => ({ topic: r.topic, dictionaryId: r.dictionaryId }));
 }
