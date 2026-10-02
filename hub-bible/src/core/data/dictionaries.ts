@@ -216,3 +216,28 @@ export async function hasStrongDictionary(): Promise<boolean> {
   const all = await listDictionaries();
   return all.some((d) => d.isStrong);
 }
+
+/** Busca uma palavra em todos os dicionários (Strong e gerais). */
+export async function lookupTopic(word: string): Promise<StrongDefinition[]> {
+  const key = topicKey(word);
+  if (!key) return [];
+  const rows = await db.dictionaryEntries.where('topicKey').equals(key).toArray();
+  const names = new Map((await listDictionaries()).map((d) => [d.id, d.name]));
+  return rows.map((r) => ({
+    dictionary: names.get(r.dictionaryId) ?? 'Dicionário',
+    topic: r.topic,
+    definition: r.definition,
+  }));
+}
+
+/** Busca por prefixo — para sugestões enquanto digita. */
+export async function searchTopics(prefix: string, limit = 20): Promise<Array<{ topic: string; dictionaryId: string }>> {
+  const key = topicKey(prefix);
+  if (!key) return [];
+  return db.dictionaryEntries
+    .where('topicKey')
+    .startsWith(key)
+    .limit(limit)
+    .toArray()
+    .then((rows) => rows.map((r) => ({ topic: r.topic, dictionaryId: r.dictionaryId })));
+}
