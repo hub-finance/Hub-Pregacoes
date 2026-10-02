@@ -251,9 +251,23 @@ export async function lookupTopic(word: string, dictionaryId?: string): Promise<
         if (topicLower.includes(lower)) return true;
         return stripHtml(r.definition).toLowerCase().includes(lower);
       })
-      .limit(30)
+      .limit(80)
       .toArray();
-    rows = textMatches;
+
+    // ordenar por relevância: tópico > início da definição > menção casual
+    textMatches.sort((a, b) => {
+      const aInTopic = a.topic.toLowerCase().includes(lower) ? 0 : 1;
+      const bInTopic = b.topic.toLowerCase().includes(lower) ? 0 : 1;
+      if (aInTopic !== bInTopic) return aInTopic - bInTopic;
+
+      const aDef = stripHtml(a.definition).toLowerCase();
+      const bDef = stripHtml(b.definition).toLowerCase();
+      const aPos = aDef.indexOf(lower);
+      const bPos = bDef.indexOf(lower);
+      return aPos - bPos;
+    });
+
+    rows = textMatches.slice(0, 15);
   }
 
   const names = new Map((await listDictionaries()).map((d) => [d.id, d.name]));
