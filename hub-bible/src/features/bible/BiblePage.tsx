@@ -15,7 +15,7 @@ import { Sheet } from '../../components/Sheet';
 import { Spinner, TextArea } from '../../components/ui';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
-import { useAsync } from '../../hooks';
+import { useAsync, useIsWide } from '../../hooks';
 import { useSettings } from '../../core/settings/SettingsContext';
 import { db } from '../../core/db/db';
 import { bookName } from '../../core/bible/canon';
@@ -140,6 +140,8 @@ export default function BiblePage() {
   const readingProgress = useReadingProgress();
   const lastTapRef = useRef<{ verse: number; time: number } | null>(null);
   const [navHistory, setNavHistory] = useState<NavPosition[]>([]);
+  const isWide = useIsWide();
+  const panelOpen = strongOpen || crossRefOpen || commentaryOpen;
 
   useImmersiveScreen(settings.immersiveReading);
 
@@ -403,6 +405,8 @@ export default function BiblePage() {
 
   return (
     <>
+      <div className={`bible-layout${isWide && panelOpen ? ' has-panel' : ''}`}>
+      <div className="bible-content">
       {/* a barra acompanha a rolagem: no meio de um capítulo longo, trocar de
           livro não pode exigir subir a página inteira */}
       <div className="row reader-bar">
@@ -621,6 +625,42 @@ export default function BiblePage() {
           Próximo →
         </button>
       </nav>
+      </div>{/* .bible-content */}
+
+      {isWide && selection.length === 1 && (
+        <>
+          <StrongSheet
+            open={strongOpen}
+            onClose={() => setStrongOpen(false)}
+            translation={translation}
+            book={book}
+            chapter={chapter}
+            verse={selection[0]}
+            reference={selectionReference}
+            initialWord={null}
+            inline
+          />
+          <CrossRefSheet
+            open={crossRefOpen}
+            onClose={() => setCrossRefOpen(false)}
+            book={book}
+            chapter={chapter}
+            verse={selection[0]}
+            reference={selectionReference}
+            inline
+          />
+          <CommentarySheet
+            open={commentaryOpen}
+            onClose={() => setCommentaryOpen(false)}
+            book={book}
+            chapter={chapter}
+            verse={selection[0]}
+            reference={selectionReference}
+            inline
+          />
+        </>
+      )}
+      </div>{/* .bible-layout */}
 
       {selection.length > 0 && (
         <VerseActionBar
@@ -684,7 +724,7 @@ export default function BiblePage() {
         onImported={() => catalog.reload()}
       />
 
-      {selection.length === 1 && (
+      {!isWide && selection.length === 1 && (
         <>
           <StrongSheet
             open={strongOpen}

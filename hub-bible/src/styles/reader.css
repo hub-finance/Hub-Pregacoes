@@ -1112,6 +1112,68 @@
   margin-top: 0.2em;
 }
 
+/* ========================= painel lateral (desktop) ======================== */
+.bible-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.bible-content {
+  flex: 1;
+  min-width: 0;
+}
+@media (min-width: 1080px) {
+  .bible-layout.has-panel .bible-content {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  width: clamp(320px, 36vw, 440px);
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  background: var(--bg-elevated);
+  height: calc(100dvh - var(--topbar-h) - var(--status-h, env(safe-area-inset-top, 0px)));
+  position: sticky;
+  top: calc(var(--topbar-h) + var(--status-h, env(safe-area-inset-top, 0px)));
+  z-index: 46;
+  animation: panel-in 220ms var(--ease);
+}
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+.side-panel-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.side-panel-title {
+  font-size: 0.95rem;
+  font-weight: 620;
+  flex: 1;
+  min-width: 0;
+}
+.side-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.side-panel-body > * {
+  flex: none;
+}
+
 /* ========================= referências cruzadas =========================== */
 .crossref-list {
   display: flex;

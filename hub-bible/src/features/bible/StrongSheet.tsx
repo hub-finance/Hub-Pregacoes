@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sheet } from '../../components/Sheet';
+import { SidePanel } from '../../components/SidePanel';
 import { Icon } from '../../components/Icon';
 import { Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
@@ -19,6 +20,7 @@ interface Props {
   verse: number;
   reference: string;
   initialWord?: number | null;
+  inline?: boolean;
 }
 
 /**
@@ -31,7 +33,7 @@ interface Props {
  * Sem dicionário importado, o código aparece sozinho — e a folha diz onde
  * arrumar um, em vez de mostrar "H430" e deixar o leitor no escuro.
  */
-export function StrongSheet({ open, onClose, translation, book, chapter, verse, reference, initialWord }: Props) {
+export function StrongSheet({ open, onClose, translation, book, chapter, verse, reference, initialWord, inline }: Props) {
   const [picked, setPicked] = useState<number | null>(null);
 
   const data = useAsync(async () => {
@@ -74,8 +76,10 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
     [codes.join(','), translation, open],
   );
 
-  return (
-    <Sheet open={open} title={`${reference} — no original`} onClose={onClose} size="lg">
+  const panelTitle = `${reference} — no original`;
+
+  const content = (
+    <>
       {data.loading && <Spinner />}
 
       {data.data && !codesByWord.size && (
@@ -186,6 +190,20 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
           )}
         </>
       )}
+    </>
+  );
+
+  if (inline) {
+    return (
+      <SidePanel open={open} title={panelTitle} onClose={onClose}>
+        {content}
+      </SidePanel>
+    );
+  }
+
+  return (
+    <Sheet open={open} title={panelTitle} onClose={onClose} size="lg">
+      {content}
     </Sheet>
   );
 }

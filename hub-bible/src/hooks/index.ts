@@ -81,3 +81,5 @@ export function useMediaQuery(query: string): boolean {
 }
 
 export const useIsTablet = () => useMediaQuery('(min-width: 900px)');
+
+export const useIsWide = () => useMediaQuery('(min-width: 1080px)');

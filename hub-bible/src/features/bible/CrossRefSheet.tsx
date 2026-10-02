@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Sheet } from '../../components/Sheet';
+import { SidePanel } from '../../components/SidePanel';
 import { Icon } from '../../components/Icon';
 import { Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
@@ -14,6 +15,7 @@ interface Props {
   chapter: number;
   verse: number;
   reference: string;
+  inline?: boolean;
 }
 
 function formatRef(key: string): { label: string; path: string } {
@@ -26,7 +28,7 @@ function formatRef(key: string): { label: string; path: string } {
   };
 }
 
-export function CrossRefSheet({ open, onClose, book, chapter, verse, reference }: Props) {
+export function CrossRefSheet({ open, onClose, book, chapter, verse, reference, inline }: Props) {
   const data = useAsync(
     () => getCrossReferences(book, chapter, verse),
     [book, chapter, verse, open],
@@ -48,9 +50,10 @@ export function CrossRefSheet({ open, onClose, book, chapter, verse, reference }
   }, [refs]);
 
   const empty = data.data && !refs.length;
+  const panelTitle = `${reference} — referências`;
 
-  return (
-    <Sheet open={open} title={`${reference} — referências`} onClose={onClose} size="lg">
+  const content = (
+    <>
       {data.loading && <Spinner />}
 
       {empty && (
@@ -97,7 +100,20 @@ export function CrossRefSheet({ open, onClose, book, chapter, verse, reference }
           )}
         </div>
       )}
+    </>
+  );
 
+  if (inline) {
+    return (
+      <SidePanel open={open} title={panelTitle} onClose={onClose}>
+        {content}
+      </SidePanel>
+    );
+  }
+
+  return (
+    <Sheet open={open} title={panelTitle} onClose={onClose} size="lg">
+      {content}
     </Sheet>
   );
 }

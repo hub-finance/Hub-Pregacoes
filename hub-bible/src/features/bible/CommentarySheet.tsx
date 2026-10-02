@@ -1,4 +1,5 @@
 import { Sheet } from '../../components/Sheet';
+import { SidePanel } from '../../components/SidePanel';
 import { Icon } from '../../components/Icon';
 import { Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
@@ -12,9 +13,10 @@ interface Props {
   chapter: number;
   verse: number;
   reference: string;
+  inline?: boolean;
 }
 
-export function CommentarySheet({ open, onClose, book, chapter, verse, reference }: Props) {
+export function CommentarySheet({ open, onClose, book, chapter, verse, reference, inline }: Props) {
   const bookNumber = OSIS_TO_MYBIBLE_NUMBER.get(book) ?? 0;
 
   const data = useAsync(
@@ -22,8 +24,10 @@ export function CommentarySheet({ open, onClose, book, chapter, verse, reference
     [bookNumber, chapter, verse, open],
   );
 
-  return (
-    <Sheet open={open} title={`${reference} — comentários`} onClose={onClose} size="lg">
+  const panelTitle = `${reference} — comentários`;
+
+  const content = (
+    <>
       {data.loading && <Spinner />}
 
       {data.data && !data.data.length && !data.loading && (
@@ -55,6 +59,20 @@ export function CommentarySheet({ open, onClose, book, chapter, verse, reference
           ))}
         </div>
       )}
+    </>
+  );
+
+  if (inline) {
+    return (
+      <SidePanel open={open} title={panelTitle} onClose={onClose}>
+        {content}
+      </SidePanel>
+    );
+  }
+
+  return (
+    <Sheet open={open} title={panelTitle} onClose={onClose} size="lg">
+      {content}
     </Sheet>
   );
 }
