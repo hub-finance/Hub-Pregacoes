@@ -6,6 +6,7 @@ import { TranslationPicker } from './TranslationPicker';
 import { StrongSheet } from './StrongSheet';
 import { CommentarySheet } from './CommentarySheet';
 import { CrossRefSheet } from './CrossRefSheet';
+import { VersePanel, type VersePanelTab } from './VersePanel';
 import { ReaderSettingsSheet } from './ReaderSettingsSheet';
 import { ReaderScrollbar, useReadingProgress } from './ReaderScrollbar';
 import { VerseActionBar } from './VerseActionBar';
@@ -136,12 +137,12 @@ export default function BiblePage() {
   const [strongOpen, setStrongOpen] = useState(false);
   const [crossRefOpen, setCrossRefOpen] = useState(false);
   const [commentaryOpen, setCommentaryOpen] = useState(false);
+  const [panelTab, setPanelTab] = useState<VersePanelTab>('commentary');
   const readerRef = useRef<HTMLDivElement>(null);
   const readingProgress = useReadingProgress();
   const lastTapRef = useRef<{ verse: number; time: number } | null>(null);
   const [navHistory, setNavHistory] = useState<NavPosition[]>([]);
   const isWide = useIsWide();
-  const panelOpen = strongOpen || crossRefOpen || commentaryOpen;
 
   useImmersiveScreen(settings.immersiveReading);
 
@@ -278,7 +279,11 @@ export default function BiblePage() {
         lastTapRef.current = null;
         if (meta.data?.hasStrong) {
           setSelection([verse]);
-          setStrongOpen(true);
+          if (isWide) {
+            setPanelTab('strong');
+          } else {
+            setStrongOpen(true);
+          }
         }
         return;
       }
@@ -288,7 +293,7 @@ export default function BiblePage() {
         prevSel.includes(verse) ? prevSel.filter((v) => v !== verse) : [...prevSel, verse].sort((a, b) => a - b),
       );
     },
-    [meta.data?.hasStrong],
+    [meta.data?.hasStrong, isWide],
   );
 
   const selectionReference = formatSelection(book, chapter, selection);
@@ -374,7 +379,11 @@ export default function BiblePage() {
 
   const openCrossRefForVerse = (verse: number) => {
     setSelection([verse]);
-    setCrossRefOpen(true);
+    if (isWide) {
+      setPanelTab('crossref');
+    } else {
+      setCrossRefOpen(true);
+    }
   };
 
   /* ------------------------------- render -------------------------------- */
@@ -405,7 +414,7 @@ export default function BiblePage() {
 
   return (
     <>
-      <div className={`bible-layout${isWide && panelOpen ? ' has-panel' : ''}`}>
+      <div className={`bible-layout${isWide && selection.length === 1 ? ' has-panel' : ''}`}>
       <div className="bible-content">
       {/* a barra acompanha a rolagem: no meio de um capítulo longo, trocar de
           livro não pode exigir subir a página inteira */}
@@ -628,37 +637,18 @@ export default function BiblePage() {
       </div>{/* .bible-content */}
 
       {isWide && selection.length === 1 && (
-        <>
-          <StrongSheet
-            open={strongOpen}
-            onClose={() => setStrongOpen(false)}
-            translation={translation}
-            book={book}
-            chapter={chapter}
-            verse={selection[0]}
-            reference={selectionReference}
-            initialWord={null}
-            inline
-          />
-          <CrossRefSheet
-            open={crossRefOpen}
-            onClose={() => setCrossRefOpen(false)}
-            book={book}
-            chapter={chapter}
-            verse={selection[0]}
-            reference={selectionReference}
-            inline
-          />
-          <CommentarySheet
-            open={commentaryOpen}
-            onClose={() => setCommentaryOpen(false)}
-            book={book}
-            chapter={chapter}
-            verse={selection[0]}
-            reference={selectionReference}
-            inline
-          />
-        </>
+        <VersePanel
+          verse={selection[0]}
+          translation={translation}
+          book={book}
+          chapter={chapter}
+          reference={selectionReference}
+          hasStrong={!!meta.data?.hasStrong}
+          tab={panelTab}
+          onTabChange={setPanelTab}
+          onClose={() => setSelection([])}
+          onNavigate={() => setSelection([])}
+        />
       )}
       </div>{/* .bible-layout */}
 
@@ -671,13 +661,13 @@ export default function BiblePage() {
             { id: 'fav', icon: 'star', label: 'Favoritar', onClick: toggleFavorites },
             { id: 'note', icon: 'note', label: 'Anotar', onClick: () => setNoteOpen(true) },
             ...(meta.data?.hasStrong && selection.length === 1
-              ? [{ id: 'strong', icon: 'search' as const, label: 'No original', onClick: () => setStrongOpen(true) }]
+              ? [{ id: 'strong', icon: 'search' as const, label: 'No original', onClick: () => { if (isWide) setPanelTab('strong'); else setStrongOpen(true); } }]
               : []),
             ...(selection.length === 1
-              ? [{ id: 'crossref', icon: 'link' as const, label: 'Referências', onClick: () => setCrossRefOpen(true) }]
+              ? [{ id: 'crossref', icon: 'link' as const, label: 'Referências', onClick: () => { if (isWide) setPanelTab('crossref'); else setCrossRefOpen(true); } }]
               : []),
             ...(selection.length === 1
-              ? [{ id: 'commentary', icon: 'book' as const, label: 'Comentários', onClick: () => setCommentaryOpen(true) }]
+              ? [{ id: 'commentary', icon: 'book' as const, label: 'Comentários', onClick: () => { if (isWide) setPanelTab('commentary'); else setCommentaryOpen(true); } }]
               : []),
             { id: 'share', icon: 'share', label: 'Compartilhar', onClick: () => setShareOpen(true) },
             {

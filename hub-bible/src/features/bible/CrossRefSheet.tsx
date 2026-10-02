@@ -8,16 +8,6 @@ import { useAsync } from '../../hooks';
 import { getCrossReferences } from '../../core/bible/reference-data';
 import { CANON_BY_OSIS } from '../../core/bible/canon';
 
-interface Props {
-  open: boolean;
-  onClose: () => void;
-  book: string;
-  chapter: number;
-  verse: number;
-  reference: string;
-  inline?: boolean;
-}
-
 function formatRef(key: string): { label: string; path: string } {
   const [b, c, v] = key.split('.');
   const canon = CANON_BY_OSIS.get(b);
@@ -28,10 +18,19 @@ function formatRef(key: string): { label: string; path: string } {
   };
 }
 
-export function CrossRefSheet({ open, onClose, book, chapter, verse, reference, inline }: Props) {
+/* ─── conteúdo reutilizável (VersePanel e CrossRefSheet) ─── */
+
+interface CrossRefContentProps {
+  book: string;
+  chapter: number;
+  verse: number;
+  onNavigate?: () => void;
+}
+
+export function CrossRefContent({ book, chapter, verse, onNavigate }: CrossRefContentProps) {
   const data = useAsync(
     () => getCrossReferences(book, chapter, verse),
-    [book, chapter, verse, open],
+    [book, chapter, verse],
   );
 
   const refs = data.data ?? [];
@@ -50,9 +49,8 @@ export function CrossRefSheet({ open, onClose, book, chapter, verse, reference, 
   }, [refs]);
 
   const empty = data.data && !refs.length;
-  const panelTitle = `${reference} — referências`;
 
-  const content = (
+  return (
     <>
       {data.loading && <Spinner />}
 
@@ -74,7 +72,7 @@ export function CrossRefSheet({ open, onClose, book, chapter, verse, reference, 
                 {grouped.at.map((r) => {
                   const { label, path } = formatRef(r);
                   return (
-                    <Link key={r} to={path} className="crossref-chip" onClick={onClose}>
+                    <Link key={r} to={path} className="crossref-chip" onClick={onNavigate}>
                       {label}
                     </Link>
                   );
@@ -90,7 +88,7 @@ export function CrossRefSheet({ open, onClose, book, chapter, verse, reference, 
                 {grouped.nt.map((r) => {
                   const { label, path } = formatRef(r);
                   return (
-                    <Link key={r} to={path} className="crossref-chip" onClick={onClose}>
+                    <Link key={r} to={path} className="crossref-chip" onClick={onNavigate}>
                       {label}
                     </Link>
                   );
@@ -102,6 +100,26 @@ export function CrossRefSheet({ open, onClose, book, chapter, verse, reference, 
       )}
     </>
   );
+}
+
+/* ─── wrapper para mobile (Sheet flutuante) ─── */
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  book: string;
+  chapter: number;
+  verse: number;
+  reference: string;
+  inline?: boolean;
+}
+
+export function CrossRefSheet({ open, onClose, book, chapter, verse, reference, inline }: Props) {
+  const panelTitle = `${reference} — referências`;
+
+  const content = open ? (
+    <CrossRefContent book={book} chapter={chapter} verse={verse} onNavigate={onClose} />
+  ) : null;
 
   if (inline) {
     return (

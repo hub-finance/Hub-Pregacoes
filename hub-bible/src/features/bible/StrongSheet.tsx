@@ -11,39 +11,27 @@ import { lookupStrong } from '../../core/data/dictionaries';
 import { findGroupForStrong, type SemanticGroup } from '../../core/bible/reference-data';
 import type { StrongTag } from '../../core/db/types';
 
-interface Props {
-  open: boolean;
-  onClose: () => void;
+/* ─── conteúdo reutilizável (VersePanel e StrongSheet) ─── */
+
+interface StrongContentProps {
   translation: string;
   book: string;
   chapter: number;
   verse: number;
-  reference: string;
+  onNavigate?: () => void;
   initialWord?: number | null;
-  inline?: boolean;
 }
 
-/**
- * O versículo palavra por palavra, com o número de Strong de cada uma.
- *
- * Abre a partir do versículo selecionado, e não de um toque na palavra: no
- * tablet, palavra é alvo pequeno demais, e tocar no texto já significa
- * selecionar o versículo. Aqui as palavras viram botões do tamanho do dedo.
- *
- * Sem dicionário importado, o código aparece sozinho — e a folha diz onde
- * arrumar um, em vez de mostrar "H430" e deixar o leitor no escuro.
- */
-export function StrongSheet({ open, onClose, translation, book, chapter, verse, reference, initialWord, inline }: Props) {
-  const [picked, setPicked] = useState<number | null>(null);
+export function StrongContent({ translation, book, chapter, verse, onNavigate, initialWord }: StrongContentProps) {
+  const [picked, setPicked] = useState<number | null>(initialWord ?? null);
 
   const data = useAsync(async () => {
     const record = await getBook(translation, book);
     const text = record.chapters[chapter - 1]?.[verse - 1] ?? '';
     const tags: StrongTag[] = record.strongs?.[chapter - 1]?.[verse - 1] ?? [];
     return { words: verseWords(text), tags };
-  }, [translation, book, chapter, verse, open]);
+  }, [translation, book, chapter, verse]);
 
-  /** Palavra -> códigos. Uma palavra pode carregar mais de um. */
   const codesByWord = useMemo(() => {
     const map = new Map<number, string[]>();
     for (const [index, code] of data.data?.tags ?? []) {
@@ -55,30 +43,27 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
   }, [data.data]);
 
   useEffect(() => {
-    if (!open) setPicked(null);
-    else if (initialWord != null) setPicked(initialWord);
-  }, [open, initialWord]);
+    setPicked(initialWord ?? null);
+  }, [verse, initialWord]);
 
   const codes = picked === null ? [] : (codesByWord.get(picked) ?? []);
   const definitions = useAsync(
     async () => (codes.length ? (await Promise.all(codes.map(lookupStrong))).flat() : []),
-    [codes.join(','), open],
+    [codes.join(',')],
   );
 
   const semanticGroup = useAsync(
     async (): Promise<SemanticGroup | null> =>
       codes.length === 1 ? findGroupForStrong(codes[0]) : null,
-    [codes.join(','), open],
+    [codes.join(',')],
   );
 
   const occurrences = useAsync(
     async () => (codes.length ? findVersesWithStrong(translation, codes[0]) : []),
-    [codes.join(','), translation, open],
+    [codes.join(','), translation],
   );
 
-  const panelTitle = `${reference} — no original`;
-
-  const content = (
+  return (
     <>
       {data.loading && <Spinner />}
 
@@ -90,8 +75,8 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
         <>
           <div className="strong-words">
             {data.data.words.map((word, index) => {
-              const codes = codesByWord.get(index);
-              if (codes) {
+              const wordCodes = codesByWord.get(index);
+              if (wordCodes) {
                 return (
                   <button
                     key={index}
@@ -99,7 +84,7 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
                     onClick={() => setPicked(index === picked ? null : index)}
                   >
                     <span className="strong-word-text">{word}</span>
-                    <span className="strong-code">{codes[0]}</span>
+                    <span className="strong-code">{wordCodes[0]}</span>
                   </button>
                 );
               }
@@ -134,7 +119,7 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
               {definitions.data && !definitions.data.length && (
                 <div className="notice">
                   <span>Nenhum dicionário importado traz este verbete.</span>
-                  <Link to="/config" onClick={onClose} className="small" style={{ fontWeight: 600 }}>
+                  <Link to="/config" onClick={onNavigate} className="small" style={{ fontWeight: 600 }}>
                     Importar dicionário
                   </Link>
                 </div>
@@ -173,7 +158,7 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
                       <div key={i} style={{ paddingLeft: 'var(--sp-2)', borderLeft: '2px solid var(--border)' }}>
                         <Link
                           to={`/biblia/${o.book}/${o.chapter}`}
-                          onClick={onClose}
+                          onClick={onNavigate}
                           className="small"
                           style={{ fontWeight: 650, color: 'var(--accent)' }}
                         >
@@ -185,13 +170,41 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
                   </div>
                 </div>
               )}
-
             </div>
           )}
         </>
       )}
     </>
   );
+}
+
+/* ─── wrapper para mobile (Sheet flutuante) ─── */
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  translation: string;
+  book: string;
+  chapter: number;
+  verse: number;
+  reference: string;
+  initialWord?: number | null;
+  inline?: boolean;
+}
+
+export function StrongSheet({ open, onClose, translation, book, chapter, verse, reference, initialWord, inline }: Props) {
+  const panelTitle = `${reference} — no original`;
+
+  const content = open ? (
+    <StrongContent
+      translation={translation}
+      book={book}
+      chapter={chapter}
+      verse={verse}
+      onNavigate={onClose}
+      initialWord={initialWord}
+    />
+  ) : null;
 
   if (inline) {
     return (

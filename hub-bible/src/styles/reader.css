@@ -1174,6 +1174,38 @@
   flex: none;
 }
 
+/* abas do VersePanel */
+.verse-panel-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  padding: 0 var(--sp-3);
+}
+.verse-panel-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--sp-2) var(--sp-3);
+  min-height: var(--tap);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.verse-panel-tab:hover {
+  color: var(--text-1);
+}
+.verse-panel-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
 /* ========================= referências cruzadas =========================== */
 .crossref-list {
   display: flex;

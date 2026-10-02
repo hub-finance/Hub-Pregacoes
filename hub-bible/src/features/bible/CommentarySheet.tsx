@@ -6,27 +6,23 @@ import { useAsync } from '../../hooks';
 import { lookupCommentary } from '../../core/data/commentaries';
 import { OSIS_TO_MYBIBLE_NUMBER } from '../../core/bible/mybible';
 
-interface Props {
-  open: boolean;
-  onClose: () => void;
+/* ─── conteúdo reutilizável (VersePanel e CommentarySheet) ─── */
+
+interface CommentaryContentProps {
   book: string;
   chapter: number;
   verse: number;
-  reference: string;
-  inline?: boolean;
 }
 
-export function CommentarySheet({ open, onClose, book, chapter, verse, reference, inline }: Props) {
+export function CommentaryContent({ book, chapter, verse }: CommentaryContentProps) {
   const bookNumber = OSIS_TO_MYBIBLE_NUMBER.get(book) ?? 0;
 
   const data = useAsync(
-    () => (open && bookNumber ? lookupCommentary(bookNumber, chapter, verse) : Promise.resolve([])),
-    [bookNumber, chapter, verse, open],
+    () => (bookNumber ? lookupCommentary(bookNumber, chapter, verse) : Promise.resolve([])),
+    [bookNumber, chapter, verse],
   );
 
-  const panelTitle = `${reference} — comentários`;
-
-  const content = (
+  return (
     <>
       {data.loading && <Spinner />}
 
@@ -61,6 +57,26 @@ export function CommentarySheet({ open, onClose, book, chapter, verse, reference
       )}
     </>
   );
+}
+
+/* ─── wrapper para mobile (Sheet flutuante) ─── */
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  book: string;
+  chapter: number;
+  verse: number;
+  reference: string;
+  inline?: boolean;
+}
+
+export function CommentarySheet({ open, onClose, book, chapter, verse, reference, inline }: Props) {
+  const panelTitle = `${reference} — comentários`;
+
+  const content = open ? (
+    <CommentaryContent book={book} chapter={chapter} verse={verse} />
+  ) : null;
 
   if (inline) {
     return (
