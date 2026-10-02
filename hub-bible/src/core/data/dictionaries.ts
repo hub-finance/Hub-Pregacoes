@@ -217,21 +217,12 @@ export async function hasStrongDictionary(): Promise<boolean> {
   return all.some((d) => d.isStrong);
 }
 
-/** Remove tags HTML para buscar no texto puro da definição. */
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '');
-}
-
 /** Busca uma palavra em todos os dicionários ou num específico. */
 export async function lookupTopic(word: string, dictionaryId?: string): Promise<StrongDefinition[]> {
   const key = topicKey(word);
   if (!key) return [];
 
   const keys = candidateKeys(word);
-  let collection = dictionaryId
-    ? db.dictionaryEntries.where('dictionaryId').equals(dictionaryId)
-    : db.dictionaryEntries.toCollection();
-
   let rows = await db.dictionaryEntries.where('topicKey').anyOf(keys).toArray();
 
   if (!rows.length) {
@@ -240,34 +231,6 @@ export async function lookupTopic(word: string, dictionaryId?: string): Promise<
 
   if (dictionaryId) {
     rows = rows.filter((r) => r.dictionaryId === dictionaryId);
-  }
-
-  // sem resultado por chave: busca dentro do texto da definição e do tópico
-  if (!rows.length && key.length >= 3) {
-    const lower = word.trim().toLowerCase();
-    const textMatches = await collection
-      .filter((r) => {
-        const topicLower = r.topic.toLowerCase();
-        if (topicLower.includes(lower)) return true;
-        return stripHtml(r.definition).toLowerCase().includes(lower);
-      })
-      .limit(80)
-      .toArray();
-
-    // ordenar por relevância: tópico > início da definição > menção casual
-    textMatches.sort((a, b) => {
-      const aInTopic = a.topic.toLowerCase().includes(lower) ? 0 : 1;
-      const bInTopic = b.topic.toLowerCase().includes(lower) ? 0 : 1;
-      if (aInTopic !== bInTopic) return aInTopic - bInTopic;
-
-      const aDef = stripHtml(a.definition).toLowerCase();
-      const bDef = stripHtml(b.definition).toLowerCase();
-      const aPos = aDef.indexOf(lower);
-      const bPos = bDef.indexOf(lower);
-      return aPos - bPos;
-    });
-
-    rows = textMatches.slice(0, 15);
   }
 
   const names = new Map((await listDictionaries()).map((d) => [d.id, d.name]));
