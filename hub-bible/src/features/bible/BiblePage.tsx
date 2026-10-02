@@ -138,6 +138,7 @@ export default function BiblePage() {
   const [crossRefOpen, setCrossRefOpen] = useState(false);
   const [commentaryOpen, setCommentaryOpen] = useState(false);
   const [panelTab, setPanelTab] = useState<VersePanelTab>('commentary');
+  const [versePanelOpen, setVersePanelOpen] = useState(false);
   const readerRef = useRef<HTMLDivElement>(null);
   const readingProgress = useReadingProgress();
   const lastTapRef = useRef<{ verse: number; time: number } | null>(null);
@@ -191,6 +192,7 @@ export default function BiblePage() {
     update({ lastPosition: { translation, book, chapter, at: Date.now() } });
     registerReading(translation, book, chapter).catch(() => undefined);
     setSelection([]);
+    setVersePanelOpen(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [translation, book, chapter, verses.length]);
 
@@ -277,13 +279,12 @@ export default function BiblePage() {
 
       if (last && last.verse === verse && now - last.time < DOUBLE_TAP_MS) {
         lastTapRef.current = null;
-        if (meta.data?.hasStrong) {
-          setSelection([verse]);
-          if (isWide) {
-            setPanelTab('strong');
-          } else {
-            setStrongOpen(true);
-          }
+        setSelection([verse]);
+        if (isWide) {
+          setVersePanelOpen(true);
+          setPanelTab(meta.data?.hasStrong ? 'strong' : 'commentary');
+        } else if (meta.data?.hasStrong) {
+          setStrongOpen(true);
         }
         return;
       }
@@ -380,6 +381,7 @@ export default function BiblePage() {
   const openCrossRefForVerse = (verse: number) => {
     setSelection([verse]);
     if (isWide) {
+      setVersePanelOpen(true);
       setPanelTab('crossref');
     } else {
       setCrossRefOpen(true);
@@ -414,7 +416,7 @@ export default function BiblePage() {
 
   return (
     <>
-      <div className={`bible-layout${isWide && selection.length === 1 ? ' has-panel' : ''}`}>
+      <div className={`bible-layout${isWide && versePanelOpen && selection.length === 1 ? ' has-panel' : ''}`}>
       <div className="bible-content">
       {/* a barra acompanha a rolagem: no meio de um capítulo longo, trocar de
           livro não pode exigir subir a página inteira */}
@@ -636,7 +638,7 @@ export default function BiblePage() {
       </nav>
       </div>{/* .bible-content */}
 
-      {isWide && selection.length === 1 && (
+      {isWide && versePanelOpen && selection.length === 1 && (
         <VersePanel
           verse={selection[0]}
           translation={translation}
@@ -646,8 +648,8 @@ export default function BiblePage() {
           hasStrong={!!meta.data?.hasStrong}
           tab={panelTab}
           onTabChange={setPanelTab}
-          onClose={() => setSelection([])}
-          onNavigate={() => setSelection([])}
+          onClose={() => { setVersePanelOpen(false); setSelection([]); }}
+          onNavigate={() => { setVersePanelOpen(false); setSelection([]); }}
         />
       )}
       </div>{/* .bible-layout */}
@@ -661,13 +663,13 @@ export default function BiblePage() {
             { id: 'fav', icon: 'star', label: 'Favoritar', onClick: toggleFavorites },
             { id: 'note', icon: 'note', label: 'Anotar', onClick: () => setNoteOpen(true) },
             ...(meta.data?.hasStrong && selection.length === 1
-              ? [{ id: 'strong', icon: 'search' as const, label: 'No original', onClick: () => { if (isWide) setPanelTab('strong'); else setStrongOpen(true); } }]
+              ? [{ id: 'strong', icon: 'search' as const, label: 'No original', onClick: () => { if (isWide) { setVersePanelOpen(true); setPanelTab('strong'); } else setStrongOpen(true); } }]
               : []),
             ...(selection.length === 1
-              ? [{ id: 'crossref', icon: 'link' as const, label: 'Referências', onClick: () => { if (isWide) setPanelTab('crossref'); else setCrossRefOpen(true); } }]
+              ? [{ id: 'crossref', icon: 'link' as const, label: 'Referências', onClick: () => { if (isWide) { setVersePanelOpen(true); setPanelTab('crossref'); } else setCrossRefOpen(true); } }]
               : []),
             ...(selection.length === 1
-              ? [{ id: 'commentary', icon: 'book' as const, label: 'Comentários', onClick: () => { if (isWide) setPanelTab('commentary'); else setCommentaryOpen(true); } }]
+              ? [{ id: 'commentary', icon: 'book' as const, label: 'Comentários', onClick: () => { if (isWide) { setVersePanelOpen(true); setPanelTab('commentary'); } else setCommentaryOpen(true); } }]
               : []),
             { id: 'share', icon: 'share', label: 'Compartilhar', onClick: () => setShareOpen(true) },
             {
