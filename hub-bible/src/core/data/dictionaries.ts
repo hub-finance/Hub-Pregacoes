@@ -217,6 +217,11 @@ export async function hasStrongDictionary(): Promise<boolean> {
   return all.some((d) => d.isStrong);
 }
 
+/** Remove tags HTML para buscar no texto puro. */
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '');
+}
+
 /** Busca uma palavra em todos os dicionários ou num específico. */
 export async function lookupTopic(word: string, dictionaryId?: string): Promise<StrongDefinition[]> {
   const key = topicKey(word);
@@ -231,6 +236,25 @@ export async function lookupTopic(word: string, dictionaryId?: string): Promise<
 
   if (dictionaryId) {
     rows = rows.filter((r) => r.dictionaryId === dictionaryId);
+  }
+
+  // sem resultado por chave: busca no início da definição (significado principal)
+  if (!rows.length && key.length >= 3) {
+    const lower = word.trim().toLowerCase();
+    const collection = dictionaryId
+      ? db.dictionaryEntries.where('dictionaryId').equals(dictionaryId)
+      : db.dictionaryEntries.toCollection();
+
+    const matches = await collection
+      .filter((r) => {
+        const plain = stripHtml(r.definition).toLowerCase();
+        const pos = plain.indexOf(lower);
+        // só aceita se a palavra aparece nos primeiros 120 caracteres
+        return pos >= 0 && pos < 120;
+      })
+      .limit(8)
+      .toArray();
+    rows = matches;
   }
 
   const names = new Map((await listDictionaries()).map((d) => [d.id, d.name]));
