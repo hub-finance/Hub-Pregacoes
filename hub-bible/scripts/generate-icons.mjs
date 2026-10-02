@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Gera os ícones PNG do PWA (any + maskable) sem dependências externas.
- * Desenho: gradiente dourado sobre fundo escuro com uma Bíblia aberta.
+ * Gera os ícones PNG do PWA (any + maskable).
+ * Desenho: farol branco sobre fundo azul escuro, com feixe de luz.
  *
  * Uso: node scripts/generate-icons.mjs
  */
@@ -14,81 +14,132 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(__dirname, '..', 'public', 'icons');
 
-const INK = [15, 17, 21];
-const GOLD_A = [231, 199, 143];
-const GOLD_B = [138, 106, 47];
-const PAGE = [250, 248, 245];
+const BG = [16, 36, 76];
+const BLUE_MID = [30, 64, 130];
+const BLUE_LIGHT = [70, 130, 210];
+const WHITE = [255, 255, 255];
+const CREAM = [240, 245, 255];
+const LIGHT_BEAM = [180, 210, 255];
 
 const lerp = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
-
-function inPolygon(x, y, points) {
-  let inside = false;
-  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
-    const [xi, yi] = points[i];
-    const [xj, yj] = points[j];
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
 
 function roundedRectAlpha(x, y, size, inset, radius) {
   const min = inset;
   const max = size - inset;
+  if (x < min || x > max || y < min || y > max) return 0;
   const cx = Math.min(Math.max(x, min + radius), max - radius);
   const cy = Math.min(Math.max(y, min + radius), max - radius);
-  const dx = x - cx;
-  const dy = y - cy;
-  const dist = Math.hypot(dx, dy);
-  if (x < min || x > max || y < min || y > max) return 0;
-  return dist <= radius ? 1 : 0;
+  return Math.hypot(x - cx, y - cy) <= radius ? 1 : 0;
 }
 
 function draw(size, maskable) {
   const inset = maskable ? 0 : Math.round(size * 0.06);
   const radius = maskable ? 0 : Math.round(size * 0.22);
   const pixels = Buffer.alloc(size * size * 4);
-
-  // páginas do livro (coordenadas relativas)
   const s = (v) => v * size;
-  const left = [
-    [s(0.2), s(0.37)],
-    [s(0.485), s(0.325)],
-    [s(0.485), s(0.7)],
-    [s(0.2), s(0.665)],
-  ];
-  const right = [
-    [s(0.8), s(0.37)],
-    [s(0.515), s(0.325)],
-    [s(0.515), s(0.7)],
-    [s(0.8), s(0.665)],
-  ];
+
+  // centro do farol
+  const cx = size * 0.5;
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const i = (y * size + x) * 4;
       const alpha = inset || radius ? roundedRectAlpha(x + 0.5, y + 0.5, size, inset, radius) : 1;
-      if (!alpha) {
-        pixels[i + 3] = 0;
-        continue;
+      if (!alpha) { pixels[i + 3] = 0; continue; }
+
+      // fundo: gradiente radial azul
+      const distFromCenter = Math.hypot(x - cx, y - size * 0.35) / (size * 0.6);
+      let color = lerp(BLUE_MID, BG, Math.min(1, distFromCenter));
+
+      // feixe de luz (cone saindo do topo do farol)
+      const beamCx = cx;
+      const beamTop = s(0.12);
+      const beamBottom = s(0.42);
+      if (y >= beamTop && y <= beamBottom) {
+        const progress = (y - beamTop) / (beamBottom - beamTop);
+        const halfWidth = s(0.02) + progress * s(0.22);
+        const dx = Math.abs(x - beamCx);
+        if (dx < halfWidth) {
+          const intensity = (1 - dx / halfWidth) * (1 - progress * 0.7);
+          color = lerp(color, LIGHT_BEAM, intensity * 0.45);
+        }
       }
 
-      let color = INK;
-      // halo dourado difuso no canto superior direito
-      const t = Math.min(1, Math.hypot(x - size * 0.78, y - size * 0.2) / (size * 0.7));
-      color = lerp(lerp(GOLD_B, INK, 0.55), INK, t);
+      // corpo do farol — torre
+      const towerLeft = s(0.42);
+      const towerRight = s(0.58);
+      const towerTop = s(0.38);
+      const towerBottom = s(0.78);
+      if (x >= towerLeft && x <= towerRight && y >= towerTop && y <= towerBottom) {
+        const tProgress = (y - towerTop) / (towerBottom - towerTop);
+        // leve inclinação (mais largo embaixo)
+        const widen = tProgress * s(0.02);
+        if (x >= towerLeft - widen && x <= towerRight + widen) {
+          color = lerp(WHITE, CREAM, tProgress * 0.3);
+          // faixas horizontais azuis decorativas
+          const stripe1 = y >= s(0.48) && y <= s(0.50);
+          const stripe2 = y >= s(0.60) && y <= s(0.62);
+          if (stripe1 || stripe2) {
+            color = BLUE_LIGHT;
+          }
+        }
+      }
 
-      // lombada
-      if (Math.abs(x - size * 0.5) < size * 0.008 && y > s(0.325) && y < s(0.705)) {
-        color = lerp(GOLD_A, GOLD_B, (y - s(0.325)) / s(0.38));
-      } else if (inPolygon(x + 0.5, y + 0.5, left) || inPolygon(x + 0.5, y + 0.5, right)) {
-        const shade = 0.06 + 0.16 * (y / size);
-        color = lerp(PAGE, GOLD_B, shade);
-        // linhas de texto
-        const lineIndex = Math.floor((y - s(0.4)) / s(0.052));
-        const onLine = y > s(0.4) && y < s(0.64) && (y - s(0.4)) % s(0.052) < s(0.012);
-        const inMargin =
-          (x > s(0.24) && x < s(0.455)) || (x > s(0.545) && x < s(0.76));
-        if (onLine && inMargin && lineIndex % 1 === 0) color = lerp(GOLD_B, PAGE, 0.45);
+      // base mais larga do farol
+      const baseTop = s(0.72);
+      const baseBottom = s(0.82);
+      const baseLeft = s(0.36);
+      const baseRight = s(0.64);
+      if (x >= baseLeft && x <= baseRight && y >= baseTop && y <= baseBottom) {
+        const bProgress = (y - baseTop) / (baseBottom - baseTop);
+        color = lerp(WHITE, CREAM, 0.1 + bProgress * 0.2);
+      }
+
+      // lanterna (parte superior — a cabine de luz)
+      const lanternTop = s(0.30);
+      const lanternBottom = s(0.40);
+      const lanternLeft = s(0.40);
+      const lanternRight = s(0.60);
+      if (x >= lanternLeft && x <= lanternRight && y >= lanternTop && y <= lanternBottom) {
+        color = WHITE;
+        // janelas da lanterna (vidro azul claro)
+        const winInset = s(0.025);
+        if (x > lanternLeft + winInset && x < lanternRight - winInset &&
+            y > lanternTop + s(0.015) && y < lanternBottom - s(0.015)) {
+          const glow = 0.7 + 0.3 * Math.sin((x - lanternLeft) / (lanternRight - lanternLeft) * Math.PI);
+          color = lerp(BLUE_LIGHT, [220, 240, 255], glow);
+        }
+      }
+
+      // telhado cônico
+      const roofTop = s(0.24);
+      const roofBottom = s(0.31);
+      if (y >= roofTop && y <= roofBottom) {
+        const rProgress = (y - roofTop) / (roofBottom - roofTop);
+        const roofHalf = s(0.015) + rProgress * s(0.11);
+        if (Math.abs(x - cx) <= roofHalf) {
+          color = lerp([200, 215, 240], WHITE, rProgress);
+        }
+      }
+
+      // ponta no topo
+      const tipTop = s(0.20);
+      const tipBottom = s(0.25);
+      if (y >= tipTop && y <= tipBottom) {
+        const tProg = (y - tipTop) / (tipBottom - tipTop);
+        const tipHalf = s(0.004) + tProg * s(0.012);
+        if (Math.abs(x - cx) <= tipHalf) {
+          color = WHITE;
+        }
+      }
+
+      // plataforma/varanda
+      const platTop = s(0.385);
+      const platBottom = s(0.40);
+      const platLeft = s(0.37);
+      const platRight = s(0.63);
+      if (x >= platLeft && x <= platRight && y >= platTop && y <= platBottom) {
+        color = WHITE;
       }
 
       pixels[i] = color[0];
@@ -130,14 +181,14 @@ function chunk(type, data) {
 function encodePng(size, pixels) {
   const raw = Buffer.alloc(size * (size * 4 + 1));
   for (let y = 0; y < size; y++) {
-    raw[y * (size * 4 + 1)] = 0; // filtro "none"
+    raw[y * (size * 4 + 1)] = 0;
     pixels.copy(raw, y * (size * 4 + 1) + 1, y * size * 4, (y + 1) * size * 4);
   }
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(size, 0);
   ihdr.writeUInt32BE(size, 4);
-  ihdr[8] = 8; // bits por canal
-  ihdr[9] = 6; // RGBA
+  ihdr[8] = 8;
+  ihdr[9] = 6;
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk('IHDR', ihdr),
@@ -165,14 +216,21 @@ for (const target of targets) {
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Hub Bible">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#e7c78f"/><stop offset="1" stop-color="#8a6a2f"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#1e4082"/><stop offset="1" stop-color="#10244c"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="#0f1115"/>
-  <path d="M102 189 248 166v193L102 341z" fill="url(#g)"/>
-  <path d="M410 189 264 166v193l146-18z" fill="url(#g)" opacity=".82"/>
-  <rect x="250" y="164" width="12" height="198" rx="6" fill="#e7c78f"/>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <polygon points="256,102 220,158 292,158" fill="#c8d7f0"/>
+  <rect x="200" y="155" width="112" height="52" rx="4" fill="#fff"/>
+  <rect x="210" y="163" width="92" height="36" rx="2" fill="#4682d2" opacity=".6"/>
+  <rect x="188" y="197" width="136" height="10" fill="#fff"/>
+  <rect x="214" y="195" width="84" height="210" fill="#fff"/>
+  <rect x="214" y="245" width="84" height="10" fill="#4682d2" opacity=".5"/>
+  <rect x="214" y="305" width="84" height="10" fill="#4682d2" opacity=".5"/>
+  <rect x="184" y="370" width="144" height="52" rx="6" fill="#f0f5ff"/>
+  <path d="M256 62 L230 140 H282 Z" fill="#b4d2ff" opacity=".25"/>
+  <path d="M256 155 L180 210 H332 Z" fill="#b4d2ff" opacity=".15"/>
 </svg>`;
 fs.writeFileSync(path.join(OUT, 'icon.svg'), svg);
 console.log('✔ icon.svg');
