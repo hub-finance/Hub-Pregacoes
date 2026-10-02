@@ -85,18 +85,22 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
       {data.data && codesByWord.size > 0 && (
         <>
           <div className="strong-words">
-            {data.data.words.map((word, index) =>
-              codesByWord.has(index) ? (
-                <button
-                  key={index}
-                  className={`strong-word${picked === index ? ' active' : ''}`}
-                  onClick={() => setPicked(index === picked ? null : index)}
-                >
-                  <span className="strong-word-text">{word}</span>
-                  <span className="strong-code">{codesByWord.get(index)![0]}</span>
-                </button>
-              ) : null,
-            )}
+            {data.data.words.map((word, index) => {
+              const codes = codesByWord.get(index);
+              if (codes) {
+                return (
+                  <button
+                    key={index}
+                    className={`strong-word${picked === index ? ' active' : ''}`}
+                    onClick={() => setPicked(index === picked ? null : index)}
+                  >
+                    <span className="strong-word-text">{word}</span>
+                    <span className="strong-code">{codes[0]}</span>
+                  </button>
+                );
+              }
+              return <span key={index}>{index > 0 ? ' ' : ''}{word}</span>;
+            })}
           </div>
 
           {picked !== null && (

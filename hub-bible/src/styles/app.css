@@ -1200,98 +1200,103 @@
 
 /* -------------------------- versículo no original ------------------------- */
 .strong-words {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  line-height: 2;
+  font-family: var(--font-reader);
+  font-size: 1rem;
 }
 .strong-word {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  padding: 4px 8px 3px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
+  display: inline;
+  padding: 2px 4px;
+  border-radius: 3px;
   color: var(--text);
-  font-family: var(--font-reader);
-  font-size: 0.82rem;
   cursor: pointer;
-  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  transition: background var(--dur) var(--ease);
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
 }
 .strong-word:hover {
-  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .strong-word.active {
   background: var(--accent-soft);
-  border-color: var(--accent);
+  outline: 1.5px solid var(--accent);
+  outline-offset: -1px;
 }
 .strong-word-text {
   font-weight: 500;
-  line-height: 1.2;
 }
 .strong-code {
   font-family: var(--font-ui);
-  font-size: 0.55rem;
-  color: var(--text-3);
-  line-height: 1;
+  font-size: 0.6em;
+  color: var(--accent);
+  font-weight: 600;
+  vertical-align: super;
+  margin-left: 1px;
 }
+
+/* definição ao estilo Olive Tree */
 .strong-detail {
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-  margin-top: var(--sp-3);
-  border-top: 1px solid var(--border);
-  padding-top: var(--sp-3);
+  margin-top: var(--sp-4);
+  border-top: 2px solid var(--border);
+  padding-top: var(--sp-4);
 }
 .strong-detail-head {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  align-items: flex-start;
 }
 .strong-detail-word {
   font-family: var(--font-reader);
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
 }
 .strong-detail-codes {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 .strong-detail-code {
   font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   color: var(--accent);
   text-transform: uppercase;
 }
 .strong-detail-entry {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
+  gap: var(--sp-2);
   padding: var(--sp-3);
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--r);
+  border-left: 3px solid var(--accent);
 }
 .strong-detail-topic {
   font-family: var(--font-reader);
-  font-size: 1.2rem;
-  line-height: 1.35;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.3;
 }
 .strong-detail-source {
   font-size: 0.7rem;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-3);
 }
 .strong-definition {
-  font-size: 0.88rem;
-  line-height: 1.55;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--text-2);
 }
 .strong-definition p {
-  margin: 0 0 0.4em;
+  margin: 0 0 0.5em;
 }
 
 .lexicon-lemma {
