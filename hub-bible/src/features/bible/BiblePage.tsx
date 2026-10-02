@@ -33,11 +33,15 @@ import { registerReading } from '../../core/data/reading';
 import { newSermon, newStudy, saveDoc } from '../../core/data/documents';
 import { copyToClipboard } from '../../core/share/share';
 
+const WORD_DOUBLE_TAP_MS = 400;
+const wordTapState = { verse: 0, index: -1, time: 0 };
+
 function renderVerseWords(
   text: string,
   tags: StrongTag[],
   verse: number,
-  onWordTap: (verse: number, wordIndex: number) => void,
+  onVerseTap: (verse: number) => void,
+  onWordDoubleTap: (verse: number, wordIndex: number) => void,
 ) {
   const words = verseWords(text);
   const strongIndices = new Set(tags.map(([idx]) => idx));
@@ -48,7 +52,23 @@ function renderVerseWords(
           {i > 0 ? ' ' : ''}
           <span
             className="strong-tap"
-            onClick={(e) => { e.stopPropagation(); onWordTap(verse, i); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              const now = Date.now();
+              if (
+                wordTapState.verse === verse &&
+                wordTapState.index === i &&
+                now - wordTapState.time < WORD_DOUBLE_TAP_MS
+              ) {
+                wordTapState.time = 0;
+                onWordDoubleTap(verse, i);
+              } else {
+                wordTapState.verse = verse;
+                wordTapState.index = i;
+                wordTapState.time = now;
+                onVerseTap(verse);
+              }
+            }}
             role="button"
             tabIndex={0}
           >
@@ -631,7 +651,7 @@ export default function BiblePage() {
                 >
                   <span className="verse-num">{verse}</span>
                   {verseTags && verseTags.length > 0
-                    ? renderVerseWords(text, verseTags, verse, handleWordTap)
+                    ? renderVerseWords(text, verseTags, verse, handleVerseTap, handleWordTap)
                     : text}
                   {chapterCrossRefs.data?.has(verse) && (
                     <span
