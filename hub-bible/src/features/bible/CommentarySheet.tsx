@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { Sheet } from '../../components/Sheet';
 import { SidePanel } from '../../components/SidePanel';
 import { Icon } from '../../components/Icon';
@@ -16,11 +17,23 @@ interface CommentaryContentProps {
 
 export function CommentaryContent({ book, chapter, verse }: CommentaryContentProps) {
   const bookNumber = OSIS_TO_MYBIBLE_NUMBER.get(book) ?? 0;
+  const [picked, setPicked] = useState<string | null>(null);
 
   const data = useAsync(
     () => (bookNumber ? lookupCommentary(bookNumber, chapter, verse) : Promise.resolve([])),
     [bookNumber, chapter, verse],
   );
+
+  const names = useMemo(() => {
+    if (!data.data) return [];
+    const seen = new Set<string>();
+    return data.data
+      .map((m) => m.commentaryName)
+      .filter((n) => { if (seen.has(n)) return false; seen.add(n); return true; });
+  }, [data.data]);
+
+  const active = picked && names.includes(picked) ? picked : names[0] ?? null;
+  const filtered = data.data?.filter((m) => m.commentaryName === active) ?? [];
 
   return (
     <>
@@ -30,9 +43,23 @@ export function CommentaryContent({ book, chapter, verse }: CommentaryContentPro
         <p className="dim">Nenhum comentário para este versículo nos módulos instalados.</p>
       )}
 
-      {data.data && data.data.length > 0 && (
+      {names.length > 1 && (
+        <div className="commentary-picker">
+          {names.map((name) => (
+            <button
+              key={name}
+              className={`commentary-pick${active === name ? ' active' : ''}`}
+              onClick={() => setPicked(name)}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {filtered.length > 0 && (
         <div className="stack" style={{ gap: 'var(--sp-4)' }}>
-          {data.data.map((match, i) => (
+          {filtered.map((match, i) => (
             <div key={i} className="card stack" style={{ gap: 'var(--sp-2)' }}>
               <div className="row" style={{ gap: 'var(--sp-2)', alignItems: 'center' }}>
                 <Icon name="book" size={16} />

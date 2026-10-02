@@ -1267,6 +1267,36 @@
   color: var(--text-2);
 }
 
+/* ===================== seletor de comentário ============================== */
+.commentary-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--sp-3);
+}
+.commentary-pick {
+  padding: 5px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-full, 999px);
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 550;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms, color 120ms;
+  white-space: nowrap;
+}
+.commentary-pick:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.commentary-pick.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 /* ========================= cruz para Strong's ============================== */
 .verse-crossref-btn {
   display: inline-flex;

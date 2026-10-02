@@ -24,6 +24,13 @@ e o texto abaixo. Não navega mais para outro capítulo — o usuário continua
 no capítulo principal de estudo. Os textos são carregados agrupados por
 livro/capítulo para minimizar fetches.
 
+### 3. ✅ Seletor de comentário (picker)
+
+Quando há mais de um módulo de comentário instalado, o painel de comentários
+agora mostra chips para escolher qual comentário visualizar, em vez de
+exibir os três de uma vez. O primeiro módulo fica selecionado por padrão.
+Componente: `CommentaryContent` em `CommentarySheet.tsx`.
+
 ---
 
 ## Entregues em 29–30/09/2026
