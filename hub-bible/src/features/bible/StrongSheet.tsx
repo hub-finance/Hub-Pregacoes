@@ -91,40 +91,41 @@ export function StrongSheet({ open, onClose, translation, book, chapter, verse, 
           <p className="strong-words">
             {data.data.words.map((word, index) => {
               const has = codesByWord.has(index);
-              return has ? (
-                <button
-                  key={index}
-                  className={`strong-word${picked === index ? ' active' : ''}`}
-                  onClick={() => setPicked(index === picked ? null : index)}
-                >
-                  {word}<sup className="strong-code">{codesByWord.get(index)![0]}</sup>
-                </button>
-              ) : (
-                <span key={index} className="strong-plain">
-                  {word}
+              return (
+                <span key={index}>
+                  {index > 0 && ' '}
+                  {has ? (
+                    <button
+                      className={`strong-word${picked === index ? ' active' : ''}`}
+                      onClick={() => setPicked(index === picked ? null : index)}
+                    >
+                      {word}<sup className="strong-code">{codesByWord.get(index)![0]}</sup>
+                    </button>
+                  ) : (
+                    <span className="strong-plain">{word}</span>
+                  )}
                 </span>
               );
             })}
           </p>
 
           {picked !== null && (
-            <div className="stack" style={{ gap: 'var(--sp-2)' }}>
-              <div className="row" style={{ gap: 'var(--sp-2)', alignItems: 'baseline' }}>
-                <strong style={{ fontSize: '0.95rem' }}>{data.data.words[picked]}</strong>
-                {codes.map((c) => (
-                  <span key={c} className="badge" style={{ fontSize: '0.65rem' }}>
-                    {c}
-                  </span>
-                ))}
+            <div className="strong-detail">
+              <div className="strong-detail-head">
+                <span className="strong-detail-word">{data.data.words[picked]}</span>
+                <span className="strong-detail-codes">
+                  {codes.map((c) => (
+                    <span key={c} className="strong-detail-code">{c}</span>
+                  ))}
+                </span>
               </div>
 
               {definitions.loading && <Spinner />}
 
               {definitions.data?.map((d, i) => (
-                <div key={i} className="card stack" style={{ gap: 'var(--sp-1)' }}>
-                  <span className="list-meta">
-                    {d.dictionary} · {d.topic}
-                  </span>
+                <div key={i} className="strong-detail-entry">
+                  {d.topic && <span className="strong-detail-topic">{d.topic}</span>}
+                  <span className="strong-detail-source">{d.dictionary}</span>
                   <div
                     className="strong-definition"
                     dangerouslySetInnerHTML={{ __html: d.definition }}

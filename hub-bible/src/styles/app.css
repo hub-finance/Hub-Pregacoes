@@ -1236,16 +1236,64 @@
 .strong-plain {
   color: var(--text-2);
 }
+.strong-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+  border-top: 1px solid var(--border);
+  padding-top: var(--sp-3);
+}
+.strong-detail-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.strong-detail-word {
+  font-family: var(--font-reader);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.strong-detail-codes {
+  display: flex;
+  gap: 6px;
+}
+.strong-detail-code {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.strong-detail-entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.strong-detail-topic {
+  font-family: var(--font-reader);
+  font-size: 1.2rem;
+  line-height: 1.35;
+}
+.strong-detail-source {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
 .strong-definition {
-  font-size: 0.85rem;
-  line-height: 1.5;
+  font-size: 0.88rem;
+  line-height: 1.55;
 }
 .strong-definition p {
-  margin: 0 0 0.3em;
+  margin: 0 0 0.4em;
 }
 
-/* o termo em hebraico ou grego: corpo maior porque é o que se veio ver, e a
-   fonte de leitura porque as do sistema costumam errar os pontos vocálicos */
 .lexicon-lemma {
   font-family: var(--font-reader);
   font-size: 1.15rem;
