@@ -1200,41 +1200,41 @@
 
 /* -------------------------- versículo no original ------------------------- */
 .strong-words {
-  font-family: var(--font-reader);
-  font-size: var(--fs-reader, 1rem);
-  line-height: 1.85;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 .strong-word {
-  display: inline;
-  padding: 0;
-  background: none;
-  border: none;
-  border-bottom: 1px dotted var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 8px 3px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
   color: var(--text);
-  font: inherit;
+  font-family: var(--font-reader);
+  font-size: 0.82rem;
   cursor: pointer;
-  transition: background var(--dur) var(--ease);
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 .strong-word:hover {
-  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 .strong-word.active {
   background: var(--accent-soft);
-  border-bottom: 2px solid var(--accent);
+  border-color: var(--accent);
+}
+.strong-word-text {
+  font-weight: 500;
+  line-height: 1.2;
 }
 .strong-code {
   font-family: var(--font-ui);
-  font-size: 0.55em;
-  font-weight: 500;
-  vertical-align: super;
-  opacity: 0.4;
-  margin-left: 1px;
-}
-.strong-word.active .strong-code {
-  opacity: 0.7;
-}
-.strong-plain {
-  color: var(--text-2);
+  font-size: 0.55rem;
+  color: var(--text-3);
+  line-height: 1;
 }
 .strong-detail {
   display: flex;
