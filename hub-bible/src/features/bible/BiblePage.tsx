@@ -21,8 +21,10 @@ import { useSettings } from '../../core/settings/SettingsContext';
 import { db } from '../../core/db/db';
 import { bookName } from '../../core/bible/canon';
 import { formatSelection } from '../../core/bible/reference';
-import { getChapter, getChapterPericopes, getMeta, loadCatalog } from '../../core/bible/repository';
+import { getBook, getChapter, getChapterPericopes, getMeta, loadCatalog } from '../../core/bible/repository';
 import { getChapterCrossRefs } from '../../core/bible/reference-data';
+import { verseWords } from '../../core/bible/mybible';
+import type { StrongTag } from '../../core/db/types';
 import { categoryColor } from '../../core/categories';
 import { listChapterHighlights, setHighlight } from '../../core/data/highlights';
 import { addFavorite, findFavoriteFor, removeFavorite } from '../../core/data/favorites';
@@ -30,6 +32,34 @@ import { createNote } from '../../core/data/notes';
 import { registerReading } from '../../core/data/reading';
 import { newSermon, newStudy, saveDoc } from '../../core/data/documents';
 import { copyToClipboard } from '../../core/share/share';
+
+function renderVerseWords(
+  text: string,
+  tags: StrongTag[],
+  verse: number,
+  onWordTap: (verse: number, wordIndex: number) => void,
+) {
+  const words = verseWords(text);
+  const strongIndices = new Set(tags.map(([idx]) => idx));
+  return words.map((word, i) => {
+    if (strongIndices.has(i)) {
+      return (
+        <Fragment key={i}>
+          {i > 0 ? ' ' : ''}
+          <span
+            className="strong-tap"
+            onClick={(e) => { e.stopPropagation(); onWordTap(verse, i); }}
+            role="button"
+            tabIndex={0}
+          >
+            {word}
+          </span>
+        </Fragment>
+      );
+    }
+    return <Fragment key={i}>{i > 0 ? ' ' : ''}{word}</Fragment>;
+  });
+}
 
 const DEFAULT_BOOK = 'JHN';
 const DOUBLE_TAP_MS = 350;
@@ -78,6 +108,17 @@ export default function BiblePage() {
   const pericopes = useAsync(
     () => getChapterPericopes(translation, book, chapter),
     [translation, book, chapter],
+  );
+
+  const chapterStrongs = useAsync(
+    async () => {
+      if (!meta.data?.hasStrong) return null;
+      try {
+        const record = await getBook(translation, book);
+        return record.strongs?.[chapter - 1] ?? null;
+      } catch { return null; }
+    },
+    [translation, book, chapter, meta.data?.hasStrong],
   );
 
   /* Versículos que têm referências cruzadas — a cruz só aparece nestes. */
@@ -139,6 +180,7 @@ export default function BiblePage() {
   const [commentaryOpen, setCommentaryOpen] = useState(false);
   const [panelTab, setPanelTab] = useState<VersePanelTab>('commentary');
   const [versePanelOpen, setVersePanelOpen] = useState(false);
+  const [initialWord, setInitialWord] = useState<number | null>(null);
   const readerRef = useRef<HTMLDivElement>(null);
   const readingProgress = useReadingProgress();
   const lastTapRef = useRef<{ verse: number; time: number } | null>(null);
@@ -280,6 +322,7 @@ export default function BiblePage() {
       if (last && last.verse === verse && now - last.time < DOUBLE_TAP_MS) {
         lastTapRef.current = null;
         setSelection([verse]);
+        setInitialWord(null);
         if (isWide) {
           setVersePanelOpen(true);
           setPanelTab(meta.data?.hasStrong ? 'strong' : 'commentary');
@@ -295,6 +338,20 @@ export default function BiblePage() {
       );
     },
     [meta.data?.hasStrong, isWide],
+  );
+
+  const handleWordTap = useCallback(
+    (verse: number, wordIndex: number) => {
+      setSelection([verse]);
+      setInitialWord(wordIndex);
+      if (isWide) {
+        setVersePanelOpen(true);
+        setPanelTab('strong');
+      } else {
+        setStrongOpen(true);
+      }
+    },
+    [isWide],
   );
 
   const selectionReference = formatSelection(book, chapter, selection);
@@ -544,6 +601,7 @@ export default function BiblePage() {
               const verse = index + 1;
               const category = highlightByVerse.get(verse);
               const heading = pericopes.data?.get(verse);
+              const verseTags: StrongTag[] | undefined = chapterStrongs.data?.[index];
               const classes = [
                 'verse',
                 selection.includes(verse) ? 'selected' : '',
@@ -572,7 +630,9 @@ export default function BiblePage() {
                   aria-label={`Versículo ${verse}`}
                 >
                   <span className="verse-num">{verse}</span>
-                  {text}
+                  {verseTags && verseTags.length > 0
+                    ? renderVerseWords(text, verseTags, verse, handleWordTap)
+                    : text}
                   {chapterCrossRefs.data?.has(verse) && (
                     <span
                       className="verse-crossref-btn"
@@ -650,6 +710,7 @@ export default function BiblePage() {
           onTabChange={setPanelTab}
           onClose={() => { setVersePanelOpen(false); setSelection([]); }}
           onNavigate={() => { setVersePanelOpen(false); setSelection([]); }}
+          initialWord={initialWord}
         />
       )}
       </div>{/* .bible-layout */}
@@ -663,7 +724,7 @@ export default function BiblePage() {
             { id: 'fav', icon: 'star', label: 'Favoritar', onClick: toggleFavorites },
             { id: 'note', icon: 'note', label: 'Anotar', onClick: () => setNoteOpen(true) },
             ...(meta.data?.hasStrong && selection.length === 1
-              ? [{ id: 'strong', icon: 'search' as const, label: 'No original', onClick: () => { if (isWide) { setVersePanelOpen(true); setPanelTab('strong'); } else setStrongOpen(true); } }]
+              ? [{ id: 'strong', icon: 'search' as const, label: 'No original', onClick: () => { setInitialWord(null); if (isWide) { setVersePanelOpen(true); setPanelTab('strong'); } else setStrongOpen(true); } }]
               : []),
             ...(selection.length === 1
               ? [{ id: 'crossref', icon: 'link' as const, label: 'Referências', onClick: () => { if (isWide) { setVersePanelOpen(true); setPanelTab('crossref'); } else setCrossRefOpen(true); } }]
@@ -726,7 +787,7 @@ export default function BiblePage() {
             chapter={chapter}
             verse={selection[0]}
             reference={selectionReference}
-            initialWord={null}
+            initialWord={initialWord}
           />
           <CrossRefSheet
             open={crossRefOpen}
@@ -735,6 +796,7 @@ export default function BiblePage() {
             chapter={chapter}
             verse={selection[0]}
             reference={selectionReference}
+            translation={translation}
           />
           <CommentarySheet
             open={commentaryOpen}

@@ -17,11 +17,12 @@ interface Props {
   onTabChange: (tab: VersePanelTab) => void;
   onClose: () => void;
   onNavigate: () => void;
+  initialWord?: number | null;
 }
 
 export function VersePanel({
   verse, translation, book, chapter, reference,
-  hasStrong, tab, onTabChange, onClose, onNavigate,
+  hasStrong, tab, onTabChange, onClose, onNavigate, initialWord,
 }: Props) {
   useEffect(() => {
     if (tab === 'strong' && !hasStrong) onTabChange('commentary');
@@ -75,6 +76,7 @@ export function VersePanel({
             chapter={chapter}
             verse={verse}
             onNavigate={onNavigate}
+            initialWord={initialWord}
           />
         )}
         {activeTab === 'commentary' && (
@@ -89,6 +91,7 @@ export function VersePanel({
             book={book}
             chapter={chapter}
             verse={verse}
+            translation={translation}
             onNavigate={onNavigate}
           />
         )}

@@ -5,21 +5,24 @@ verificado; nada aqui é suposição. O que já foi entregue está no `README.md
 
 ---
 
-## Próxima sessão (03/10/2026 à noite)
+## Entregues em 02/10/2026
 
-### 1. Clique palavra por palavra no texto bíblico (estilo Olive Tree)
+### 1. ✅ Clique palavra por palavra no texto bíblico (estilo Olive Tree)
 
-Ao tocar numa palavra no texto bíblico, abrir o Strong's daquela palavra
-diretamente no painel lateral — sem precisar selecionar o versículo
-primeiro. Fluxo: tocar na palavra → painel lateral abre na aba Original
-com a palavra já selecionada e sua definição visível.
+Nas traduções com números Strong, cada palavra do versículo com código Strong
+fica clicável (sublinhado pontilhado, classe `.strong-tap`). Tocar na palavra
+abre o painel lateral na aba Original com a palavra já selecionada e sua
+definição visível. Funciona em desktop (abre no painel lateral) e mobile
+(abre no Sheet flutuante). O `initialWord` é passado por toda a cadeia:
+`BiblePage → VersePanel → StrongContent` e `BiblePage → StrongSheet`.
 
-### 2. Referências cruzadas sem sair do capítulo
+### 2. ✅ Referências cruzadas com texto inline no painel
 
-Ao clicar numa referência cruzada no painel lateral, o versículo referenciado
-deve aparecer **abaixo, dentro do próprio painel**, em vez de navegar para
-outro capítulo. O usuário continua no capítulo principal de estudo e vê o
-texto referenciado inline no painel.
+O `CrossRefContent` agora carrega o texto de cada versículo referenciado
+(na tradução ativa do leitor) e mostra inline, como cards com a referência
+e o texto abaixo. Não navega mais para outro capítulo — o usuário continua
+no capítulo principal de estudo. Os textos são carregados agrupados por
+livro/capítulo para minimizar fetches.
 
 ---
 

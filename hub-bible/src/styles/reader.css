@@ -1234,6 +1234,33 @@
   border-color: var(--accent);
 }
 
+/* referências cruzadas com texto inline */
+.crossref-verses {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.crossref-verse-card {
+  padding-left: var(--sp-3);
+  border-left: 2px solid var(--border);
+}
+.crossref-verse-ref {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--accent);
+}
+.crossref-verse-text {
+  margin: 4px 0 0;
+  font-family: var(--font-reader);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
 /* ========================= cruz para Strong's ============================== */
 .verse-crossref-btn {
   display: inline-flex;
