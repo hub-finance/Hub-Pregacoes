@@ -271,6 +271,12 @@
     bottom: var(--sp-5);
   }
 }
+@media (min-width: 1080px) {
+  .bible-layout.has-panel ~ .verse-actions,
+  .bible-layout.has-panel + .verse-actions {
+    left: calc(50% - clamp(160px, 18vw, 220px));
+  }
+}
 .verse-action {
   display: flex;
   align-items: center;
