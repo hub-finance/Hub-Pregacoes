@@ -6,7 +6,9 @@ import { TranslationPicker } from './TranslationPicker';
 import { StrongSheet } from './StrongSheet';
 import { CommentarySheet } from './CommentarySheet';
 import { CrossRefSheet } from './CrossRefSheet';
+import { AiSheet } from './AiSheet';
 import { VersePanel, type VersePanelTab } from './VersePanel';
+import { isAiEnabled } from '../../core/ai/provider';
 import { ReaderSettingsSheet } from './ReaderSettingsSheet';
 import { ReaderScrollbar, useReadingProgress } from './ReaderScrollbar';
 import { VerseActionBar } from './VerseActionBar';
@@ -198,6 +200,7 @@ export default function BiblePage() {
   const [strongOpen, setStrongOpen] = useState(false);
   const [crossRefOpen, setCrossRefOpen] = useState(false);
   const [commentaryOpen, setCommentaryOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [panelTab, setPanelTab] = useState<VersePanelTab>('commentary');
   const [versePanelOpen, setVersePanelOpen] = useState(false);
   const [initialWord, setInitialWord] = useState<number | null>(null);
@@ -725,6 +728,7 @@ export default function BiblePage() {
           book={book}
           chapter={chapter}
           reference={selectionReference}
+          passage={selectionText}
           hasStrong={!!meta.data?.hasStrong}
           tab={panelTab}
           onTabChange={setPanelTab}
@@ -751,6 +755,9 @@ export default function BiblePage() {
               : []),
             ...(selection.length === 1
               ? [{ id: 'commentary', icon: 'book' as const, label: 'Comentários', onClick: () => { if (isWide) { setVersePanelOpen(true); setPanelTab('commentary'); } else setCommentaryOpen(true); } }]
+              : []),
+            ...(selection.length === 1 && isAiEnabled()
+              ? [{ id: 'ai', icon: 'sparkle' as const, label: 'IA', onClick: () => { if (isWide) { setVersePanelOpen(true); setPanelTab('ai'); } else setAiOpen(true); } }]
               : []),
             { id: 'share', icon: 'share', label: 'Compartilhar', onClick: () => setShareOpen(true) },
             {
@@ -825,6 +832,17 @@ export default function BiblePage() {
             chapter={chapter}
             verse={selection[0]}
             reference={selectionReference}
+          />
+          <AiSheet
+            open={aiOpen}
+            onClose={() => setAiOpen(false)}
+            book={book}
+            chapter={chapter}
+            verse={selection[0]}
+            reference={selectionReference}
+            passage={selectionText}
+            translation={translation}
+            onNavigate={() => { setAiOpen(false); setSelection([]); }}
           />
         </>
       )}
