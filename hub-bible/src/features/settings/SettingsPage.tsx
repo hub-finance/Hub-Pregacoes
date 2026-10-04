@@ -276,7 +276,7 @@ export default function SettingsPage() {
             <span className="badge">v{APP_VERSION}</span>
           </div>
           <p className="small muted">
-            Bíblia, estudo, devocional, sermões e biblioteca ministerial em um só lugar. Funciona offline
+            Bíblia, estudo, devocional, sermões e concordância em um só lugar. Funciona offline
             e pode ser instalado na tela inicial do seu tablet ou celular.
           </p>
           <div>

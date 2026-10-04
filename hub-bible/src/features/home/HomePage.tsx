@@ -14,8 +14,6 @@ import { addFavorite } from '../../core/data/favorites';
 import { createNote } from '../../core/data/notes';
 import { readingStats } from '../../core/data/reading';
 import { listPlans, nextPendingDay, planProgress } from '../../core/data/plans';
-import { loadLibrary } from '../../core/data/documents';
-import { DOC_ROUTE } from '../../core/data/documents';
 
 /** Tela inicial: atalhos, continuidade de leitura e versículo do dia. */
 export default function HomePage() {
@@ -28,12 +26,10 @@ export default function HomePage() {
   const daily = useAsync(() => getVerseOfDay(settings.defaultTranslation), [settings.defaultTranslation]);
   const stats = useAsync(() => readingStats(), []);
   const plans = useAsync(() => listPlans(), []);
-  const library = useAsync(() => loadLibrary(), []);
 
   const quickItems = NAV_ITEMS.filter((i) => i.quick);
   const position = settings.lastPosition;
   const activePlan = (plans.data ?? []).find((p) => !p.archived);
-  const recent = (library.data ?? []).slice(0, 4);
   const greeting = settings.userName ? `Paz, ${settings.userName}.` : 'Que a Palavra guie o seu dia.';
 
   return (
@@ -195,42 +191,9 @@ export default function HomePage() {
             <div className="stat-value">{stats.data?.distinctChapters ?? 0}</div>
             <div className="stat-label">capítulos lidos</div>
           </div>
-          <div className="stat">
-            <div className="stat-value">{library.data?.length ?? 0}</div>
-            <div className="stat-label">itens na biblioteca</div>
-          </div>
         </div>
       </section>
 
-      {recent.length > 0 && (
-        <section className="section">
-          <div className="section-head">
-            <h2 className="section-title">Retomar o preparo</h2>
-            <Link className="small" to="/biblioteca" style={{ color: 'var(--accent-strong)' }}>
-              biblioteca
-            </Link>
-          </div>
-          <div className="list">
-            {recent.map((entry) => (
-              <Link
-                key={entry.id}
-                className="list-item"
-                to={
-                  entry.kind === 'doc'
-                    ? `/biblioteca/material/${entry.id}`
-                    : `${DOC_ROUTE[entry.kind]}/${entry.id}`
-                }
-              >
-                <span className="list-body">
-                  <span className="list-title truncate">{entry.title}</span>
-                  <span className="list-meta truncate">{entry.subtitle || entry.category}</span>
-                </span>
-                <span className="badge">{entry.category}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
 
       {daily.data && (
         <ShareSheet

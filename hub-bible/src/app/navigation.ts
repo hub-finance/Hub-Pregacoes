@@ -26,14 +26,6 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/sermoes', label: 'Sermões', icon: 'sermon', quick: true, group: 'ministerio' },
   { to: '/guias', label: 'Guias Doutrinários', shortLabel: 'Guias', icon: 'layers', quick: true, group: 'ministerio' },
   { to: '/planos', label: 'Plano de leitura', icon: 'calendar', quick: true, group: 'ministerio' },
-  {
-    to: '/biblioteca',
-    label: 'Biblioteca Ministerial',
-    shortLabel: 'Biblioteca',
-    icon: 'library',
-    quick: true,
-    group: 'ministerio',
-  },
   { to: '/pregacao', label: 'Modo Pregação', icon: 'preach', quick: true, group: 'ministerio' },
   { to: '/painel', label: 'Minha vida ministerial', icon: 'chart', group: 'sistema' },
   { to: '/config', label: 'Configurações', icon: 'settings', quick: true, group: 'sistema' },
@@ -47,4 +39,4 @@ export const GROUP_LABEL: Record<NavItem['group'], string> = {
 };
 
 /** Itens fixos da barra inferior no celular. */
-export const BOTTOM_NAV = ['/', '/biblia', '/busca', '/biblioteca'];
+export const BOTTOM_NAV = ['/', '/biblia', '/busca', '/concordancia'];

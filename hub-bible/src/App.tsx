@@ -24,8 +24,6 @@ const RhemaEditorPage = lazy(() => import('./features/rhema/RhemaEditorPage'));
 const ClassPage = lazy(() => import('./features/common/ClassPage'));
 const CoursesPage = lazy(() => import('./features/courses/CoursesPage'));
 const CourseEditorPage = lazy(() => import('./features/courses/CourseEditorPage'));
-const LibraryPage = lazy(() => import('./features/library/LibraryPage'));
-const LibraryDocEditorPage = lazy(() => import('./features/library/LibraryDocEditorPage'));
 const PlansPage = lazy(() => import('./features/plans/PlansPage'));
 const PlanDetailPage = lazy(() => import('./features/plans/PlanDetailPage'));
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
@@ -138,8 +136,8 @@ export default function App() {
                   <Route path="/dicionario" element={<DictionaryPage />} />
                   <Route path="/concordancia" element={<ConcordancePage />} />
                   <Route path="/guias" element={<GuidesPage />} />
-                  <Route path="/biblioteca" element={<LibraryPage />} />
-                  <Route path="/biblioteca/material/:id" element={<LibraryDocEditorPage />} />
+                  <Route path="/biblioteca" element={<Navigate to="/rhema" replace />} />
+                  <Route path="/biblioteca/material/:id" element={<Navigate to="/rhema" replace />} />
                   <Route path="/planos" element={<PlansPage />} />
                   <Route path="/planos/:id" element={<PlanDetailPage />} />
                   <Route path="/painel" element={<DashboardPage />} />
