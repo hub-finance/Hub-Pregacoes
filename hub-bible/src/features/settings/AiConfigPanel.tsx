@@ -13,7 +13,7 @@ import { registerAiProvider } from '../../core/ai/provider';
 import { createProvider } from '../../core/ai/chatProvider';
 
 const PROVIDER_OPTIONS = [
-  { value: 'none', label: 'Desativada' },
+  { value: 'none', label: 'Desativado' },
   { value: 'gemini', label: 'Google Gemini' },
   { value: 'openai', label: 'OpenAI' },
 ];
@@ -58,7 +58,7 @@ export function AiConfigPanel() {
         reference: 'João 3:16',
         passage: 'Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito',
       });
-      notify('Conexão com a IA funcionando!');
+      notify('Conexão funcionando!');
     } catch (err) {
       notify(err instanceof Error ? err.message : 'Erro ao testar a conexão.', 'error');
     } finally {
@@ -71,7 +71,7 @@ export function AiConfigPanel() {
   return (
     <div className="stack">
       <SelectInput
-        label="Provedor de IA"
+        label="Provedor"
         value={config.provider}
         onChange={handleProviderChange}
         options={PROVIDER_OPTIONS}
@@ -116,7 +116,7 @@ export function AiConfigPanel() {
       )}
 
       <p className="small dim">
-        A chave fica apenas neste dispositivo. Todo comentário gerado pela IA é
+        A chave fica apenas neste dispositivo. Todo comentário gerado é
         identificado como tal e separado do texto bíblico.
       </p>
     </div>

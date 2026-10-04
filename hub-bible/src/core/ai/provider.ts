@@ -55,7 +55,7 @@ export interface AiProvider {
 }
 
 export const AI_DISCLAIMER =
-  'Comentário gerado por inteligência artificial. Confira sempre com o texto bíblico e com a orientação pastoral.';
+  'Comentário gerado automaticamente. Confira sempre com o texto bíblico e com a orientação pastoral.';
 
 let provider: AiProvider | null = null;
 

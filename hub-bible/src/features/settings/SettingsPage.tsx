@@ -244,10 +244,10 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* ------------------------------ IA bíblica ----------------------------- */}
+      {/* --------------------------- estudo guiado ----------------------------- */}
       <section className="section">
         <div className="section-head">
-          <h2 className="section-title">IA bíblica</h2>
+          <h2 className="section-title">Estudo guiado</h2>
         </div>
         <div className="card stack">
           <AiConfigPanel />

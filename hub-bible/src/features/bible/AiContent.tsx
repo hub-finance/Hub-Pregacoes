@@ -49,7 +49,7 @@ export function AiContent({
       if (!abortRef.current) setResult(response);
     } catch (err) {
       if (!abortRef.current) {
-        setError(err instanceof Error ? err.message : 'Erro ao consultar a IA.');
+        setError(err instanceof Error ? err.message : 'Erro ao analisar a passagem.');
       }
     } finally {
       if (!abortRef.current) setLoading(false);
@@ -68,10 +68,10 @@ export function AiContent({
     return (
       <div className="stack" style={{ padding: 'var(--sp-4)' }}>
         <p className="dim" style={{ textAlign: 'center' }}>
-          A IA bíblica não está configurada.
+          O estudo guiado não está configurado.
         </p>
         <p className="small dim" style={{ textAlign: 'center' }}>
-          Ative nas <strong>Configurações → IA bíblica</strong> com sua chave de API do Google Gemini ou OpenAI.
+          Ative nas <strong>Configurações → Estudo guiado</strong> com sua chave de API do Google Gemini ou OpenAI.
         </p>
       </div>
     );
@@ -92,7 +92,7 @@ export function AiContent({
         {loading && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', padding: 'var(--sp-4) 0' }}>
             <span className="spinner" />
-            <span className="small dim">Consultando a IA…</span>
+            <span className="small dim">Analisando…</span>
           </div>
         )}
 
@@ -130,7 +130,7 @@ export function AiContent({
               {result.disclaimer}
             </p>
             <p className="small dim" style={{ margin: 0 }}>
-              Provedor: {result.provider}
+              Fonte: {result.provider}
             </p>
           </div>
         )}
@@ -159,7 +159,7 @@ export function AiContent({
       </div>
 
       <p className="small dim" style={{ margin: 0, marginTop: 'var(--sp-2)' }}>
-        A IA analisa a passagem e dá comentários. O texto bíblico vem sempre do repositório local.
+        A análise gera comentários sobre a passagem. O texto bíblico vem sempre do repositório local.
       </p>
     </div>
   );

@@ -17,7 +17,7 @@ export function AiSheet({
   open, onClose, book, chapter, verse, reference, passage, translation, onNavigate,
 }: Props) {
   return (
-    <Sheet open={open} title={`IA — ${reference}`} onClose={onClose}>
+    <Sheet open={open} title={`Análise — ${reference}`} onClose={onClose}>
       <AiContent
         book={book}
         chapter={chapter}

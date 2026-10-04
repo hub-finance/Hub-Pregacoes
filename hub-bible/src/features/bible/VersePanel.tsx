@@ -45,7 +45,7 @@ export function VersePanel({
     ...(hasStrong ? [{ id: 'strong' as const, label: 'Original', icon: 'search' as const }] : []),
     { id: 'commentary', label: 'Comentários', icon: 'book' },
     { id: 'crossref', label: 'Referências', icon: 'link' },
-    ...(isAiEnabled() ? [{ id: 'ai' as const, label: 'IA', icon: 'sparkle' as const }] : []),
+    ...(isAiEnabled() ? [{ id: 'ai' as const, label: 'Análise', icon: 'sparkle' as const }] : []),
   ];
 
   return (
