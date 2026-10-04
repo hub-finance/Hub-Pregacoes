@@ -238,28 +238,34 @@ export async function lookupTopic(word: string, dictionaryId?: string): Promise<
     rows = rows.filter((r) => r.dictionaryId === dictionaryId);
   }
 
-  // sem resultado por chave: busca por texto, mas só em dicionários gerais
+  // sem resultado por chave: busca por texto nas definições
   if (!rows.length && key.length >= 3) {
     const dicts = await listDictionaries();
-    const strongIds = new Set(dicts.filter((d) => d.isStrong).map((d) => d.id));
 
-    // se o filtro é um Strong, não faz busca por texto — Strong é só por código
-    if (dictionaryId && strongIds.has(dictionaryId)) {
-      // nada a fazer
+    // se o filtro é um Strong e a busca não é código, busca no texto das definições
+    if (dictionaryId) {
+      const lower = word.trim().toLowerCase();
+      const matches = await db.dictionaryEntries
+        .where('dictionaryId').equals(dictionaryId)
+        .filter((r) => {
+          const plain = stripHtml(r.definition).toLowerCase();
+          return plain.includes(lower);
+        })
+        .limit(12)
+        .toArray();
+      rows = matches;
     } else {
       const lower = word.trim().toLowerCase();
-      const generalIds = dicts.filter((d) => !d.isStrong).map((d) => d.id);
-      const idsToSearch = dictionaryId ? [dictionaryId] : generalIds;
+      const allIds = dicts.map((d) => d.id);
 
-      if (idsToSearch.length) {
+      if (allIds.length) {
         const matches = await db.dictionaryEntries
-          .where('dictionaryId').anyOf(idsToSearch)
+          .where('dictionaryId').anyOf(allIds)
           .filter((r) => {
             const plain = stripHtml(r.definition).toLowerCase();
-            const pos = plain.indexOf(lower);
-            return pos >= 0 && pos < 120;
+            return plain.includes(lower);
           })
-          .limit(8)
+          .limit(20)
           .toArray();
         rows = matches;
       }

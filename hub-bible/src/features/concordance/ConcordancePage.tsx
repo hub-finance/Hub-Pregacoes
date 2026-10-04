@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
-import { EmptyState, PageHeader } from '../../components/ui';
+import { EmptyState, PageHeader, SelectInput } from '../../components/ui';
 import { useSettings } from '../../core/settings/SettingsContext';
 import { bookName } from '../../core/bible/canon';
 import { useDebounced } from '../../hooks';
@@ -16,9 +16,19 @@ type WordEntry = [string, number, [string, number, number][]];
 
 const LETTERS_PT = 'abcdefghijlmnopqrstuvxz'.split('');
 
-async function fetchIndex(translation: string): Promise<ConcordanceIndex> {
+const KNOWN_CONCORDANCES = ['pt_almeida', 'pt_alm1911', 'pt_blivre', 'pt_tb', 'en_kjv'];
+
+const CONCORDANCE_LABELS: Record<string, string> = {
+  pt_almeida: 'Almeida Revisada',
+  pt_alm1911: 'Almeida 1911',
+  pt_blivre: 'Bíblia Livre',
+  pt_tb: 'Tradução Brasileira',
+  en_kjv: 'King James (inglês)',
+};
+
+async function fetchIndex(translation: string): Promise<ConcordanceIndex | null> {
   const res = await fetch(`${import.meta.env.BASE_URL}concordance/${translation}/index.json`);
-  if (!res.ok) throw new Error('Concordância não disponível');
+  if (!res.ok) return null;
   return res.json();
 }
 
@@ -37,9 +47,10 @@ const PAGE_SIZE = 50;
 export default function ConcordancePage() {
   const navigate = useNavigate();
   const { settings } = useSettings();
-  const translation = settings.defaultTranslation;
 
+  const [concordanceTranslation, setConcordanceTranslation] = useState(settings.defaultTranslation);
   const [index, setIndex] = useState<ConcordanceIndex | null>(null);
+  const [indexReady, setIndexReady] = useState(false);
   const [letter, setLetter] = useState('');
   const [words, setWords] = useState<[string, WordEntry][]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,7 +58,6 @@ export default function ConcordancePage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [page, setPage] = useState(1);
-  const [indexError, setIndexError] = useState(false);
 
   const debounced = useDebounced(query, 300);
   const cacheRef = useRef<Map<string, Record<string, WordEntry>>>(new Map());
@@ -55,14 +65,31 @@ export default function ConcordancePage() {
   useEffect(() => {
     cacheRef.current.clear();
     setIndex(null);
-    setIndexError(false);
+    setIndexReady(false);
     setWords([]);
     setLetter('');
     setSelected(null);
-    fetchIndex(translation)
-      .then(setIndex)
-      .catch(() => { setIndex(null); setIndexError(true); });
-  }, [translation]);
+
+    (async () => {
+      let idx = await fetchIndex(concordanceTranslation);
+      if (idx) {
+        setIndex(idx);
+        setIndexReady(true);
+        return;
+      }
+      for (const fallback of KNOWN_CONCORDANCES) {
+        if (fallback === concordanceTranslation) continue;
+        idx = await fetchIndex(fallback);
+        if (idx) {
+          setConcordanceTranslation(fallback);
+          setIndex(idx);
+          setIndexReady(true);
+          return;
+        }
+      }
+      setIndexReady(true);
+    })();
+  }, [concordanceTranslation]);
 
   const loadLetter = useCallback(
     async (l: string) => {
@@ -73,7 +100,7 @@ export default function ConcordancePage() {
       try {
         let data = cacheRef.current.get(l);
         if (!data) {
-          data = await fetchLetter(translation, l);
+          data = await fetchLetter(concordanceTranslation, l);
           cacheRef.current.set(l, data);
         }
         const entries = Object.entries(data).sort(([a], [b]) => a.localeCompare(b, 'pt-BR'));
@@ -82,7 +109,7 @@ export default function ConcordancePage() {
         setLoading(false);
       }
     },
-    [translation],
+    [concordanceTranslation],
   );
 
   useEffect(() => {
@@ -100,7 +127,7 @@ export default function ConcordancePage() {
     (async () => {
       let data = cacheRef.current.get(firstChar);
       if (!data) {
-        data = await fetchLetter(translation, firstChar);
+        data = await fetchLetter(concordanceTranslation, firstChar);
         cacheRef.current.set(firstChar, data);
       }
       const filtered = Object.entries(data)
@@ -116,7 +143,7 @@ export default function ConcordancePage() {
       setPage(1);
       setLoading(false);
     })();
-  }, [debounced, translation, loadLetter, letter]);
+  }, [debounced, concordanceTranslation, loadLetter, letter]);
 
   const selectedEntry = useMemo(() => {
     if (!selected) return null;
@@ -133,24 +160,41 @@ export default function ConcordancePage() {
   const visibleWords = words.slice(0, page * PAGE_SIZE);
   const hasMore = words.length > visibleWords.length;
 
+  const handleTranslationChange = (id: string) => {
+    cacheRef.current.clear();
+    setConcordanceTranslation(id);
+    setWords([]);
+    setLetter('');
+    setSelected(null);
+    setQuery('');
+  };
+
+  const translationOptions = KNOWN_CONCORDANCES.map((id) => ({
+    value: id,
+    label: CONCORDANCE_LABELS[id] ?? id,
+  }));
+
+  if (!indexReady) {
+    return (
+      <div className="page">
+        <PageHeader title="Concordância" lead="Carregando…" />
+      </div>
+    );
+  }
+
   if (!index) {
     return (
       <div className="page">
-        <PageHeader
-          title="Concordância"
-          lead={indexError ? 'Não foi possível carregar a concordância.' : 'Carregando…'}
-        />
-        {indexError && (
-          <div className="card stack">
-            <p className="small dim">
-              Verifique sua conexão e tente recarregar a página. Se o problema persistir, limpe o cache do
-              navegador nas configurações do app.
-            </p>
-            <button className="btn btn-sm" onClick={() => window.location.reload()}>
-              Recarregar
-            </button>
-          </div>
-        )}
+        <PageHeader title="Concordância" lead="Não foi possível carregar a concordância." />
+        <div className="card stack">
+          <p className="small dim">
+            Verifique sua conexão e tente recarregar a página. Se o problema persistir, limpe o cache do
+            navegador nas configurações do app.
+          </p>
+          <button className="btn btn-sm" onClick={() => window.location.reload()}>
+            Recarregar
+          </button>
+        </div>
       </div>
     );
   }
@@ -161,6 +205,15 @@ export default function ConcordancePage() {
         title="Concordância"
         lead={`${index._total.toLocaleString('pt-BR')} palavras em ${index._verses.toLocaleString('pt-BR')} versículos`}
       />
+
+      <div className="card" style={{ marginBottom: 'var(--sp-3)' }}>
+        <SelectInput
+          label="Tradução"
+          value={concordanceTranslation}
+          onChange={handleTranslationChange}
+          options={translationOptions}
+        />
+      </div>
 
       <div className="search-field" style={{ marginBottom: 'var(--sp-3)' }}>
         <Icon name="search" size={18} className="dim" />
