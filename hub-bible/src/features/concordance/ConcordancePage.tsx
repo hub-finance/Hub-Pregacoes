@@ -47,6 +47,7 @@ export default function ConcordancePage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [page, setPage] = useState(1);
+  const [indexError, setIndexError] = useState(false);
 
   const debounced = useDebounced(query, 300);
   const cacheRef = useRef<Map<string, Record<string, WordEntry>>>(new Map());
@@ -54,10 +55,13 @@ export default function ConcordancePage() {
   useEffect(() => {
     cacheRef.current.clear();
     setIndex(null);
+    setIndexError(false);
     setWords([]);
     setLetter('');
     setSelected(null);
-    fetchIndex(translation).then(setIndex).catch(() => setIndex(null));
+    fetchIndex(translation)
+      .then(setIndex)
+      .catch(() => { setIndex(null); setIndexError(true); });
   }, [translation]);
 
   const loadLetter = useCallback(
@@ -132,7 +136,21 @@ export default function ConcordancePage() {
   if (!index) {
     return (
       <div className="page">
-        <PageHeader title="Concordância" lead="Carregando…" />
+        <PageHeader
+          title="Concordância"
+          lead={indexError ? 'Não foi possível carregar a concordância.' : 'Carregando…'}
+        />
+        {indexError && (
+          <div className="card stack">
+            <p className="small dim">
+              Verifique sua conexão e tente recarregar a página. Se o problema persistir, limpe o cache do
+              navegador nas configurações do app.
+            </p>
+            <button className="btn btn-sm" onClick={() => window.location.reload()}>
+              Recarregar
+            </button>
+          </div>
+        )}
       </div>
     );
   }
