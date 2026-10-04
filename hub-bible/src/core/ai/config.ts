@@ -45,11 +45,6 @@ export const MODEL_OPTIONS: Record<Exclude<AiProviderId, 'none'>, Array<{ value:
     { value: 'claude-opus-5-5', label: 'Claude Opus 5.5 (mais capaz)' },
     { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (econômico)' },
   ],
-  anthropic: [
-    { value: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5 (recomendado)' },
-    { value: 'claude-opus-5-5', label: 'Claude Opus 5.5 (mais capaz)' },
-    { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (econômico)' },
-  ],
 };
 
 export function loadAiConfig(): AiConfig {
