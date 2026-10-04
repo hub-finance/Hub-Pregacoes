@@ -22,21 +22,21 @@ const DEFAULTS: AiConfig = {
 };
 
 export const DEFAULT_MODELS: Record<Exclude<AiProviderId, 'none'>, string> = {
-  openai: 'gpt-4o-mini',
-  gemini: 'gemini-2.0-flash',
+  openai: 'gpt-4.1-mini',
+  gemini: 'gemini-3.8-flash',
 };
 
 export const MODEL_OPTIONS: Record<Exclude<AiProviderId, 'none'>, Array<{ value: string; label: string }>> = {
   openai: [
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini (econômico)' },
-    { value: 'gpt-4o', label: 'GPT-4o (mais capaz)' },
-    { value: 'gpt-4.1-mini', label: 'GPT-4.1 Mini' },
-    { value: 'gpt-4.1', label: 'GPT-4.1' },
+    { value: 'gpt-4.1-mini', label: 'GPT-4.1 Mini (econômico)' },
+    { value: 'gpt-4.1', label: 'GPT-4.1 (mais capaz)' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+    { value: 'gpt-4o', label: 'GPT-4o' },
   ],
   gemini: [
-    { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (gratuito)' },
-    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+    { value: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash (gratuito)' },
     { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+    { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
   ],
 };
 
