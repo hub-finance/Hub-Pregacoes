@@ -115,10 +115,27 @@ export function AiConfigPanel() {
         </>
       )}
 
-      <p className="small dim">
-        A chave fica apenas neste dispositivo. Todo comentário gerado é
-        identificado como tal e separado do texto bíblico.
-      </p>
+      <div className="card" style={{ background: 'var(--bg-2)', padding: 'var(--sp-3)', borderLeft: '3px solid var(--accent)' }}>
+        <p className="small" style={{ margin: 0, lineHeight: 1.6 }}>
+          <strong>O que o estudo guiado faz e o que não faz</strong>
+        </p>
+        <p className="small dim" style={{ margin: 'var(--sp-2) 0 0', lineHeight: 1.6 }}>
+          Ele gera comentários sobre contexto histórico, temas, referências cruzadas
+          e perguntas de estudo a partir da passagem selecionada. É uma ferramenta
+          de apoio — como um comentário bíblico consultivo.
+        </p>
+        <p className="small dim" style={{ margin: 'var(--sp-2) 0 0', lineHeight: 1.6 }}>
+          <strong>Não substitui</strong> a ação do Espírito Santo, o estudo pessoal
+          do leitor nem a orientação pastoral. Toda revelação vem de Deus, não de
+          um modelo de linguagem. O texto bíblico vem sempre do repositório local,
+          nunca do modelo — e todo comentário gerado é identificado como tal,
+          separado do texto sagrado.
+        </p>
+        <p className="small dim" style={{ margin: 'var(--sp-2) 0 0', lineHeight: 1.6 }}>
+          A chave de API fica apenas neste dispositivo. Nenhum dado pessoal é
+          enviado — só a passagem selecionada vai ao provedor para gerar o comentário.
+        </p>
+      </div>
     </div>
   );
 }

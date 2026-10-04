@@ -206,6 +206,43 @@ const TOPICS: Topic[] = [
     ],
   },
   {
+    icon: 'sparkle',
+    title: 'Estudo guiado — análise assistida',
+    steps: [
+      'O estudo guiado gera comentários sobre a passagem selecionada: contexto histórico, temas relacionados, referências cruzadas, perguntas de estudo e estrutura de estudo. Funciona como um comentário bíblico consultivo.',
+      'Ele NÃO substitui a ação do Espírito Santo, o estudo pessoal do leitor nem a orientação pastoral. Toda revelação vem de Deus, não de um modelo de linguagem. O recurso é uma ferramenta de apoio, como consultar um comentário ou uma enciclopédia bíblica — não é a Palavra em si.',
+      'O texto bíblico exibido vem sempre do repositório local (a tradução que você está lendo), nunca do modelo. Todo comentário gerado é identificado como tal e separado visualmente do texto sagrado.',
+      'Para ativar: Configurações › Estudo guiado. Escolha o provedor (Google Gemini ou OpenAI), cole a chave de API e teste a conexão. O Gemini Flash tem plano gratuito.',
+      'A chave de API fica apenas no seu aparelho. Nenhum dado pessoal é enviado — só a passagem selecionada vai ao provedor para gerar o comentário.',
+      'Para usar: selecione um versículo e toque em "Análise" na barra de ações. Escolha o tipo de análise e aguarde. No painel lateral (tablet) ou no painel inferior (celular), a aba "Análise" também dá acesso.',
+      'As referências sugeridas pelo modelo são validadas contra o cânon antes de aparecer — se o modelo inventar uma referência que não existe, ela não aparece.',
+      { to: '/config', label: 'Abrir configurações', text: 'Configure o provedor e a chave de API em Configurações › Estudo guiado.' },
+    ],
+  },
+  {
+    icon: 'dictionary',
+    title: 'Dicionário — léxico embutido e dicionários importados',
+    steps: [
+      'O menu Dicionário já vem com o Léxico Strong embutido: 8.674 verbetes do hebraico e 5.523 do grego, com o termo original, transliteração, pronúncia e definição. Funciona sem importar nada.',
+      'As definições são em inglês — é o único léxico com licença que permite distribuir junto com o aplicativo (domínio público, Open Scriptures, CC BY-SA).',
+      'Se você tiver um léxico em português (módulo .dictionary.SQLite3 do MyBible ou JSON), importe-o e ele passa a aparecer junto com o embutido. Os dois aparecem lado a lado nas buscas.',
+      'A busca funciona por código Strong (H430, G26) e também por palavra nas definições.',
+      'Os filtros no alto da tela permitem ver só um dicionário por vez, ou todos de uma vez.',
+      { to: '/dicionario', label: 'Abrir dicionário', text: 'Consulte o dicionário a qualquer momento pelo menu lateral.' },
+    ],
+  },
+  {
+    icon: 'list',
+    title: 'Concordância — onde cada palavra aparece na Bíblia',
+    steps: [
+      'A concordância lista cada palavra e todos os versículos em que ela aparece, com um trecho do texto e a palavra em destaque.',
+      'Navegue por letra ou busque diretamente. O filtro AT/NT mostra as ocorrências só no Antigo ou no Novo Testamento.',
+      'As cinco traduções embutidas já têm concordância pronta. Para uma tradução que você importou (ACF, NVI etc.), o app gera o índice localmente no primeiro acesso — leva alguns segundos e só é feito uma vez.',
+      'A concordância funciona offline depois de gerada.',
+      { to: '/concordancia', label: 'Abrir concordância', text: 'A concordância está na barra inferior do aplicativo.' },
+    ],
+  },
+  {
     icon: 'download',
     title: 'Backup dos seus dados',
     steps: [
