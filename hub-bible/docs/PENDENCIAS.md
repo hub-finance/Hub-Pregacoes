@@ -1,7 +1,98 @@
 # Pendências — retomar daqui
 
-Estado em **02/10/2026**. Tudo o que está descrito abaixo foi levantado e
+Estado em **04/10/2026**. Tudo o que está descrito abaixo foi levantado e
 verificado; nada aqui é suposição. O que já foi entregue está no `README.md`.
+
+---
+
+## Entregues em 04/10/2026
+
+### 0. ✅ Concordância exaustiva
+
+Script ETL (`scripts/build-concordance.mjs`) indexa toda palavra de cada
+tradução embutida. Dados em `public/concordance/<tradução>/<letra>.json`.
+Tela em `/concordancia` com navegação por letra, busca com debounce, lista
+de palavras com contagem, e detalhe com todas as referências clicáveis.
+
+Corrigido em 04/10: a tradução padrão do usuário pode ser uma importada (ACF,
+NVI etc.) que não tem concordância. Agora faz fallback automático para
+`pt_almeida` e permite trocar a tradução por um seletor na tela.
+
+Service worker: adicionado `navigateFallbackDenylist` para `/concordance/`,
+`/lexicon/`, `/bible/` e runtime caching CacheFirst para concordância.
+
+### 0b. ✅ Remoção da Biblioteca Ministerial
+
+Menu, rotas, importações e referências removidos. `/biblioteca` redireciona
+para `/rhema`. Concordância assumiu o lugar na barra inferior.
+
+### 0c. ✅ Dicionário: busca em todos os dicionários
+
+Buscar por palavra (ex: "Deus") agora procura também nas **definições** dos
+dicionários Strong, não só nos gerais. Antes só retornava resultado do
+dicionário português.
+
+---
+
+## Próximos passos — concordância e dicionário (pesquisa de 04/10/2026)
+
+### A. Concordância: mostrar fragmento do versículo
+
+**Problema atual:** a concordância mostra só a referência (ex: "Gênesis 1:1").
+O pastor precisa ver o trecho do verso com a palavra em destaque para saber se
+é o versículo que procura, sem clicar em cada um.
+
+**Solução:** ao abrir o detalhe de uma palavra, carregar o texto dos versículos
+listados (já temos `getChapter()`) e mostrar um fragmento de ~80 caracteres ao
+redor da palavra, com ela em negrito. Padrão de apps como SwordSearcher e
+Olive Tree: referência + snippet com palavra destacada.
+
+**Implementação:**
+1. No detalhe da palavra, para cada ref `[book, ch, vs]`, buscar o texto via
+   `getChapter(concordanceTranslation, book, ch)` — agrupar por livro/capítulo
+   para minimizar fetches (mesmo padrão do CrossRefContent).
+2. Extrair o fragmento ao redor da palavra e envolver em `<mark>`.
+3. Carregar em lotes (30 primeiros, depois "ver mais") para não travar.
+
+### B. Concordância: filtro por livro/testamento
+
+Permitir filtrar "onde aparece 'graça' só no NT?" ou "só nas cartas de Paulo?".
+Chip row com AT/NT + seletor de livro opcional.
+
+### C. Concordância para traduções importadas
+
+Hoje a concordância só existe para as 5 traduções embutidas. Para tradução
+importada (ACF, NVI etc.) no aparelho, poderia gerar o índice localmente no
+primeiro acesso e guardar em IndexedDB. É pesado (~5s para 31k versículos),
+mas só roda uma vez.
+
+### D. Dicionário: integrar o léxico embutido
+
+O léxico Strong em inglês já existe em `public/lexicon/` e funciona quando o
+usuário toca numa palavra com código Strong no leitor. Mas o menu Dicionário
+não mostra esse léxico — só os que o usuário importou.
+
+**Solução:** quando não há dicionário importado, ou como fonte adicional,
+oferecer o léxico embutido como "Léxico Strong (inglês)" na lista de
+dicionários. Isso faz o menu Dicionário funcionar "de fábrica" sem importação.
+
+### E. Dicionário: fontes abertas encontradas
+
+Pesquisa de 04/10/2026 — fontes utilizáveis para melhorar o dicionário:
+
+| Fonte | Conteúdo | Licença | Uso |
+|---|---|---|---|
+| `openscriptures/strongs` (GitHub) | Léxico Strong 1890 completo (H+G) | CC BY-SA, domínio público | Já mapeado em §2 |
+| `scrollmapper/bible_databases` | 140 traduções + 340k referências cruzadas, SQL/JSON/CSV | aberto | Concordância KJV com Strong |
+| `crizin/bible-db` | KJV/hebraico/grego com Strong por palavra | aberto | Dados de concordância Strong |
+| `damarals/biblias` | 18 Bíblias PT em XML/SQLite/JSON | misto | Já em uso |
+| `WagnerFFreitas/Biblia` | Concordância + dicionário em JSON (PT) | verificar licença | Possível fonte de concordância PT |
+| Dicionário Strong em PT (Internet Archive) | Léxico H+G traduzido | ⚠️ direitos da SBB | Não embutível sem autorização |
+
+**Caminho recomendado para amanhã:**
+1. Implementar o snippet de versículo na concordância (item A) — maior ganho de UX
+2. Integrar o léxico embutido no menu Dicionário (item D)
+3. Adicionar filtro AT/NT na concordância (item B)
 
 ---
 
