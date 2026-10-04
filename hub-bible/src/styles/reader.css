@@ -1205,7 +1205,7 @@
   transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 .verse-panel-tab:hover {
-  color: var(--text-1);
+  color: var(--text);
 }
 .verse-panel-tab.active {
   color: var(--accent);

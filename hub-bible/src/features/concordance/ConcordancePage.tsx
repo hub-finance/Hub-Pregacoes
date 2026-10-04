@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { EmptyState, PageHeader, SelectInput } from '../../components/ui';
 import { useSettings } from '../../core/settings/SettingsContext';
-import { bookName } from '../../core/bible/canon';
+import { bookName, CANON_BY_OSIS } from '../../core/bible/canon';
+import { getChapter } from '../../core/bible/repository';
 import { useDebounced } from '../../hooks';
 
 interface ConcordanceIndex {
@@ -44,6 +45,25 @@ function normalize(s: string): string {
 
 const PAGE_SIZE = 50;
 
+type TestamentFilter = 'all' | 'AT' | 'NT';
+
+function extractSnippet(text: string, word: string, maxLen = 90): string {
+  const lower = text.toLowerCase();
+  const target = word.toLowerCase();
+  const idx = lower.indexOf(target);
+  if (idx < 0) return text.slice(0, maxLen) + (text.length > maxLen ? '…' : '');
+  const half = Math.floor((maxLen - target.length) / 2);
+  const start = Math.max(0, idx - half);
+  const end = Math.min(text.length, idx + target.length + half);
+  let snippet = '';
+  if (start > 0) snippet += '…';
+  snippet += text.slice(start, idx);
+  snippet += `<mark>${text.slice(idx, idx + target.length)}</mark>`;
+  snippet += text.slice(idx + target.length, end);
+  if (end < text.length) snippet += '…';
+  return snippet;
+}
+
 export default function ConcordancePage() {
   const navigate = useNavigate();
   const { settings } = useSettings();
@@ -58,6 +78,8 @@ export default function ConcordancePage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [page, setPage] = useState(1);
+  const [testamentFilter, setTestamentFilter] = useState<TestamentFilter>('all');
+  const [snippets, setSnippets] = useState<Map<string, string>>(new Map());
 
   const debounced = useDebounced(query, 300);
   const cacheRef = useRef<Map<string, Record<string, WordEntry>>>(new Map());
@@ -151,11 +173,60 @@ export default function ConcordancePage() {
     return found ? found[1] : null;
   }, [selected, words]);
 
-  const visibleRefs = useMemo(() => {
+  const filteredRefs = useMemo(() => {
     if (!selectedEntry) return [];
-    const refs = selectedEntry[2];
-    return expanded ? refs : refs.slice(0, 30);
-  }, [selectedEntry, expanded]);
+    if (testamentFilter === 'all') return selectedEntry[2];
+    return selectedEntry[2].filter(([book]) => CANON_BY_OSIS.get(book)?.testament === testamentFilter);
+  }, [selectedEntry, testamentFilter]);
+
+  const visibleRefs = useMemo(() => {
+    return expanded ? filteredRefs : filteredRefs.slice(0, 30);
+  }, [filteredRefs, expanded]);
+
+  const atCount = useMemo(() => {
+    if (!selectedEntry) return 0;
+    return selectedEntry[2].filter(([b]) => CANON_BY_OSIS.get(b)?.testament === 'AT').length;
+  }, [selectedEntry]);
+
+  const ntCount = useMemo(() => {
+    if (!selectedEntry) return 0;
+    return selectedEntry[2].filter(([b]) => CANON_BY_OSIS.get(b)?.testament === 'NT').length;
+  }, [selectedEntry]);
+
+  useEffect(() => {
+    if (!selectedEntry || !visibleRefs.length) {
+      setSnippets(new Map());
+      return;
+    }
+    const word = selectedEntry[0];
+    let cancelled = false;
+
+    (async () => {
+      const byChapter = new Map<string, [string, number, number][]>();
+      for (const ref of visibleRefs) {
+        const chKey = `${ref[0]}:${ref[1]}`;
+        const list = byChapter.get(chKey) ?? [];
+        list.push(ref);
+        byChapter.set(chKey, list);
+      }
+
+      const result = new Map<string, string>();
+      for (const [chKey, refs] of byChapter) {
+        if (cancelled) return;
+        const [book, ch] = chKey.split(':');
+        try {
+          const verses = await getChapter(concordanceTranslation, book, Number(ch));
+          for (const [, , vs] of refs) {
+            const text = verses[vs - 1] ?? '';
+            if (text) result.set(`${book}-${ch}-${vs}`, extractSnippet(text, word));
+          }
+        } catch { /* tradução pode não ter esse livro */ }
+      }
+      if (!cancelled) setSnippets(result);
+    })();
+
+    return () => { cancelled = true; };
+  }, [selectedEntry, visibleRefs, concordanceTranslation]);
 
   const visibleWords = words.slice(0, page * PAGE_SIZE);
   const hasMore = words.length > visibleWords.length;
@@ -285,27 +356,66 @@ export default function ConcordancePage() {
               </span>
             </div>
 
-            <div className="stack" style={{ gap: 'var(--sp-2)' }}>
-              {visibleRefs.map(([book, ch, vs], i) => (
+            {atCount > 0 && ntCount > 0 && (
+              <div className="chip-row" style={{ marginBottom: 'var(--sp-3)' }}>
                 <button
-                  key={`${book}-${ch}-${vs}-${i}`}
-                  className="hit"
-                  onClick={() => navigate(`/biblia/${book}/${ch}?v=${vs}`)}
+                  className={`chip${testamentFilter === 'all' ? ' active' : ''}`}
+                  onClick={() => setTestamentFilter('all')}
                 >
-                  <div className="hit-ref">
-                    {bookName(book)} {ch}:{vs}
-                  </div>
+                  Todos ({selectedEntry[1]})
                 </button>
-              ))}
+                <button
+                  className={`chip${testamentFilter === 'AT' ? ' active' : ''}`}
+                  onClick={() => setTestamentFilter('AT')}
+                >
+                  AT ({atCount})
+                </button>
+                <button
+                  className={`chip${testamentFilter === 'NT' ? ' active' : ''}`}
+                  onClick={() => setTestamentFilter('NT')}
+                >
+                  NT ({ntCount})
+                </button>
+              </div>
+            )}
+
+            <p className="small dim" style={{ marginBottom: 'var(--sp-2)' }}>
+              {filteredRefs.length} versículo{filteredRefs.length !== 1 ? 's' : ''}
+              {testamentFilter !== 'all' ? ` no ${testamentFilter}` : ''}
+            </p>
+
+            <div className="stack" style={{ gap: 'var(--sp-2)' }}>
+              {visibleRefs.map(([book, ch, vs], i) => {
+                const snippet = snippets.get(`${book}-${ch}-${vs}`);
+                return (
+                  <button
+                    key={`${book}-${ch}-${vs}-${i}`}
+                    className="hit"
+                    style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 'var(--sp-1)' }}
+                    onClick={() => navigate(`/biblia/${book}/${ch}?v=${vs}`)}
+                  >
+                    <div className="hit-ref">
+                      {bookName(book)} {ch}:{vs}
+                    </div>
+                    {snippet && (
+                      <div
+                        className="small dim"
+                        style={{ lineHeight: 1.4 }}
+                        dangerouslySetInnerHTML={{ __html: snippet }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
-            {!expanded && selectedEntry[2].length > 30 && (
+            {!expanded && filteredRefs.length > 30 && (
               <button
                 className="btn btn-sm"
                 onClick={() => setExpanded(true)}
                 style={{ marginTop: 'var(--sp-3)' }}
               >
-                Ver todas as {selectedEntry[1]} ocorrências
+                Ver todos os {filteredRefs.length} versículos
               </button>
             )}
           </div>
@@ -323,7 +433,7 @@ export default function ConcordancePage() {
                 <button
                   key={key}
                   className="hit"
-                  onClick={() => { setSelected(key); setExpanded(false); }}
+                  onClick={() => { setSelected(key); setExpanded(false); setTestamentFilter('all'); }}
                 >
                   <div className="hit-ref" style={{ textTransform: 'capitalize', flex: 1 }}>
                     {entry[0]}
