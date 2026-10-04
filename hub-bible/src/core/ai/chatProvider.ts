@@ -1,5 +1,5 @@
 /**
- * Provider concreto de IA — chama OpenAI ou Google Gemini.
+ * Provider concreto de IA — chama OpenAI, Google Gemini ou Anthropic.
  *
  * A chamada sai direto do navegador, com a chave do próprio usuário.
  * Nenhum backend nosso participa; a chave nunca sai do aparelho para
@@ -112,6 +112,51 @@ async function callGemini(apiKey: string, model: string, system: string, prompt:
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 }
 
+async function callAnthropic(apiKey: string, model: string, system: string, prompt: string): Promise<string> {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model,
+      system,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.4,
+      max_tokens: 2048,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    if (res.status === 401) throw new Error('Chave de API inválida. Verifique nas Configurações.');
+    if (res.status === 429) throw new Error('Limite de uso atingido. Aguarde alguns minutos.');
+    throw new Error(`Erro na API Anthropic (${res.status}): ${err.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  return data.content?.[0]?.text ?? '';
+}
+
+const PROVIDER_LABELS: Record<Exclude<AiProviderId, 'none'>, string> = {
+  openai: 'OpenAI',
+  gemini: 'Google Gemini',
+  anthropic: 'Anthropic Claude',
+};
+
+const PROVIDER_DEFAULTS: Record<Exclude<AiProviderId, 'none'>, string> = {
+  openai: 'gpt-4.1-mini',
+  gemini: 'gemini-3.8-flash',
+  anthropic: 'claude-sonnet-5-5',
+};
+
+function getApiCaller(providerId: Exclude<AiProviderId, 'none'>) {
+  if (providerId === 'openai') return callOpenAi;
+  if (providerId === 'anthropic') return callAnthropic;
+  return callGemini;
+}
+
 function buildPrompt(request: AiRequest): string {
   const parts: string[] = [];
   if (request.reference) parts.push(`Passagem: ${request.reference}`);
@@ -122,11 +167,11 @@ function buildPrompt(request: AiRequest): string {
 }
 
 function createChatProvider(providerId: Exclude<AiProviderId, 'none'>): AiProvider {
-  const callApi = providerId === 'openai' ? callOpenAi : callGemini;
+  const callApi = getApiCaller(providerId);
 
   return {
     id: providerId,
-    label: providerId === 'openai' ? 'OpenAI' : 'Google Gemini',
+    label: PROVIDER_LABELS[providerId],
 
     isConfigured(): boolean {
       const config = loadAiConfig();
@@ -139,7 +184,7 @@ function createChatProvider(providerId: Exclude<AiProviderId, 'none'>): AiProvid
 
       const taskPrompt = TASK_PROMPTS[request.task];
       const userPrompt = `${taskPrompt}\n\n${buildPrompt(request)}`;
-      const model = config.model || (providerId === 'openai' ? 'gpt-4.1-mini' : 'gemini-3.8-flash');
+      const model = config.model || PROVIDER_DEFAULTS[providerId];
 
       const raw = await callApi(config.apiKey, model, SYSTEM_PROMPT, userPrompt);
       const suggestedRefs = extractReferences(raw);
