@@ -139,7 +139,7 @@ function createChatProvider(providerId: Exclude<AiProviderId, 'none'>): AiProvid
 
       const taskPrompt = TASK_PROMPTS[request.task];
       const userPrompt = `${taskPrompt}\n\n${buildPrompt(request)}`;
-      const model = config.model || (providerId === 'openai' ? 'gpt-4o-mini' : 'gemini-2.0-flash');
+      const model = config.model || (providerId === 'openai' ? 'gpt-4.1-mini' : 'gemini-3.8-flash');
 
       const raw = await callApi(config.apiKey, model, SYSTEM_PROMPT, userPrompt);
       const suggestedRefs = extractReferences(raw);
