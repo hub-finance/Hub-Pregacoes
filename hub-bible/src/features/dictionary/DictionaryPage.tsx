@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { EmptyState, Spinner } from '../../components/ui';
@@ -15,6 +15,7 @@ export default function DictionaryPage() {
   const [searched, setSearched] = useState('');
   const [selectedDict, setSelectedDict] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   const dictionaries = useAsync(() => listDictionaries(), []);
   const hasDicts = (dictionaries.data?.length ?? 0) > 0;

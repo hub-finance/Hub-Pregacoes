@@ -1274,7 +1274,7 @@
   gap: var(--sp-2);
   padding: var(--sp-3);
   background: var(--surface);
-  border-radius: var(--r);
+  border-radius: var(--r-md);
   border-left: 3px solid var(--accent);
 }
 .strong-detail-topic {
@@ -1624,7 +1624,7 @@ input.study-section-title:focus {
   border: none;
   outline: none;
   background: none;
-  color: var(--text-1);
+  color: var(--text);
   font: inherit;
   line-height: 1.65;
   padding: var(--sp-3);

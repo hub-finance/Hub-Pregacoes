@@ -11,6 +11,9 @@ export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose:
     { id: 'light', label: 'Claro', icon: 'sun' as const },
     { id: 'sepia', label: 'Sépia', icon: 'sepia' as const },
     { id: 'dark', label: 'Escuro', icon: 'moon' as const },
+    { id: 'azul', label: 'Noite azul', icon: 'moon' as const },
+    { id: 'celeste', label: 'Celeste', icon: 'sun' as const },
+    { id: 'jardim', label: 'Jardim', icon: 'sun' as const },
     { id: 'system', label: 'Sistema', icon: 'settings' as const },
   ];
 

@@ -1205,11 +1205,39 @@
   transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 .verse-panel-tab:hover {
-  color: var(--text-1);
+  color: var(--text);
 }
 .verse-panel-tab.active {
   color: var(--accent);
   border-bottom-color: var(--accent);
+}
+
+/* ============================ estudo guiado =============================== */
+.ai-task-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: var(--sp-2) var(--sp-3);
+  min-height: var(--tap);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: .925rem;
+  cursor: pointer;
+  transition: background .15s;
+}
+.ai-task-btn:hover { background: var(--surface-3); }
+.ai-task-icon { font-size: 1.15rem; width: 1.5rem; text-align: center; }
+.ai-task-btn > svg:last-child { margin-left: auto; opacity: .4; }
+
+.ai-segment {
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border-left: 3px solid var(--accent);
 }
 
 /* ========================= referências cruzadas =========================== */

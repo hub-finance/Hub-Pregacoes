@@ -9,6 +9,10 @@ import { autoBackupIfDue } from './core/backupStore';
 import { ensurePersistenceQuietly } from './core/storage';
 import { unregisterServiceWorkerInApp } from './core/platform';
 import { useSettings } from './core/settings/SettingsContext';
+import { registerAiProvider } from './core/ai/provider';
+import { createProvider } from './core/ai/chatProvider';
+
+registerAiProvider(createProvider());
 
 /**
  * Rotas. Os módulos ministeriais são carregados sob demanda para manter o
