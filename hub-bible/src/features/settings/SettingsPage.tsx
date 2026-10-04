@@ -16,8 +16,8 @@ import { DEFAULT_SETTINGS, useSettings, type ThemeChoice } from '../../core/sett
 import { BackupPanel } from './BackupPanel';
 import { clearScriptureCache, clearUserData } from '../../core/db/db';
 import { loadAvailableTranslations } from '../../core/bible/repository';
-import { isAiEnabled } from '../../core/ai/provider';
 import { isSyncEnabled } from '../../core/sync/syncAdapter';
+import { AiConfigPanel } from './AiConfigPanel';
 import { slugify } from '../../core/categories';
 
 /**
@@ -244,23 +244,28 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* ------------------------ recursos futuros ------------------------- */}
+      {/* ------------------------------ IA bíblica ----------------------------- */}
       <section className="section">
         <div className="section-head">
-          <h2 className="section-title">Sincronização e IA</h2>
+          <h2 className="section-title">IA bíblica</h2>
+        </div>
+        <div className="card stack">
+          <AiConfigPanel />
+        </div>
+      </section>
+
+      {/* ----------------------- sincronização ----------------------- */}
+      <section className="section">
+        <div className="section-head">
+          <h2 className="section-title">Sincronização</h2>
         </div>
         <div className="card stack">
           <div className="row">
             <span style={{ flex: 1 }}>Sincronização entre dispositivos</span>
             <span className="badge">{isSyncEnabled() ? 'Ativa' : 'Não configurada'}</span>
           </div>
-          <div className="row">
-            <span style={{ flex: 1 }}>IA bíblica</span>
-            <span className="badge">{isAiEnabled() ? 'Ativa' : 'Não configurada'}</span>
-          </div>
           <p className="small dim">
-            A arquitetura já está pronta para os dois recursos. Quando a IA for ativada, todo comentário
-            gerado será identificado como tal e separado do texto bíblico, que sempre vem do banco local.
+            A arquitetura está pronta. Quando ativada, seus dados serão sincronizados entre dispositivos.
           </p>
         </div>
       </section>
