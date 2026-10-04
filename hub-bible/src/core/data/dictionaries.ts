@@ -2,16 +2,27 @@ import { db, now, uid } from '../db/db';
 import { sanitizeHtml } from '../sanitizeHtml';
 import { SQLiteFile } from '../sqlite/reader';
 import { isStrongDictionary, moduleKind, moduleName, readDictionary } from '../bible/mybible';
+import {
+  isLexiconAvailable,
+  lexiconEntryCount,
+  lookupBuiltinStrong,
+  searchBuiltinLexicon,
+  formatDefinition,
+} from '../bible/lexicon';
 
 import type { DictionaryEntry, DictionaryInfo } from '../db/types';
 
 /**
- * Dicionários importados pelo usuário.
+ * Dicionários importados pelo usuário + léxico embutido.
  *
  * O app lê módulos MyBible e JSON com verbetes de Strong ou dicionários
- * gerais. O conteúdo fica no aparelho — nenhum léxico é distribuído junto
- * com o aplicativo.
+ * gerais. O conteúdo fica no aparelho.
+ *
+ * Além disso, o léxico de Strong em inglês (domínio público, Open Scriptures)
+ * aparece como dicionário virtual na lista, sem precisar de importação.
  */
+
+export const BUILTIN_LEXICON_ID = '__builtin_strong__';
 
 /**
  * Normaliza o verbete para a consulta.
@@ -39,10 +50,24 @@ function candidateKeys(code: string): string[] {
 }
 
 export async function listDictionaries(): Promise<DictionaryInfo[]> {
-  return db.dictionaries.orderBy('createdAt').toArray();
+  const imported = await db.dictionaries.orderBy('createdAt').toArray();
+  if (await isLexiconAvailable()) {
+    const count = await lexiconEntryCount();
+    const builtin: DictionaryInfo = {
+      id: BUILTIN_LEXICON_ID,
+      name: 'Léxico Strong (embutido)',
+      isStrong: true,
+      entries: count,
+      language: 'en',
+      createdAt: 0,
+    };
+    return [...imported, builtin];
+  }
+  return imported;
 }
 
 export async function removeDictionary(id: string): Promise<void> {
+  if (id === BUILTIN_LEXICON_ID) return;
   await db.transaction('rw', [db.dictionaries, db.dictionaryEntries], async () => {
     await db.dictionaryEntries.where('dictionaryId').equals(id).delete();
     await db.dictionaries.delete(id);
@@ -204,16 +229,28 @@ export async function lookupStrong(code: string): Promise<StrongDefinition[]> {
   const rows = await db.dictionaryEntries.where('topicKey').anyOf(keys).toArray();
 
   const names = new Map((await listDictionaries()).map((d) => [d.id, d.name]));
-  return rows.map((r) => ({
+  const results = rows.map((r) => ({
     dictionary: names.get(r.dictionaryId) ?? 'Dicionário',
     topic: r.topic,
     definition: r.definition,
   }));
+
+  const builtin = await lookupBuiltinStrong(code);
+  if (builtin) {
+    results.push({
+      dictionary: 'Léxico Strong (embutido)',
+      topic: builtin.code,
+      definition: formatDefinition(builtin),
+    });
+  }
+
+  return results;
 }
 
-/** Há algum dicionário de Strong importado pelo usuário? */
+/** Há algum dicionário de Strong (importado ou embutido)? */
 export async function hasStrongDictionary(): Promise<boolean> {
-  const all = await listDictionaries();
+  if (await isLexiconAvailable()) return true;
+  const all = await db.dictionaries.toArray();
   return all.some((d) => d.isStrong);
 }
 
@@ -227,6 +264,10 @@ export async function lookupTopic(word: string, dictionaryId?: string): Promise<
   const key = topicKey(word);
   if (!key) return [];
 
+  if (dictionaryId === BUILTIN_LEXICON_ID) {
+    return lookupBuiltinTopic(word);
+  }
+
   const keys = candidateKeys(word);
   let rows = await db.dictionaryEntries.where('topicKey').anyOf(keys).toArray();
 
@@ -238,11 +279,9 @@ export async function lookupTopic(word: string, dictionaryId?: string): Promise<
     rows = rows.filter((r) => r.dictionaryId === dictionaryId);
   }
 
-  // sem resultado por chave: busca por texto nas definições
   if (!rows.length && key.length >= 3) {
     const dicts = await listDictionaries();
 
-    // se o filtro é um Strong e a busca não é código, busca no texto das definições
     if (dictionaryId) {
       const lower = word.trim().toLowerCase();
       const matches = await db.dictionaryEntries
@@ -256,11 +295,11 @@ export async function lookupTopic(word: string, dictionaryId?: string): Promise<
       rows = matches;
     } else {
       const lower = word.trim().toLowerCase();
-      const allIds = dicts.map((d) => d.id);
+      const realIds = dicts.filter((d) => d.id !== BUILTIN_LEXICON_ID).map((d) => d.id);
 
-      if (allIds.length) {
+      if (realIds.length) {
         const matches = await db.dictionaryEntries
-          .where('dictionaryId').anyOf(allIds)
+          .where('dictionaryId').anyOf(realIds)
           .filter((r) => {
             const plain = stripHtml(r.definition).toLowerCase();
             return plain.includes(lower);
@@ -273,10 +312,43 @@ export async function lookupTopic(word: string, dictionaryId?: string): Promise<
   }
 
   const names = new Map((await listDictionaries()).map((d) => [d.id, d.name]));
-  return rows.map((r) => ({
+  const results = rows.map((r) => ({
     dictionary: names.get(r.dictionaryId) ?? 'Dicionário',
     topic: r.topic,
     definition: r.definition,
+  }));
+
+  if (!dictionaryId) {
+    const builtinResults = await lookupBuiltinTopic(word);
+    results.push(...builtinResults);
+  }
+
+  return results;
+}
+
+async function lookupBuiltinTopic(word: string): Promise<StrongDefinition[]> {
+  const isCode = /^[HGhg]?\d+$/.test(word.trim());
+  if (isCode) {
+    const entry = await lookupBuiltinStrong(word);
+    if (entry) {
+      return [{
+        dictionary: 'Léxico Strong (embutido)',
+        topic: entry.code,
+        definition: formatDefinition(entry),
+      }];
+    }
+    const hits = await searchBuiltinLexicon(word, 12);
+    return hits.map((h) => ({
+      dictionary: 'Léxico Strong (embutido)',
+      topic: h.code,
+      definition: h.definition,
+    }));
+  }
+  const hits = await searchBuiltinLexicon(word, 12);
+  return hits.map((h) => ({
+    dictionary: 'Léxico Strong (embutido)',
+    topic: h.code,
+    definition: h.definition,
   }));
 }
 

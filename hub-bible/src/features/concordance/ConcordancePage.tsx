@@ -4,8 +4,14 @@ import { Icon } from '../../components/Icon';
 import { EmptyState, PageHeader, SelectInput } from '../../components/ui';
 import { useSettings } from '../../core/settings/SettingsContext';
 import { bookName, CANON_BY_OSIS } from '../../core/bible/canon';
-import { getChapter } from '../../core/bible/repository';
-import { useDebounced } from '../../hooks';
+import { getChapter, loadAvailableTranslations } from '../../core/bible/repository';
+import { useAsync, useDebounced } from '../../hooks';
+import {
+  hasLocalConcordance,
+  getLocalConcordanceIndex,
+  getLocalConcordanceLetter,
+  buildLocalConcordance,
+} from '../../core/data/concordanceBuilder';
 
 interface ConcordanceIndex {
   _total: number;
@@ -28,15 +34,23 @@ const CONCORDANCE_LABELS: Record<string, string> = {
 };
 
 async function fetchIndex(translation: string): Promise<ConcordanceIndex | null> {
-  const res = await fetch(`${import.meta.env.BASE_URL}concordance/${translation}/index.json`);
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}concordance/${translation}/index.json`);
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 async function fetchLetter(translation: string, letter: string): Promise<Record<string, WordEntry>> {
-  const res = await fetch(`${import.meta.env.BASE_URL}concordance/${translation}/${letter}.json`);
-  if (!res.ok) return {};
-  return res.json();
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}concordance/${translation}/${letter}.json`);
+    if (!res.ok) return {};
+    return res.json();
+  } catch {
+    return {};
+  }
 }
 
 function normalize(s: string): string {
@@ -64,6 +78,22 @@ function extractSnippet(text: string, word: string, maxLen = 90): string {
   return snippet;
 }
 
+async function loadIndex(translation: string): Promise<ConcordanceIndex | null> {
+  if (KNOWN_CONCORDANCES.includes(translation)) {
+    return fetchIndex(translation);
+  }
+  const local = await getLocalConcordanceIndex(translation);
+  if (local) return local;
+  return null;
+}
+
+async function loadLetterData(translation: string, letter: string): Promise<Record<string, WordEntry>> {
+  if (KNOWN_CONCORDANCES.includes(translation)) {
+    return fetchLetter(translation, letter);
+  }
+  return getLocalConcordanceLetter(translation, letter);
+}
+
 export default function ConcordancePage() {
   const navigate = useNavigate();
   const { settings } = useSettings();
@@ -71,6 +101,9 @@ export default function ConcordancePage() {
   const [concordanceTranslation, setConcordanceTranslation] = useState(settings.defaultTranslation);
   const [index, setIndex] = useState<ConcordanceIndex | null>(null);
   const [indexReady, setIndexReady] = useState(false);
+  const [needsBuild, setNeedsBuild] = useState(false);
+  const [building, setBuilding] = useState(false);
+  const [buildProgress, setBuildProgress] = useState('');
   const [letter, setLetter] = useState('');
   const [words, setWords] = useState<[string, WordEntry][]>([]);
   const [loading, setLoading] = useState(false);
@@ -84,24 +117,53 @@ export default function ConcordancePage() {
   const debounced = useDebounced(query, 300);
   const cacheRef = useRef<Map<string, Record<string, WordEntry>>>(new Map());
 
+  const translations = useAsync(() => loadAvailableTranslations(), []);
+
+  const translationOptions = useMemo(() => {
+    const opts = KNOWN_CONCORDANCES.map((id) => ({
+      value: id,
+      label: CONCORDANCE_LABELS[id] ?? id,
+    }));
+    if (translations.data) {
+      for (const t of translations.data) {
+        if (!KNOWN_CONCORDANCES.includes(t.id) && t.imported) {
+          opts.push({ value: t.id, label: t.shortName || t.name });
+        }
+      }
+    }
+    return opts;
+  }, [translations.data]);
+
   useEffect(() => {
     cacheRef.current.clear();
     setIndex(null);
     setIndexReady(false);
+    setNeedsBuild(false);
     setWords([]);
     setLetter('');
     setSelected(null);
 
     (async () => {
-      let idx = await fetchIndex(concordanceTranslation);
+      let idx = await loadIndex(concordanceTranslation);
       if (idx) {
         setIndex(idx);
         setIndexReady(true);
         return;
       }
+
+      const isImported = !KNOWN_CONCORDANCES.includes(concordanceTranslation);
+      if (isImported) {
+        const hasLocal = await hasLocalConcordance(concordanceTranslation);
+        if (!hasLocal) {
+          setNeedsBuild(true);
+          setIndexReady(true);
+          return;
+        }
+      }
+
       for (const fallback of KNOWN_CONCORDANCES) {
         if (fallback === concordanceTranslation) continue;
-        idx = await fetchIndex(fallback);
+        idx = await loadIndex(fallback);
         if (idx) {
           setConcordanceTranslation(fallback);
           setIndex(idx);
@@ -113,6 +175,20 @@ export default function ConcordancePage() {
     })();
   }, [concordanceTranslation]);
 
+  const handleBuild = async () => {
+    setBuilding(true);
+    setBuildProgress('Iniciando…');
+    try {
+      const idx = await buildLocalConcordance(concordanceTranslation, setBuildProgress);
+      setIndex(idx);
+      setNeedsBuild(false);
+    } catch (err) {
+      setBuildProgress(err instanceof Error ? err.message : 'Erro ao gerar concordância.');
+    } finally {
+      setBuilding(false);
+    }
+  };
+
   const loadLetter = useCallback(
     async (l: string) => {
       setLetter(l);
@@ -122,7 +198,7 @@ export default function ConcordancePage() {
       try {
         let data = cacheRef.current.get(l);
         if (!data) {
-          data = await fetchLetter(concordanceTranslation, l);
+          data = await loadLetterData(concordanceTranslation, l);
           cacheRef.current.set(l, data);
         }
         const entries = Object.entries(data).sort(([a], [b]) => a.localeCompare(b, 'pt-BR'));
@@ -149,7 +225,7 @@ export default function ConcordancePage() {
     (async () => {
       let data = cacheRef.current.get(firstChar);
       if (!data) {
-        data = await fetchLetter(concordanceTranslation, firstChar);
+        data = await loadLetterData(concordanceTranslation, firstChar);
         cacheRef.current.set(firstChar, data);
       }
       const filtered = Object.entries(data)
@@ -240,15 +316,43 @@ export default function ConcordancePage() {
     setQuery('');
   };
 
-  const translationOptions = KNOWN_CONCORDANCES.map((id) => ({
-    value: id,
-    label: CONCORDANCE_LABELS[id] ?? id,
-  }));
-
   if (!indexReady) {
     return (
       <div className="page">
         <PageHeader title="Concordância" lead="Carregando…" />
+      </div>
+    );
+  }
+
+  if (needsBuild && !index) {
+    const translationName = translations.data?.find((t) => t.id === concordanceTranslation)?.shortName ?? concordanceTranslation;
+    return (
+      <div className="page">
+        <PageHeader title="Concordância" lead={`${translationName}`} />
+
+        <div className="card" style={{ marginBottom: 'var(--sp-3)' }}>
+          <SelectInput
+            label="Tradução"
+            value={concordanceTranslation}
+            onChange={handleTranslationChange}
+            options={translationOptions}
+          />
+        </div>
+
+        <EmptyState
+          icon="list"
+          title="Concordância não gerada"
+          description={`A concordância para "${translationName}" precisa ser gerada a partir dos versículos importados. Isso leva alguns segundos e só é feito uma vez.`}
+          action={
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={handleBuild}
+              disabled={building}
+            >
+              {building ? buildProgress : 'Gerar concordância'}
+            </button>
+          }
+        />
       </div>
     );
   }

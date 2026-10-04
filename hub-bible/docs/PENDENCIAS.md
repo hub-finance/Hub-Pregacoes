@@ -7,6 +7,19 @@ verificado; nada aqui é suposição. O que já foi entregue está no `README.md
 
 ## Entregues em 04/10/2026
 
+### 0d. ✅ Estudo guiado (IA)
+
+Módulo de estudo assistido por IA configurável nas Configurações. Suporta
+Google Gemini e OpenAI. Cinco tarefas: contexto histórico, temas relacionados,
+referências cruzadas, perguntas de estudo e estrutura de estudo. A interface
+não usa o termo "IA" — chama-se "Estudo guiado" nas configurações e "Análise"
+no painel do versículo.
+
+Arquivos: `core/ai/config.ts`, `core/ai/chatProvider.ts`, `core/ai/provider.ts`,
+`features/settings/AiConfigPanel.tsx`, `features/bible/AiContent.tsx`,
+`features/bible/AiSheet.tsx`. Todo comentário gerado é identificado como tal e
+separado do texto bíblico.
+
 ### 0. ✅ Concordância exaustiva
 
 Script ETL (`scripts/build-concordance.mjs`) indexa toda palavra de cada
@@ -59,22 +72,31 @@ Olive Tree: referência + snippet com palavra destacada.
 Permitir filtrar "onde aparece 'graça' só no NT?" ou "só nas cartas de Paulo?".
 Chip row com AT/NT + seletor de livro opcional.
 
-### C. Concordância para traduções importadas
+### C. ✅ Concordância para traduções importadas
 
-Hoje a concordância só existe para as 5 traduções embutidas. Para tradução
-importada (ACF, NVI etc.) no aparelho, poderia gerar o índice localmente no
-primeiro acesso e guardar em IndexedDB. É pesado (~5s para 31k versículos),
-mas só roda uma vez.
+Traduções importadas (ACF, NVI etc.) agora aparecem no seletor de tradução da
+concordância. No primeiro acesso, o índice é gerado localmente a partir dos
+versículos no IndexedDB (~5 s para 31 mil versículos) e gravado na tabela
+`settings` para consultas seguintes. Não roda novamente.
 
-### D. Dicionário: integrar o léxico embutido
+Implementação em `core/data/concordanceBuilder.ts`: `buildLocalConcordance()`
+lê todos os livros da tradução, tokeniza cada versículo, agrupa por letra e
+grava índice + dados por letra com chaves `concordance:<tradução>:*` na tabela
+`settings` (sem migração de schema).
 
-O léxico Strong em inglês já existe em `public/lexicon/` e funciona quando o
-usuário toca numa palavra com código Strong no leitor. Mas o menu Dicionário
-não mostra esse léxico — só os que o usuário importou.
+### D. ✅ Dicionário: léxico embutido integrado
 
-**Solução:** quando não há dicionário importado, ou como fonte adicional,
-oferecer o léxico embutido como "Léxico Strong (inglês)" na lista de
-dicionários. Isso faz o menu Dicionário funcionar "de fábrica" sem importação.
+O léxico Strong em inglês (Open Scriptures, CC BY-SA) agora aparece como
+"Léxico Strong (embutido)" na lista de dicionários, sem necessidade de
+importação. São 14.197 verbetes (5.523 grego + 8.674 hebraico).
+
+O menu Dicionário funciona "de fábrica": busca por código Strong (H430, G26)
+ou por texto (love, father) retorna resultados do léxico embutido. Quando o
+usuário também importou um dicionário, ambos aparecem lado a lado.
+
+Implementação: `core/bible/lexicon.ts` carrega os JSON sob demanda e mantém
+em cache; `core/data/dictionaries.ts` integra o léxico como dicionário virtual
+em `listDictionaries()`, `lookupStrong()` e `lookupTopic()`.
 
 ### E. Dicionário: fontes abertas encontradas
 
@@ -89,10 +111,9 @@ Pesquisa de 04/10/2026 — fontes utilizáveis para melhorar o dicionário:
 | `WagnerFFreitas/Biblia` | Concordância + dicionário em JSON (PT) | verificar licença | Possível fonte de concordância PT |
 | Dicionário Strong em PT (Internet Archive) | Léxico H+G traduzido | ⚠️ direitos da SBB | Não embutível sem autorização |
 
-**Caminho recomendado para amanhã:**
+**Próximos passos:**
 1. Implementar o snippet de versículo na concordância (item A) — maior ganho de UX
-2. Integrar o léxico embutido no menu Dicionário (item D)
-3. Adicionar filtro AT/NT na concordância (item B)
+2. Adicionar filtro AT/NT na concordância (item B)
 
 ---
 
