@@ -7,7 +7,7 @@
 
 const STORAGE_KEY = 'hub-bible:ai-config';
 
-export type AiProviderId = 'openai' | 'gemini' | 'none';
+export type AiProviderId = 'openai' | 'gemini' | 'anthropic' | 'none';
 
 export interface AiConfig {
   provider: AiProviderId;
@@ -24,6 +24,7 @@ const DEFAULTS: AiConfig = {
 export const DEFAULT_MODELS: Record<Exclude<AiProviderId, 'none'>, string> = {
   openai: 'gpt-4.1-mini',
   gemini: 'gemini-3.8-flash',
+  anthropic: 'claude-sonnet-5-5',
 };
 
 export const MODEL_OPTIONS: Record<Exclude<AiProviderId, 'none'>, Array<{ value: string; label: string }>> = {
@@ -37,6 +38,11 @@ export const MODEL_OPTIONS: Record<Exclude<AiProviderId, 'none'>, Array<{ value:
     { value: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash (gratuito)' },
     { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
     { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
+  ],
+  anthropic: [
+    { value: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5 (recomendado)' },
+    { value: 'claude-opus-5-5', label: 'Claude Opus 5.5 (mais capaz)' },
+    { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (econômico)' },
   ],
 };
 

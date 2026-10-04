@@ -15,6 +15,7 @@ import { createProvider } from '../../core/ai/chatProvider';
 const PROVIDER_OPTIONS = [
   { value: 'none', label: 'Desativado' },
   { value: 'gemini', label: 'Google Gemini' },
+  { value: 'anthropic', label: 'Anthropic Claude' },
   { value: 'openai', label: 'OpenAI' },
 ];
 
@@ -83,7 +84,7 @@ export function AiConfigPanel() {
             label="Chave de API"
             value={config.apiKey}
             onChange={handleKeyChange}
-            placeholder={config.provider === 'openai' ? 'sk-...' : 'AIza...'}
+            placeholder={config.provider === 'openai' ? 'sk-...' : config.provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
             type="password"
           />
 
@@ -110,7 +111,9 @@ export function AiConfigPanel() {
           <p className="small dim">
             {config.provider === 'gemini'
               ? 'O Gemini Flash tem plano gratuito. Crie sua chave em ai.google.dev.'
-              : 'Crie sua chave em platform.openai.com. Requer créditos na conta.'}
+              : config.provider === 'anthropic'
+                ? 'Crie sua chave em console.anthropic.com. Requer créditos na conta.'
+                : 'Crie sua chave em platform.openai.com. Requer créditos na conta.'}
           </p>
         </>
       )}
