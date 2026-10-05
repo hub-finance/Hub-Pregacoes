@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { getAiProvider, isAiEnabled, type AiResponse, type AiTaskKind } from '../../core/ai/provider';
+import { parseReference } from '../../core/bible/reference';
 
 const TASKS: { id: AiTaskKind; label: string; icon: string }[] = [
   { id: 'contexto-historico', label: 'Contexto histórico', icon: '📜' },
@@ -21,13 +23,21 @@ interface Props {
 }
 
 export function AiContent({
-  reference, passage, translation, onNavigate: _onNavigate,
+  reference, passage, translation, onNavigate,
 }: Props) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiResponse | null>(null);
   const [error, setError] = useState('');
   const [activeTask, setActiveTask] = useState<AiTaskKind | null>(null);
   const abortRef = useRef(false);
+
+  const goToRef = useCallback((ref: string) => {
+    const parsed = parseReference(ref);
+    if (!parsed) return;
+    onNavigate();
+    navigate(`/biblia/${parsed.book}/${parsed.chapter}${parsed.verse ? `?v=${parsed.verse}` : ''}`);
+  }, [navigate, onNavigate]);
 
   const runTask = useCallback(async (task: AiTaskKind) => {
     const provider = getAiProvider();
@@ -120,7 +130,14 @@ export function AiContent({
                 </p>
                 <div className="row row-wrap" style={{ gap: 'var(--sp-1)' }}>
                   {result.suggestedReferences.map((ref) => (
-                    <span key={ref} className="chip chip-sm">{ref}</span>
+                    <button
+                      key={ref}
+                      className="chip chip-sm"
+                      onClick={() => goToRef(ref)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {ref}
+                    </button>
                   ))}
                 </div>
               </div>
