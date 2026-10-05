@@ -1,8 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { getAiProvider, isAiEnabled, type AiResponse, type AiTaskKind } from '../../core/ai/provider';
 import { parseReference } from '../../core/bible/reference';
+import { bookName } from '../../core/bible/canon';
+import { getChapter } from '../../core/bible/repository';
 
 const TASKS: { id: AiTaskKind; label: string; icon: string }[] = [
   { id: 'contexto-historico', label: 'Contexto histórico', icon: '📜' },
@@ -22,22 +23,39 @@ interface Props {
   onNavigate: () => void;
 }
 
+interface VersePreview {
+  ref: string;
+  label: string;
+  text: string;
+}
+
 export function AiContent({
-  reference, passage, translation, onNavigate,
+  reference, passage, translation, onNavigate: _onNavigate,
 }: Props) {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiResponse | null>(null);
   const [error, setError] = useState('');
   const [activeTask, setActiveTask] = useState<AiTaskKind | null>(null);
+  const [preview, setPreview] = useState<VersePreview | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const abortRef = useRef(false);
 
-  const goToRef = useCallback((ref: string) => {
+  const openRef = useCallback(async (ref: string) => {
     const parsed = parseReference(ref);
     if (!parsed) return;
-    onNavigate();
-    navigate(`/biblia/${parsed.book}/${parsed.chapter}${parsed.verse ? `?v=${parsed.verse}` : ''}`);
-  }, [navigate, onNavigate]);
+    setPreviewLoading(true);
+    try {
+      const verses = await getChapter(translation, parsed.book, parsed.chapter);
+      const name = bookName(parsed.book);
+      const label = parsed.verse ? `${name} ${parsed.chapter}:${parsed.verse}` : `${name} ${parsed.chapter}`;
+      const text = parsed.verse ? (verses[parsed.verse - 1] ?? '') : verses.join(' ');
+      setPreview({ ref, label, text });
+    } catch {
+      setPreview({ ref, label: ref, text: 'Versículo não encontrado nesta tradução.' });
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [translation]);
 
   const runTask = useCallback(async (task: AiTaskKind) => {
     const provider = getAiProvider();
@@ -132,14 +150,41 @@ export function AiContent({
                   {result.suggestedReferences.map((ref) => (
                     <button
                       key={ref}
-                      className="chip chip-sm"
-                      onClick={() => goToRef(ref)}
-                      style={{ cursor: 'pointer' }}
+                      className={`chip chip-sm${preview?.ref === ref ? ' active' : ''}`}
+                      onClick={() => preview?.ref === ref ? setPreview(null) : openRef(ref)}
+                      disabled={previewLoading}
                     >
                       {ref}
                     </button>
                   ))}
                 </div>
+
+                {previewLoading && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginTop: 'var(--sp-2)' }}>
+                    <span className="spinner" />
+                    <span className="small dim">Carregando versículo…</span>
+                  </div>
+                )}
+
+                {preview && (
+                  <div
+                    className="card"
+                    style={{
+                      marginTop: 'var(--sp-2)',
+                      background: 'var(--surface-2)',
+                      borderLeft: '3px solid var(--accent)',
+                      padding: 'var(--sp-3)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-2)' }}>
+                      <strong className="small">{preview.label}</strong>
+                      <button className="icon-btn" onClick={() => setPreview(null)} aria-label="Fechar">
+                        <Icon name="close" size={14} />
+                      </button>
+                    </div>
+                    <p style={{ margin: 0, lineHeight: 1.7, fontSize: '0.92rem' }}>{preview.text}</p>
+                  </div>
+                )}
               </div>
             )}
 
