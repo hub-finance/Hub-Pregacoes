@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import type {
+  AiAnalysis,
   Attachment,
   BackupSnapshot,
   CachedBook,
@@ -48,6 +49,7 @@ export class HubBibleDB extends Dexie {
   dictionaryEntries!: Table<DictionaryEntry, string>;
   commentaries!: Table<CommentaryInfo, string>;
   commentaryEntries!: Table<CommentaryEntry, string>;
+  aiAnalyses!: Table<AiAnalysis, string>;
 
   constructor() {
     super('hub-bible');
@@ -93,6 +95,13 @@ export class HubBibleDB extends Dexie {
       commentaries: 'id, name, createdAt',
       commentaryEntries: 'id, commentaryId, chapterKey, [commentaryId+chapterKey]',
     });
+
+    // v6 — análises de IA salvas automaticamente. `lookupKey` é
+    // `${task}:${reference}:${translation}` — recarrega o resultado quando
+    // o usuário reabre a mesma análise sem gastar API.
+    this.version(6).stores({
+      aiAnalyses: 'id, userId, task, reference, lookupKey, updatedAt, createdAt',
+    });
   }
 }
 
@@ -130,6 +139,7 @@ export async function clearUserData(): Promise<void> {
       db.plans,
       db.readingEvents,
       db.attachments,
+      db.aiAnalyses,
     ],
     async () => {
       await Promise.all([
@@ -143,6 +153,7 @@ export async function clearUserData(): Promise<void> {
         db.plans.clear(),
         db.readingEvents.clear(),
         db.attachments.clear(),
+        db.aiAnalyses.clear(),
       ]);
     },
   );

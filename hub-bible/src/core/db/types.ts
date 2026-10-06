@@ -460,3 +460,34 @@ export interface CommentaryEntry {
   /** HTML restrito — passa pelo mesmo saneador dos sermões. */
   text: string;
 }
+
+/* ----------------------------- análises de IA ----------------------------- */
+
+/**
+ * Análise gerada pela IA e salva localmente. Cada combinação de
+ * referência + tipo de análise + tradução gera uma entrada.
+ * `lookupKey` é `${task}:${reference}:${translation}` — busca rápida
+ * para exibir o resultado já salvo quando o usuário reabre a análise.
+ */
+export interface AiAnalysis {
+  id: ID;
+  userId: ID;
+  /** Tipo da análise (contexto-historico, exegese…). */
+  task: string;
+  /** Referência textual — "Efésios 2:5". */
+  reference: string;
+  /** Tradução em uso quando a análise foi gerada. */
+  translation: string;
+  /** Chave de busca rápida `${task}:${reference}:${translation}`. */
+  lookupKey: string;
+  /** Provedor que gerou (Google Gemini, OpenAI…). */
+  provider: string;
+  /** Segmentos da resposta, serializados. */
+  segments: Array<{ kind: string; title?: string; text: string; reference?: string }>;
+  /** Referências sugeridas pela IA. */
+  suggestedReferences: string[];
+  /** Disclaimer exibido ao usuário. */
+  disclaimer: string;
+  createdAt: number;
+  updatedAt: number;
+}
