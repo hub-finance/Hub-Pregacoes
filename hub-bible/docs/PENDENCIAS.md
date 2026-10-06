@@ -5,17 +5,42 @@ verificado; nada aqui é suposição. O que já foi entregue está no `README.md
 
 ---
 
+## Entregues em 06/10/2026
+
+### 0e. ✅ Exegese completa com comparação multi-tradução
+
+O prompt de exegese foi reescrito com protocolo estruturado de 10 seções:
+texto e traduções, palavras-chave no original, análise gramatical, estrutura
+literária, contexto histórico-cultural, contexto literário, teologia bíblica,
+perspectiva da fé, aplicação pastoral e referências cruzadas.
+
+Inclui proteção contra falácia etimológica, distinção dado/inferência/aplicação,
+e o princípio "a IA pesquisa e organiza, o pregador discerne e aplica".
+
+Na exegese, o sistema busca o versículo em **todas as traduções disponíveis**
+(embutidas e importadas) e envia ao modelo para análise de divergências entre
+traduções. O `max_tokens` da exegese é 8192 (demais tarefas continuam 2048).
+
+O system prompt geral foi reforçado para todos os provedores.
+
+Arquivos: `core/ai/chatProvider.ts` (comparação multi-tradução, prompts,
+max_tokens dinâmico).
+
+---
+
 ## Entregues em 04/10/2026
 
 ### 0d. ✅ Estudo guiado (IA)
 
 Módulo de estudo assistido por IA configurável nas Configurações. Suporta
-Google Gemini e OpenAI. Cinco tarefas: contexto histórico, temas relacionados,
-referências cruzadas, perguntas de estudo e estrutura de estudo. A interface
-não usa o termo "IA" — chama-se "Estudo guiado" nas configurações e "Análise"
-no painel do versículo.
+Google Gemini, OpenAI e Anthropic Claude. Sete tarefas: exegese, contexto
+histórico, temas relacionados, referências cruzadas, perguntas de estudo,
+estrutura de estudo e comparação de passagens. A interface não usa o termo
+"IA" — chama-se "Estudo guiado" nas configurações e "Análise" no painel do
+versículo. Análises são salvas no IndexedDB e reutilizadas sem gastar a API.
 
 Arquivos: `core/ai/config.ts`, `core/ai/chatProvider.ts`, `core/ai/provider.ts`,
+`core/data/aiAnalyses.ts`, `core/db/db.ts` (v6), `core/db/types.ts`,
 `features/settings/AiConfigPanel.tsx`, `features/bible/AiContent.tsx`,
 `features/bible/AiSheet.tsx`. Todo comentário gerado é identificado como tal e
 separado do texto bíblico.
