@@ -1,11 +1,13 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { getAiProvider, isAiEnabled, type AiResponse, type AiTaskKind } from '../../core/ai/provider';
 import { parseReference } from '../../core/bible/reference';
 import { bookName } from '../../core/bible/canon';
 import { getChapter } from '../../core/bible/repository';
+import { findAnalysis, saveAnalysis } from '../../core/data/aiAnalyses';
 
 const TASKS: { id: AiTaskKind; label: string; icon: string }[] = [
+  { id: 'exegese', label: 'Exegese', icon: '🔬' },
   { id: 'contexto-historico', label: 'Contexto histórico', icon: '📜' },
   { id: 'temas-relacionados', label: 'Temas relacionados', icon: '🔗' },
   { id: 'referencias-cruzadas', label: 'Referências cruzadas', icon: '📖' },
@@ -38,6 +40,7 @@ export function AiContent({
   const [activeTask, setActiveTask] = useState<AiTaskKind | null>(null);
   const [preview, setPreview] = useState<VersePreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [fromCache, setFromCache] = useState(false);
   const abortRef = useRef(false);
 
   const openRef = useCallback(async (ref: string) => {
@@ -57,7 +60,30 @@ export function AiContent({
     }
   }, [translation]);
 
-  const runTask = useCallback(async (task: AiTaskKind) => {
+  const loadCached = useCallback(async (task: AiTaskKind) => {
+    try {
+      const cached = await findAnalysis(task, reference, translation);
+      if (cached && !abortRef.current) {
+        setResult({
+          segments: cached.segments.map((s) => ({
+            kind: s.kind as 'scripture' | 'ai-comment',
+            title: s.title,
+            text: s.text,
+            reference: s.reference,
+          })),
+          suggestedReferences: cached.suggestedReferences,
+          provider: cached.provider,
+          disclaimer: cached.disclaimer,
+        });
+        setFromCache(true);
+        setLoading(false);
+        return true;
+      }
+    } catch { /* sem cache — segue para a API */ }
+    return false;
+  }, [reference, translation]);
+
+  const runTask = useCallback(async (task: AiTaskKind, forceRefresh = false) => {
     const provider = getAiProvider();
     if (!provider) return;
 
@@ -66,6 +92,13 @@ export function AiContent({
     setLoading(true);
     setError('');
     setResult(null);
+    setFromCache(false);
+    setPreview(null);
+
+    if (!forceRefresh) {
+      const hadCache = await loadCached(task);
+      if (hadCache) return;
+    }
 
     try {
       const response = await provider.run({
@@ -74,7 +107,11 @@ export function AiContent({
         reference,
         passage,
       });
-      if (!abortRef.current) setResult(response);
+      if (!abortRef.current) {
+        setResult(response);
+        setFromCache(false);
+        saveAnalysis({ task, reference, translation, response }).catch(() => {});
+      }
     } catch (err) {
       if (!abortRef.current) {
         setError(err instanceof Error ? err.message : 'Erro ao analisar a passagem.');
@@ -82,7 +119,7 @@ export function AiContent({
     } finally {
       if (!abortRef.current) setLoading(false);
     }
-  }, [translation, reference, passage]);
+  }, [translation, reference, passage, loadCached]);
 
   const handleBack = () => {
     abortRef.current = true;
@@ -90,7 +127,28 @@ export function AiContent({
     setResult(null);
     setError('');
     setLoading(false);
+    setFromCache(false);
+    setPreview(null);
   };
+
+  // Marca nas tarefas quais já têm análise salva
+  const [savedTasks, setSavedTasks] = useState<Set<AiTaskKind>>(new Set());
+
+  useEffect(() => {
+    let cancelled = false;
+    async function check() {
+      const found = new Set<AiTaskKind>();
+      for (const t of TASKS) {
+        try {
+          const cached = await findAnalysis(t.id, reference, translation);
+          if (cached) found.add(t.id);
+        } catch { /* ignora */ }
+      }
+      if (!cancelled) setSavedTasks(found);
+    }
+    check();
+    return () => { cancelled = true; };
+  }, [reference, translation]);
 
   if (!isAiEnabled()) {
     return (
@@ -127,7 +185,7 @@ export function AiContent({
         {error && (
           <div className="card" style={{ borderColor: 'var(--danger)' }}>
             <p className="small" style={{ color: 'var(--danger)', margin: 0 }}>{error}</p>
-            <button className="btn btn-sm" onClick={() => runTask(activeTask)} style={{ marginTop: 'var(--sp-2)' }}>
+            <button className="btn btn-sm" onClick={() => runTask(activeTask, true)} style={{ marginTop: 'var(--sp-2)' }}>
               Tentar novamente
             </button>
           </div>
@@ -135,6 +193,20 @@ export function AiContent({
 
         {result && (
           <div className="stack" style={{ gap: 'var(--sp-3)' }}>
+            {fromCache && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+                <span className="small dim" style={{ fontStyle: 'italic' }}>Análise salva anteriormente</span>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => runTask(activeTask, true)}
+                  style={{ marginLeft: 'auto' }}
+                >
+                  <Icon name="reset" size={14} />
+                  <span>Gerar novamente</span>
+                </button>
+              </div>
+            )}
+
             {result.segments.map((seg, i) => (
               <div key={i} className="ai-segment">
                 <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{seg.text}</p>
@@ -215,6 +287,11 @@ export function AiContent({
           >
             <span className="ai-task-icon">{task.icon}</span>
             <span>{task.label}</span>
+            {savedTasks.has(task.id) && (
+              <span className="small dim" style={{ marginLeft: 'auto', marginRight: 'var(--sp-2)', fontSize: '0.72rem' }}>
+                salva
+              </span>
+            )}
             <Icon name="chevron-right" size={16} />
           </button>
         ))}

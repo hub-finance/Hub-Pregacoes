@@ -30,6 +30,18 @@ Cite referências entre colchetes.`,
 
   'referencias-cruzadas': `Liste as referências cruzadas mais importantes para a passagem fornecida.
 Para cada uma, explique brevemente a conexão temática ou textual. Cite referências entre colchetes.`,
+
+  'exegese': `Faça uma análise exegética da passagem bíblica fornecida.
+
+Inclua:
+1. **Palavras-chave no original** — identifique os termos mais importantes em hebraico (AT) ou grego (NT), com transliteração e significado.
+2. **Análise gramatical** — tempo verbal, voz e modo dos verbos principais; construções relevantes.
+3. **Estrutura literária** — gênero, figuras de linguagem, paralelismos, quiasmos ou inclusões presentes.
+4. **Contexto imediato** — como a passagem se encaixa no argumento do autor dentro do livro.
+5. **Significado teológico** — a contribuição desta passagem para a teologia bíblica.
+
+Seja preciso e acadêmico, mas acessível a um pastor que prepara estudo ou sermão.
+Cite referências entre colchetes, ex: [Romanos 5:12].`,
 };
 
 const SYSTEM_PROMPT = `Você é um assistente bíblico para pastores e líderes cristãos.
