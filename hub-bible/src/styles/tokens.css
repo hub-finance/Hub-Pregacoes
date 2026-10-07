@@ -191,6 +191,35 @@
   --overlay: rgba(14, 40, 24, 0.4);
 }
 
+/* ---------------------------------- safira ------------------------------- */
+/* Azul intermediário: mais forte que o celeste, mais claro que o noite azul.
+   O acento sobe um tom ao clicar — do azul-céu ao azul-cobalto. */
+:root[data-theme='safira'] {
+  color-scheme: light;
+  --bg: #dce8f4;
+  --bg-elevated: #eaf1f9;
+  --bg-sunken: #cddcec;
+  --surface: #eaf1f9;
+  --surface-2: #d4e2f0;
+  --surface-hover: #c4d6ea;
+  --border: #a8c0da;
+  --border-strong: #8dabc8;
+  --text: #152540;
+  --text-2: #354d6a;
+  --text-3: #5c7a9c;
+  --accent: #2b6cb0;
+  --accent-strong: #1e4f8a;
+  --accent-soft: #c0d8f0;
+  --accent-contrast: #ffffff;
+  --danger: #b23a35;
+  --success: #2f7a56;
+  --info: #2b6cb0;
+  --shadow-1: 0 1px 2px rgba(10, 30, 60, 0.07), 0 1px 3px rgba(10, 30, 60, 0.07);
+  --shadow-2: 0 6px 20px rgba(10, 30, 60, 0.12);
+  --shadow-3: 0 18px 48px rgba(10, 30, 60, 0.18);
+  --overlay: rgba(10, 25, 50, 0.42);
+}
+
 /* ---------------------------------- sépia -------------------------------- */
 :root[data-theme='sepia'] {
   color-scheme: light;
@@ -236,6 +265,14 @@
   --border-strong: #607d9e;
   --accent: #1a4a80;
 }
+:root[data-contrast='high'][data-theme='safira'] {
+  --text: #0a1628;
+  --text-2: #15304e;
+  --text-3: #2e5070;
+  --border: #7a9abc;
+  --border-strong: #506e90;
+  --accent: #14407a;
+}
 :root[data-contrast='high'][data-theme='jardim'] {
   --text: #0c1e14;
   --text-2: #1a3826;
@@ -244,7 +281,7 @@
   --border-strong: #609a70;
   --accent: #1a6030;
 }
-:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']):not([data-theme='jardim']) {
+:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']):not([data-theme='jardim']):not([data-theme='safira']) {
   --text: #000000;
   --text-2: #2a2620;
   --text-3: #4a443b;
