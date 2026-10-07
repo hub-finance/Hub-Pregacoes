@@ -79,6 +79,7 @@ export default function SettingsPage() {
               { value: 'sepia', label: 'Sépia' },
               { value: 'azul', label: 'Noite azul' },
               { value: 'celeste', label: 'Azul e branco' },
+              { value: 'safira', label: 'Azul safira' },
               { value: 'jardim', label: 'Verde e branco' },
             ]}
           />

@@ -212,10 +212,11 @@ async function callOpenAi(apiKey: string, model: string, system: string, prompt:
     }),
   });
   if (!res.ok) {
-    const err = await res.text().catch(() => '');
     if (res.status === 401) throw new Error('Chave de API inválida. Verifique nas Configurações.');
     if (res.status === 429) throw new Error('Limite de uso atingido. Aguarde alguns minutos.');
-    throw new Error(`Erro na API OpenAI (${res.status}): ${err.slice(0, 200)}`);
+    if (res.status === 503 || res.status === 502) throw new Error('Serviço temporariamente indisponível. Tente novamente em alguns minutos.');
+    if (res.status === 404) throw new Error('Modelo não encontrado. Verifique o nome do modelo nas Configurações.');
+    throw new Error(`Erro na API OpenAI (${res.status}). Tente novamente.`);
   }
   const data = await res.json();
   return data.choices?.[0]?.message?.content ?? '';
@@ -239,7 +240,9 @@ async function callGemini(apiKey: string, model: string, system: string, prompt:
     const err = await res.text().catch(() => '');
     if (res.status === 400 && err.includes('API_KEY')) throw new Error('Chave de API inválida. Verifique nas Configurações.');
     if (res.status === 429) throw new Error('Limite de uso atingido. Aguarde alguns minutos.');
-    throw new Error(`Erro na API Gemini (${res.status}): ${err.slice(0, 200)}`);
+    if (res.status === 503 || res.status === 502) throw new Error('Serviço temporariamente indisponível. Tente novamente em alguns minutos.');
+    if (res.status === 404) throw new Error('Modelo não encontrado. Verifique o nome do modelo nas Configurações.');
+    throw new Error(`Erro na API Gemini (${res.status}). Tente novamente.`);
   }
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
@@ -263,10 +266,11 @@ async function callAnthropic(apiKey: string, model: string, system: string, prom
     }),
   });
   if (!res.ok) {
-    const err = await res.text().catch(() => '');
     if (res.status === 401) throw new Error('Chave de API inválida. Verifique nas Configurações.');
     if (res.status === 429) throw new Error('Limite de uso atingido. Aguarde alguns minutos.');
-    throw new Error(`Erro na API Anthropic (${res.status}): ${err.slice(0, 200)}`);
+    if (res.status === 503 || res.status === 502) throw new Error('Serviço temporariamente indisponível. Tente novamente em alguns minutos.');
+    if (res.status === 404) throw new Error('Modelo não encontrado. Verifique o nome do modelo nas Configurações.');
+    throw new Error(`Erro na API Anthropic (${res.status}). Tente novamente.`);
   }
   const data = await res.json();
   return data.content?.[0]?.text ?? '';
