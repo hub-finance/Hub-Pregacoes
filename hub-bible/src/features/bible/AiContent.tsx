@@ -15,14 +15,23 @@ const TASKS: { id: AiTaskKind; label: string; icon: string }[] = [
   { id: 'estrutura-de-estudo', label: 'Estrutura de estudo', icon: '📋' },
 ];
 
+const CHAPTER_TASKS: { id: AiTaskKind; label: string; icon: string }[] = [
+  { id: 'exegese-capitulo', label: 'Exegese do capítulo', icon: '📖' },
+  { id: 'contexto-historico', label: 'Contexto histórico', icon: '📜' },
+  { id: 'temas-relacionados', label: 'Temas relacionados', icon: '🔗' },
+  { id: 'estrutura-de-estudo', label: 'Estrutura de estudo', icon: '📋' },
+];
+
 interface Props {
   book: string;
   chapter: number;
-  verse: number;
+  verse?: number;
   reference: string;
   passage: string;
   translation: string;
   onNavigate: () => void;
+  /** Modo capítulo: mostra tarefas de capítulo em vez de versículo. */
+  chapterMode?: boolean;
 }
 
 interface VersePreview {
@@ -32,8 +41,9 @@ interface VersePreview {
 }
 
 export function AiContent({
-  reference, passage, translation, onNavigate: _onNavigate,
+  reference, passage, translation, onNavigate: _onNavigate, chapterMode,
 }: Props) {
+  const taskList = chapterMode ? CHAPTER_TASKS : TASKS;
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiResponse | null>(null);
   const [error, setError] = useState('');
@@ -138,7 +148,7 @@ export function AiContent({
     let cancelled = false;
     async function check() {
       const found = new Set<AiTaskKind>();
-      for (const t of TASKS) {
+      for (const t of taskList) {
         try {
           const cached = await findAnalysis(t.id, reference, translation);
           if (cached) found.add(t.id);
@@ -148,7 +158,7 @@ export function AiContent({
     }
     check();
     return () => { cancelled = true; };
-  }, [reference, translation]);
+  }, [reference, translation, taskList]);
 
   if (!isAiEnabled()) {
     return (
@@ -172,7 +182,7 @@ export function AiContent({
         </button>
 
         <p className="small dim" style={{ margin: 0 }}>
-          {TASKS.find((t) => t.id === activeTask)?.label} — {reference}
+          {taskList.find((t) => t.id === activeTask)?.label} — {reference}
         </p>
 
         {loading && (
@@ -279,7 +289,7 @@ export function AiContent({
       </p>
 
       <div className="stack" style={{ gap: 'var(--sp-1)' }}>
-        {TASKS.map((task) => (
+        {taskList.map((task) => (
           <button
             key={task.id}
             className="ai-task-btn"

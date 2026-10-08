@@ -201,6 +201,7 @@ export default function BiblePage() {
   const [crossRefOpen, setCrossRefOpen] = useState(false);
   const [commentaryOpen, setCommentaryOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [aiChapterOpen, setAiChapterOpen] = useState(false);
   const [panelTab, setPanelTab] = useState<VersePanelTab>('commentary');
   const [versePanelOpen, setVersePanelOpen] = useState(false);
   const [initialWord, setInitialWord] = useState<number | null>(null);
@@ -521,6 +522,15 @@ export default function BiblePage() {
         <button className="icon-btn" onClick={() => setReaderSettings(true)} aria-label="Ajustes de leitura">
           <span style={{ fontWeight: 700, fontSize: '0.92rem', letterSpacing: '-0.02em' }}>Aa</span>
         </button>
+        {isAiEnabled() && (
+          <button
+            className="icon-btn"
+            onClick={() => setAiChapterOpen(true)}
+            aria-label="Exegese do capítulo"
+          >
+            <Icon name="sparkle" />
+          </button>
+        )}
         <button
           className="icon-btn"
           onClick={() => navigate(`/pregacao?ref=${encodeURIComponent(`${book} ${chapter}`)}`)}
@@ -893,6 +903,18 @@ export default function BiblePage() {
           placeholder="O que Deus falou com você neste texto?"
         />
       </Sheet>
+
+      <AiSheet
+        open={aiChapterOpen}
+        onClose={() => setAiChapterOpen(false)}
+        book={book}
+        chapter={chapter}
+        reference={`${bookName(book)} ${chapter}`}
+        passage={verses.map((v, i) => `${i + 1} ${v}`).join(' ')}
+        translation={translation}
+        onNavigate={() => setAiChapterOpen(false)}
+        chapterMode
+      />
     </>
   );
 }
