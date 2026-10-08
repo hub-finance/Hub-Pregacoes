@@ -22,7 +22,8 @@ export type AiTaskKind =
   | 'perguntas-de-estudo'
   | 'estrutura-de-estudo'
   | 'referencias-cruzadas'
-  | 'exegese';
+  | 'exegese'
+  | 'exegese-capitulo';
 
 export interface AiRequest {
   task: AiTaskKind;

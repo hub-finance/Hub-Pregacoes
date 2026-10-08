@@ -6,15 +6,16 @@ interface Props {
   onClose: () => void;
   book: string;
   chapter: number;
-  verse: number;
+  verse?: number;
   reference: string;
   passage: string;
   translation: string;
   onNavigate: () => void;
+  chapterMode?: boolean;
 }
 
 export function AiSheet({
-  open, onClose, book, chapter, verse, reference, passage, translation, onNavigate,
+  open, onClose, book, chapter, verse, reference, passage, translation, onNavigate, chapterMode,
 }: Props) {
   return (
     <Sheet open={open} title={`Análise — ${reference}`} onClose={onClose}>
@@ -26,6 +27,7 @@ export function AiSheet({
         passage={passage}
         translation={translation}
         onNavigate={onNavigate}
+        chapterMode={chapterMode}
       />
     </Sheet>
   );

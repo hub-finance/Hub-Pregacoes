@@ -156,6 +156,72 @@ REGRAS METODOLÓGICAS:
 - Ao citar termos no original, sempre dê a transliteração e o significado — não presuma conhecimento de hebraico ou grego.
 - Cite referências bíblicas entre colchetes: [Livro Capítulo:Versículo].
 - Seja preciso e acadêmico, mas acessível a um pastor que prepara estudo ou sermão.`,
+
+  'exegese-capitulo': `Realize uma exegese bíblica completa do CAPÍTULO INTEIRO fornecido.
+O foco é a visão panorâmica — estrutura, fluxo argumentativo e unidade do capítulo.
+Siga este protocolo:
+
+═══════════════════════════════════════════════
+1. VISÃO GERAL DO CAPÍTULO
+═══════════════════════════════════════════════
+- Resumo do conteúdo e propósito do capítulo em 3-5 frases.
+- Como este capítulo se encaixa no argumento do livro — o que veio antes e o que vem depois.
+- Gênero literário predominante (narrativa, poesia, profecia, epístola, apocalíptico, etc.).
+
+═══════════════════════════════════════════════
+2. ESTRUTURA E DIVISÃO DO TEXTO
+═══════════════════════════════════════════════
+- Divida o capítulo em seções/perícopes, indicando os versículos de cada uma.
+- Descreva o conteúdo de cada seção em uma frase.
+- Identifique transições, conectivos e marcadores estruturais.
+
+═══════════════════════════════════════════════
+3. CONTEXTO HISTÓRICO-CULTURAL
+═══════════════════════════════════════════════
+- Autor, destinatários, data e circunstâncias.
+- Costumes, práticas culturais e contexto político que iluminam o capítulo.
+- Como os ouvintes originais teriam entendido o texto.
+
+═══════════════════════════════════════════════
+4. PALAVRAS-CHAVE E CONCEITOS CENTRAIS
+═══════════════════════════════════════════════
+- Termos mais importantes em hebraico (AT) ou grego (NT), com transliteração e significado.
+- Conceitos teológicos centrais do capítulo.
+- ALERTA DE FALÁCIA: Não derive doutrina apenas da etimologia — o sentido vem do contexto.
+
+═══════════════════════════════════════════════
+5. TEMAS TEOLÓGICOS
+═══════════════════════════════════════════════
+- Contribuição teológica do capítulo para o livro e para o cânon.
+- Conexão com os grandes temas bíblicos: aliança, redenção, reino, fé, graça.
+- Progressão revelacional: como as verdades do capítulo se desenvolvem do AT ao NT.
+- Tipologias e cumprimentos (se aplicável).
+
+═══════════════════════════════════════════════
+6. VERSÍCULOS-CHAVE
+═══════════════════════════════════════════════
+- Liste os 3-5 versículos mais importantes do capítulo e por que são centrais.
+- Análise breve de cada um: o que diz, o que significa, como se aplica.
+
+═══════════════════════════════════════════════
+7. APLICAÇÃO PASTORAL
+═══════════════════════════════════════════════
+- Aplicação prática para a vida da igreja hoje.
+- Sugestões de temas de pregação a partir do capítulo.
+- Perguntas para reflexão pessoal e em grupo.
+
+═══════════════════════════════════════════════
+8. REFERÊNCIAS CRUZADAS
+═══════════════════════════════════════════════
+- Passagens paralelas e referências cruzadas mais importantes.
+- Para cada uma, explique a conexão temática ou textual.
+
+REGRAS METODOLÓGICAS:
+- Distinga sempre entre o que o texto DIZ (dado), o que o texto SIGNIFICA (inferência) e como o texto se APLICA (interpretação pastoral).
+- Se uma conclusão exegética é disputada, apresente as principais posições e indique qual tem maior sustentação textual.
+- Ao citar termos no original, sempre dê a transliteração e o significado.
+- Cite referências bíblicas entre colchetes: [Livro Capítulo:Versículo].
+- Seja preciso e acadêmico, mas acessível a um pastor que prepara estudo ou sermão.`,
 };
 
 const SYSTEM_PROMPT = `Você é um assistente exegético e teológico para pastores e líderes cristãos.
@@ -307,6 +373,7 @@ function buildPrompt(request: AiRequest, comparison?: string): string {
 }
 
 function maxTokensForTask(task: AiTaskKind): number {
+  if (task === 'exegese-capitulo') return 12288;
   if (task === 'exegese') return 8192;
   return 2048;
 }
@@ -328,7 +395,7 @@ function createChatProvider(providerId: Exclude<AiProviderId, 'none'>): AiProvid
       if (!config.apiKey) throw new Error('Configure a chave de API nas Configurações.');
 
       let comparison = '';
-      if (request.task === 'exegese' && request.reference) {
+      if ((request.task === 'exegese' || request.task === 'exegese-capitulo') && request.reference) {
         comparison = await buildTranslationComparison(
           request.translation,
           request.reference,
