@@ -355,6 +355,10 @@
   background: var(--surface-hover);
   border-color: var(--border-strong);
 }
+.hit.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
 .hit-ref {
   font-size: 0.76rem;
   font-weight: 700;
@@ -375,6 +379,54 @@
   border-radius: 3px;
   padding: 0 2px;
   font-weight: 600;
+}
+
+/* ========================== busca com painel ============================= */
+.search-layout.has-panel {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: flex-start;
+}
+.search-layout .search-results {
+  flex: 1;
+  min-width: 0;
+}
+.search-layout .side-panel {
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+}
+
+.verse-preview-context {
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+  background: var(--surface-2);
+}
+.verse-preview-line {
+  margin: 0;
+  padding: var(--sp-1) 0;
+  line-height: 1.7;
+  font-family: var(--font-reader);
+  font-size: 0.95rem;
+  color: var(--text-3);
+  transition: color var(--dur) var(--ease);
+}
+.verse-preview-line.current {
+  color: var(--text);
+  font-weight: 600;
+  background: var(--accent-soft);
+  border-radius: var(--r-sm);
+  padding: var(--sp-1) var(--sp-2);
+  margin: 0 calc(-1 * var(--sp-2));
+}
+.verse-preview-line .verse-num {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-strong);
+  margin-right: 2px;
 }
 
 /* =========================== MODO PREGAÇÃO =============================== */

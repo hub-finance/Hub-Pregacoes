@@ -34,7 +34,7 @@ export default function DashboardPage() {
   const totalHighlights = Object.values(byCategory.data ?? {}).reduce((a, b) => a + b, 0);
 
   const cards = [
-    { label: 'Sermões preparados', value: counts?.sermons ?? 0, to: '/sermoes', icon: '🎙️' },
+    { label: 'Mensagens criadas', value: counts?.sermons ?? 0, to: '/sermoes', icon: '🎙️' },
     { label: 'Rhema e estudos', value: counts?.studies ?? 0, to: '/rhema', icon: '📚' },
     { label: 'Cursos', value: counts?.devotionals ?? 0, to: '/cursos', icon: '🙏' },
     { label: 'Capítulos lidos', value: stats.data?.distinctChapters ?? 0, to: '/biblia', icon: '📖' },
