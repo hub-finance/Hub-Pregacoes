@@ -35,13 +35,13 @@ export default function SermonsPage() {
   return (
     <DocList<Sermon>
       kind="sermon"
-      title="Sermões"
-      lead="Prepare, organize e pregue com clareza."
+      title="Gerador"
+      lead="Construa sua mensagem passo a passo, guiado pelo Espírito."
       icon="sermon"
       route="/sermoes"
       create={newSermon}
       subtitleOf={(s) => [s.theme, s.mainText].filter(Boolean).join(' · ')}
-      emptyDescription="Crie seu primeiro sermão com introdução, desenvolvimento, conclusão e aplicação — ou importe um que já esteja pronto em PDF ou Word."
+      emptyDescription="Comece a construir sua mensagem com as ferramentas certas — ou importe uma que já esteja pronta em PDF ou Word."
       onImportFile={importFile}
       importAccept={`${ACCEPTED_MIME},${ACCEPTED_EXTENSIONS}`}
     />
