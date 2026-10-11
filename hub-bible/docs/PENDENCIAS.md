@@ -1,48 +1,64 @@
 # Pendências — retomar daqui
 
-Estado em **11/10/2026**. Tudo o que está descrito abaixo foi levantado e
+Estado em **12/10/2026**. Tudo o que está descrito abaixo foi levantado e
 verificado; nada aqui é suposição. O que já foi entregue está no `README.md`.
 
 ---
 
-## ⏸ Parado em 11/10/2026 — retomar daqui
+## Entregues em 12/10/2026
 
-Trabalho em andamento na branch `claude/bible-ministerial-app-50yppx`, **ainda
-não publicado** (sem PR). Compila e passa no `tsc`, mas não foi testado no
-navegador.
+### 0l. ✅ Base doutrinária importável e "Leitura na linha da fé"
 
-**Já feito (código):**
 - `core/bible/doctrinalPack.ts` — importar/remover uma base doutrinária
-  (.json), validar referências, achar os guias que tocam a passagem e montar o
-  bloco que vai para a IA.
-- `features/guides/GuidesPage.tsx` — botão Importar/Substituir/Remover; guias
-  importados com explicação, termo no original e aplicação, acima dos guias
-  embutidos.
-- `core/ai/chatProvider.ts` — seção visível **"Leitura na linha da fé"** nas
-  duas exegeses (substitui "Perspectiva da fé" na do versículo; nova na do
-  capítulo) e envio dos guias correspondentes à passagem.
+  (.json, formato `hub-bible/base-doutrinaria`), validar as referências, achar
+  os guias que tocam a passagem e montar o bloco que vai para a IA (até 2
+  guias, no máximo 14 mil caracteres). Fica em `settings`, fora do backup e da
+  sincronização.
+- `features/guides/GuidesPage.tsx` — Importar/Substituir/Remover; os guias
+  importados aparecem em "Da sua base", acima dos que acompanham o app, com
+  explicação, termo no original e aplicação.
+- `core/ai/chatProvider.ts` — seção **"Leitura na linha da fé"**, separada da
+  análise do texto, nas duas exegeses (8 na do versículo, no lugar de
+  "Perspectiva da fé"; 6 na do capítulo). Quando há base, os guias da passagem
+  vão junto no pedido.
 
-**Já feito (conteúdo):** `docs/base-doutrinaria-rascunho/` — 11 guias novos,
-106 passos, 813 referências conferidas contra a versificação da Almeida (0
-erros): Justiça de Deus, Caráter de Deus, Redenção, Fé, Cura, Autoridade do
-crente, Unção, Guiado pelo Espírito, Fruto do espírito, Manifestações do
-Espírito, Oração. Sem citar origem.
+Testado no navegador (390px), com a chamada à IA interceptada: importar 11
+guias, abrir o detalhe, exegese de Ef 2:6 (envia "Autoridade do crente"),
+exegese de Ef 2 (envia "Justiça de Deus" e "Autoridade do crente"), remover a
+base e conferir que a exegese deixa de enviar os guias. Sem erro de página.
 
-**Decisão pendente do usuário:** ele pediu primeiro que a base ficasse só no
-aparelho (importada), e depois disse que pode ir para o público desde que não
-indique a origem. Confirmar no início da próxima sessão. Se for público, o
-caminho mais simples é juntar os 11 guias em `public/reference/` (ou no
-`scripts/build-theological-dict.mjs`) e dispensar a importação.
+Conteúdo: `docs/base-doutrinaria-rascunho/` — 11 guias, 106 passos, 813
+referências conferidas contra a Almeida. Não vão dentro do app; o usuário
+importa o arquivo montado a partir deles.
 
-**Pedidos do usuário para depois (em ordem):**
-1. Melhorar os guias doutrinários com versículos — ele disse que, se o resto
-   for pesado, basta isso. Não precisa reler o material de origem.
-2. Faltam guias de: Doutrinas básicas, Gálatas, Atos, Família cristã,
-   Submissão e autoridade, Ministério prático (opcionais, conforme o item 1).
+### 0m. ✅ Limites de sã doutrina na IA e rótulos da home
+
+- O prompt ganhou "LIMITES DA PESQUISA — SÃ DOUTRINA": cânon de 66 livros
+  como fonte, fé cristã histórica na linha da Palavra da Fé, nada de
+  esoterismo, numerologia, mapas do mundo espiritual ou teorias marginais, e
+  dizer que a Escritura se cala onde ela se cala. Motivo: análises estranhas
+  em Efésios. Análises antigas continuam salvas; "Gerar novamente" as refaz.
+- Home: quadros de no mínimo 128px no tablet/computador; no celular, três
+  colunas com letra menor. Medido de 320 a 1600px: nenhum rótulo sai do
+  quadro nem é partido ao meio.
+
+### Retomar daqui
+
+1. **Decisão do usuário:** os guias da base podem ir para dentro do app (para
+   todos), desde que não indiquem a origem? Ele disse que sim se for possível,
+   mas ainda não confirmou depois de ver funcionando. Se for, juntar em
+   `public/reference/doctrinal-guides.json` (via
+   `scripts/build-theological-dict.mjs`) e manter a importação para bases
+   pessoais.
+2. Melhorar os guias doutrinários com versículos (pedido do usuário). Faltam
+   guias de: Doutrinas básicas, Gálatas, Atos, Família cristã, Submissão e
+   autoridade, Ministério prático — opcionais.
 3. **Bug no APK: compartilhar versículo como imagem não funciona.** Investigar
-   em `core/share/` e `core/nativeFiles.ts` (`shareFileNatively`).
-4. Gerador: usar o modelo e o desenho de texto das mensagens do próprio usuário
-   como padrão de sermão.
+   `core/share/` e `shareFileNatively` em `core/nativeFiles.ts`.
+4. Gerador: usar o modelo e o desenho de texto das mensagens do usuário como
+   padrão de sermão.
+5. Leitor: abrir com `?v=N` destaca o versículo, mas o primeiro toque nele não
+   seleciona (visto no teste de 12/10; não investigado).
 
 ---
 
