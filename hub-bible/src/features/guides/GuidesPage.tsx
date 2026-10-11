@@ -5,7 +5,9 @@ import { ConfirmDialog, EmptyState, PageHeader, Spinner } from '../../components
 import { useToast } from '../../components/Toast';
 import { useAsync } from '../../hooks';
 import { getDoctrinalGuides, getTheologicalEntry } from '../../core/bible/reference-data';
+import { shareFile } from '../../core/share/share';
 import {
+  doctrinalPackFile,
   getDoctrinalPack,
   importDoctrinalPack,
   removeDoctrinalPack,
@@ -224,30 +226,47 @@ export default function GuidesPage() {
         onChange={(e) => void onFile(e.target.files?.[0])}
       />
 
-      <div className="card row" style={{ marginBottom: 'var(--sp-4)', gap: 'var(--sp-3)' }}>
-        <Icon name="lock" size={22} style={{ flex: 'none', color: 'var(--accent-strong)' }} />
-        <span className="list-body" style={{ flex: 1, minWidth: 0 }}>
-          <span className="list-title">{pack.data ? pack.data.nome : 'Base doutrinária'}</span>
-          <span className="list-meta">
-            {pack.data
-              ? `${pack.data.guias.length} guias, só neste aparelho. Também orientam a seção "Leitura na linha da fé" da exegese.`
-              : 'Importe o arquivo da sua base doutrinária. Ela fica só neste aparelho e orienta a exegese.'}
+      <div className="card stack" style={{ marginBottom: 'var(--sp-4)', gap: 'var(--sp-3)' }}>
+        <div className="row" style={{ gap: 'var(--sp-3)', alignItems: 'flex-start' }}>
+          <Icon name="lock" size={22} style={{ flex: 'none', color: 'var(--accent-strong)' }} />
+          <span className="list-body" style={{ flex: 1, minWidth: 0 }}>
+            <span className="list-title">{pack.data ? pack.data.nome : 'Base doutrinária'}</span>
+            <span className="list-meta">
+              {pack.data
+                ? `${pack.data.guias.length} guias, só neste aparelho. Também orientam a seção "Leitura na linha da fé" da exegese.`
+                : 'Importe o arquivo da sua base doutrinária. Ela fica só neste aparelho e orienta a exegese.'}
+            </span>
           </span>
-        </span>
-        <span className="row" style={{ flex: 'none', gap: 'var(--sp-2)' }}>
-          <button className="btn btn-sm" onClick={() => fileInput.current?.click()}>
-            {pack.data ? 'Substituir' : 'Importar'}
-          </button>
-          {pack.data && (
+        </div>
+        {pack.data ? (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-2)' }}>
             <button
-              className="btn btn-sm btn-ghost"
-              onClick={() => setConfirmRemove(true)}
-              aria-label="Remover base doutrinária"
+              className="btn btn-sm"
+              style={{ gridColumn: '1 / -1' }}
+              onClick={async () => {
+                if (!pack.data) return;
+                const { blob, filename } = doctrinalPackFile(pack.data);
+                const result = await shareFile(blob, filename);
+                notify(result === 'shared' ? 'Arquivo pronto para enviar.' : `Arquivo ${filename} baixado.`);
+              }}
             >
-              <Icon name="trash" size={18} />
+              <Icon name="share" size={18} />
+              Compartilhar base
             </button>
-          )}
-        </span>
+            <button className="btn btn-sm" onClick={() => fileInput.current?.click()}>
+              Substituir
+            </button>
+            <button className="btn btn-sm btn-ghost" onClick={() => setConfirmRemove(true)}>
+              <Icon name="trash" size={18} />
+              Remover
+            </button>
+          </div>
+        ) : (
+          <button className="btn btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => fileInput.current?.click()}>
+            <Icon name="upload" size={18} />
+            Importar
+          </button>
+        )}
       </div>
 
       {!!pack.data?.guias.length && (

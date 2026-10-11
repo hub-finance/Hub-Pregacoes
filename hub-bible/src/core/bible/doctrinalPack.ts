@@ -103,6 +103,20 @@ export async function importDoctrinalPack(file: File): Promise<DoctrinalPack> {
   return pack;
 }
 
+/** O arquivo para passar a outra pessoa, no mesmo formato que se importa. */
+export function doctrinalPackFile(pack: DoctrinalPack): { blob: Blob; filename: string } {
+  const slug = pack.nome
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  return {
+    blob: new Blob([JSON.stringify(pack, null, 1)], { type: 'application/json' }),
+    filename: `${slug || 'base-doutrinaria'}.json`,
+  };
+}
+
 export async function removeDoctrinalPack(): Promise<void> {
   await db.settings.delete(STORAGE_KEY);
 }
