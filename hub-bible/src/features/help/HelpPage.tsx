@@ -105,10 +105,11 @@ const TOPICS: Topic[] = [
   },
   {
     icon: 'sermon',
-    title: 'Preparar um sermão',
+    title: 'Gerador — preparar um sermão',
     steps: [
-      'O sermão é montado em blocos, como se monta no Word: Seção (o subtítulo com o filete), Parágrafo, Destaque (o quadro que chama a atenção), Citação bíblica e Lista.',
+      'O Gerador (antigo "Sermões") é o espaço de preparação ministerial. O sermão é montado em blocos: Seção (o subtítulo com o filete), Parágrafo, Destaque (o quadro que chama a atenção), Citação bíblica e Lista.',
       'O sermão novo abre em branco. Toque em "Acrescentar" e escolha o que vai usar: Texto principal, Introdução, Desenvolvimento, Aplicações, Conclusão, Apelo — ou um bloco solto. Nada vem pronto na tela, e o sermão que não tem introdução não fica com uma caixa vazia.',
+      'O fluxo de desenvolvimento segue a sequência: Ideia → Estudo → Argumentação → Esboço → Sermão. Você é o autor da mensagem — a IA pesquisa e organiza, mas quem discerne, interpreta e comunica é o pregador.',
       'A barra no alto formata o trecho que você selecionou: negrito, itálico, sublinhado e cor. O botão de girar limpa a formatação.',
       'Cada bloco tem os seus botões: trocar o tipo, subir, descer, inserir outro abaixo e excluir. No fim da página, a barra acrescenta um bloco novo do tipo que você escolher.',
       'No bloco Citação bíblica, escreva a referência e toque em "Trazer texto": o versículo vem do próprio aplicativo, com a referência por baixo. O texto bíblico nunca é digitado pelo sistema.',
@@ -207,11 +208,15 @@ const TOPICS: Topic[] = [
   },
   {
     icon: 'sparkle',
-    title: 'Estudo guiado — análise assistida',
+    title: 'Inteligência Bíblica — assistente de estudo e preparação',
     steps: [
-      'O estudo guiado gera comentários sobre a passagem selecionada: exegese completa, contexto histórico, temas relacionados, referências cruzadas, perguntas de estudo e estrutura de estudo. Funciona como um comentário bíblico consultivo.',
-      'A Exegese é a análise mais completa: cobre o texto nas traduções disponíveis, palavras-chave no original (hebraico/grego), análise gramatical, estrutura literária, contexto histórico-cultural, contexto literário, teologia bíblica, perspectiva da fé e aplicação pastoral. Se você tiver mais de uma tradução instalada, a exegese compara todas automaticamente.',
-      'O princípio é: a IA pesquisa e organiza; o pregador discerne, interpreta, aplica e comunica. A ferramenta é de apoio — como consultar um comentário ou uma enciclopédia bíblica — e NÃO substitui a ação do Espírito Santo, o estudo pessoal do leitor nem a orientação pastoral.',
+      'O Hub Bible AI é um sistema completo de inteligência bíblica para estudo, pesquisa e preparação do pregador. O princípio central: a IA acelera o processo; o pregador permanece no comando.',
+      'São sete funcionalidades: Explorar (contexto da passagem), Pesquisar (por palavra, tema, personagem, doutrina), Examinar (verificar afirmações teológicas), Conectar (rede de conhecimento entre textos), Organizar (identificar temas e estruturar material), Desenvolver (apoiar a construção de sermões) e Recuperar (resgatar conexões do seu acervo pessoal).',
+      'A Exegese é a análise mais completa: cobre o texto nas traduções disponíveis, palavras-chave no original (hebraico/grego com número Strong, transliteração e campo semântico), análise gramatical, estrutura literária, contexto histórico-cultural, contexto literário, teologia bíblica, perspectiva da fé e aplicação pastoral. Se você tiver mais de uma tradução instalada, a exegese compara todas automaticamente.',
+      'O estudo de palavras segue protocolo rigoroso: palavra original, transliteração, número Strong, significado lexical, formas, ocorrências e contexto de uso. Significado lexical nunca é tratado como interpretação automática — o sentido vem do contexto, não da raiz.',
+      'As referências cruzadas são classificadas: diretas (citação literal), conceituais (mesmo conceito), terminológicas (mesma palavra no original), temáticas (mesmo tema) e contextuais (mesmo cenário). Cada conexão vem com a explicação do porquê.',
+      'O sistema tem três autoridades, nesta ordem: (1) a Escritura Sagrada, (2) o discernimento e a responsabilidade do pregador, (3) o contexto ministerial. A IA nunca apresenta sugestões como revelação divina, doutrina inequívoca ou orientação pastoral definitiva.',
+      'A IA está autorizada a discordar do usuário quando houver fundamento bíblico — não diz simplesmente "está correto". Ela examina com honestidade e classifica o nível de confiança de cada análise.',
       'O texto bíblico exibido vem sempre do repositório local (a tradução que você está lendo), nunca do modelo. Todo comentário gerado é identificado como tal e separado visualmente do texto sagrado.',
       'As análises são salvas no aparelho. Quando você pedir a mesma análise de novo, ela abre na hora, sem gastar a API. O botão "Gerar novamente" refaz a análise quando quiser uma versão nova.',
       'Para ativar: Configurações › Estudo guiado. Escolha o provedor (Google Gemini, OpenAI ou Anthropic Claude), cole a chave de API e teste a conexão. O Gemini Flash tem plano gratuito.',
