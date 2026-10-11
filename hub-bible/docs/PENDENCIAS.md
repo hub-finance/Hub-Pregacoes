@@ -55,6 +55,31 @@ capítulo funcionando bem.
 - "Sermões" passa a se chamar **Gerador** na navegação, na lista e no painel
   ("Mensagens criadas"). A rota não mudou.
 
+### 0k. ✅ Uso sem internet — referências e concordância
+
+O usuário usa o app **quase sempre sem internet**. Teste de 11/10, com
+servidor imitando os cabeçalhos da Vercel (`max-age=0, must-revalidate`),
+mostrou que `reference/*.json` e `lexicon/*.json` falhavam offline mesmo
+depois de usados com internet: não estavam no precache nem em cache de
+runtime.
+
+- `reference/*.json` (~2 MB: referências cruzadas, dicionário teológico,
+  guias, tipologia, famílias semânticas) entrou no precache do service worker
+  (`vite.config.ts`).
+- A concordância das traduções embutidas vem junto no botão "Baixar para uso
+  offline" (`core/bible/concordanceOffline.ts`), gravada no mesmo cache que o
+  service worker consulta. O botão volta a aparecer quando o texto já está
+  baixado mas a concordância não. No APK não faz nada: os arquivos já estão no
+  pacote.
+- **O léxico Strong embutido (inglês) continua precisando de internet.** O
+  usuário usa léxicos importados, que ficam no IndexedDB e funcionam offline;
+  quando o embutido não carrega, `lexicon.ts` devolve vazio sem erro. A Ajuda
+  foi corrigida, porque dizia que ele funcionava offline.
+
+Conferido sem internet, em 390px: app abre, Bíblia baixada, concordância
+("graça", 198 ocorrências, com o detalhe e os trechos dos versículos), guias
+doutrinários e arquivos de referência respondendo 200.
+
 ### 0j. ✅ Ajuda reescrita
 
 O tópico da IA chama-se "Estudo guiado — a IA como apoio": diz que a IA é

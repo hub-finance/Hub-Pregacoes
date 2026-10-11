@@ -57,7 +57,9 @@ export default defineConfig({
       workbox: {
         // O texto bíblico (≈8 MB) não entra no precache: é baixado sob demanda
         // e guardado em cache de runtime + IndexedDB.
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // reference/*.json (referências cruzadas, dicionário teológico, guias) é
+        // pequeno (~2 MB) e sem ele essas telas ficam vazias sem internet.
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}', 'reference/*.json'],
         globIgnores: ['**/bible/**', '**/concordance/**', '**/lexicon/**'],
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/\/concordance\//, /\/lexicon\//, /\/bible\//],
