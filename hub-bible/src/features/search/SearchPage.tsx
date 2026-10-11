@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../../components/Icon';
+import { Sheet } from '../../components/Sheet';
+import { SidePanel } from '../../components/SidePanel';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { EmptyState, PageHeader, ProgressBar } from '../../components/ui';
 import { useSettings } from '../../core/settings/SettingsContext';
 import { CANON, bookName } from '../../core/bible/canon';
 import { formatReference, parseReference } from '../../core/bible/reference';
-import { getMeta } from '../../core/bible/repository';
+import { getMeta, getChapter } from '../../core/bible/repository';
 import { ensureSearchable, searchScripture, splitHighlights, type SearchHit } from '../../core/bible/search';
-import { useAsync, useDebounced } from '../../hooks';
+import { addFavorite } from '../../core/data/favorites';
+import { createNote } from '../../core/data/notes';
+import { useAsync, useDebounced, useIsWide } from '../../hooks';
+import { useToast } from '../../components/Toast';
 
 type Scope = 'all' | 'AT' | 'NT' | string;
 
@@ -15,6 +20,7 @@ type Scope = 'all' | 'AT' | 'NT' | string;
 export default function SearchPage() {
   const navigate = useNavigate();
   const { settings } = useSettings();
+  const { notify } = useToast();
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') ?? '');
   const [scope, setScope] = useState<Scope>('all');
@@ -26,6 +32,11 @@ export default function SearchPage() {
   const [searching, setSearching] = useState(false);
   const [preparing, setPreparing] = useState<{ done: number; total: number } | null>(null);
   const abortRef = useRef<{ aborted: boolean }>({ aborted: false });
+  const isWide = useIsWide();
+
+  const [previewHit, setPreviewHit] = useState<SearchHit | null>(null);
+  const [previewContext, setPreviewContext] = useState<string[]>([]);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const translation = settings.defaultTranslation;
   const meta = useAsync(() => getMeta(translation), [translation]);
@@ -67,6 +78,24 @@ export default function SearchPage() {
     if (debounced) setParams({ q: debounced }, { replace: true });
   }, [debounced, run, setParams]);
 
+  const openPreview = useCallback(async (hit: SearchHit) => {
+    setPreviewHit(hit);
+    setPreviewLoading(true);
+    try {
+      const verses = await getChapter(translation, hit.book, hit.chapter);
+      setPreviewContext(verses);
+    } catch {
+      setPreviewContext([]);
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [translation]);
+
+  const closePreview = useCallback(() => {
+    setPreviewHit(null);
+    setPreviewContext([]);
+  }, []);
+
   const grouped = useMemo(() => {
     const map = new Map<string, SearchHit[]>();
     for (const hit of hits) {
@@ -78,6 +107,121 @@ export default function SearchPage() {
   }, [hits]);
 
   const bookOptions = meta.data?.books ?? [];
+
+  const previewRef = previewHit
+    ? `${previewHit.bookName} ${previewHit.chapter}:${previewHit.verse}`
+    : '';
+
+  const previewBody = previewHit && (
+    <div className="stack" style={{ gap: 'var(--sp-3)' }}>
+      {previewLoading ? (
+        <p className="small dim">Carregando…</p>
+      ) : (
+        <>
+          <div className="verse-preview-context">
+            {previewContext.map((text, i) => {
+              const v = i + 1;
+              const isCurrent = v === previewHit.verse;
+              return (
+                <p
+                  key={v}
+                  className={`verse-preview-line${isCurrent ? ' current' : ''}`}
+                  id={`preview-v-${v}`}
+                >
+                  <sup className="verse-num">{v}</sup> {text}
+                </p>
+              );
+            })}
+          </div>
+        </>
+      )}
+      <div className="row row-wrap" style={{ gap: 'var(--sp-2)' }}>
+        <button
+          className="btn btn-sm btn-primary"
+          onClick={() => navigate(`/biblia/${previewHit.book}/${previewHit.chapter}?v=${previewHit.verse}`)}
+        >
+          <Icon name="book" size={16} />
+          Abrir no leitor
+        </button>
+        <button
+          className="btn btn-sm"
+          onClick={async () => {
+            await addFavorite({
+              ref: {
+                translation,
+                book: previewHit.book,
+                chapter: previewHit.chapter,
+                verse: previewHit.verse,
+              },
+              reference: previewRef,
+              text: previewHit.text,
+              category: 'promessas',
+            });
+            notify('Adicionado aos favoritos.');
+          }}
+        >
+          Favoritar
+        </button>
+        <button
+          className="btn btn-sm"
+          onClick={async () => {
+            await createNote({
+              targetType: 'verse',
+              reference: previewRef,
+              content: '',
+              ref: {
+                translation,
+                book: previewHit.book,
+                chapter: previewHit.chapter,
+                verse: previewHit.verse,
+              },
+            });
+            navigate('/anotacoes');
+          }}
+        >
+          Anotar
+        </button>
+      </div>
+    </div>
+  );
+
+  useEffect(() => {
+    if (!previewHit || previewLoading) return;
+    const el = document.getElementById(`preview-v-${previewHit.verse}`);
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [previewHit, previewLoading]);
+
+  const resultsList = (
+    <div className="stack">
+      {grouped.map(([osis, list]) => (
+        <section key={osis}>
+          <div className="section-head">
+            <h2 className="section-title">
+              {bookName(osis)} · {list.length}
+            </h2>
+          </div>
+          <div className="stack" style={{ gap: 'var(--sp-2)' }}>
+            {list.map((hit) => (
+              <button
+                key={`${hit.book}-${hit.chapter}-${hit.verse}`}
+                className={`hit${previewHit && previewHit.book === hit.book && previewHit.chapter === hit.chapter && previewHit.verse === hit.verse ? ' active' : ''}`}
+                onClick={() => openPreview(hit)}
+              >
+                <div className="hit-ref">
+                  {hit.bookName} {hit.chapter}:{hit.verse}
+                </div>
+                <div className="hit-text">
+                  {splitHighlights(hit.text, hit.ranges).map((part, i) =>
+                    part.match ? <mark key={i}>{part.text}</mark> : <span key={i}>{part.text}</span>,
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
 
   return (
     <div className="page">
@@ -189,35 +333,23 @@ export default function SearchPage() {
         />
       )}
 
-      <div className="stack">
-        {grouped.map(([osis, list]) => (
-          <section key={osis}>
-            <div className="section-head">
-              <h2 className="section-title">
-                {bookName(osis)} · {list.length}
-              </h2>
-            </div>
-            <div className="stack" style={{ gap: 'var(--sp-2)' }}>
-              {list.map((hit) => (
-                <button
-                  key={`${hit.book}-${hit.chapter}-${hit.verse}`}
-                  className="hit"
-                  onClick={() => navigate(`/biblia/${hit.book}/${hit.chapter}?v=${hit.verse}`)}
-                >
-                  <div className="hit-ref">
-                    {hit.bookName} {hit.chapter}:{hit.verse}
-                  </div>
-                  <div className="hit-text">
-                    {splitHighlights(hit.text, hit.ranges).map((part, i) =>
-                      part.match ? <mark key={i}>{part.text}</mark> : <span key={i}>{part.text}</span>,
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
+      {isWide && previewHit ? (
+        <div className="search-layout has-panel">
+          <div className="search-results">{resultsList}</div>
+          <SidePanel open title={previewRef} onClose={closePreview}>
+            {previewBody}
+          </SidePanel>
+        </div>
+      ) : (
+        <>
+          {resultsList}
+          {!isWide && previewHit && (
+            <Sheet open title={previewRef} onClose={closePreview} size="lg">
+              {previewBody}
+            </Sheet>
+          )}
+        </>
+      )}
     </div>
   );
 }

@@ -69,7 +69,7 @@ export default function HomePage() {
           {quickItems.map((item) => (
             <Link key={item.to} to={item.to} className="quick">
               <span className="ico">
-                <Icon name={item.icon} size={24} />
+                <Icon name={item.icon} size={28} />
               </span>
               <span>{item.label}</span>
             </Link>

@@ -354,7 +354,8 @@
   gap: var(--sp-3);
 }
 .grid-quick {
-  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--sp-2);
 }
 .grid-cards {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
@@ -369,30 +370,37 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-3);
+  gap: var(--sp-2);
   padding: var(--sp-4) var(--sp-2);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   text-align: center;
   transition: transform var(--dur) var(--ease), background var(--dur) var(--ease),
-    border-color var(--dur) var(--ease);
-  min-height: 92px;
+    border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  min-height: 100px;
 }
 .quick:hover {
   transform: translateY(-2px);
   border-color: var(--border-strong);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.quick:active {
+  transform: scale(0.97);
 }
 .quick .ico {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 26px;
-  color: var(--accent);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 .quick span {
-  font-size: 0.79rem;
-  font-weight: 560;
+  font-size: 0.82rem;
+  font-weight: 580;
   color: var(--text-2);
   line-height: 1.3;
 }

@@ -105,9 +105,9 @@ const TOPICS: Topic[] = [
   },
   {
     icon: 'sermon',
-    title: 'Preparar um sermão',
+    title: 'Gerador — preparar um sermão',
     steps: [
-      'O sermão é montado em blocos, como se monta no Word: Seção (o subtítulo com o filete), Parágrafo, Destaque (o quadro que chama a atenção), Citação bíblica e Lista.',
+      'O Gerador (antigo "Sermões") é o espaço de preparação ministerial. O sermão é montado em blocos: Seção (o subtítulo com o filete), Parágrafo, Destaque (o quadro que chama a atenção), Citação bíblica e Lista.',
       'O sermão novo abre em branco. Toque em "Acrescentar" e escolha o que vai usar: Texto principal, Introdução, Desenvolvimento, Aplicações, Conclusão, Apelo — ou um bloco solto. Nada vem pronto na tela, e o sermão que não tem introdução não fica com uma caixa vazia.',
       'A barra no alto formata o trecho que você selecionou: negrito, itálico, sublinhado e cor. O botão de girar limpa a formatação.',
       'Cada bloco tem os seus botões: trocar o tipo, subir, descer, inserir outro abaixo e excluir. No fim da página, a barra acrescenta um bloco novo do tipo que você escolher.',
@@ -207,11 +207,15 @@ const TOPICS: Topic[] = [
   },
   {
     icon: 'sparkle',
-    title: 'Estudo guiado — análise assistida',
+    title: 'Estudo guiado — a IA como apoio',
     steps: [
-      'O estudo guiado gera comentários sobre a passagem selecionada: exegese completa, contexto histórico, temas relacionados, referências cruzadas, perguntas de estudo e estrutura de estudo. Funciona como um comentário bíblico consultivo.',
-      'A Exegese é a análise mais completa: cobre o texto nas traduções disponíveis, palavras-chave no original (hebraico/grego), análise gramatical, estrutura literária, contexto histórico-cultural, contexto literário, teologia bíblica, perspectiva da fé e aplicação pastoral. Se você tiver mais de uma tradução instalada, a exegese compara todas automaticamente.',
-      'O princípio é: a IA pesquisa e organiza; o pregador discerne, interpreta, aplica e comunica. A ferramenta é de apoio — como consultar um comentário ou uma enciclopédia bíblica — e NÃO substitui a ação do Espírito Santo, o estudo pessoal do leitor nem a orientação pastoral.',
+      'A IA é um suporte, como um comentário bíblico ou uma enciclopédia que você consulta. Ela não substitui a oração, a meditação na Palavra, a direção do Espírito Santo nem o seu discernimento. Ela pesquisa e organiza; quem interpreta, decide e prega é você.',
+      'A ordem de autoridade é sempre esta: primeiro a Escritura, depois o seu discernimento e a sua responsabilidade como pregador, depois o contexto da sua igreja. O que a IA escreve é sugestão, nunca revelação, doutrina fechada ou orientação pastoral definitiva.',
+      'A IA pode errar. Confira cada afirmação com o texto bíblico antes de levar ao púlpito, principalmente o que ela diz sobre palavras no hebraico e no grego.',
+      'As análises disponíveis são: exegese do versículo, exegese do capítulo inteiro, contexto histórico, temas relacionados, referências cruzadas, perguntas de estudo e estrutura de estudo.',
+      'A Exegese é a mais completa: compara o texto nas traduções que você tem instaladas, traz as palavras-chave no original (com transliteração e número Strong), a gramática, a estrutura literária, o contexto histórico e literário, a teologia bíblica e sugestões de aplicação pastoral.',
+      'Nas palavras do original, a IA é orientada a não tirar doutrina só da raiz da palavra: o sentido vem do uso no contexto. Nas referências cruzadas, ela explica por que cada texto se liga ao outro.',
+      'Quando houver debate entre estudiosos ou incerteza, ela é orientada a dizer, e pode discordar de uma afirmação sua quando houver base bíblica para isso.',
       'O texto bíblico exibido vem sempre do repositório local (a tradução que você está lendo), nunca do modelo. Todo comentário gerado é identificado como tal e separado visualmente do texto sagrado.',
       'As análises são salvas no aparelho. Quando você pedir a mesma análise de novo, ela abre na hora, sem gastar a API. O botão "Gerar novamente" refaz a análise quando quiser uma versão nova.',
       'Para ativar: Configurações › Estudo guiado. Escolha o provedor (Google Gemini, OpenAI ou Anthropic Claude), cole a chave de API e teste a conexão. O Gemini Flash tem plano gratuito.',
