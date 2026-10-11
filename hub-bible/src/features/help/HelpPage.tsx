@@ -22,7 +22,7 @@ const TOPICS: Topic[] = [
       'Abra o endereço do aplicativo no Chrome.',
       'Toque no menu do navegador (⋮) e escolha "Instalar aplicativo" ou "Adicionar à tela inicial".',
       'O Hub Bible passa a abrir em tela cheia, com ícone próprio, como um aplicativo comum.',
-      'Depois de instalado, vá em Configurações › Traduções › "Baixar para uso offline". A partir daí a Bíblia inteira funciona sem internet.',
+      'Depois de instalado, vá em Configurações › Traduções › "Baixar para uso offline". A partir daí a Bíblia inteira e a concordância dela funcionam sem internet. Referências cruzadas, dicionário teológico e guias já ficam guardados na instalação.',
     ],
   },
   {
@@ -195,7 +195,7 @@ const TOPICS: Topic[] = [
     title: 'Palavras no original — números de Strong',
     steps: [
       'Os números de Strong dão um código a cada palavra do hebraico e do grego (H430 para "elohim", G26 para "agapē"). Com eles dá para ver qual palavra original está por trás da tradução.',
-      'O léxico de Strong já vem no aplicativo: 8.674 verbetes do hebraico e 5.523 do grego, com o termo original, a transliteração, a pronúncia e a definição. Funciona offline, sem importar nada.',
+      'O léxico de Strong já vem no aplicativo: 8.674 verbetes do hebraico e 5.523 do grego, com o termo original, a transliteração, a pronúncia e a definição. Funciona sem importar nada, mas precisa de internet para carregar. Os léxicos que você importar ficam no aparelho e funcionam sem internet.',
       'Ele é em inglês — é o único com licença que permite distribuir junto. Se você tiver um léxico em português, importe o módulo (.dictionary.SQLite3) e ele passa a aparecer primeiro, antes do que vem no app.',
       'O que ainda precisa vir de fora é a Bíblia com números Strong: as traduções que acompanham o aplicativo não os trazem, porque essa marcação é trabalho editorial e não existe livre em português.',
       'Ela entra tanto como módulo do MyBible (.SQLite3) quanto como JSON — se o texto do JSON trouxer a marcação <S>430</S> depois da palavra, o app reconhece sozinho. E um JSON sem marcação nenhuma continua entrando como sempre.',
@@ -244,7 +244,7 @@ const TOPICS: Topic[] = [
       'A concordância lista cada palavra e todos os versículos em que ela aparece, com um trecho do texto e a palavra em destaque.',
       'Navegue por letra ou busque diretamente. O filtro AT/NT mostra as ocorrências só no Antigo ou no Novo Testamento.',
       'As cinco traduções embutidas já têm concordância pronta. Para uma tradução que você importou (ACF, NVI etc.), o app gera o índice localmente no primeiro acesso — leva alguns segundos e só é feito uma vez.',
-      'A concordância funciona offline depois de gerada.',
+      'Para usar sem internet nas traduções embutidas, toque em "Baixar para uso offline" em Configurações › Traduções: a concordância vem junto com o texto. Nas importadas, ela funciona offline depois de gerada.',
       { to: '/concordancia', label: 'Abrir concordância', text: 'A concordância está na barra inferior do aplicativo.' },
     ],
   },

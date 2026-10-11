@@ -10,6 +10,7 @@ import {
   loadCatalog,
   removeImportedTranslation,
 } from '../../core/bible/repository';
+import { isConcordanceSaved, saveConcordance } from '../../core/bible/concordanceOffline';
 import { listDictionaries, removeDictionary } from '../../core/data/dictionaries';
 import { listCommentaries, removeCommentary } from '../../core/data/commentaries';
 import { clearScriptureCache } from '../../core/db/db';
@@ -28,14 +29,21 @@ export function TranslationManager() {
   const catalog = useAsync(() => loadCatalog(true), []);
   const dictionaries = useAsync(() => listDictionaries(), []);
   const commentaryList = useAsync(() => listCommentaries(), []);
-  const [progress, setProgress] = useState<{ id: string; done: number; total: number } | null>(null);
+  const [progress, setProgress] = useState<{ id: string; done: number; total: number; label: string } | null>(null);
   const [installedMap, setInstalledMap] = useState<Record<string, number>>({});
+  const [concordanceMap, setConcordanceMap] = useState<Record<string, boolean>>({});
 
   const refreshInstalled = async (list: TranslationInfo[]) => {
     const entries = await Promise.all(
       list.map(async (t) => [t.id, await installedBookCount(t.id)] as const),
     );
     setInstalledMap(Object.fromEntries(entries));
+    const concordance = await Promise.all(
+      list
+        .filter((t) => t.bundled)
+        .map(async (t) => [t.id, await isConcordanceSaved(t.id).catch(() => true)] as const),
+    );
+    setConcordanceMap(Object.fromEntries(concordance));
   };
 
   /* Recontar sempre que o catálogo mudar. Antes isso era feito na renderização,
@@ -57,9 +65,14 @@ export function TranslationManager() {
   });
 
   const download = async (info: TranslationInfo) => {
-    setProgress({ id: info.id, done: 0, total: 66 });
+    setProgress({ id: info.id, done: 0, total: 66, label: 'Baixando o texto' });
     try {
-      await installTranslation(info.id, (p) => setProgress({ id: info.id, done: p.done, total: p.total }));
+      await installTranslation(info.id, (p) =>
+        setProgress({ id: info.id, done: p.done, total: p.total, label: 'Baixando o texto' }),
+      );
+      await saveConcordance(info.id, (done, total) =>
+        setProgress({ id: info.id, done, total, label: 'Baixando a concordância' }),
+      );
       notify(`${info.shortName} disponível offline.`);
       if (catalog.data) await refreshInstalled(catalog.data);
     } catch (err) {
@@ -96,12 +109,12 @@ export function TranslationManager() {
               </div>
 
               {busyDownload && progress && (
-                <ProgressBar value={(progress.done / progress.total) * 100} label="Baixando" />
+                <ProgressBar value={(progress.done / progress.total) * 100} label={progress.label} />
               )}
 
               <div className="row row-wrap">
                 {/* traduções importadas já chegam inteiras: não há de onde baixar */}
-                {installed < 66 && !t.imported && (
+                {(installed < 66 || concordanceMap[t.id] === false) && !t.imported && (
                   <button className="btn btn-sm" disabled={busyDownload} onClick={() => download(t)}>
                     Baixar para uso offline
                   </button>
