@@ -5,6 +5,47 @@ verificado; nada aqui é suposição. O que já foi entregue está no `README.md
 
 ---
 
+## ⏸ Parado em 11/10/2026 — retomar daqui
+
+Trabalho em andamento na branch `claude/bible-ministerial-app-50yppx`, **ainda
+não publicado** (sem PR). Compila e passa no `tsc`, mas não foi testado no
+navegador.
+
+**Já feito (código):**
+- `core/bible/doctrinalPack.ts` — importar/remover uma base doutrinária
+  (.json), validar referências, achar os guias que tocam a passagem e montar o
+  bloco que vai para a IA.
+- `features/guides/GuidesPage.tsx` — botão Importar/Substituir/Remover; guias
+  importados com explicação, termo no original e aplicação, acima dos guias
+  embutidos.
+- `core/ai/chatProvider.ts` — seção visível **"Leitura na linha da fé"** nas
+  duas exegeses (substitui "Perspectiva da fé" na do versículo; nova na do
+  capítulo) e envio dos guias correspondentes à passagem.
+
+**Já feito (conteúdo):** `docs/base-doutrinaria-rascunho/` — 11 guias novos,
+106 passos, 813 referências conferidas contra a versificação da Almeida (0
+erros): Justiça de Deus, Caráter de Deus, Redenção, Fé, Cura, Autoridade do
+crente, Unção, Guiado pelo Espírito, Fruto do espírito, Manifestações do
+Espírito, Oração. Sem citar origem.
+
+**Decisão pendente do usuário:** ele pediu primeiro que a base ficasse só no
+aparelho (importada), e depois disse que pode ir para o público desde que não
+indique a origem. Confirmar no início da próxima sessão. Se for público, o
+caminho mais simples é juntar os 11 guias em `public/reference/` (ou no
+`scripts/build-theological-dict.mjs`) e dispensar a importação.
+
+**Pedidos do usuário para depois (em ordem):**
+1. Melhorar os guias doutrinários com versículos — ele disse que, se o resto
+   for pesado, basta isso. Não precisa reler o material de origem.
+2. Faltam guias de: Doutrinas básicas, Gálatas, Atos, Família cristã,
+   Submissão e autoridade, Ministério prático (opcionais, conforme o item 1).
+3. **Bug no APK: compartilhar versículo como imagem não funciona.** Investigar
+   em `core/share/` e `core/nativeFiles.ts` (`shareFileNatively`).
+4. Gerador: usar o modelo e o desenho de texto das mensagens do próprio usuário
+   como padrão de sermão.
+
+---
+
 ## Entregues em 11/10/2026 (PR #74)
 
 ### 0h. ✅ Prompt da IA ampliado — a IA como apoio ao pregador
@@ -26,17 +67,17 @@ que existia. Os prompts por tarefa (`TASK_PROMPTS`) não mudaram. Entraram:
 - Fluxo de preparação Ideia → Estudo → Argumentação → Esboço → Sermão, e as dez
   categorias de anotação.
 
-Fontes: o documento do usuário `Ajustes_Finos_Hub_Bible.pdf` (v55) e as
-apostilas do Rhema. **Regra do usuário: as apostilas do Rhema não saem do
-aparelho.** Nenhum trecho delas está no repositório, que é público; mantenha
-assim ao mexer no prompt.
+Fontes: o documento do usuário `Ajustes_Finos_Hub_Bible.pdf` (v55) e o
+material de estudo do próprio usuário. **Regra do usuário: o repositório não
+pode citar nem indicar a origem desse material** — só o entendimento, com
+palavras próprias e versículos. Mantenha assim ao mexer no prompt ou nos guias.
 
 Testado pelo usuário em 11/10 com chave de API real: exegese do versículo e do
 capítulo funcionando bem.
 
 **O que ficou de fora:**
 - Do `Ajustes_Finos_Hub_Bible.pdf` foram usadas as páginas 1–20; o restante
-  não foi lido. Da apostila Fundamentos da Fé, só o começo.
+  não foi lido. 
 - As "sete funcionalidades" do documento (Explorar, Pesquisar, Examinar,
   Conectar, Organizar, Desenvolver, Recuperar) e a classificação visual de
   autoridade existem **só no prompt**, como orientação de resposta. Não há

@@ -12,6 +12,7 @@ import { loadAiConfig, type AiProviderId } from './config';
 import { loadAvailableTranslations, getChapter } from '../bible/repository';
 import { parseReference } from '../bible/reference';
 import { bookName } from '../bible/canon';
+import { buildDoctrinalBlock, findGuidesForPassage, getDoctrinalPack } from '../bible/doctrinalPack';
 
 /* ──────────────────── comparação multi-tradução ──────────────────── */
 
@@ -47,6 +48,21 @@ async function buildTranslationComparison(
   }
   if (lines.length <= 1) return '';
   return `\n\nCOMPARAÇÃO DE TRADUÇÕES DISPONÍVEIS:\n${lines.join('\n')}`;
+}
+
+/* ──────────────────── base doutrinária do pregador ──────────────────── */
+
+async function buildDoctrinalContext(request: AiRequest): Promise<string> {
+  if (!request.reference) return '';
+  const parsed = parseReference(request.reference);
+  if (!parsed) return '';
+  const pack = await getDoctrinalPack().catch(() => null);
+  if (!pack) return '';
+  const block = buildDoctrinalBlock(
+    findGuidesForPassage(pack, parsed, request.task === 'exegese-capitulo'),
+  );
+  if (!block) return '';
+  return `\n\nBASE DOUTRINÁRIA DO PREGADOR (material pessoal de estudo que ele importou; não é Escritura):\n${block}`;
 }
 
 /* ─────────────────────── prompts por tarefa ─────────────────────── */
@@ -130,12 +146,15 @@ Siga rigorosamente este protocolo:
 - Tipologia e cumprimento (se aplicável).
 
 ═══════════════════════════════════════════════
-8. PERSPECTIVA DA FÉ
+8. LEITURA NA LINHA DA FÉ
 ═══════════════════════════════════════════════
+Seção própria, SEPARADA da exegese acima: aqui é leitura doutrinária, não análise do texto.
 - A passagem revela atributos ou promessas de Deus? Quais?
 - Que verdades sobre identidade e posição do crente em Cristo podem ser extraídas?
-- Há princípios sobre fé, confissão, autoridade espiritual ou vida no Espírito?
-- Como esta passagem sustenta a confiança na Palavra de Deus?
+- Há princípios sobre fé, confissão, autoridade espiritual, cura, oração ou vida no Espírito?
+- Se houver BASE DOUTRINÁRIA DO PREGADOR abaixo, use-a aqui e cite o guia pelo nome.
+- A Escritura vem antes da base: se algum ponto da base não se sustentar no texto, diga com honestidade.
+- Deixe claro o que é dito pelo texto e o que é leitura doutrinária.
 
 ═══════════════════════════════════════════════
 9. APLICAÇÃO PASTORAL
@@ -198,20 +217,31 @@ Siga este protocolo:
 - Tipologias e cumprimentos (se aplicável).
 
 ═══════════════════════════════════════════════
-6. VERSÍCULOS-CHAVE
+6. LEITURA NA LINHA DA FÉ
+═══════════════════════════════════════════════
+Seção própria, SEPARADA da exegese acima: aqui é leitura doutrinária, não análise do texto.
+- A passagem revela atributos ou promessas de Deus? Quais?
+- Que verdades sobre identidade e posição do crente em Cristo podem ser extraídas?
+- Há princípios sobre fé, confissão, autoridade espiritual, cura, oração ou vida no Espírito?
+- Se houver BASE DOUTRINÁRIA DO PREGADOR abaixo, use-a aqui e cite o guia pelo nome.
+- A Escritura vem antes da base: se algum ponto da base não se sustentar no texto, diga com honestidade.
+- Deixe claro o que é dito pelo texto e o que é leitura doutrinária.
+
+═══════════════════════════════════════════════
+7. VERSÍCULOS-CHAVE
 ═══════════════════════════════════════════════
 - Liste os 3-5 versículos mais importantes do capítulo e por que são centrais.
 - Análise breve de cada um: o que diz, o que significa, como se aplica.
 
 ═══════════════════════════════════════════════
-7. APLICAÇÃO PASTORAL
+8. APLICAÇÃO PASTORAL
 ═══════════════════════════════════════════════
 - Aplicação prática para a vida da igreja hoje.
 - Sugestões de temas de pregação a partir do capítulo.
 - Perguntas para reflexão pessoal e em grupo.
 
 ═══════════════════════════════════════════════
-8. REFERÊNCIAS CRUZADAS
+9. REFERÊNCIAS CRUZADAS
 ═══════════════════════════════════════════════
 - Passagens paralelas e referências cruzadas mais importantes.
 - Para cada uma, explique a conexão temática ou textual.
@@ -556,15 +586,17 @@ function createChatProvider(providerId: Exclude<AiProviderId, 'none'>): AiProvid
       if (!config.apiKey) throw new Error('Configure a chave de API nas Configurações.');
 
       let comparison = '';
+      let doctrinal = '';
       if ((request.task === 'exegese' || request.task === 'exegese-capitulo') && request.reference) {
         comparison = await buildTranslationComparison(
           request.translation,
           request.reference,
         );
+        doctrinal = await buildDoctrinalContext(request);
       }
 
       const taskPrompt = TASK_PROMPTS[request.task];
-      const userPrompt = `${taskPrompt}\n\n${buildPrompt(request, comparison)}`;
+      const userPrompt = `${taskPrompt}\n\n${buildPrompt(request, comparison)}${doctrinal}`;
       const model = config.model || PROVIDER_DEFAULTS[providerId];
       const tokens = maxTokensForTask(request.task);
 
