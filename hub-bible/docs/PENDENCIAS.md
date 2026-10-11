@@ -27,9 +27,15 @@ guias, abrir o detalhe, exegese de Ef 2:6 (envia "Autoridade do crente"),
 exegese de Ef 2 (envia "Justiça de Deus" e "Autoridade do crente"), remover a
 base e conferir que a exegese deixa de enviar os guias. Sem erro de página.
 
-Conteúdo: `docs/base-doutrinaria-rascunho/` — 11 guias, 106 passos, 813
-referências conferidas contra a Almeida. Não vão dentro do app; o usuário
-importa o arquivo montado a partir deles.
+Conteúdo: 11 guias, 106 passos, 813 referências conferidas contra a Almeida.
+**Decisão do usuário (12/10): ficam só no aparelho dele.** O conteúdo não está
+no repositório (o rascunho foi retirado; segue no histórico do Git até o
+commit do PR #77) nem dentro do app. O arquivo .json está com o usuário.
+
+Para passar a outra pessoa, os Guias têm o botão **"Compartilhar base"**:
+`doctrinalPackFile()` remonta o .json a partir do que está gravado no
+aparelho, e `shareFile()` abre a folha de compartilhamento. Para editar a base
+numa sessão futura, peça o arquivo ao usuário.
 
 ### 0m. ✅ Limites de sã doutrina na IA e rótulos da home
 
@@ -44,20 +50,16 @@ importa o arquivo montado a partir deles.
 
 ### Retomar daqui
 
-1. **Decisão do usuário:** os guias da base podem ir para dentro do app (para
-   todos), desde que não indiquem a origem? Ele disse que sim se for possível,
-   mas ainda não confirmou depois de ver funcionando. Se for, juntar em
-   `public/reference/doctrinal-guides.json` (via
-   `scripts/build-theological-dict.mjs`) e manter a importação para bases
-   pessoais.
-2. Melhorar os guias doutrinários com versículos (pedido do usuário). Faltam
-   guias de: Doutrinas básicas, Gálatas, Atos, Família cristã, Submissão e
-   autoridade, Ministério prático — opcionais.
-3. **Bug no APK: compartilhar versículo como imagem não funciona.** Investigar
-   `core/share/` e `shareFileNatively` em `core/nativeFiles.ts`.
-4. Gerador: usar o modelo e o desenho de texto das mensagens do usuário como
+1. Melhorar os 8 guias que acompanham o app com mais versículos (pedido do
+   usuário), escritos só a partir da Bíblia. A base pessoal não entra no app.
+2. **Conferir no aparelho** o compartilhamento no APK (texto, imagem do
+   versículo e "Compartilhar base"). Corrigido em 12/10 sem teste em aparelho:
+   a WebView do Android não tem Web Share API, então `shareText` copiava e
+   `shareImage` baixava para lugar nenhum; agora os dois passam pelo plugin
+   nativo (`@capacitor/share`, `shareFileNatively`).
+3. Gerador: usar o modelo e o desenho de texto das mensagens do usuário como
    padrão de sermão.
-5. Leitor: abrir com `?v=N` destaca o versículo, mas o primeiro toque nele não
+4. Leitor: abrir com `?v=N` destaca o versículo, mas o primeiro toque nele não
    seleciona (visto no teste de 12/10; não investigado).
 
 ---

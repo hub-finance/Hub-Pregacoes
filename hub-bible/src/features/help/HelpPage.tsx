@@ -227,6 +227,19 @@ const TOPICS: Topic[] = [
     ],
   },
   {
+    icon: 'layers',
+    title: 'Guias doutrinários e a sua base doutrinária',
+    steps: [
+      'Os Guias Doutrinários percorrem um tema passo a passo, com textos bíblicos e verbetes do dicionário teológico. Alguns já vêm no aplicativo.',
+      'Você pode importar a sua própria base doutrinária, um arquivo .json com guias: Guias Doutrinários › Importar. Os guias dela aparecem em "Da sua base", com explicação, palavras no original e aplicação.',
+      'A base fica só neste aparelho. Não acompanha o aplicativo, não vai para ninguém e não entra no backup. Guarde o arquivo e importe de novo em outro aparelho — o navegador e o APK não compartilham dados.',
+      'Com a base importada, a exegese ganha apoio dela na seção "Leitura na linha da fé": quando o versículo ou o capítulo aparece em algum guia, esse guia orienta a leitura. A Escritura continua acima da base.',
+      'Para passar a base a um pastor da equipe, toque em "Compartilhar base": o arquivo sai pronto para WhatsApp, e-mail ou Drive, e ele importa do mesmo jeito.',
+      '"Substituir" troca pela versão de outro arquivo; "Remover" tira a base deste aparelho. O seu arquivo original continua onde estava.',
+      { to: '/guias', label: 'Abrir os guias', text: 'Os guias também estão no menu, no grupo Ministério.' },
+    ],
+  },
+  {
     icon: 'dictionary',
     title: 'Dicionário — léxico embutido e dicionários importados',
     steps: [

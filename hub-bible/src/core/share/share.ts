@@ -1,7 +1,13 @@
 /**
  * Compartilhamento — usa a folha de compartilhamento nativa do Android/iOS
  * (Web Share API) quando disponível e cai para a área de transferência quando não.
+ *
+ * No APK a WebView do Android não tem Web Share API: lá a folha vem do plugin
+ * nativo, senão o texto só era copiado e a imagem "baixava" para lugar nenhum.
  */
+
+import { isNativeApp } from '../platform';
+import { shareFileNatively } from '../nativeFiles';
 
 export const APP_NAME = 'Hub Bible';
 
@@ -40,6 +46,15 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 export type ShareResult = 'shared' | 'copied' | 'failed';
 
 export async function shareText(payload: SharePayload): Promise<ShareResult> {
+  if (isNativeApp()) {
+    try {
+      const { Share } = await import('@capacitor/share');
+      await Share.share({ title: payload.title, text: payload.text, url: payload.url });
+      return 'shared';
+    } catch (err) {
+      if (/cancel|abort/i.test((err as Error)?.message ?? '')) return 'shared';
+    }
+  }
   if (navigator.share) {
     try {
       await navigator.share(payload);
@@ -52,6 +67,12 @@ export async function shareText(payload: SharePayload): Promise<ShareResult> {
 }
 
 export async function shareImage(blob: Blob, filename: string, text?: string): Promise<ShareResult> {
+  return shareFile(blob, filename, text);
+}
+
+/** Abre a folha de compartilhamento com um arquivo; sem folha, baixa o arquivo ('copied'). */
+export async function shareFile(blob: Blob, filename: string, text?: string): Promise<ShareResult> {
+  if (await shareFileNatively(blob, filename)) return 'shared';
   const file = new File([blob], filename, { type: blob.type });
   if (navigator.canShare?.({ files: [file] }) && navigator.share) {
     try {
