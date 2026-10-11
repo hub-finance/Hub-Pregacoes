@@ -1,7 +1,64 @@
 # Pendências — retomar daqui
 
-Estado em **11/10/2026**. Tudo o que está descrito abaixo foi levantado e
+Estado em **12/10/2026**. Tudo o que está descrito abaixo foi levantado e
 verificado; nada aqui é suposição. O que já foi entregue está no `README.md`.
+
+---
+
+## Entregues em 12/10/2026
+
+### 0l. ✅ Base doutrinária importável e "Leitura na linha da fé"
+
+- `core/bible/doctrinalPack.ts` — importar/remover uma base doutrinária
+  (.json, formato `hub-bible/base-doutrinaria`), validar as referências, achar
+  os guias que tocam a passagem e montar o bloco que vai para a IA (até 2
+  guias, no máximo 14 mil caracteres). Fica em `settings`, fora do backup e da
+  sincronização.
+- `features/guides/GuidesPage.tsx` — Importar/Substituir/Remover; os guias
+  importados aparecem em "Da sua base", acima dos que acompanham o app, com
+  explicação, termo no original e aplicação.
+- `core/ai/chatProvider.ts` — seção **"Leitura na linha da fé"**, separada da
+  análise do texto, nas duas exegeses (8 na do versículo, no lugar de
+  "Perspectiva da fé"; 6 na do capítulo). Quando há base, os guias da passagem
+  vão junto no pedido.
+
+Testado no navegador (390px), com a chamada à IA interceptada: importar 11
+guias, abrir o detalhe, exegese de Ef 2:6 (envia "Autoridade do crente"),
+exegese de Ef 2 (envia "Justiça de Deus" e "Autoridade do crente"), remover a
+base e conferir que a exegese deixa de enviar os guias. Sem erro de página.
+
+Conteúdo: `docs/base-doutrinaria-rascunho/` — 11 guias, 106 passos, 813
+referências conferidas contra a Almeida. Não vão dentro do app; o usuário
+importa o arquivo montado a partir deles.
+
+### 0m. ✅ Limites de sã doutrina na IA e rótulos da home
+
+- O prompt ganhou "LIMITES DA PESQUISA — SÃ DOUTRINA": cânon de 66 livros
+  como fonte, fé cristã histórica na linha da Palavra da Fé, nada de
+  esoterismo, numerologia, mapas do mundo espiritual ou teorias marginais, e
+  dizer que a Escritura se cala onde ela se cala. Motivo: análises estranhas
+  em Efésios. Análises antigas continuam salvas; "Gerar novamente" as refaz.
+- Home: quadros de no mínimo 128px no tablet/computador; no celular, três
+  colunas com letra menor. Medido de 320 a 1600px: nenhum rótulo sai do
+  quadro nem é partido ao meio.
+
+### Retomar daqui
+
+1. **Decisão do usuário:** os guias da base podem ir para dentro do app (para
+   todos), desde que não indiquem a origem? Ele disse que sim se for possível,
+   mas ainda não confirmou depois de ver funcionando. Se for, juntar em
+   `public/reference/doctrinal-guides.json` (via
+   `scripts/build-theological-dict.mjs`) e manter a importação para bases
+   pessoais.
+2. Melhorar os guias doutrinários com versículos (pedido do usuário). Faltam
+   guias de: Doutrinas básicas, Gálatas, Atos, Família cristã, Submissão e
+   autoridade, Ministério prático — opcionais.
+3. **Bug no APK: compartilhar versículo como imagem não funciona.** Investigar
+   `core/share/` e `shareFileNatively` em `core/nativeFiles.ts`.
+4. Gerador: usar o modelo e o desenho de texto das mensagens do usuário como
+   padrão de sermão.
+5. Leitor: abrir com `?v=N` destaca o versículo, mas o primeiro toque nele não
+   seleciona (visto no teste de 12/10; não investigado).
 
 ---
 
@@ -26,17 +83,17 @@ que existia. Os prompts por tarefa (`TASK_PROMPTS`) não mudaram. Entraram:
 - Fluxo de preparação Ideia → Estudo → Argumentação → Esboço → Sermão, e as dez
   categorias de anotação.
 
-Fontes: o documento do usuário `Ajustes_Finos_Hub_Bible.pdf` (v55) e as
-apostilas do Rhema. **Regra do usuário: as apostilas do Rhema não saem do
-aparelho.** Nenhum trecho delas está no repositório, que é público; mantenha
-assim ao mexer no prompt.
+Fontes: o documento do usuário `Ajustes_Finos_Hub_Bible.pdf` (v55) e o
+material de estudo do próprio usuário. **Regra do usuário: o repositório não
+pode citar nem indicar a origem desse material** — só o entendimento, com
+palavras próprias e versículos. Mantenha assim ao mexer no prompt ou nos guias.
 
 Testado pelo usuário em 11/10 com chave de API real: exegese do versículo e do
 capítulo funcionando bem.
 
 **O que ficou de fora:**
 - Do `Ajustes_Finos_Hub_Bible.pdf` foram usadas as páginas 1–20; o restante
-  não foi lido. Da apostila Fundamentos da Fé, só o começo.
+  não foi lido. 
 - As "sete funcionalidades" do documento (Explorar, Pesquisar, Examinar,
   Conectar, Organizar, Desenvolver, Recuperar) e a classificação visual de
   autoridade existem **só no prompt**, como orientação de resposta. Não há

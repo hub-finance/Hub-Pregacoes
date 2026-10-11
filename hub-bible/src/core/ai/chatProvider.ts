@@ -12,6 +12,7 @@ import { loadAiConfig, type AiProviderId } from './config';
 import { loadAvailableTranslations, getChapter } from '../bible/repository';
 import { parseReference } from '../bible/reference';
 import { bookName } from '../bible/canon';
+import { buildDoctrinalBlock, findGuidesForPassage, getDoctrinalPack } from '../bible/doctrinalPack';
 
 /* ──────────────────── comparação multi-tradução ──────────────────── */
 
@@ -47,6 +48,21 @@ async function buildTranslationComparison(
   }
   if (lines.length <= 1) return '';
   return `\n\nCOMPARAÇÃO DE TRADUÇÕES DISPONÍVEIS:\n${lines.join('\n')}`;
+}
+
+/* ──────────────────── base doutrinária do pregador ──────────────────── */
+
+async function buildDoctrinalContext(request: AiRequest): Promise<string> {
+  if (!request.reference) return '';
+  const parsed = parseReference(request.reference);
+  if (!parsed) return '';
+  const pack = await getDoctrinalPack().catch(() => null);
+  if (!pack) return '';
+  const block = buildDoctrinalBlock(
+    findGuidesForPassage(pack, parsed, request.task === 'exegese-capitulo'),
+  );
+  if (!block) return '';
+  return `\n\nBASE DOUTRINÁRIA DO PREGADOR (material pessoal de estudo que ele importou; não é Escritura):\n${block}`;
 }
 
 /* ─────────────────────── prompts por tarefa ─────────────────────── */
@@ -130,12 +146,15 @@ Siga rigorosamente este protocolo:
 - Tipologia e cumprimento (se aplicável).
 
 ═══════════════════════════════════════════════
-8. PERSPECTIVA DA FÉ
+8. LEITURA NA LINHA DA FÉ
 ═══════════════════════════════════════════════
+Seção própria, SEPARADA da exegese acima: aqui é leitura doutrinária, não análise do texto.
 - A passagem revela atributos ou promessas de Deus? Quais?
 - Que verdades sobre identidade e posição do crente em Cristo podem ser extraídas?
-- Há princípios sobre fé, confissão, autoridade espiritual ou vida no Espírito?
-- Como esta passagem sustenta a confiança na Palavra de Deus?
+- Há princípios sobre fé, confissão, autoridade espiritual, cura, oração ou vida no Espírito?
+- Se houver BASE DOUTRINÁRIA DO PREGADOR abaixo, use-a aqui e cite o guia pelo nome.
+- A Escritura vem antes da base: se algum ponto da base não se sustentar no texto, diga com honestidade.
+- Deixe claro o que é dito pelo texto e o que é leitura doutrinária.
 
 ═══════════════════════════════════════════════
 9. APLICAÇÃO PASTORAL
@@ -198,20 +217,31 @@ Siga este protocolo:
 - Tipologias e cumprimentos (se aplicável).
 
 ═══════════════════════════════════════════════
-6. VERSÍCULOS-CHAVE
+6. LEITURA NA LINHA DA FÉ
+═══════════════════════════════════════════════
+Seção própria, SEPARADA da exegese acima: aqui é leitura doutrinária, não análise do texto.
+- A passagem revela atributos ou promessas de Deus? Quais?
+- Que verdades sobre identidade e posição do crente em Cristo podem ser extraídas?
+- Há princípios sobre fé, confissão, autoridade espiritual, cura, oração ou vida no Espírito?
+- Se houver BASE DOUTRINÁRIA DO PREGADOR abaixo, use-a aqui e cite o guia pelo nome.
+- A Escritura vem antes da base: se algum ponto da base não se sustentar no texto, diga com honestidade.
+- Deixe claro o que é dito pelo texto e o que é leitura doutrinária.
+
+═══════════════════════════════════════════════
+7. VERSÍCULOS-CHAVE
 ═══════════════════════════════════════════════
 - Liste os 3-5 versículos mais importantes do capítulo e por que são centrais.
 - Análise breve de cada um: o que diz, o que significa, como se aplica.
 
 ═══════════════════════════════════════════════
-7. APLICAÇÃO PASTORAL
+8. APLICAÇÃO PASTORAL
 ═══════════════════════════════════════════════
 - Aplicação prática para a vida da igreja hoje.
 - Sugestões de temas de pregação a partir do capítulo.
 - Perguntas para reflexão pessoal e em grupo.
 
 ═══════════════════════════════════════════════
-8. REFERÊNCIAS CRUZADAS
+9. REFERÊNCIAS CRUZADAS
 ═══════════════════════════════════════════════
 - Passagens paralelas e referências cruzadas mais importantes.
 - Para cada uma, explique a conexão temática ou textual.
@@ -284,6 +314,18 @@ REGRAS OBRIGATÓRIAS
 8. Se há debate acadêmico sobre uma interpretação, apresente as principais posições e indique qual tem maior sustentação textual.
 9. NUNCA apresente sugestões como: Escritura, revelação divina, doutrina bíblica inequívoca, conclusão obrigatória ou orientação pastoral definitiva.
 10. Você está AUTORIZADO a discordar do usuário quando houver fundamento bíblico. Nunca simplesmente diga "Sim, está correto" — examine com honestidade.
+
+═══════════════════════════════════════════════
+LIMITES DA PESQUISA — SÃ DOUTRINA (OBRIGATÓRIO)
+═══════════════════════════════════════════════
+Toda resposta fica dentro destes limites, mesmo que o pedido aponte para fora deles:
+
+1. FONTE: as Escrituras do cânon protestante (66 livros). Livros não canônicos (Enoque, Jubileus, apócrifos, evangelhos gnósticos) só podem aparecer como contexto histórico, identificados como tal, e NUNCA como base de doutrina ou interpretação.
+2. DOUTRINA: a fé cristã histórica — Trindade; divindade e humanidade de Cristo; nascimento virginal; morte substitutiva e ressurreição corporal; salvação pela graça mediante a fé; autoridade e suficiência da Bíblia; volta de Cristo. A interpretação segue a linha da Palavra da Fé descrita no FUNDAMENTO TEOLÓGICO abaixo.
+3. PROIBIDO — especulação e esoterismo: cosmologias inventadas; mapas, camadas, níveis ou dimensões do mundo espiritual além do que o texto diz; hierarquias detalhadas de anjos ou demônios; nomes e funções de espíritos não citados na Bíblia; energias, vibrações, frequências, portais; numerologia, gematria, "códigos ocultos" da Bíblia; astrologia, cabala, misticismo, gnosticismo, Nova Era; alienígenas, teorias de conspiração, nefilins como explicação de fenômenos atuais; datas para a volta de Cristo; "revelações" que acrescentem ao texto.
+4. MUNDO ESPIRITUAL: em textos como "lugares celestiais", "principados e potestades", "príncipe da potestade do ar" (Efésios) ou anjos e demônios em geral, diga apenas o que o texto afirma e a aplicação prática — a vitória de Cristo, a posição do crente assentado com Ele, a autoridade do crente, a armadura de Deus. Onde a Escritura se cala, diga claramente que ela se cala e não preencha a lacuna.
+5. HISTÓRIA E CULTURA: use apenas o que é reconhecido pelos estudiosos sérios da Bíblia e da história antiga. Não apresente teorias marginais como fato; se citar uma hipótese, diga que é hipótese.
+6. Se o pedido ou o caminho da análise levar para fora destes limites, não siga: diga com respeito que isso foge do texto e da sã doutrina e reconduza ao que a passagem ensina.
 
 ═══════════════════════════════════════════════
 ESTUDO DE PALAVRAS — PROTOCOLO
@@ -556,15 +598,17 @@ function createChatProvider(providerId: Exclude<AiProviderId, 'none'>): AiProvid
       if (!config.apiKey) throw new Error('Configure a chave de API nas Configurações.');
 
       let comparison = '';
+      let doctrinal = '';
       if ((request.task === 'exegese' || request.task === 'exegese-capitulo') && request.reference) {
         comparison = await buildTranslationComparison(
           request.translation,
           request.reference,
         );
+        doctrinal = await buildDoctrinalContext(request);
       }
 
       const taskPrompt = TASK_PROMPTS[request.task];
-      const userPrompt = `${taskPrompt}\n\n${buildPrompt(request, comparison)}`;
+      const userPrompt = `${taskPrompt}\n\n${buildPrompt(request, comparison)}${doctrinal}`;
       const model = config.model || PROVIDER_DEFAULTS[providerId];
       const tokens = maxTokensForTask(request.task);
 
