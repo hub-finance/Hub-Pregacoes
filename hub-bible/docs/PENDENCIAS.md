@@ -1,7 +1,83 @@
 # Pendências — retomar daqui
 
-Estado em **04/10/2026**. Tudo o que está descrito abaixo foi levantado e
+Estado em **11/10/2026**. Tudo o que está descrito abaixo foi levantado e
 verificado; nada aqui é suposição. O que já foi entregue está no `README.md`.
+
+---
+
+## Entregues em 11/10/2026 (PR #74)
+
+### 0h. ✅ Prompt da IA ampliado — a IA como apoio ao pregador
+
+O `SYSTEM_PROMPT` de `core/ai/chatProvider.ts` foi ampliado sem remover nada do
+que existia. Os prompts por tarefa (`TASK_PROMPTS`) não mudaram. Entraram:
+
+- Princípio central: "a IA acelera o processo; o pregador permanece no comando".
+  Ordem de autoridade: Escritura → discernimento do pregador → contexto
+  ministerial. A IA nunca apresenta sugestão como revelação, doutrina fechada ou
+  orientação pastoral definitiva, e pode discordar do usuário com base bíblica.
+- Protocolo de estudo de palavras (original, transliteração, Strong, campo
+  semântico; significado lexical ≠ interpretação) e de referências cruzadas
+  classificadas (direta, conceitual, terminológica, temática, contextual), cada
+  uma com o porquê da ligação.
+- Camada de fundamento teológico (justiça, fé e graça, Espírito Santo,
+  autoridade do crente, cura, oração, vida cristã), escrita como **resumo de
+  princípios com palavras próprias** e referências bíblicas.
+- Fluxo de preparação Ideia → Estudo → Argumentação → Esboço → Sermão, e as dez
+  categorias de anotação.
+
+Fontes: o documento do usuário `Ajustes_Finos_Hub_Bible.pdf` (v55) e as
+apostilas do Rhema. **Regra do usuário: as apostilas do Rhema não saem do
+aparelho.** Nenhum trecho delas está no repositório, que é público; mantenha
+assim ao mexer no prompt.
+
+Testado pelo usuário em 11/10 com chave de API real: exegese do versículo e do
+capítulo funcionando bem.
+
+**O que ficou de fora:**
+- Do `Ajustes_Finos_Hub_Bible.pdf` foram usadas as páginas 1–20; o restante
+  não foi lido. Da apostila Fundamentos da Fé, só o começo.
+- As "sete funcionalidades" do documento (Explorar, Pesquisar, Examinar,
+  Conectar, Organizar, Desenvolver, Recuperar) e a classificação visual de
+  autoridade existem **só no prompt**, como orientação de resposta. Não há
+  botão nem selo na interface para elas. Se forem virar tela, é trabalho novo.
+- O Gerador (editor de sermão) não chama IA. Os três modelos de mensagem do
+  usuário (Relacionamentos que Transformam, O Coração Pastoral de Deus, Aula
+  Pastoral Membresia) entraram apenas como a estrutura genérica de sermão
+  descrita no prompt.
+
+### 0i. ✅ Busca com pré-visualização, ícones da home e "Gerador"
+
+- Busca: tocar num resultado abre a pré-visualização da passagem — painel
+  lateral em tela larga (`useIsWide`, ≥ 1080px), folha inferior no celular.
+  `features/search/SearchPage.tsx`, `styles/reader.css`.
+- Home: ícones maiores. `styles/app.css`, `features/home/HomePage.tsx`.
+- "Sermões" passa a se chamar **Gerador** na navegação, na lista e no painel
+  ("Mensagens criadas"). A rota não mudou.
+
+### 0j. ✅ Ajuda reescrita
+
+O tópico da IA chama-se "Estudo guiado — a IA como apoio": diz que a IA é
+suporte e não substitui oração, Palavra, direção do Espírito nem
+discernimento; que pode errar e deve ser conferida; e lista só as análises que
+existem. O tópico de sermão virou "Gerador". O `public/manual.html` **não** foi
+atualizado e ficou defasado em relação à Ajuda.
+
+---
+
+## Entregues em 07/10/2026
+
+### 0f. ✅ Exegese do capítulo inteiro (PR #72)
+
+Tarefa `exegese-capitulo`, ao lado da exegese por versículo: visão geral,
+divisão em perícopes, contexto, palavras-chave, temas, versículos-chave,
+aplicação e referências cruzadas. `max_tokens` 12288.
+
+### 0g. ✅ Temas Azul Safira e Ministerial (PRs #70 e #71)
+
+Dois temas novos de aparência, e mensagens de erro das APIs de IA em
+linguagem simples (chave inválida, limite de uso, serviço fora, modelo não
+encontrado).
 
 ---
 
