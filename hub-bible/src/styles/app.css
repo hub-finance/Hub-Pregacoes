@@ -354,7 +354,7 @@
   gap: var(--sp-3);
 }
 .grid-quick {
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
   gap: var(--sp-2);
 }
 .grid-cards {
@@ -372,6 +372,7 @@
   justify-content: center;
   gap: var(--sp-2);
   padding: var(--sp-4) var(--sp-2);
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
@@ -399,10 +400,36 @@
   color: var(--accent-strong);
 }
 .quick span {
+  max-width: 100%;
   font-size: 0.82rem;
   font-weight: 580;
   color: var(--text-2);
   line-height: 1.3;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+/* No celular, três colunas fixas: com quadros de 128px caberiam só duas, e a
+   grade ficaria comprida demais. A letra diminui para "Concordância" e
+   "Configurações" caberem inteiras. Fica depois de .quick span para valer. */
+@media (max-width: 440px) {
+  .grid-quick {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .quick {
+    padding-inline: 4px;
+  }
+  .quick span {
+    font-size: 0.7rem;
+  }
+}
+@media (max-width: 340px) {
+  .quick {
+    padding-inline: 2px;
+  }
+  .quick span {
+    font-size: 0.66rem;
+  }
 }
 
 /* chips / tags */
