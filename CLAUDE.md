@@ -113,11 +113,18 @@ Run from `hub-bible/` (or use `npm --prefix hub-bible <script>` from the root).
 | Regenerate scripture data | `npm run bible:build` |
 | Regenerate the Strong lexicon | `npm run lexicon:build` (needs network) |
 | Regenerate PWA icons | `node scripts/generate-icons.mjs` |
+| Test the Gerar e Exportar module | `npm run test:export` |
 
-There is **no automated test suite and no linter configured.** Verification so
-far has been type-checking plus driving the built app in a headless browser
-(Playwright) across mobile, tablet and desktop widths. If you add tests, record
-the command here.
+There is **no general test suite and no linter configured.** The one automated
+test is `npm run test:export` (`scripts/test-export.mjs`), which generates real
+Word/PDF/Markdown files from the export module and opens them to check content;
+it bundles with esbuild and runs Dexie on `fake-indexeddb`. Other verification
+has been type-checking plus driving the built app in a headless browser
+(Playwright) across mobile, tablet and desktop widths.
+
+Use `npx tsc --noEmit -p .` to type-check. The `npm run typecheck` script runs
+`tsc -b --noEmit false`, which writes a `.js` copy next to every source file in
+`src/`; don't commit those.
 
 `npm run build` runs `tsc -b` before Vite, so a type error fails the build.
 

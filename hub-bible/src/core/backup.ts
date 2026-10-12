@@ -58,6 +58,11 @@ const TABLES = [
   'libraryDocs',
   'plans',
   'readingEvents',
+  // Documentos de exportação e suas versões aprovadas. Os arquivos gerados
+  // (`exportFiles`) ficam de fora: são binários, e qualquer um deles pode ser
+  // gerado de novo a partir da versão guardada aqui.
+  'exportDocs',
+  'exportVersions',
 ] as const;
 
 export async function createBackup(

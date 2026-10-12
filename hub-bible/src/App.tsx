@@ -37,6 +37,8 @@ const HelpPage = lazy(() => import('./features/help/HelpPage'));
 const PreachingPage = lazy(() => import('./features/preaching/PreachingPage'));
 const DictionaryPage = lazy(() => import('./features/dictionary/DictionaryPage'));
 const ConcordancePage = lazy(() => import('./features/concordance/ConcordancePage'));
+const ExportPage = lazy(() => import('./features/export/ExportPage'));
+const ExportEditorPage = lazy(() => import('./features/export/ExportEditorPage'));
 
 /** `/estudos/:id` de antes do nome Rhema continua abrindo o mesmo documento. */
 function LegacyStudyRedirect() {
@@ -142,6 +144,8 @@ export default function App() {
                   <Route path="/guias" element={<GuidesPage />} />
                   <Route path="/biblioteca" element={<Navigate to="/rhema" replace />} />
                   <Route path="/biblioteca/material/:id" element={<Navigate to="/rhema" replace />} />
+                  <Route path="/exportar" element={<ExportPage />} />
+                  <Route path="/exportar/:id" element={<ExportEditorPage />} />
                   <Route path="/planos" element={<PlansPage />} />
                   <Route path="/planos/:id" element={<PlanDetailPage />} />
                   <Route path="/painel" element={<DashboardPage />} />

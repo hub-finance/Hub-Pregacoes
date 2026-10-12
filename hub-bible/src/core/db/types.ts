@@ -491,3 +491,138 @@ export interface AiAnalysis {
   createdAt: number;
   updatedAt: number;
 }
+
+/* ----------------------- gerar e exportar arquivos ----------------------- */
+
+/** Família do documento — define o modelo e os padrões de capa, sumário etc. */
+export type ExportCategory = 'pregacao' | 'devocional' | 'estudo' | 'treinamento' | 'institucional';
+
+/**
+ * Situação do documento de exportação.
+ *
+ * `aprovado` quer dizer que o rascunho atual é exatamente a última versão
+ * aprovada; editar depois disso devolve o documento a `rascunho`, e os arquivos
+ * continuam saindo da versão aprovada até que o autor aprove de novo.
+ */
+export type ExportStatus = 'rascunho' | 'aprovado' | 'finalizado';
+
+export type ExportFormat = 'docx' | 'pdf' | 'md';
+
+export type ExportSourceKind = 'sermon' | 'study' | 'devotional' | 'doc' | 'blank';
+
+/** De onde veio o conteúdo — para mostrar na biblioteca e voltar à origem. */
+export interface ExportSource {
+  kind: ExportSourceKind;
+  id?: ID;
+  title: string;
+}
+
+/** Logotipo da capa, já reduzido e guardado como `data:` URL. */
+export interface ExportLogo {
+  dataUrl: string;
+  mime: 'image/png' | 'image/jpeg';
+  width: number;
+  height: number;
+}
+
+/** Tudo o que é aparência do arquivo — nada aqui altera o texto do autor. */
+export interface ExportLayout {
+  theme: string;
+  pageSize: 'A4' | 'A5' | 'LETTER';
+  margins: 'estreita' | 'normal' | 'larga';
+  /** Tamanho da letra do corpo, em pontos. */
+  fontSize: number;
+  /** Entrelinha: 1.15, 1.35, 1.6… */
+  lineSpacing: number;
+  /** Cor de destaque escolhida pelo usuário; vazia, vale a do modelo visual. */
+  accentColor: string;
+  cover: boolean;
+  subtitle: string;
+  author: string;
+  institution: string;
+  dateLabel: string;
+  logo?: ExportLogo;
+  toc: boolean;
+  pageNumbers: boolean;
+  pageNumberAlign: 'center' | 'right';
+  /** Texto do cabeçalho; vazio, sem cabeçalho. */
+  header: string;
+  /** Texto do rodapé; vazio, só a numeração (quando ligada). */
+  footer: string;
+  /** Cada seção principal começa em página nova. */
+  breakBeforeSections: boolean;
+  /** Linhas para anotações pessoais no fim do documento. */
+  notesSpace: boolean;
+}
+
+/**
+ * Ajustes de estrutura feitos na revisão, guardados à parte dos blocos para que
+ * o conteúdo continue sendo exatamente o do autor.
+ */
+export interface ExportStructure {
+  /** Seções que começam em página nova. */
+  pageBreaks: ID[];
+  /** Seções rebaixadas a subtítulo (nível 2). */
+  subheadings: ID[];
+}
+
+export interface ExportDoc {
+  id: ID;
+  userId: ID;
+  title: string;
+  category: ExportCategory;
+  /** Identificador do modelo documental (ver `core/export/templates.ts`). */
+  model: string;
+  source: ExportSource;
+  status: ExportStatus;
+  /** O conteúdo como veio da origem. Nunca é alterado — serve para restaurar. */
+  original: SermonBlock[];
+  /** O rascunho em revisão. */
+  content: SermonBlock[];
+  structure: ExportStructure;
+  layout: ExportLayout;
+  /** Número da última versão aprovada. */
+  approvedVersion?: number;
+  /**
+   * Assinatura do conteúdo aprovado — compara o rascunho com a versão
+   * aprovada sem precisar abri-la.
+   */
+  approvedSignature?: string;
+  /** Quantas versões já foram aprovadas — a próxima recebe este número + 1. */
+  versionCount: number;
+  /** Formatos já gerados, de qualquer versão. */
+  formats: ExportFormat[];
+  lastExportAt?: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** Uma versão aprovada: cópia fiel do que foi aprovado, para gerar e restaurar. */
+export interface ExportVersion {
+  id: ID;
+  docId: ID;
+  userId: ID;
+  version: number;
+  title: string;
+  content: SermonBlock[];
+  structure: ExportStructure;
+  layout: ExportLayout;
+  createdAt: number;
+}
+
+/** Arquivo efetivamente gerado, guardado no aparelho e ligado à sua versão. */
+export interface ExportFile {
+  id: ID;
+  docId: ID;
+  userId: ID;
+  versionId: ID;
+  version: number;
+  format: ExportFormat;
+  filename: string;
+  mime: string;
+  size: number;
+  /** Páginas do PDF, quando conhecidas. */
+  pages?: number;
+  blob: Blob;
+  createdAt: number;
+}
