@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5" />
+    <meta name="description" content="Resumos e interpretações: painel, passo a passo, DNA, mapa de conceitos, cartões de revisão, consulta rápida, plano de ação e infográfico." />
+    <meta name="theme-color" content="#1d5c4d" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Hub Resumos" />
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <title>Hub Resumos — Resumos e Interpretações</title>
+    <script>
+      // tema antes da primeira pintura, sem "piscar" claro
+      (function () {
+        try {
+          var t = localStorage.getItem('hub-resumos:theme') || 'system';
+          var r = t === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : t;
+          document.documentElement.dataset.theme = r;
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
