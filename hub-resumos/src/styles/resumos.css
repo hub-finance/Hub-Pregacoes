@@ -791,3 +791,21 @@ button.xr-stat {
 #ajuda-comecar {
   margin-bottom: var(--sp-3);
 }
+
+/* quadros visuais */
+.xr-board-frame {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  padding: var(--sp-2);
+  min-height: 200px;
+}
+.xr-board {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  margin: 0 auto;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-2);
+}

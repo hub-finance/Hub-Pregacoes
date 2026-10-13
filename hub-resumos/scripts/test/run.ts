@@ -10,6 +10,7 @@ import { docxToText, readHubBackup } from '../../src/core/importers';
 import { createMaterial, deleteMaterial, getProgress, progressRatio, setStepDone } from '../../src/core/materials';
 import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restoreBackup } from '../../src/core/backup';
 import { createExampleMaterial } from '../../src/core/example';
+import { boardContent } from '../../src/core/boards';
 import { db } from '../../src/core/db';
 import type { Card } from '../../src/core/types';
 
@@ -230,6 +231,21 @@ await test('exemplo: usa todas as marcações e alimenta todas as visões', asyn
   assert(suggestActions(ex).length >= 2, 'ações');
   const map = buildMindMap(ex, r);
   assert(map.modules.length === 5 && map.modules.every((m) => m.children.length > 0), 'mapa com desdobramentos');
+});
+
+await test('quadros: todo texto sai do material', async () => {
+  const ex = await createExampleMaterial();
+  const b = boardContent(ex);
+  const all = `${ex.sections.map((s) => `${s.title}\n${s.text}`).join('\n')}\n${ex.centralIdea}`.replace(/\s+/g, ' ');
+  const pieces = [b.central, ...b.parts.flatMap((p) => [p.title, p.key, p.extra ?? '']), ...b.ideas, ...b.applications, ...b.questions, ...b.concepts.flatMap((c) => [c.term, c.meaning])].filter(Boolean);
+  for (const t of pieces) {
+    // "Termo: definição" junta dois trechos do texto
+    const ok = all.includes(t) || t.split(': ').every((x) => all.includes(x));
+    assert(ok, `fora do texto: ${t}`);
+  }
+  assert(b.parts.length === 5 && b.parts.every((p) => p.key), 'cada parte com ponto-chave');
+  assert(b.centralLabel === 'Ideia central' && b.applicationsLabel === 'Aplicações' && b.applications.length >= 2, 'aplicações');
+  assert(b.references.length >= 4 && b.cards.length >= 4, 'versículos e cartões');
 });
 
 console.log(lines.join('\n'));

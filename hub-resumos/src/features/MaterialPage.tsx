@@ -8,6 +8,7 @@ import { readMaterial } from '../core/text';
 import { ActionsTab } from './material/ActionsTab';
 import { CardsTab } from './material/CardsTab';
 import { DashboardTab } from './material/DashboardTab';
+import { BoardsTab } from './material/BoardsTab';
 import { DnaTab } from './material/DnaTab';
 import { EditTab } from './material/EditTab';
 import { InfographicTab } from './material/InfographicTab';
@@ -21,6 +22,7 @@ export const TABS = [
   { id: 'passos', label: 'Passo a passo' },
   { id: 'dna', label: 'DNA' },
   { id: 'mapa', label: 'Mapa mental' },
+  { id: 'quadros', label: 'Quadros' },
   { id: 'cartoes', label: 'Cartões' },
   { id: 'consulta', label: 'Consulta rápida' },
   { id: 'acoes', label: 'Plano de ação' },
@@ -96,6 +98,7 @@ export default function MaterialPage() {
       {tab === 'passos' && <StepsTab material={material} />}
       {tab === 'dna' && <DnaTab material={material} reading={reading} />}
       {tab === 'mapa' && <MapTab material={material} reading={reading} />}
+      {tab === 'quadros' && <BoardsTab material={material} reading={reading} />}
       {tab === 'cartoes' && <CardsTab material={material} />}
       {tab === 'consulta' && <QuickSheetTab material={material} reading={reading} />}
       {tab === 'acoes' && <ActionsTab material={material} />}
