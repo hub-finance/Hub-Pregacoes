@@ -100,7 +100,7 @@ const FAQ: Array<[string, string]> = [
   ['Onde ficam os meus dados?', 'Só neste aparelho, no próprio navegador. Não há conta nem servidor. Para não perder nada, faça a cópia de segurança em Dados e ajustes.'],
   ['Funciona sem internet?', 'Sim, depois de aberto uma vez. Instale pelo menu do navegador (“Instalar app” ou “Adicionar à tela inicial”).'],
   ['O app inventa conteúdo?', 'Sem IA, não: tudo o que aparece nas visões sai do texto que você trouxe. Com a IA ligada, o resumo da IA é escrito por ela a partir do texto, com a regra de não inventar; fica separado e marcado como “feito pela IA” para você revisar.'],
-  ['Como o app acha os capítulos de um livro?', 'Primeiro pelos marcadores do PDF (o índice clicável); depois pelo Sumário escrito no livro; só sem os dois, pelos títulos (Capítulo, Seção, Parte, Lição…). Capa, ficha catalográfica e sumário ficam de fora. Livro já importado: aba Editar › “Reorganizar as partes pelo sumário”.'],
+  ['Como o app acha os capítulos de um livro?', 'Primeiro pelos marcadores do PDF (o índice clicável); depois pelo Sumário escrito no livro; só sem os dois, pelos títulos (Capítulo, Seção, Parte, Lição…). Capa, ficha catalográfica e sumário ficam de fora. Livro já importado: aba Editar › “Reorganizar as partes pelo sumário”. Se ainda assim não ficar certo, aba Editar › “Informar os capítulos”: cole os títulos do sumário, um por linha, e o app divide exatamente por eles.'],
   ['Como uso com o Hub Bible?', 'Para trazer: no Hub Bible, exporte os dados; aqui, Novo material › Do Hub Bible. Para levar: na aba Editar, “Enviar para o Hub Bible” gera um arquivo que o Hub Bible restaura como estudo do Rhema. Os versículos abrem no Hub Bible se o endereço estiver em Dados e ajustes.'],
 ];
 

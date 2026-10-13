@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import JSZip from 'jszip';
 import { findReferences, hubBibleLink } from '../../src/core/bible';
-import { readMaterial, splitIntoSections } from '../../src/core/text';
+import { readMaterial, splitByChapterTitles, splitIntoSections } from '../../src/core/text';
 import { suggestCards, addCards, answerCard, schedule } from '../../src/core/cards';
 import { suggestActions, addActions, listActions } from '../../src/core/actions';
 import { extractiveSummary } from '../../src/core/summary';
@@ -110,6 +110,53 @@ await test('livro: segue o sumário, sem ficha catalográfica nem cabeçalhos de
   assert(p2.length <= 6, `${p2.length} partes: ${p2.map((p) => p.title).join('|')}`);
   assert(!p2.some((p) => /isbn|cdd|cip/i.test(p.title)), 'nada de ISBN como título');
   assert(p2.some((p) => /Capítulo 1 — A LEI DO LIMITE/i.test(p.title)), p2.map((p) => p.title).join('|'));
+});
+
+await test('A Igreja Triunfante: sumário sem título, perguntas e títulos em duas linhas', () => {
+  const toc = [
+    '1. Origens: Satanás e Seu Reino. . . . . . . . . . . . . . . . . . . . . 7',
+    '2. Divisão Bíblica do Homem: Espírito, Alma e Corpo. . . . .29',
+    '3. O Diabo ou a Carne?. . . . . . . . . . . . . . . . . . . . . . . . . . . . 55',
+    '4. Fazendo Distinção entre Opressão,',
+    'Obsessão e Possessão. . . . . . . . . . . . . . . . . . . . . . . . . . . . 83',
+    '5. Um Cristão Pode Ter um demônio?. . . . . . . . . . . . . . . . 109',
+    '6. Como Lidar com Espíritos Malignos. . . . . . . . . . . . . . . 131',
+    '7. A Sabedoria de Deus. . . . . . . . . . . . . . . . . . . . . . . . . . . . .159',
+    '8. Guerra Espiritual: Você Está',
+    'Lutando ou Descansando? . . . . . . . . . . . . . . . . . . . . . . . 191',
+    '9. Destruindo as Fortalezas. . . . . . . . . . . . . . . . . . . . . . . . 223',
+    '10. Orando Biblicamente Para Frustrar',
+    'o Reino das Trevas. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 247',
+    '11. O Ministério de Libertação é Bíblico?. . . . . . . . . . . . . . 275',
+    '12. Meios Bíblicos de Ministrar Libertação. . . . . . . . . . . . 297',
+  ];
+  const titles = ['Origens: Satanás e Seu Reino', 'Divisão Bíblica do Homem: Espírito, Alma e Corpo', 'O Diabo ou a Carne?', 'Fazendo Distinção entre Opressão, Obsessão e Possessão', 'Um Cristão Pode Ter um demônio?', 'Como Lidar com Espíritos Malignos', 'A Sabedoria de Deus', 'Guerra Espiritual: Você Está Lutando ou Descansando?', 'Destruindo as Fortalezas', 'Orando Biblicamente Para Frustrar o Reino das Trevas', 'O Ministério de Libertação é Bíblico?', 'Meios Bíblicos de Ministrar Libertação'];
+  const para = (n: number) => Array.from({ length: n }, (_, i) => `Linha ${i + 1} de texto corrido do capítulo para estudo cuidadoso da Palavra.`).join(' ');
+  const body: string[] = [];
+  titles.forEach((t, i) => {
+    body.push('A IGREJA TRIUNFANTE', String(i * 20 + 7));
+    // cada capítulo escrito de um jeito no corpo do livro
+    if (i % 3 === 0) body.push(`CAPÍTULO ${i + 1}`, t.toUpperCase());
+    else if (i % 3 === 1) body.push(String(i + 1), ...(t.length > 30 ? [t.slice(0, t.lastIndexOf(' ', 30)), t.slice(t.lastIndexOf(' ', 30) + 1)] : [t]));
+    else body.push(`${i + 1}`, t);
+    body.push(para(30), 'A IGREJA TRIUNFANTE', String(i * 20 + 8), para(30));
+  });
+  const book = ['DEREK PRINCE', 'A IGREJA TRIUNFANTE', 'TRADUÇÃO DE FULANO', 'ISBN 978-85-0000-000-0', 'CDD 235.4', '', ...toc, '', ...body].join('\n');
+  const parts = splitIntoSections(book, 'Introdução');
+  assert(parts.length === 12, `${parts.length} partes: ${parts.map((p) => p.title).join(' | ')}`);
+  assert(parts[3].title === '4. Fazendo Distinção entre Opressão, Obsessão e Possessão', parts[3].title);
+  assert(parts[2].title === '3. O Diabo ou a Carne?' && parts[10].title === '11. O Ministério de Libertação é Bíblico?', `${parts[2].title} / ${parts[10].title}`);
+  assert(parts.every((p) => p.text.length > 500), 'cada capítulo com o seu texto');
+  assert(!parts.some((p) => /ISBN|CDD/.test(p.text)), 'ficha catalográfica fora');
+
+  // "Informar os capítulos": sumário ilegível no PDF, o usuário cola os títulos
+  const garbled = book.replace(toc.join('\n'), 'S U M Á R I O 7 29 55 83 109 131 159 191 223 247 275 297');
+  assert(splitIntoSections(garbled, 'Introdução').length !== 12, 'sem sumário legível a regra antiga não acerta');
+  const byTitles = splitByChapterTitles(garbled, titles.map((t, i) => `${i + 1}. ${t}`));
+  assert(byTitles?.length === 12, `${byTitles?.length}`);
+  // com o sumário legível no texto, a procura começa depois dele
+  const withToc = splitByChapterTitles(book, titles);
+  assert(withToc?.length === 12 && withToc.every((p) => p.text.length > 500), `${withToc?.length}`);
 });
 
 await test('livro em seções (sem a palavra capítulo)', () => {
