@@ -15,6 +15,16 @@ export function mindMapHtml(data: MindMapData): string {
   const legend = data.legend
     .map((l) => `<div class="li"><span class="dot" style="background:${l.color}"></span>${esc(l.label)}</div>`)
     .join('');
+  // Versão em texto: aparece quando o arquivo é aberto num visualizador que não
+  // roda o mapa (WhatsApp, Drive, gerenciador de arquivos) — antes ficava em branco.
+  const plain = data.modules
+    .map(
+      (m) =>
+        `<section><h2>${esc(m.tip.title)}</h2>${m.tip.body ? `<p>${esc(m.tip.body)}</p>` : ''}<ul>${m.children
+          .map((ch) => `<li><b>${esc(ch.tip.title)}</b>${ch.tip.body ? ` — ${esc(ch.tip.body)}` : ''}</li>`)
+          .join('')}</ul></section>`,
+    )
+    .join('');
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -44,10 +54,14 @@ body{background:${c.fundo};font-family:'Segoe UI',Arial,sans-serif;overflow:hidd
 #tip.fixed{left:12px!important;right:12px;bottom:12px;top:auto!important;max-width:none}
 #tip .close{display:none;float:right;background:none;border:0;color:${c.ouro};font-size:22px;cursor:pointer;min-width:44px;min-height:44px;margin:-12px -14px 0 0}
 #tip.fixed .close{display:block}
+#plain{display:none;padding:110px 16px 24px;max-width:760px;margin:0 auto}
+#plain .note{background:#1A2E44;border:1px solid ${c.ouro};border-radius:8px;padding:10px 14px;color:${c.texto};font-size:14px;margin-bottom:16px}
+#plain h2{color:${c.ouro};font-size:17px;margin:18px 0 6px}#plain p{line-height:1.55;margin-bottom:6px}#plain ul{padding-left:20px}#plain li{line-height:1.5;margin-bottom:6px}#plain b{color:${c.ouro}}
+body.nojs{overflow:auto}.nojs #canvas,.nojs .controls,.nojs .legend{display:none}.nojs #plain{display:block}.nojs .badge{position:absolute}
 @media (max-width:640px){.controls{flex-direction:row;flex-wrap:wrap;top:auto;bottom:12px;right:12px;left:12px;justify-content:flex-end}.legend{display:none}.badge h1{font-size:15px}}
 </style>
 </head>
-<body>
+<body class="nojs">
 <canvas id="canvas" aria-label="Mapa mental de ${esc(data.title)}"></canvas>
 <div class="badge"><h1>${esc(data.title)}</h1><p>${esc(data.subtitle)}</p></div>
 <div class="controls">
@@ -58,10 +72,12 @@ body{background:${c.fundo};font-family:'Segoe UI',Arial,sans-serif;overflow:hidd
 <button class="btn" id="all">⊞ Expandir tudo</button>
 </div>
 <div class="legend"><h2>LEGENDA</h2>${legend}<div class="hint">Arraste · role para zoom · toque para abrir</div></div>
+<div id="plain"><p class="note">Para usar o mapa interativo (tocar nos círculos, aproximar e arrastar), abra este arquivo no navegador, como o Chrome. Abaixo, o conteúdo do mapa em texto.</p>${data.center.tip.body ? `<p>${esc(data.center.tip.body)}</p>` : ''}${plain}</div>
 <div id="tip" role="dialog" aria-live="polite"><button class="close" id="tipx" aria-label="Fechar">×</button><h3 id="tt"></h3><p id="tb"></p><div class="src" id="ts"></div></div>
 <script>
 ${engine}
 (function(){
+document.body.classList.remove('nojs');
 var data=${json};
 var tip=document.getElementById('tip');
 function show(node,x,y,fixed){
