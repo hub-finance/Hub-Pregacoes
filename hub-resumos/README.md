@@ -150,6 +150,11 @@ continuar depois — sempre com o princípio acima: qualidade e ganho de tempo.
   opções de cor nos quadros, no mapa mental e no infográfico, para o usuário
   escolher a que preferir. Hoje os quadros têm “Papel” e “Azul e dourado”.
 - Slides de treinamento.
+- **Primeiro, amanhã:** mapa mental com pontos repetidos (“Origens”, “Origens”,
+  “Origens” em “A Igreja Triunfante”). O título do capítulo e os cabeçalhos de
+  página viram falsa “definição” (“Origens: Satanás…”). Descartar título e
+  cabeçalhos repetidos como definição, não repetir pontos com o mesmo nome e
+  preferir frases que ensinam.
 - Testar a IA com a chave real do Gemini (3.8 Flash) no aparelho do usuário.
 - Aviso “Nova versão disponível — toque para atualizar”, para não precisar
   fechar e abrir o app depois de cada publicação.
