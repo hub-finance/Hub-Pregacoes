@@ -475,3 +475,10 @@ export function readMaterial(material: Material): MaterialReading {
     keywords: keywords(material),
   };
 }
+
+/** Tira "1." / "05 —" / "Capítulo 3 —" do começo do título, para rótulos curtos. */
+export const cleanTitle = (title: string) =>
+  title
+    .replace(/^(cap[ií]tulo|li[cç][aã]o|m[oó]dulo|parte|aula|unidade|se[cç][cç]?[aã]o|sess[aã]o|t[oó]pico|livro)\s+[\divxlc]+\s*[—–:.-]?\s*/i, '')
+    .replace(/^\d{1,3}\s*[.)—–:-]?\s+/, '')
+    .trim() || title;

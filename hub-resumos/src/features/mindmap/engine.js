@@ -311,7 +311,14 @@ function createMindMap(canvas, data, opts) {
   }
 
   var dragging = false, moved = 0, lastX = 0, lastY = 0, pinch = 0;
+  // Depois de um toque, o navegador repete o mesmo toque como clique de mouse;
+  // sem esta trava o assunto abria e fechava no mesmo toque (tablet/celular).
+  var lastTouch = 0;
+  function fromTouch() {
+    return Date.now() - lastTouch < 800;
+  }
   function onMouseDown(e) {
+    if (fromTouch()) return;
     var p = local(e);
     dragging = true;
     moved = 0;
@@ -319,6 +326,7 @@ function createMindMap(canvas, data, opts) {
     lastY = p.y;
   }
   function onMouseMove(e) {
+    if (fromTouch()) return;
     var p = local(e);
     if (dragging) {
       moved += Math.abs(p.x - lastX) + Math.abs(p.y - lastY);
@@ -339,6 +347,7 @@ function createMindMap(canvas, data, opts) {
     if (opts.onHover) opts.onHover(node, e.clientX, e.clientY);
   }
   function onMouseUp(e) {
+    if (fromTouch()) return;
     if (dragging && moved < 6) activate(nodeAt(local(e).x, local(e).y));
     dragging = false;
   }
@@ -361,6 +370,7 @@ function createMindMap(canvas, data, opts) {
     zoomAt(e.deltaY < 0 ? 1.12 : 0.89, p.x, p.y);
   }
   function onTouchStart(e) {
+    lastTouch = Date.now();
     if (e.touches.length === 1) {
       var p = local(e.touches[0]);
       dragging = true;
@@ -390,7 +400,9 @@ function createMindMap(canvas, data, opts) {
     }
   }
   function onTouchEnd(e) {
+    lastTouch = Date.now();
     if (dragging && moved < 8 && e.changedTouches.length === 1) {
+      e.preventDefault();
       var p = local(e.changedTouches[0]);
       activate(nodeAt(p.x, p.y));
     }
@@ -405,7 +417,7 @@ function createMindMap(canvas, data, opts) {
   canvas.addEventListener('wheel', onWheel, { passive: false });
   canvas.addEventListener('touchstart', onTouchStart, { passive: false });
   canvas.addEventListener('touchmove', onTouchMove, { passive: false });
-  canvas.addEventListener('touchend', onTouchEnd);
+  canvas.addEventListener('touchend', onTouchEnd, { passive: false });
   var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null;
   if (observer) observer.observe(canvas);
   else window.addEventListener('resize', resize);
