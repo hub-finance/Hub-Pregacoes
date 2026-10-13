@@ -124,6 +124,13 @@ contraste dos textos secundários, rótulos dos campos, alvos de toque de 44 px,
 foco visível. Cada tela de material tem a trilha “Biblioteca › Material › Aba”;
 os editores mostram “Salvando…” / “Salvo às hh:mm”.
 
+## Próximos passos (anotados com o usuário)
+
+- **Cores para escolher nas ferramentas** (pedido para depois, não agora): mais
+  opções de cor nos quadros, no mapa mental e no infográfico, para o usuário
+  escolher a que preferir. Hoje os quadros têm “Papel” e “Azul e dourado”.
+- Slides de treinamento.
+
 ## Limitações
 
 - Sem IA: o resumo é **extrativo** (frases do texto), e as sugestões de cartões e
