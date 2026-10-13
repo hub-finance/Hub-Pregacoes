@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '../components/Toast';
 import { TextInput } from '../components/ui';
-import { DEFAULT_GEMINI_MODEL, GEMINI_KEY_SETTING, GEMINI_MODEL_SETTING, getGeminiConfig, testGeminiKey } from '../core/ai';
+import { GEMINI_AUTO_MODEL_SETTING, GEMINI_KEY_SETTING, GEMINI_MODEL_SETTING, getGeminiConfig, testGeminiKey } from '../core/ai';
 import { setSetting } from '../core/db';
 
 /** Dados e ajustes › IA (opcional): a chave do Gemini, guardada só neste aparelho. */
@@ -12,24 +12,28 @@ export function AiSettings() {
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
+  const [inUse, setInUse] = useState('');
 
   useEffect(() => {
     void getGeminiConfig().then((c) => {
       setKey(c.key);
-      setModel(c.model === DEFAULT_GEMINI_MODEL ? '' : c.model);
+      setModel(c.auto ? '' : c.model);
       setSaved(!!c.key);
+      setInUse(c.key ? c.model : '');
     });
   }, []);
 
   const save = async () => {
     setBusy(true);
     try {
-      const cfg = { key: key.trim(), model: model.trim() || DEFAULT_GEMINI_MODEL };
-      if (cfg.key) await testGeminiKey(cfg);
+      const cfg = { key: key.trim(), model: model.trim() };
+      const use = cfg.key ? await testGeminiKey(cfg) : '';
       await setSetting(GEMINI_KEY_SETTING, cfg.key);
-      await setSetting(GEMINI_MODEL_SETTING, model.trim());
+      await setSetting(GEMINI_MODEL_SETTING, cfg.model);
+      if (!cfg.model) await setSetting(GEMINI_AUTO_MODEL_SETTING, use);
       setSaved(!!cfg.key);
-      notify(cfg.key ? 'Chave conferida e salva. A IA já pode ser usada.' : 'IA desligada.');
+      setInUse(use);
+      notify(cfg.key ? `Chave conferida e salva. A IA vai usar o ${use}.` : 'IA desligada.');
     } catch (err) {
       notify((err as Error).message, 'error');
     } finally {
@@ -41,7 +45,7 @@ export function AiSettings() {
     <section className="card stack" style={{ marginBottom: 'var(--sp-4)' }} id="ia">
       <div className="row row-wrap" style={{ justifyContent: 'space-between' }}>
         <strong>Inteligência artificial (opcional)</strong>
-        <span className={`badge${saved ? ' xr-badge-ok' : ''}`}>{saved ? 'Ligada · Gemini' : 'Desligada'}</span>
+        <span className={`badge${saved ? ' xr-badge-ok' : ''}`}>{saved ? `Ligada · ${inUse || 'Gemini'}` : 'Desligada'}</span>
       </div>
       <span className="small muted">
         Com a IA do Google (Gemini), o app resume cada capítulo e o livro inteiro com as próprias palavras: resumo, ideias
@@ -66,7 +70,13 @@ export function AiSettings() {
           {show ? 'Ocultar' : 'Mostrar'}
         </button>
       </div>
-      <TextInput label="Modelo (opcional)" value={model} onChange={setModel} placeholder={`${DEFAULT_GEMINI_MODEL} (padrão)`} />
+      <TextInput
+        label="Modelo (opcional)"
+        value={model}
+        onChange={setModel}
+        placeholder="Automático: o Gemini Flash mais novo da sua chave"
+        hint="Deixe em branco: ao conferir a chave, o app pergunta ao Google e escolhe o Flash mais novo disponível."
+      />
       <div className="row row-wrap">
         <button className="btn btn-primary" onClick={save} disabled={busy}>
           {busy ? 'Conferindo…' : 'Conferir e salvar'}

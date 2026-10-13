@@ -11,7 +11,7 @@ import { createMaterial, deleteMaterial, getProgress, progressRatio, resplitMate
 import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restoreBackup } from '../../src/core/backup';
 import { createExampleMaterial } from '../../src/core/example';
 import { boardContent } from '../../src/core/boards';
-import { askGemini, buildPrompt, parseAiAnswer, removeAiSummary, summarizeWithAi, WHOLE } from '../../src/core/ai';
+import { askGemini, buildPrompt, getGeminiConfig, parseAiAnswer, pickFlashModel, removeAiSummary, summarizeWithAi, testGeminiKey, WHOLE } from '../../src/core/ai';
 import { setSetting } from '../../src/core/db';
 import { db } from '../../src/core/db';
 import type { Card } from '../../src/core/types';
@@ -371,7 +371,33 @@ await test('IA (Gemini): pedido, resposta, erros e onde fica guardado', async ()
   try { await askGemini('oi', { key: '', model: 'x' }, { fetchImpl: ok }); } catch (e) { noKey = (e as Error).message; }
   assert(/Cadastre a chave/.test(noKey), noKey);
 
+  // escolha automática do Flash: o mais novo e estável, sem lite/imagem/voz/experimental
+  const gen = ['generateContent'];
+  const list = [
+    { name: 'models/gemini-2.5-flash', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.8-flash', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.9-flash-preview', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.8-flash-lite', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.8-flash-image', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.8-pro', supportedGenerationMethods: gen },
+    { name: 'models/gemini-flash-latest', supportedGenerationMethods: gen },
+    { name: 'models/text-embedding-004', supportedGenerationMethods: ['embedContent'] },
+  ];
+  assert(pickFlashModel(list) === 'gemini-3.8-flash', String(pickFlashModel(list)));
+  assert(pickFlashModel([{ name: 'models/gemini-flash-latest' }]) === 'gemini-flash-latest', 'apelido quando não há outro');
+  const listing = (async () => new Response(JSON.stringify({ models: list }), { status: 200 })) as unknown as typeof fetch;
+  assert((await testGeminiKey({ key: 'k' }, listing)) === 'gemini-3.8-flash', 'chave conferida acha o Flash');
+
   await setSetting('geminiKey', 'chave-teste');
+  await setSetting('geminiModelAuto', 'gemini-2.5-flash');
+  // o modelo automático saiu de linha (404): acha o atual e tenta de novo
+  const retired = (async (url: string, init: RequestInit) => {
+    if (url.includes('gemini-2.5-flash:')) return new Response(JSON.stringify({ error: { message: 'not found' } }), { status: 404 });
+    if (url.includes('/models?')) return listing(url, init);
+    return ok(url, init);
+  }) as unknown as typeof fetch;
+  await summarizeWithAi(ex.id, ex.sections[1].id, { fetchImpl: retired });
+  assert((await getGeminiConfig()).model === 'gemini-3.8-flash', 'trocou para o Flash atual');
   const saved = await summarizeWithAi(ex.id, ex.sections[0].id, { fetchImpl: ok });
   const after = await db.materials.get(ex.id);
   assert(saved.provider === 'gemini' && after?.ai?.[ex.sections[0].id]?.resumo === 'Resumo da IA.', 'guardado no material');

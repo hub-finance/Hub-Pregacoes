@@ -49,7 +49,7 @@ está literalmente no texto. A interpretação (a ideia central) é escrita por
 você. As sugestões só entram quando você as escolhe.
 
 **IA opcional (Gemini, do Google).** Com uma chave cadastrada em Dados e ajustes
-(guardada só no aparelho), a aba Resumo resume o livro inteiro ou cada capítulo
+(guardada só no aparelho; o app escolhe sozinho o Gemini Flash mais novo que a chave pode usar), a aba Resumo resume o livro inteiro ou cada capítulo
 com as próprias palavras da IA. O pedido manda não inventar fatos nem
 referências; o resultado fica **separado do texto** (`material.ai`), sempre
 marcado como “feito pela IA” e pode ser apagado. O texto vai do aparelho direto

@@ -1,4 +1,4 @@
-import { db, getSetting, now } from './db';
+import { db, getSetting, now, setSetting } from './db';
 import type { AiSummary, Material } from './types';
 
 /**
@@ -14,17 +14,59 @@ import type { AiSummary, Material } from './types';
  *   marcado como feito pela IA, para ser revisado.
  */
 
-export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
+/** Apelido do Google para o Flash mais recente; usado só se a escolha automática falhar. */
+export const DEFAULT_GEMINI_MODEL = 'gemini-flash-latest';
 export const GEMINI_KEY_SETTING = 'geminiKey';
+/** Modelo escolhido pelo usuário (vazio = automático). */
 export const GEMINI_MODEL_SETTING = 'geminiModel';
+/** Modelo achado automaticamente ao conferir a chave. */
+export const GEMINI_AUTO_MODEL_SETTING = 'geminiModelAuto';
 /** Escopo do material inteiro (as partes usam o id delas). */
 export const WHOLE = 'livro';
 /** Limite de texto por pedido (cerca de 250 mil palavras): cobre um livro grande. */
 const MAX_CHARS = 1_500_000;
 
-export async function getGeminiConfig(): Promise<{ key: string; model: string }> {
-  const [key, model] = await Promise.all([getSetting(GEMINI_KEY_SETTING, ''), getSetting(GEMINI_MODEL_SETTING, '')]);
-  return { key: String(key).trim(), model: String(model).trim() || DEFAULT_GEMINI_MODEL };
+export async function getGeminiConfig(): Promise<{ key: string; model: string; auto: boolean }> {
+  const [key, model, auto] = await Promise.all([
+    getSetting(GEMINI_KEY_SETTING, ''),
+    getSetting(GEMINI_MODEL_SETTING, ''),
+    getSetting(GEMINI_AUTO_MODEL_SETTING, ''),
+  ]);
+  const chosen = String(model).trim();
+  return { key: String(key).trim(), model: chosen || String(auto).trim() || DEFAULT_GEMINI_MODEL, auto: !chosen };
+}
+
+const API = 'https://generativelanguage.googleapis.com/v1beta';
+
+/**
+ * O Flash mais novo e estável entre os modelos que a chave pode usar. Os
+ * nomes mudam com o tempo (2.5, 3.x…) e o Google restringe os antigos a quem
+ * já os usava; por isso o app pergunta ao Google em vez de fixar um nome.
+ * Fica de fora o que não serve para resumir: lite, imagem, áudio, voz,
+ * embeddings e versões experimentais.
+ */
+export function pickFlashModel(models: Array<{ name: string; supportedGenerationMethods?: string[] }>): string | null {
+  const ok = models
+    .filter((m) => !m.supportedGenerationMethods || m.supportedGenerationMethods.includes('generateContent'))
+    .map((m) => m.name.replace(/^models\//, ''))
+    .filter((n) => /^gemini-.*flash/.test(n) && !/lite|image|audio|tts|live|embed|exp|thinking|8b/.test(n));
+  if (!ok.length) return null;
+  const version = (n: string) => Number(/gemini-(\d+(?:\.\d+)?)/.exec(n)?.[1] ?? 0);
+  const score = (n: string) => version(n) * 100 - (/preview/.test(n) ? 50 : 0) - (/-\d{3}$|-\d{2}-\d{4}$/.test(n) ? 1 : 0);
+  return ok.sort((a, b) => score(b) - score(a) || a.length - b.length)[0];
+}
+
+/** Pergunta ao Google quais modelos a chave pode usar e escolhe o Flash. */
+export async function detectFlashModel(key: string, fetchImpl: typeof fetch = fetch): Promise<string> {
+  let res: Response;
+  try {
+    res = await fetchImpl(`${API}/models?pageSize=1000`, { headers: { 'x-goog-api-key': key } });
+  } catch {
+    throw new Error('Sem conexão com o Gemini. A IA precisa de internet.');
+  }
+  const json = (await res.json().catch(() => ({}))) as { models?: Array<{ name: string; supportedGenerationMethods?: string[] }>; error?: { message?: string } };
+  if (!res.ok) throw new Error(explain(res.status, json.error?.message ?? ''));
+  return pickFlashModel(json.models ?? []) ?? DEFAULT_GEMINI_MODEL;
 }
 
 const KIND_NAME = { livro: 'do livro', estudo: 'do estudo', resumo: 'do resumo' } as const;
@@ -95,7 +137,7 @@ export function parseAiAnswer(raw: string): Pick<AiSummary, 'resumo' | 'ideias' 
 function explain(status: number, detail: string): string {
   if (status === 400 && /api key|API_KEY/i.test(detail)) return 'A chave do Gemini não é válida. Confira em Dados e ajustes.';
   if (status === 401 || status === 403) return 'A chave do Gemini não tem permissão. Confira em Dados e ajustes.';
-  if (status === 404) return 'O modelo da IA não foi encontrado. Em Dados e ajustes, deixe o modelo em branco para usar o padrão.';
+  if (status === 404) return 'O modelo da IA não foi encontrado. Em Dados e ajustes, deixe o modelo em branco para o app escolher o Flash disponível.';
   if (status === 429) return 'O limite de uso do Gemini foi atingido. Espere um minuto e tente de novo.';
   if (status >= 500) return 'O serviço do Gemini está instável agora. Tente de novo em instantes.';
   return `A IA recusou o pedido (${status}). ${detail.slice(0, 160)}`;
@@ -108,7 +150,7 @@ export async function askGemini(
   opts: { signal?: AbortSignal; fetchImpl?: typeof fetch } = {},
 ): Promise<Pick<AiSummary, 'resumo' | 'ideias' | 'aplicacoes' | 'perguntas' | 'conceitos'>> {
   if (!config.key) throw new Error('Cadastre a chave do Gemini em Dados e ajustes para usar a IA.');
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(config.model)}:generateContent`;
+  const url = `${API}/models/${encodeURIComponent(config.model)}:generateContent`;
   let res: Response;
   try {
     res = await (opts.fetchImpl ?? fetch)(url, {
@@ -146,7 +188,16 @@ export async function summarizeWithAi(
   if (!material) throw new Error('Material não encontrado.');
   const config = await getGeminiConfig();
   const { prompt, scopeTitle } = buildPrompt(material, scope);
-  const answer = await askGemini(prompt, config, opts);
+  let answer;
+  try {
+    answer = await askGemini(prompt, config, opts);
+  } catch (err) {
+    // o modelo automático saiu de linha: acha o Flash atual e tenta de novo
+    if (!config.auto || !/modelo da IA não foi encontrado/.test((err as Error).message)) throw err;
+    config.model = await detectFlashModel(config.key, opts.fetchImpl);
+    await setSetting(GEMINI_AUTO_MODEL_SETTING, config.model);
+    answer = await askGemini(prompt, config, opts);
+  }
   const summary: AiSummary = { scopeTitle, ...answer, provider: 'gemini', model: config.model, createdAt: now() };
   // relê antes de gravar: o usuário pode ter editado o material enquanto a IA trabalhava
   const latest = await db.materials.get(materialId);
@@ -181,14 +232,16 @@ export function aiSummaryMarkdown(s: AiSummary, materialTitle: string): string {
   ].join('\n');
 }
 
-/** Confere a chave e o modelo sem gastar uso: só pergunta ao Google se o modelo existe. */
-export async function testGeminiKey(config: { key: string; model: string }, fetchImpl: typeof fetch = fetch): Promise<void> {
+/**
+ * Confere a chave sem gastar uso e devolve o modelo que será usado: o
+ * escolhido pelo usuário (se existir para esta chave) ou o Flash achado.
+ */
+export async function testGeminiKey(config: { key: string; model?: string }, fetchImpl: typeof fetch = fetch): Promise<string> {
   if (!config.key) throw new Error('Digite a chave.');
+  if (!config.model) return detectFlashModel(config.key, fetchImpl);
   let res: Response;
   try {
-    res = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(config.model)}`, {
-      headers: { 'x-goog-api-key': config.key },
-    });
+    res = await fetchImpl(`${API}/models/${encodeURIComponent(config.model)}`, { headers: { 'x-goog-api-key': config.key } });
   } catch {
     throw new Error('Sem conexão com o Gemini. A IA precisa de internet.');
   }
@@ -196,4 +249,5 @@ export async function testGeminiKey(config: { key: string; model: string }, fetc
     const json = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
     throw new Error(explain(res.status, json.error?.message ?? ''));
   }
+  return config.model;
 }
