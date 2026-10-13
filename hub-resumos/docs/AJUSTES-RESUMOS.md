@@ -119,3 +119,27 @@ mapa mental.
 **Perguntas em aberto ao usuário:** (1) mapa radial (modelo dele), direcional
 (relatório) ou os dois? (2) confirma tudo no Hub Resumos? (3) ordem: correção do
 mapa e depois a etapa 1?
+
+## 4. Situação (o que já foi feito)
+
+Respostas do usuário: visual no estilo dos slides; mapa direcional (esquerda
+para a direita); tudo no Hub Resumos, sem integrar ao Hub Bible.
+
+Feito:
+- Estrutura única do estudo (`src/core/brief.ts`), pela IA ou por regras,
+  com origem de cada item ("do texto" / "inferência da IA"), seção de origem,
+  "ver no texto" e conferência dos versículos.
+- Abas Captar, Compreender (progressão + mapa direcional + .html interativo),
+  Aprofundar (cartões bíblico, princípio, conexão), Aplicar (revisão,
+  aplicações, perguntas) e DNA (matriz de 3 colunas). As abas antigas ficaram
+  em "Mais ferramentas".
+- Editar a estrutura antes de exportar; Imprimir/PDF; Word (.doc).
+- Textos enxutos (pedido do usuário: "resumos fora dos cards muito extensos"):
+  uma frase curta por item, síntese de até ~45 palavras, sem reticências,
+  sem repetir a pergunta da etapa nem a mesma frase em dois lugares; a IA
+  recebe limites de palavras. O resumo da IA (aba Resumo e Passo a passo)
+  também ficou mais curto (até 160 palavras no material inteiro).
+
+Falta:
+- Testar a montagem pela IA com a chave real do Gemini.
+- Avaliar se as abas antigas de "Mais ferramentas" ainda são necessárias.

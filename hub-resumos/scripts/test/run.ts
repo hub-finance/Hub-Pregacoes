@@ -12,6 +12,7 @@ import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restore
 import { createExampleMaterial } from '../../src/core/example';
 import { boardContent } from '../../src/core/boards';
 import { buildBriefByRules, buildBriefWithAi, parseBriefAnswer, refsNotInText, sectionIdByTitle } from '../../src/core/brief';
+import { briefWordHtml } from '../../src/core/briefDoc';
 import { aiChapterTitles, askGemini, buildPrompt, getGeminiConfig, parseAiAnswer, pickFlashModel, removeAiSummary, summarizeWithAi, testGeminiKey, WHOLE } from '../../src/core/ai';
 import { setSetting } from '../../src/core/db';
 import { db } from '../../src/core/db';
@@ -489,7 +490,17 @@ await test('estrutura do estudo: regras (sem IA) — poucos itens, do texto, sem
   assert(b.source === 'regras' && b.thesis === ex.centralIdea, 'tese = ideia central');
   assert(b.steps.length === 5 && b.steps.every((x) => x.title && !/…/.test(x.title)), b.steps.map((x) => x.title).join('|'));
   assert(b.steps[0].title === 'Introdução' && b.steps[1].question === 'Quem é o meu próximo?', `${b.steps[0].title} / ${b.steps[1].question}`);
-  assert(b.branches.every((x) => x.label.split(' ').length <= 3 && x.leaves.length <= 4), 'ramos curtos');
+  assert(b.branches.every((x) => x.label.split(/\s+/).filter((w) => w !== '·').length <= 6 && !/ (de|do|da|que)$/.test(x.label) && x.leaves.length <= 4), b.branches.map((x) => x.label).join('|'));
+  // enxuto: nada fora dos cartões passa do limite de leitura, e a explicação não repete a pergunta
+  const words = (t: string) => t.split(/\s+/).filter(Boolean).length;
+  assert(words(b.synthesis) <= 60, `síntese longa: ${words(b.synthesis)}`);
+  assert(b.steps.every((x) => !x.question || x.explanation !== x.question), 'etapa repete a pergunta');
+  const biblical = b.cards.filter((c) => c.kind === 'biblico').map((c) => c.back);
+  assert(new Set(biblical).size === biblical.length, 'cartões bíblicos com o mesmo contexto');
+  // Word: as 4 camadas e o DNA, com a tese e a matriz de 3 colunas
+  const doc = briefWordHtml(ex.title, ex.author, b);
+  assert(['Captar', 'Compreender', 'Aprofundar', 'Aplicar', 'DNA da mensagem', 'Base bíblica (onde)'].every((x) => doc.includes(x)) && doc.includes('urn:schemas-microsoft-com:office:word'), 'documento do Word');
+  assert(!/…/.test(doc), 'Word sem reticências');
   const labels = b.branches.flatMap((x) => x.leaves.map((l) => l.label));
   assert(b.branches.every((x) => new Set(x.leaves.map((l) => l.label)).size === x.leaves.length), labels.join('|'));
   assert(b.cards.some((c) => c.kind === 'biblico') && b.cards.some((c) => c.kind === 'principio') && b.cards.some((c) => c.kind === 'revisao'), 'tipos de cartão');

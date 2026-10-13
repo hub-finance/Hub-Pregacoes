@@ -14,7 +14,7 @@ interface Props {
 
 const TOOLS: Array<{ tab: TabId; icon: IconName; title: string; text: string }> = [
   { tab: 'passos', icon: 'list', title: 'Passo a passo', text: 'Estudar parte por parte, marcando o que já foi feito.' },
-  { tab: 'dna', icon: 'sparkle', title: 'DNA', text: 'Ideia central, texto-chave, palavras, versículos e estrutura.' },
+  { tab: 'analise', icon: 'sparkle', title: 'Análise do texto', text: 'Ideia central, texto-chave, palavras e versículos.' },
   { tab: 'mapa', icon: 'layers', title: 'Mapa mental', text: 'Cada assunto com os seus pontos principais, interativo.' },
   { tab: 'quadros', icon: 'columns', title: 'Quadros', text: 'DNA, folha de consulta, conceitos, painel, fluxograma e cartões em imagem.' },
   { tab: 'cartoes', icon: 'copy', title: 'Cartões', text: 'Frente e verso, com revisão espaçada para lembrar.' },
@@ -100,7 +100,7 @@ export function DashboardTab({ material, reading, go }: Props) {
         ) : (
           <p className="small muted" style={{ margin: 0 }}>
             Ainda não escrita. Em uma ou duas frases, o que este material quer ensinar?{' '}
-            <button className="btn btn-ghost btn-sm" onClick={() => go('dna')}>
+            <button className="btn btn-ghost btn-sm" onClick={() => go('analise')}>
               Escrever no DNA
             </button>
           </p>

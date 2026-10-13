@@ -28,17 +28,64 @@ export const cleanTitle = (title: string) =>
     .replace(/^\d{1,3}[.)]?\s+/, '')
     .trim() || title;
 
-/** Até `max` palavras, sem cortar palavra e sem reticências. */
+/**
+ * Rótulo curto que não parece cortado: o título inteiro quando cabe; senão as
+ * palavras-chave dele (nunca "A pergunta do", sempre algo com sentido).
+ */
 function shortLabel(text: string, max = 4): string {
   const words = text.replace(/[“”"]/g, '').split(/\s+/).filter(Boolean);
   if (words.length <= max) return words.join(' ');
-  // tenta parar antes de uma pausa natural (vírgula, dois-pontos)
-  const head = words.slice(0, max).join(' ');
-  return head.replace(/[,:;—–-]+$/, '');
+  // antes de uma pausa natural (vírgula, dois-pontos) cabe inteiro?
+  const clause = text.split(/[,:;—–]/)[0].trim().split(/\s+/);
+  if (clause.length >= 2 && clause.length <= max) return clause.join(' ');
+  const keys = sectionKeywords({ id: '', title: '', text }, Math.min(max, 3));
+  const label = keys.map((k, i) => (i === 0 ? k[0].toUpperCase() + k.slice(1) : k)).join(' · ');
+  if (label) return label;
+  // último recurso: não termina em palavra solta como "de", "do", "que"
+  const head = words.slice(0, max);
+  while (head.length > 1 && /^(a|o|as|os|de|do|da|dos|das|que|e|em|no|na|um|uma|para|por|com)$/i.test(head[head.length - 1])) head.pop();
+  return head.join(' ');
+}
+
+/** Limites de leitura: os textos fora dos cartões devem ser lidos de relance. */
+export const BRIEF_WORDS = { synthesis: 45, sentence: 24 };
+
+const wordCount = (s: string) => s.split(/\s+/).filter(Boolean).length;
+
+/**
+ * Uma frase enxuta: a primeira frase do trecho; se for longa, a oração
+ * principal (até a vírgula ou ponto e vírgula), terminada com ponto. Nunca
+ * reticências — quando não há onde parar com sentido, fica a frase inteira.
+ */
+export function concise(text: string, max = BRIEF_WORDS.sentence): string {
+  const raw = sentences(text)[0] ?? text.trim();
+  // trechos sem ponto final (títulos, itens de lista) ganham o ponto, para não emendarem na frase seguinte
+  const first = raw && !/[.!?:]$/.test(raw) ? `${raw}.` : raw;
+  if (wordCount(first) <= max) return first;
+  const parts = first.split(/(?<=[;:—–])\s+|,\s+(?=(?:mas|porém|pois|porque|e|que|quando|para|pois)\b)|,\s+/);
+  let out = '';
+  for (const part of parts) {
+    const next = out ? `${out}, ${part}` : part;
+    if (wordCount(next) > max) break;
+    out = next;
+  }
+  if (wordCount(out) < 6) return first;
+  return out.replace(/[,;:—–\s]+$/, '') + '.';
 }
 
 function keyOf(s: SectionReading): string {
+  return concise(keyRaw(s));
+}
+
+function keyRaw(s: SectionReading): string {
   return s.highlights[0] ?? (s.definitions[0] && `${s.definitions[0].term}: ${s.definitions[0].meaning}`) ?? sentences(s.paragraphs[0] ?? '')[0] ?? s.listItems[0] ?? '';
+}
+
+/** A frase-chave da parte que não seja a própria pergunta da etapa. */
+function answerOf(s: SectionReading, question: string): string {
+  const q = fold(question);
+  const candidates = [keyRaw(s), ...s.highlights, ...s.paragraphs.flatMap(sentences), ...s.listItems];
+  return concise(candidates.find((c) => c && fold(c) !== q && !c.trim().endsWith('?')) ?? '');
 }
 
 /** A frase do texto em que a referência aparece. */
@@ -52,18 +99,21 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
   const L = BRIEF_LIMITS;
   const sections = r.sections.filter((s) => s.section.text.trim());
   const first = sections[0];
-  const thesis = material.centralIdea.trim() || r.highlights[0]?.text || (first ? keyOf(first) : '');
+  const thesis = concise(material.centralIdea.trim() || r.highlights[0]?.text || (first ? keyRaw(first) : ''), 30);
   const summary = extractiveSummary(material, 'curto', r);
-  const synthesis = summary
-    .flatMap((p) => p.sentences)
-    .filter((x) => x !== thesis)
-    .slice(0, 3)
-    .join(' ');
+  const synthesisParts: string[] = [];
+  for (const sentence of summary.flatMap((p) => p.sentences).filter((x) => x !== thesis).map((x) => concise(x))) {
+    if (synthesisParts.length && wordCount([...synthesisParts, sentence].join(' ')) > BRIEF_WORDS.synthesis) break;
+    synthesisParts.push(sentence);
+    if (synthesisParts.length === 3) break;
+  }
+  const synthesis = synthesisParts.join(' ');
 
   const steps = sections.slice(0, L.steps).map((s) => ({
     title: shortLabel(cleanTitle(s.section.title), 6),
     question: s.questions[0] ?? '',
-    explanation: keyOf(s),
+    // a explicação não pode repetir a pergunta da etapa
+    explanation: answerOf(s, s.questions[0] ?? ''),
     link: '',
     refs: s.references.slice(0, 2).map((x) => x.label),
     section: s.section.title,
@@ -73,25 +123,33 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
   const branches = sections.slice(0, L.branches).map((s) => {
     const leaves: StudyBrief['branches'][number]['leaves'] = [];
     const seen = new Set<string>();
+    // o resumo do ramo não se repete nas folhas, nem a mesma frase em duas folhas
+    const seenDetail = new Set<string>([fold(keyOf(s))]);
     const push = (label: string, detail: string, ref?: string) => {
       const k = fold(label);
-      if (!label || !detail || seen.has(k) || leaves.length >= L.leaves) return;
+      const d = fold(detail);
+      if (!label || !detail || seen.has(k) || (seenDetail.has(d) && d !== k) || leaves.length >= L.leaves) return;
       seen.add(k);
+      seenDetail.add(d);
       leaves.push({ label, detail, ref });
     };
-    for (const d of s.definitions) push(shortLabel(d.term, 3), d.meaning);
-    for (const ref of s.references) push(ref.label, contextOf(s, ref.raw) || ref.label, ref.label);
-    for (const h of s.highlights) push(shortLabel(sectionKeywordsOf(h), 3), h);
+    for (const d of s.definitions) push(shortLabel(d.term, 3), concise(d.meaning));
+    for (const ref of s.references) push(ref.label, concise(contextOf(s, ref.raw)) || ref.label, ref.label);
+    for (const h of s.highlights) push(shortLabel(sectionKeywordsOf(h), 3), concise(h));
     for (const q of s.questions) push('Pergunta', q);
-    return { label: shortLabel(cleanTitle(s.section.title), 3), summary: keyOf(s), leaves, section: s.section.title };
+    return { label: shortLabel(cleanTitle(s.section.title), 6), summary: keyOf(s), leaves, section: s.section.title };
   });
 
   const cards: BriefCard[] = [];
+  const usedContexts = new Set<string>();
   for (const s of sections) {
     for (const ref of s.references) {
       if (cards.filter((c) => c.kind === 'biblico').length >= L.cardsPerKind) break;
       const ctx = contextOf(s, ref.raw);
-      if (ctx) cards.push({ kind: 'biblico', front: ref.label, back: ctx, extra: cleanTitle(s.section.title), ref: ref.label, section: s.section.title, origin: 'texto' });
+      // dois versículos citados na mesma frase não viram dois cartões iguais
+      if (!ctx || usedContexts.has(ctx)) continue;
+      usedContexts.add(ctx);
+      cards.push({ kind: 'biblico', front: ref.label, back: ctx, extra: cleanTitle(s.section.title), ref: ref.label, section: s.section.title, origin: 'texto' });
     }
   }
   for (const h of r.highlights.slice(0, L.cardsPerKind)) {
@@ -109,7 +167,7 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
     .filter((s) => s.highlights.length || s.definitions.length)
     .slice(0, L.dnaRows)
     .map((s, i) => ({
-      principle: s.highlights[0] ?? `${s.definitions[0].term}: ${s.definitions[0].meaning}`,
+      principle: concise(s.highlights[0] ?? `${s.definitions[0].term}: ${s.definitions[0].meaning}`),
       base: s.references[0]?.label ?? '',
       application: applications[i] ?? '',
       origin: 'texto' as BriefOrigin,
@@ -123,11 +181,11 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
     truths: (r.highlights.length ? r.highlights.map((h) => ({ text: h.text, id: h.sectionId })) : sections.map((s) => ({ text: keyOf(s), id: s.section.id })))
       .filter((t) => t.text && t.text !== thesis)
       .slice(0, L.truths)
-      .map((t) => ({ text: t.text, section: sections.find((s) => s.section.id === t.id)?.section.title ?? '', origin: 'texto' as BriefOrigin })),
+      .map((t) => ({ text: concise(t.text), section: sections.find((s) => s.section.id === t.id)?.section.title ?? '', origin: 'texto' as BriefOrigin })),
     steps,
     branches,
     cards,
-    dna: { thesis, convictions: r.highlights.slice(0, 3).map((h) => h.text), rows, outcome: applications[0] ?? '' },
+    dna: { thesis, convictions: r.highlights.slice(0, 3).map((h) => concise(h.text)), rows, outcome: applications[0] ?? '' },
     applications,
     questions: r.questions.slice(0, L.questions).map((q) => q.text),
     source: 'regras',
@@ -221,13 +279,13 @@ export function buildBriefPrompt(material: Material): string {
     `Você é um assistente de estudo para pastores, líderes e membros de igreja. Leia o material “${material.title}”${material.author ? `, de ${material.author}` : ''}, e monte UMA estrutura de estudo, em português do Brasil, que servirá a todos os resumos visuais. O objetivo é qualidade e ganho de tempo: o leitor deve entender e aplicar a mensagem rapidamente, sem repetir o livro.`,
     '',
     'Preencha:',
-    '- tese: a mensagem central em uma frase;',
-    '- sintese: 2 ou 3 frases para entender a mensagem em 30 a 60 segundos;',
+    '- tese: a mensagem central em uma frase de até 20 palavras;',
+    `- sintese: no máximo 2 frases curtas (até ${BRIEF_WORDS.synthesis} palavras ao todo), para entender a mensagem em 20 segundos;`,
     '- objetivo: o que o material quer produzir no leitor, em uma frase;',
     '- textoBase: as referências bíblicas principais do material;',
-    `- verdades: as ${L.truths} principais verdades, no máximo;`,
-    `- progressao: de 3 a ${L.steps} etapas que mostram a LINHA DE RACIOCÍNIO do material (causa e efeito, não um índice de capítulos). Cada etapa: "etapa" com 2 a 5 palavras, a "pergunta" que ela responde, a "explicacao" em uma frase e a "ligacao" com a próxima etapa (um verbo ou expressão curta, como "alimenta", "gera", "permite", "resulta em"; vazio na última);`,
-    `- ramos: de 3 a ${L.branches} ramos do mapa mental, do conflito ou problema à solução. "rotulo" com 1 a 3 palavras; "resumo" em uma frase; até ${L.leaves} "folhas" com rótulo de 1 a 3 palavras e "detalhe" de 1 ou 2 frases;`,
+    `- verdades: as ${L.truths} principais verdades, no máximo, cada uma em uma frase de até 18 palavras;`,
+    `- progressao: de 3 a ${L.steps} etapas que mostram a LINHA DE RACIOCÍNIO do material (causa e efeito, não um índice de capítulos). Cada etapa: "etapa" com 2 a 5 palavras, a "pergunta" que ela responde, a "explicacao" em uma frase de até 20 palavras (sem repetir a pergunta) e a "ligacao" com a próxima etapa (um verbo ou expressão curta, como "alimenta", "gera", "permite", "resulta em"; vazio na última);`,
+    `- ramos: de 3 a ${L.branches} ramos do mapa mental, do conflito ou problema à solução. "rotulo" com 1 a 3 palavras; "resumo" em uma frase de até 15 palavras; até ${L.leaves} "folhas" com rótulo de 1 a 3 palavras e "detalhe" em uma frase de até 20 palavras;`,
     `- cartoes: até ${L.cardsPerKind} de cada tipo, sem repetir o que já está nas etapas: "biblico" (frente = referência, verso = a verdade central do texto, extra = relação com a mensagem); "principio" (frente = o princípio, verso = explicação breve, extra = implicação); "conexao" (frente = "conceito ou texto A → conceito ou texto B", verso = a explicação da relação); "revisao" (frente = pergunta objetiva, verso = resposta curta, referencia quando houver);`,
     `- dna: tese, até 3 convicções, uma matriz de até ${L.dnaRows} linhas (principio = o quê; base = a referência bíblica, onde; aplicacao = como) e o resultado esperado;`,
     `- aplicacoes: até ${L.applications} aplicações práticas; perguntas: até ${L.questions} perguntas para reflexão ou grupo.`,
@@ -237,7 +295,7 @@ export function buildBriefPrompt(material: Material): string {
     '- "origem": "texto" quando o item está dito no material; "ia" quando é uma inferência sua. Seja honesto nessa marcação.',
     '- "secao": o título exato da parte do material de onde o item vem (como aparece depois de "##").',
     '- Referências bíblicas: use SOMENTE as que aparecem no material, escritas como "Livro capítulo:versículo". Não invente citações, autores nem fontes.',
-    '- Frases completas, curtas e claras. Nunca use reticências nem corte frases. Não repita o mesmo conteúdo em lugares diferentes.',
+    '- Enxuto: o leitor deve ler cada quadro de relance. Selecione o essencial; não resuma tudo. Frases completas, curtas e claras. Nunca use reticências nem corte frases. Não repita o mesmo conteúdo em lugares diferentes.',
     '',
     'MATERIAL:',
     text,
