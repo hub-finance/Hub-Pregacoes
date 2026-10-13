@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
+import { EmptyState } from '../../components/ui';
+import { downloadText, safeName } from '../../core/backup';
 import { createMaterial } from '../../core/materials';
 import { extractiveSummary, summaryAsSections, type SummaryLength } from '../../core/summary';
 import type { MaterialReading } from '../../core/text';
@@ -45,7 +47,16 @@ export function SummaryTab({ material, reading }: { material: Material; reading:
       </div>
 
       {!parts.length ? (
-        <p className="muted">Ainda não há texto suficiente para resumir.</p>
+        <EmptyState
+          icon="text"
+          title="Ainda não há texto para resumir"
+          description="O resumo escolhe as frases mais importantes do próprio texto. Escreva ou cole o conteúdo na aba Editar e volte aqui."
+          action={
+            <button className="btn btn-primary btn-sm" onClick={() => navigate(`/m/${material.id}?aba=editar`)}>
+              Escrever o conteúdo
+            </button>
+          }
+        />
       ) : (
         <article className="card stack">
           {material.centralIdea && (
@@ -81,6 +92,17 @@ export function SummaryTab({ material, reading }: { material: Material; reading:
           }}
         >
           Copiar
+        </button>
+        <button
+          className="btn"
+          disabled={!parts.length}
+          onClick={() => {
+            const md = [`# Resumo — ${material.title}`, '', ...parts.flatMap((p) => [`## ${p.title}`, '', ...p.sentences, ''])].join('\n');
+            downloadText(md, `${safeName(material.title)} - resumo.md`);
+            notify('Resumo baixado (.md).');
+          }}
+        >
+          Baixar (.md)
         </button>
         <button
           className="btn btn-primary"

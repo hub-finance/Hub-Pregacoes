@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
+import { SaveStatus } from '../../components/SaveStatus';
 import { ConfirmDialog, SelectInput, TextInput } from '../../components/ui';
 import { downloadJson, hubStudyBackup, safeName } from '../../core/backup';
 import { deleteMaterial, duplicateMaterial, KIND_LABEL, newSection, PART_LABEL, saveMaterial } from '../../core/materials';
@@ -16,6 +17,7 @@ export function EditTab({ material }: { material: Material }) {
   const { notify } = useToast();
   const [draft, setDraft] = useState<Material>(material);
   const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
   const [removing, setRemoving] = useState(false);
   const dirty = useRef(false);
   const latest = useRef(draft);
@@ -33,6 +35,7 @@ export function EditTab({ material }: { material: Material }) {
       await saveMaterial(latest.current);
       dirty.current = false;
       setSaving(false);
+      setSavedAt(Date.now());
     }, 700);
     return () => clearTimeout(t);
   }, [draft]);
@@ -63,9 +66,7 @@ export function EditTab({ material }: { material: Material }) {
   return (
     <div className="stack">
       <div className="row row-wrap">
-        <span className="small dim" aria-live="polite">
-          {saving ? 'Salvando…' : dirty.current ? 'Alterações pendentes' : 'Salvo no aparelho'}
-        </span>
+        <SaveStatus saving={saving} pending={dirty.current} savedAt={savedAt} />
       </div>
 
       <section className="card stack">

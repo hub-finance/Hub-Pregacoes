@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
+import { SaveStatus } from '../../components/SaveStatus';
+import { EmptyState } from '../../components/ui';
 import { getProgress, PART_LABEL, progressRatio, setCurrentStep, setStepDone, setStepNote } from '../../core/materials';
 import type { Material } from '../../core/types';
 import { RichText } from './RichText';
@@ -20,6 +22,8 @@ export function StepsTab({ material }: { material: Material }) {
   const index = material.sections.findIndex((s) => s.id === stepId);
   const section = index >= 0 ? material.sections[index] : null;
   const [note, setNote] = useState('');
+  // guarda de qual passo é a hora, para não mostrar "Salvo" de outro passo
+  const [noteSaved, setNoteSaved] = useState<{ id: string; at: number } | null>(null);
 
   useEffect(() => {
     if (section && progress) setNote(progress.notes[section.id] ?? '');
@@ -36,7 +40,18 @@ export function StepsTab({ material }: { material: Material }) {
   };
 
   if (!material.sections.length) {
-    return <p className="muted">Este material ainda não tem partes. Use a aba Editar para escrever ou colar o conteúdo.</p>;
+    return (
+      <EmptyState
+        icon="list"
+        title="Ainda não há partes para estudar"
+        description="O passo a passo mostra uma parte do texto por vez. Escreva ou cole o conteúdo na aba Editar, com um título para cada parte."
+        action={
+          <button className="btn btn-primary btn-sm" onClick={() => setParams({ aba: 'editar' })}>
+            Escrever o conteúdo
+          </button>
+        }
+      />
+    );
   }
 
   const done = new Set(progress?.done ?? []);
@@ -87,7 +102,9 @@ export function StepsTab({ material }: { material: Material }) {
   const next = material.sections[index + 1];
 
   const saveNote = async () => {
-    if ((progress?.notes[section.id] ?? '') !== note) await setStepNote(material.id, section.id, note);
+    if ((progress?.notes[section.id] ?? '') === note) return;
+    await setStepNote(material.id, section.id, note);
+    setNoteSaved({ id: section.id, at: Date.now() });
   };
 
   return (
@@ -114,6 +131,7 @@ export function StepsTab({ material }: { material: Material }) {
         <span>Minha anotação neste passo</span>
         <textarea className="textarea" rows={4} value={note} onChange={(e) => setNote(e.target.value)} onBlur={saveNote} placeholder="O que Deus falou comigo, dúvidas, como aplicar…" />
       </label>
+      <SaveStatus pending={(progress?.notes[section.id] ?? '') !== note} savedAt={noteSaved?.id === section.id ? noteSaved.at : null} />
 
       <div className="row row-wrap">
         <button className="btn" onClick={async () => {

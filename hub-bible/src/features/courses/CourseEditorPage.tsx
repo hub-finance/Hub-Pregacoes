@@ -83,6 +83,7 @@ export default function CourseEditorPage() {
       docId={doc.id}
       toMarkdown={toMarkdown}
       toHtml={toHtml}
+      exportable={!imported}
       extraActions={
         imported ? (
           <button className="btn btn-sm btn-primary" onClick={() => navigate(`/aula/${doc.id}`)}>

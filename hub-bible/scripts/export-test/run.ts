@@ -7,7 +7,7 @@ import JSZip from 'jszip';
 import { db, uid } from '../../src/core/db/db';
 import type { ExportLayout, Sermon, SermonBlock } from '../../src/core/db/types';
 import { parseBlockHtml, plainOf } from '../../src/core/export/inline';
-import { buildRenderDoc, tableFrom, type RenderDoc } from '../../src/core/export/model';
+import { buildRenderDoc, contentForEdition, tableFrom, type RenderDoc } from '../../src/core/export/model';
 import { buildDocx } from '../../src/core/export/docx';
 import { buildMarkdown } from '../../src/core/export/markdown';
 import { pdfDefinition, PDF_FONT_FILES } from '../../src/core/export/pdf';
@@ -465,6 +465,95 @@ await test('Documento sem título ou vazio não é aprovado', async () => {
     msg = (err as Error).message;
   }
   assert(msg.includes('sem conteúdo'), msg);
+});
+
+/* ------------------------------- Fase 3 ------------------------------- */
+
+await test('Instrutor e participante: a versão do participante tira só as partes do instrutor', () => {
+  const a = block('section', 'Abertura');
+  const b = block('section', 'Notas do instrutor');
+  const c = block('section', 'Como conduzir');
+  const d = block('section', 'Lição');
+  const content = [a, block('text', 'Bem-vindos.'), b, block('text', 'Chegue 15 minutos antes.'), c, block('text', 'Divida em grupos.'), d, block('text', 'Texto da lição.')];
+  const structure = { pageBreaks: [], subheadings: [c.id], instructorOnly: [b.id] };
+  const part = contentForEdition(content, structure, 'participante').map((x) => x.html).join('|');
+  assert(part === 'Abertura|Bem-vindos.|Lição|Texto da lição.', part);
+  assert(contentForEdition(content, structure, 'instrutor').length === content.length, 'instrutor tem tudo');
+  // subtítulo marcado só some ele e o que vem abaixo dele, até a próxima seção
+  const onlySub = contentForEdition(content, { pageBreaks: [], subheadings: [c.id], instructorOnly: [c.id] }, 'participante').map((x) => x.html);
+  assert(!onlySub.includes('Divida em grupos.') && onlySub.includes('Lição') && onlySub.includes('Chegue 15 minutos antes.'), onlySub.join('|'));
+});
+
+await test('Plano devocional de 7 dias: vários devocionais num só documento, cada um como um dia', async () => {
+  const t = Date.now();
+  const ids: string[] = [];
+  for (let i = 1; i <= 3; i++) {
+    const id = `dev_${i}`;
+    ids.push(id);
+    await db.devotionals.put({
+      id, userId: 'local', title: `Confiança ${i}`, date: '2026-10-1' + i, category: 'Fé', scripture: 'Salmos 23:1',
+      reflection: `Reflexão do dia ${i}.`, application: '', prayer: `Oração ${i}.`, notes: '', tags: [], createdAt: t, updatedAt: t,
+    });
+  }
+  const doc = await createExportDoc({ category: 'devocional', model: 'plano-7', sourceKind: 'compiled', sources: ids.map((id) => ({ kind: 'devotional', id })), title: 'Sete dias de confiança' });
+  const titles = doc.content.filter((b) => b.type === 'section' && !doc.structure.subheadings.includes(b.id)).map((b) => b.html);
+  assert(titles.join('|') === 'Dia 1 — Confiança 1|Dia 2 — Confiança 2|Dia 3 — Confiança 3', titles.join('|'));
+  assert(doc.source.kind === 'compiled' && doc.source.parts?.length === 3, 'origens guardadas');
+  assert(doc.layout.breakBeforeSections && doc.layout.cover, 'cada dia em página nova, com capa');
+  const render = buildRenderDoc({ title: doc.title, content: doc.content, structure: doc.structure, layout: doc.layout });
+  const h1 = render.nodes.filter((n) => n.t === 'heading' && n.level === 1).length;
+  const h2 = render.nodes.filter((n) => n.t === 'heading' && n.level === 2).length;
+  assert(h1 === 3 && h2 >= 6, `títulos ${h1}, subtítulos ${h2}`);
+  const pdf = await pdfBlob(render);
+  await save('plano-devocional.pdf', pdf);
+  const pages = await pdfPages(pdf);
+  assert(pages.some((p) => p.includes('Dia 3 — Confiança 3')) && pages.length >= 4, `páginas ${pages.length}`);
+  // restaurar o original mantém os subtítulos de cada dia
+  await saveDraft(doc.id, { structure: { pageBreaks: [], subheadings: [] } });
+  const restored = await restoreOriginal(doc.id);
+  assert(restored.structure.subheadings.length === doc.structure.subheadings.length, 'restaurar o compilado');
+  let refused = false;
+  try {
+    await createExportDoc({ category: 'devocional', model: 'plano-7', sourceKind: 'compiled', sources: [{ kind: 'devotional', id: ids[0] }, { kind: 'devotional', id: 'nao-existe' }] });
+  } catch {
+    refused = true;
+  }
+  assert(refused, 'origem inexistente deveria ser recusada');
+});
+
+await test('Plano de leitura vira documento, semana a semana, com o que já foi lido', async () => {
+  const t = Date.now();
+  await db.plans.put({
+    id: 'pln_teste', userId: 'local', templateId: 'personalizado', name: 'Evangelhos em 10 dias', description: 'Leitura dos Evangelhos.',
+    totalDays: 10, days: Array.from({ length: 10 }, (_, i) => ({ day: i + 1, ranges: [['MAT', i * 2 + 1, i * 2 + 2]] as Array<[string, number, number]> })),
+    completedDays: [1, 2], startedAt: t, createdAt: t, updatedAt: t,
+  });
+  const doc = await createExportDoc({ category: 'devocional', model: 'plano-leitura', sourceKind: 'plan', sourceId: 'pln_teste' });
+  const render = buildRenderDoc({ title: doc.title, content: doc.content, structure: doc.structure, layout: doc.layout });
+  const tables = render.nodes.filter((n): n is Extract<typeof n, { t: 'table' }> => n.t === 'table');
+  assert(tables.length === 2, `tabelas ${tables.length}`);
+  assert(tables[0].rows[1].join('|') === '1|Mateus 1-2|✓' && tables[0].rows[3][2] === '☐', JSON.stringify(tables[0].rows.slice(0, 4)));
+  assert(tables[1].rows.length === 4, 'segunda semana com 3 dias + cabeçalho');
+  const docx = await buildDocx(render);
+  assert((await docxText(docx)).text.includes('Mateus 19-20'), 'último dia no Word');
+});
+
+await test('Gerar com divisão: um arquivo do instrutor e um do participante', async () => {
+  const doc = await createExportDoc({ category: 'treinamento', model: 'apostila', sourceKind: 'blank', title: 'Treinamento de líderes' });
+  const intro = block('section', 'Introdução');
+  const notes = block('section', 'Orientações ao instrutor');
+  const content = [intro, block('text', 'Bem-vindos ao treinamento.'), notes, block('text', 'Resposta esperada: graça.')];
+  await saveDraft(doc.id, { content, structure: { pageBreaks: [], subheadings: [], instructorOnly: [notes.id] } });
+  await approveVersion(doc.id);
+  const gen = await generateFiles(doc.id, ['md']);
+  assert(gen.files.length === 2 && gen.files.every((f) => f.ok && f.file), JSON.stringify(gen.files.map((f) => [f.edition, f.error])));
+  const names = gen.files.map((f) => f.filename).sort().join('|');
+  assert(names === 'Treinamento de líderes - v1 - instrutor.md|Treinamento de líderes - v1 - participante.md', names);
+  const participante = await gen.files.find((f) => f.edition === 'participante')!.blob!.text();
+  const instrutor = await gen.files.find((f) => f.edition === 'instrutor')!.blob!.text();
+  assert(!participante.includes('Resposta esperada') && instrutor.includes('Resposta esperada'), 'conteúdo das versões');
+  const only = await generateFiles(doc.id, ['md'], undefined, ['participante']);
+  assert(only.files.length === 1 && only.files[0].edition === 'participante', 'só a versão do participante');
 });
 
 console.log(results.join('\n'));

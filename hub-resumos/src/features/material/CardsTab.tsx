@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
-import { ConfirmDialog } from '../../components/ui';
+import { ConfirmDialog, EmptyState } from '../../components/ui';
 import { addCards, listCards, ORIGIN_LABEL, suggestCards, type CardDraft } from '../../core/cards';
 import { db } from '../../core/db';
 import type { Card, Material } from '../../core/types';
@@ -70,6 +70,14 @@ export function CardsTab({ material }: { material: Material }) {
         <span className="small dim">{cards.length} cartão(ões)</span>
       </div>
 
+      {loaded && !cards.length && !drafts?.length && (
+        <EmptyState
+          icon="layers"
+          title="Nenhum cartão ainda"
+          description="Cartões são perguntas e respostas para memorizar. Toque em “Sugerir cartões do texto”: destaques, definições, listas e perguntas viram cartões, e você escolhe quais guardar."
+        />
+      )}
+
       {drafts && drafts.length > 0 && (
         <section className="card stack">
           <div className="row row-wrap">
@@ -79,7 +87,7 @@ export function CardsTab({ material }: { material: Material }) {
               {chosen.size === drafts.length ? 'Desmarcar todas' : 'Marcar todas'}
             </button>
           </div>
-          <span className="small dim">Escolha quais guardar. Você pode editar ou excluir qualquer cartão depois.</span>
+          <span className="small dim">Escolha quais salvar. Você pode editar ou excluir qualquer cartão depois.</span>
           <div className="xr-pick-list" style={{ maxHeight: 'none' }}>
             {drafts.map((d, i) => (
               <label key={i} className="xr-pick">
@@ -113,11 +121,11 @@ export function CardsTab({ material }: { material: Material }) {
               disabled={!chosen.size}
               onClick={async () => {
                 const added = await addCards(material.id, drafts.filter((_, i) => chosen.has(i)));
-                notify(`${added.length} cartão(ões) guardado(s).`);
+                notify(`${added.length} cartão(ões) salvo(s).`);
                 setDrafts(null);
               }}
             >
-              Guardar {chosen.size} cartão(ões)
+              Salvar {chosen.size} cartão(ões)
             </button>
             <button className="btn btn-ghost" onClick={() => setDrafts(null)}>
               Descartar sugestões
@@ -146,10 +154,10 @@ export function CardsTab({ material }: { material: Material }) {
               await addCards(material.id, [{ front, back, origin: 'manual' }]);
               setFront('');
               setBack('');
-              notify('Cartão guardado.');
+              notify('Cartão salvo.');
             }}
           >
-            Guardar cartão
+            Salvar cartão
           </button>
         </div>
       </section>

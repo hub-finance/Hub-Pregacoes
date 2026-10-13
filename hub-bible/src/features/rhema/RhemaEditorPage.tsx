@@ -130,6 +130,7 @@ export default function RhemaEditorPage() {
       docId={doc.id}
       toMarkdown={toMarkdown}
       toHtml={toHtml}
+      exportable={!doc.attachmentId}
       extraActions={
         doc.attachmentId ? (
           <button

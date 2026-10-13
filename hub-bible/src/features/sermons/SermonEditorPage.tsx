@@ -177,6 +177,7 @@ export default function SermonEditorPage() {
       docId={doc.id}
       toMarkdown={toMarkdown}
       toHtml={toHtml}
+      exportable={!doc.attachmentId || content.length > 0}
       extraActions={
         <button className="btn btn-sm btn-primary" onClick={() => navigate(`/pregacao/${doc.id}`)}>
           Modo Pregação

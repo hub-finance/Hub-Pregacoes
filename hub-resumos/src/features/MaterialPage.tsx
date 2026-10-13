@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Breadcrumb } from '../components/Breadcrumb';
 import { Spinner } from '../components/ui';
 import { db } from '../core/db';
 import { KIND_LABEL, touchMaterial } from '../core/materials';
@@ -8,6 +9,7 @@ import { readMaterial } from '../core/text';
 import { ActionsTab } from './material/ActionsTab';
 import { CardsTab } from './material/CardsTab';
 import { DashboardTab } from './material/DashboardTab';
+import { BoardsTab } from './material/BoardsTab';
 import { DnaTab } from './material/DnaTab';
 import { EditTab } from './material/EditTab';
 import { InfographicTab } from './material/InfographicTab';
@@ -20,7 +22,8 @@ export const TABS = [
   { id: 'painel', label: 'Painel' },
   { id: 'passos', label: 'Passo a passo' },
   { id: 'dna', label: 'DNA' },
-  { id: 'mapa', label: 'Mapa de conceitos' },
+  { id: 'mapa', label: 'Mapa mental' },
+  { id: 'quadros', label: 'Quadros' },
   { id: 'cartoes', label: 'Cartões' },
   { id: 'consulta', label: 'Consulta rápida' },
   { id: 'acoes', label: 'Plano de ação' },
@@ -63,11 +66,13 @@ export default function MaterialPage() {
 
   return (
     <div className="page page-wide">
-      <div className="row row-wrap" style={{ marginBottom: 'var(--sp-2)' }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>
-          ← Biblioteca
-        </button>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: 'Biblioteca', to: '/' },
+          { label: material.title, to: `/m/${material.id}` },
+          { label: TABS.find((t) => t.id === tab)?.label ?? '' },
+        ]}
+      />
       <header style={{ marginBottom: 'var(--sp-4)' }}>
         <div className="row row-wrap" style={{ gap: 'var(--sp-2)' }}>
           <span className="badge">{KIND_LABEL[material.kind]}</span>
@@ -86,10 +91,17 @@ export default function MaterialPage() {
         ))}
       </div>
 
+      <div className="row" style={{ justifyContent: 'flex-end', marginTop: 'calc(-1 * var(--sp-2))', marginBottom: 'var(--sp-2)' }}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/ajuda?t=${tab}`)}>
+          ? Como usar: {TABS.find((t) => t.id === tab)?.label}
+        </button>
+      </div>
+
       {tab === 'painel' && <DashboardTab material={material} reading={reading} go={go} />}
       {tab === 'passos' && <StepsTab material={material} />}
       {tab === 'dna' && <DnaTab material={material} reading={reading} />}
       {tab === 'mapa' && <MapTab material={material} reading={reading} />}
+      {tab === 'quadros' && <BoardsTab material={material} reading={reading} />}
       {tab === 'cartoes' && <CardsTab material={material} />}
       {tab === 'consulta' && <QuickSheetTab material={material} reading={reading} />}
       {tab === 'acoes' && <ActionsTab material={material} />}

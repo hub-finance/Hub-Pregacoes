@@ -1,4 +1,4 @@
-import type { ExportLayout, ExportStructure, SermonBlock } from '../db/types';
+import type { ExportEdition, ExportLayout, ExportStructure, SermonBlock } from '../db/types';
 import { parseBlockHtml, plainOf, splitLines, textRuns, tidy, type Para, type Run } from './inline';
 import { resolveTheme, type ExportTheme } from './themes';
 
@@ -88,6 +88,32 @@ function parasFromHtml(html: string): Para[] {
   }
   return paras;
 }
+
+/**
+ * O conteúdo de cada versão. A do participante deixa de fora as seções
+ * marcadas como "só instrutor" e tudo o que vem abaixo delas — até a próxima
+ * seção do mesmo nível ou de nível acima. A do instrutor é o documento inteiro.
+ */
+export function contentForEdition(content: SermonBlock[], structure: ExportStructure, edition?: ExportEdition): SermonBlock[] {
+  const hidden = new Set(structure.instructorOnly ?? []);
+  if (edition !== 'participante' || !hidden.size) return content;
+  const sub = new Set(structure.subheadings);
+  const out: SermonBlock[] = [];
+  /** Nível da seção que está sendo pulada (1 ou 2), ou 0 quando nada é pulado. */
+  let skipping = 0;
+  for (const block of content) {
+    if (block.type === 'section') {
+      const level = sub.has(block.id) ? 2 : 1;
+      if (skipping && level <= skipping) skipping = 0;
+      if (!skipping && hidden.has(block.id)) skipping = level;
+    }
+    if (!skipping) out.push(block);
+  }
+  return out;
+}
+
+/** Há divisão entre material do instrutor e do participante? */
+export const hasEditions = (structure: ExportStructure) => (structure.instructorOnly ?? []).length > 0;
 
 export function buildRenderDoc(input: RenderInput): RenderDoc {
   const { layout, structure } = input;

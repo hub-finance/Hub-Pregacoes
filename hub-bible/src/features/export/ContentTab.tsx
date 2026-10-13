@@ -13,15 +13,36 @@ interface Props {
   onRestoreOriginal: () => void;
 }
 
-/** Seções do documento: cada subtítulo e os blocos que vêm depois dele. */
-function sectionsOf(content: SermonBlock[]) {
-  const out: Array<{ block: SermonBlock; start: number; end: number }> = [];
-  content.forEach((b, i) => {
-    if (b.type !== 'section') return;
-    if (out.length) out[out.length - 1].end = i;
-    out.push({ block: b, start: i, end: content.length });
+/**
+ * Seções do documento. Um título leva junto tudo o que vem abaixo dele até o
+ * próximo título — inclusive os seus subtítulos —, e um subtítulo, até a
+ * próxima seção. É isso que se move quando o autor reordena.
+ */
+function sectionsOf(content: SermonBlock[], subheadings: string[]) {
+  const sub = new Set(subheadings);
+  const heads = content
+    .map((block, index) => ({ block, index }))
+    .filter((x) => x.block.type === 'section')
+    .map((x) => ({ ...x, level: sub.has(x.block.id) ? 2 : 1 }));
+  return heads.map((h, i) => {
+    const next = heads.slice(i + 1).find((x) => x.level <= h.level || h.level === 2);
+    return { block: h.block, level: h.level, start: h.index, end: next ? next.index : content.length };
   });
-  return out;
+}
+
+/**
+ * Num compilado, a numeração que o app pôs ("Dia 3 — …", "Mensagem 2 — …")
+ * acompanha a nova ordem. Só o número muda; o resto do título é do autor.
+ */
+const SERIES_LABEL = /^(Dia|Mensagem|Estudo|Módulo) \d+ — /;
+function renumber(content: SermonBlock[], subheadings: string[]): SermonBlock[] {
+  const sub = new Set(subheadings);
+  let n = 0;
+  return content.map((b) => {
+    if (b.type !== 'section' || sub.has(b.id) || !SERIES_LABEL.test(b.html)) return b;
+    n++;
+    return { ...b, html: b.html.replace(SERIES_LABEL, (m) => m.replace(/\d+/, String(n))) };
+  });
 }
 
 const toggle = (list: string[], id: string) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
@@ -33,27 +54,42 @@ const toggle = (list: string[], id: string) => (list.includes(id) ? list.filter(
 export function ContentTab({ doc, set, onRestoreOriginal }: Props) {
   const navigate = useNavigate();
   const [confirmRestore, setConfirmRestore] = useState(false);
-  const sections = sectionsOf(doc.content);
   const { structure } = doc;
+  const sections = sectionsOf(doc.content, structure.subheadings);
+  const instructorOnly = structure.instructorOnly ?? [];
   const route = sourceRoute(doc.source);
 
   const setStructure = (patch: Partial<ExportStructure>) => set({ structure: { ...structure, ...patch } });
 
-  /** Move a seção inteira (o subtítulo e o que vem abaixo dele) uma posição. */
+  /**
+   * A seção vizinha com que trocar de lugar: um título troca com o título de
+   * cima ou de baixo; um subtítulo, só com outro subtítulo do mesmo título.
+   */
+  const neighbor = (index: number, delta: number) => {
+    const me = sections[index];
+    for (let i = index + delta; i >= 0 && i < sections.length; i += delta) {
+      const other = sections[i];
+      if (other.level < me.level) return null;
+      if (other.level === me.level) return i;
+    }
+    return null;
+  };
+
+  /** Move a seção inteira (o título e o que vem abaixo dele) uma posição. */
   const moveSection = (index: number, delta: number) => {
-    const target = index + delta;
-    if (target < 0 || target >= sections.length) return;
+    const target = neighbor(index, delta);
+    if (target === null) return;
     const a = sections[Math.min(index, target)];
     const b = sections[Math.max(index, target)];
     const content = doc.content;
-    set({
-      content: [
-        ...content.slice(0, a.start),
-        ...content.slice(b.start, b.end),
-        ...content.slice(a.start, a.end),
-        ...content.slice(b.end),
-      ],
-    });
+    const moved = [
+      ...content.slice(0, a.start),
+      ...content.slice(b.start, b.end),
+      ...content.slice(a.end, b.start),
+      ...content.slice(a.start, a.end),
+      ...content.slice(b.end),
+    ];
+    set({ content: doc.source.kind === 'compiled' ? renumber(moved, structure.subheadings) : moved });
   };
 
   return (
@@ -64,7 +100,8 @@ export function ContentTab({ doc, set, onRestoreOriginal }: Props) {
         <Icon name="info" size={18} />
         <span>
           Origem: <strong>{SOURCE_LABEL[doc.source.kind]}</strong>
-          {doc.source.kind !== 'blank' && doc.source.title ? ` — ${doc.source.title}` : ''}. As alterações feitas
+          {doc.source.kind !== 'blank' && doc.source.title ? ` — ${doc.source.title}` : ''}
+          {doc.source.parts?.length ? `: ${doc.source.parts.map((p) => p.title).join('; ')}` : ''}. As alterações feitas
           aqui valem só para este documento; o conteúdo de origem não muda.{' '}
           {route && (
             <button className="btn btn-ghost btn-sm" onClick={() => navigate(route)}>
@@ -90,7 +127,8 @@ export function ContentTab({ doc, set, onRestoreOriginal }: Props) {
         ) : (
           <div className="xp-outline">
             {sections.map((s, i) => {
-              const sub = structure.subheadings.includes(s.block.id);
+              const sub = s.level === 2;
+              const onlyInstructor = instructorOnly.includes(s.block.id);
               const brk = structure.pageBreaks.includes(s.block.id);
               const title = htmlToPlain(s.block.html) || 'Seção sem título';
               return (
@@ -114,13 +152,21 @@ export function ContentTab({ doc, set, onRestoreOriginal }: Props) {
                   >
                     Nova página
                   </button>
-                  <button className="icon-btn" onClick={() => moveSection(i, -1)} disabled={i === 0} aria-label={`Subir a seção ${title}`}>
+                  <button
+                    className={`chip${onlyInstructor ? ' active' : ''}`}
+                    aria-pressed={onlyInstructor}
+                    onClick={() => setStructure({ instructorOnly: toggle(instructorOnly, s.block.id) })}
+                    title="Esta parte sai só no material do instrutor"
+                  >
+                    Só instrutor
+                  </button>
+                  <button className="icon-btn" onClick={() => moveSection(i, -1)} disabled={neighbor(i, -1) === null} aria-label={`Subir a seção ${title}`}>
                     ↑
                   </button>
                   <button
                     className="icon-btn"
                     onClick={() => moveSection(i, 1)}
-                    disabled={i === sections.length - 1}
+                    disabled={neighbor(i, 1) === null}
                     aria-label={`Descer a seção ${title}`}
                   >
                     ↓

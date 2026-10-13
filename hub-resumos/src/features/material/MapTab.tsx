@@ -1,156 +1,97 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { buildConceptMap, type MapNode } from '../../core/concepts';
-import { fold } from '../../core/bible';
-import { saveMaterial } from '../../core/materials';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { useCallback, useMemo, useRef } from 'react';
+import { useToast } from '../../components/Toast';
+import { listActions } from '../../core/actions';
+import { downloadBlob, safeName } from '../../core/backup';
+import { buildMindMap, MIND_TYPE_LABEL } from '../../core/mindmap';
 import type { MaterialReading } from '../../core/text';
-import type { Material } from '../../core/types';
+import type { ActionItem, Material } from '../../core/types';
+import type { MindMapHandle } from '../mindmap/engine.js';
+import { MindMapView } from '../mindmap/MindMapView';
+import { mindMapHtml } from '../mindmap/standalone';
 
-const COLORS: Record<MapNode['kind'], string> = {
-  centro: 'var(--accent)',
-  secao: 'var(--xr-map-section)',
-  conceito: 'var(--xr-map-concept)',
-  referencia: 'var(--xr-map-ref)',
-};
-
-const short = (text: string, max = 22) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
-
-/** Mapa de conceitos: tocar num nó mostra em que partes ele aparece. */
+/**
+ * Mapa mental interativo: cada assunto do material com todos os seus
+ * desdobramentos, tirados do próprio texto, sem resumo.
+ */
 export function MapTab({ material, reading }: { material: Material; reading: MaterialReading }) {
-  const map = useMemo(() => buildConceptMap(material, reading), [material, reading]);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [newConcept, setNewConcept] = useState('');
-  const wrap = useRef<HTMLDivElement>(null);
-  // em tela estreita o desenho rola de lado; começa centrado no material
-  useEffect(() => {
-    const el = wrap.current;
-    if (el && el.scrollWidth > el.clientWidth) el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
-  }, []);
-  const byId = new Map(map.nodes.map((n) => [n.id, n]));
-  const sel = selected ? byId.get(selected) : undefined;
-  const linked = new Set(
-    sel ? map.edges.filter((e) => e.from === sel.id || e.to === sel.id).flatMap((e) => [e.from, e.to]) : [],
+  const { notify } = useToast();
+  const actions = useLiveQuery(() => listActions(material.id), [material.id], [] as ActionItem[]);
+  // só refaz o mapa quando as ações abertas mudam de verdade
+  const openKey = actions.filter((a) => a.status !== 'feito').map((a) => `${a.id}|${a.text}|${a.owner}|${a.due}`).join('~');
+  const data = useMemo(
+    () => buildMindMap(material, reading, actions),
+    [material, reading, openKey],
   );
+  const handle = useRef<MindMapHandle | null>(null);
+  const onReady = useCallback((m: MindMapHandle | null) => {
+    handle.current = m;
+  }, []);
+  const total = data.modules.reduce((n, m) => n + m.children.length, 0);
+  const name = safeName(material.title);
 
-  const addConcept = async () => {
-    const c = newConcept.trim();
-    if (!c || material.concepts.some((x) => fold(x) === fold(c))) return;
-    await saveMaterial({ ...material, concepts: [...material.concepts, c] });
-    setNewConcept('');
-  };
+  if (!data.modules.length)
+    return (
+      <div className="empty">
+        <strong>O mapa precisa de partes no texto</strong>
+        <span className="small muted">Divida o material em partes (aba Editar, um título por parte) e cada uma vira um assunto do mapa.</span>
+      </div>
+    );
 
   return (
     <div className="stack">
       <p className="small muted" style={{ margin: 0 }}>
-        No centro, o material; em volta, as partes; por fora, os conceitos e versículos, ligados às partes em que aparecem
-        no texto. Toque num ponto para ver as ligações.
+        No centro, o material; em volta, os {data.modules.length} assuntos; toque num assunto para abrir os desdobramentos ({total} no
+        total) e toque em qualquer círculo para ler o trecho inteiro. Nada é resumido: cada desdobramento é o texto do próprio material.
       </p>
-      <div className="xr-map-wrap" ref={wrap}>
-        <svg viewBox={`0 0 ${map.width} ${map.height}`} className="xr-map" role="img" aria-label={`Mapa de conceitos de ${material.title}`}>
-          {map.edges.map((e, i) => {
-            const a = byId.get(e.from)!;
-            const b = byId.get(e.to)!;
-            const on = !sel || (linked.has(e.from) && linked.has(e.to) && (e.from === sel.id || e.to === sel.id));
-            return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={`xr-edge${on ? '' : ' faded'}`} />;
-          })}
-          {map.nodes.map((n) => {
-            const faded = sel && !linked.has(n.id) && sel.id !== n.id;
-            const label = short(n.label, n.kind === 'centro' ? 28 : 22);
-            const w = Math.max(70, label.length * (n.kind === 'centro' ? 10 : 8.2) + 24);
-            const h = n.kind === 'centro' ? 46 : 34;
-            return (
-              <g
-                key={n.id}
-                className={`xr-node ${n.kind}${faded ? ' faded' : ''}${sel?.id === n.id ? ' active' : ''}`}
-                transform={`translate(${n.x},${n.y})`}
-                onClick={() => setSelected(sel?.id === n.id ? null : n.id)}
-                role="button"
-                tabIndex={0}
-                aria-label={n.label}
-                onKeyDown={(ev) => (ev.key === 'Enter' || ev.key === ' ') && setSelected(sel?.id === n.id ? null : n.id)}
-              >
-                <rect x={-w / 2} y={-h / 2} width={w} height={h} rx={n.kind === 'secao' ? 8 : h / 2} fill={COLORS[n.kind]} />
-                <text textAnchor="middle" dominantBaseline="central" className="xr-node-text">
-                  {label}
-                </text>
-                <title>{n.label}</title>
-              </g>
-            );
-          })}
-        </svg>
-      </div>
 
-      <div className="row row-wrap small">
-        <span className="xr-legend" style={{ background: COLORS.secao }} /> Partes
-        <span className="xr-legend" style={{ background: COLORS.conceito }} /> Conceitos
-        <span className="xr-legend" style={{ background: COLORS.referencia }} /> Versículos
-      </div>
-
-      {sel && sel.kind !== 'centro' && (
-        <section className="card stack" aria-live="polite">
-          <strong>{sel.label}</strong>
-          {sel.kind === 'secao' ? (
-            <span className="small muted">
-              Ligado a:{' '}
-              {map.edges
-                .filter((e) => e.from === sel.id && e.to !== 'centro')
-                .map((e) => byId.get(e.to)?.label)
-                .join(', ') || 'nenhum conceito'}
-            </span>
-          ) : (
-            <span className="small muted">
-              Aparece em:{' '}
-              {sel.sections.map((id) => material.sections.find((s) => s.id === id)?.title).filter(Boolean).join(', ') || 'nenhuma parte (conceito fixado por você)'}
-            </span>
-          )}
-          {sel.pinned && (
-            <div>
-              <button
-                className="btn btn-sm btn-ghost"
-                onClick={async () => {
-                  await saveMaterial({ ...material, concepts: material.concepts.filter((c) => c !== sel.label) });
-                  setSelected(null);
-                }}
-              >
-                Tirar este conceito do mapa
-              </button>
-            </div>
-          )}
-        </section>
-      )}
-
-      <section className="card stack" style={{ gap: 'var(--sp-2)' }}>
-        <strong>Ligações</strong>
-        <ul className="xr-links">
-          {map.nodes
-            .filter((n) => n.kind === 'conceito' || n.kind === 'referencia')
-            .map((n) => (
-              <li key={n.id}>
-                <button className={`chip${sel?.id === n.id ? ' active' : ''}`} onClick={() => setSelected(sel?.id === n.id ? null : n.id)}>
-                  <span className="chip-dot" style={{ background: COLORS[n.kind] }} />
-                  {n.label}
-                </button>
-                <span className="small muted">
-                  {n.sections.map((id) => material.sections.find((s) => s.id === id)?.title).filter(Boolean).join(' · ') || 'fixado por você'}
-                </span>
-              </li>
-            ))}
-        </ul>
-      </section>
+      <MindMapView data={data} onReady={onReady} />
 
       <div className="row row-wrap">
-        <input
-          className="input"
-          style={{ flex: '1 1 200px', width: 'auto' }}
-          value={newConcept}
-          onChange={(e) => setNewConcept(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addConcept()}
-          placeholder="Acrescentar um conceito ao mapa (ex.: justificação)"
-          aria-label="Novo conceito"
-        />
-        <button className="btn" onClick={addConcept} disabled={!newConcept.trim()}>
-          Acrescentar
+        <button
+          className="btn"
+          onClick={() => {
+            downloadBlob(new Blob([mindMapHtml(data)], { type: 'text/html;charset=utf-8' }), `${name} - mapa mental.html`);
+            notify('Mapa baixado. Abre em qualquer navegador, mesmo sem internet.');
+          }}
+        >
+          Baixar mapa interativo (.html)
+        </button>
+        <button
+          className="btn btn-ghost"
+          onClick={async () => {
+            const url = handle.current?.toPNG(3200);
+            if (!url) return;
+            downloadBlob(await (await fetch(url)).blob(), `${name} - mapa mental.png`);
+          }}
+        >
+          Baixar imagem (PNG)
         </button>
       </div>
+
+      <section className="card stack" style={{ gap: 'var(--sp-2)' }}>
+        <strong>Todos os desdobramentos, em texto</strong>
+        <span className="small muted">O mesmo conteúdo do mapa, para ler em sequência.</span>
+        {data.modules.map((m) => (
+          <details key={m.id} className="xr-mm-list">
+            <summary>
+              <span className="xr-mm-dot" style={{ background: m.color }} />
+              {m.tip.title} <span className="small muted">· {m.children.length}</span>
+            </summary>
+            <ul>
+              {m.children.map((c, i) => (
+                <li key={i}>
+                  <span className="xr-mm-dot" style={{ background: c.color }} title={MIND_TYPE_LABEL[c.type]} />
+                  <div>
+                    <strong className="small">{c.tip.title}</strong>
+                    <p>{c.tip.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </details>
+        ))}
+      </section>
     </div>
   );
 }
