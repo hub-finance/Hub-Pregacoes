@@ -1,6 +1,20 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Icon, type IconName } from '../components/Icon';
+import { applyTheme, currentTheme, resolveTheme, THEME_LABEL, THEME_ORDER, type ResolvedTheme } from './theme';
+
+const themeIcon = (t: ResolvedTheme): IconName => (t === 'sepia' ? 'sepia' : t === 'dark' || t === 'azul' || t === 'ministerial' ? 'moon' : 'sun');
+
+/** Tema atual, acompanhando as trocas feitas em qualquer tela. */
+function useResolvedTheme() {
+  const [theme, setTheme] = useState<ResolvedTheme>(() => resolveTheme(currentTheme()));
+  useEffect(() => {
+    const on = (e: Event) => setTheme((e as CustomEvent<ResolvedTheme>).detail);
+    window.addEventListener('hub-resumos:theme', on);
+    return () => window.removeEventListener('hub-resumos:theme', on);
+  }, []);
+  return theme;
+}
 
 const NAV: Array<{ to: string; label: string; icon: IconName }> = [
   { to: '/', label: 'Biblioteca', icon: 'library' },
@@ -13,6 +27,8 @@ export function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const current = NAV.find((n) => (n.to === '/' ? location.pathname === '/' : location.pathname.startsWith(n.to)));
+  const theme = useResolvedTheme();
+  const cycleTheme = () => applyTheme(THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length]);
 
   return (
     <div className="app-shell">
@@ -34,6 +50,13 @@ export function Layout({ children }: { children: ReactNode }) {
             <span className="truncate">{item.label}</span>
           </NavLink>
         ))}
+        <div className="spacer" />
+        <button className="rail-item" onClick={cycleTheme}>
+          <span className="ico">
+            <Icon name={themeIcon(theme)} />
+          </span>
+          <span>Tema: {THEME_LABEL[theme]}</span>
+        </button>
       </nav>
 
       <div className="app-main">
@@ -46,6 +69,9 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
           <button className="icon-btn" onClick={() => navigate('/config')} aria-label="Dados e ajustes">
             <Icon name="settings" />
+          </button>
+          <button className="icon-btn" onClick={cycleTheme} aria-label={`Alternar tema (atual: ${THEME_LABEL[theme]})`} title={`Tema: ${THEME_LABEL[theme]}`}>
+            <Icon name={themeIcon(theme)} />
           </button>
         </header>
         {children}

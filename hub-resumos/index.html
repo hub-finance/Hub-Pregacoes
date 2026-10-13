@@ -16,7 +16,7 @@
       (function () {
         try {
           var t = localStorage.getItem('hub-resumos:theme') || 'system';
-          var r = t === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : t;
+          var r = t === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'verde') : t;
           document.documentElement.dataset.theme = r;
         } catch (e) {}
       })();

@@ -3,25 +3,20 @@
    própria, para os dois programas não se confundirem lado a lado.
    ========================================================================= */
 
-:root,
-:root[data-theme='light'],
-:root[data-theme='sepia'] {
+/* Cores do mapa, em todos os temas: acompanham o tema escolhido */
+:root {
+  --xr-map-section: var(--accent);
+  --xr-map-concept: #8a6a2f;
+  --xr-map-ref: #3e5c76;
+}
+
+/* Verde — o tema próprio do Hub Resumos: o papel claro do Hub Bible com o
+   verde no lugar do dourado. Os outros oito temas são os do Hub Bible. */
+:root[data-theme='verde'] {
   --accent: #1d5c4d;
   --accent-strong: #154438;
   --accent-soft: #e2efea;
   --accent-contrast: #ffffff;
-  --xr-map-section: #1d5c4d;
-  --xr-map-concept: #8a6a2f;
-  --xr-map-ref: #3e5c76;
-}
-:root[data-theme='dark'] {
-  --accent: #6fc2a8;
-  --accent-strong: #93d8c1;
-  --accent-soft: #14271f;
-  --accent-contrast: #0b1713;
-  --xr-map-section: #2f7a64;
-  --xr-map-concept: #9a7a3a;
-  --xr-map-ref: #4c6f8f;
 }
 
 .xr-tabs .tab {
@@ -231,9 +226,12 @@ span.xr-ref {
   font-weight: 650;
   pointer-events: none;
 }
+.xr-node.secao .xr-node-text,
+.xr-node.centro .xr-node-text {
+  fill: var(--accent-contrast);
+}
 .xr-node.centro .xr-node-text {
   font-size: 18px;
-  fill: var(--accent-contrast);
 }
 .xr-legend {
   display: inline-block;
@@ -471,3 +469,44 @@ span.xr-ref {
   align-items: center;
   gap: var(--sp-2);
 }
+
+/* escolha de tema — cada amostra mostra o fundo e a cor de destaque do tema */
+.xr-themes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
+  gap: var(--sp-2);
+}
+.xr-theme {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface);
+  min-height: var(--tap);
+  font-size: 0.88rem;
+}
+.xr-theme.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+  font-weight: 650;
+}
+.xr-theme-swatch {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid rgb(0 0 0 / 0.15);
+  background: linear-gradient(135deg, #faf8f5 50%, #1d5c4d 50%);
+}
+[data-theme-preview='verde'] .xr-theme-swatch { background: linear-gradient(135deg, #faf8f5 50%, #1d5c4d 50%); }
+[data-theme-preview='light'] .xr-theme-swatch { background: linear-gradient(135deg, #faf8f5 50%, #8a6a2f 50%); }
+[data-theme-preview='sepia'] .xr-theme-swatch { background: linear-gradient(135deg, #f3e9d8 50%, #8c5a24 50%); }
+[data-theme-preview='celeste'] .xr-theme-swatch { background: linear-gradient(135deg, #eef4fb 50%, #2563a8 50%); }
+[data-theme-preview='safira'] .xr-theme-swatch { background: linear-gradient(135deg, #dce8f4 50%, #2b6cb0 50%); }
+[data-theme-preview='jardim'] .xr-theme-swatch { background: linear-gradient(135deg, #eef5f0 50%, #2d7d4a 50%); }
+[data-theme-preview='dark'] .xr-theme-swatch { background: linear-gradient(135deg, #22262e 50%, #d7b174 50%); }
+[data-theme-preview='azul'] .xr-theme-swatch { background: linear-gradient(135deg, #24374f 50%, #8cc5f0 50%); }
+[data-theme-preview='ministerial'] .xr-theme-swatch { background: linear-gradient(135deg, #141e2e 50%, #c9a44a 50%); }

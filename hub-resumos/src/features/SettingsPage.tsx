@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useToast } from '../components/Toast';
-import { PageHeader, SelectInput, TextInput } from '../components/ui';
-import { applyTheme, currentTheme, THEME_LABEL, type Theme } from '../app/theme';
+import { PageHeader, TextInput } from '../components/ui';
+import { applyTheme, currentTheme, THEME_LABEL, THEME_ORDER, type Theme } from '../app/theme';
 import { createBackup, downloadJson, markBackupDone, readJsonFile, restoreBackup } from '../core/backup';
 import { db, getSetting, setSetting } from '../core/db';
 
@@ -119,15 +119,26 @@ export default function SettingsPage() {
       </section>
 
       <section className="card stack">
-        <SelectInput
-          label="Tema"
-          value={theme}
-          onChange={(v) => {
-            setTheme(v as Theme);
-            applyTheme(v as Theme);
-          }}
-          options={(Object.keys(THEME_LABEL) as Theme[]).map((t) => ({ value: t, label: THEME_LABEL[t] }))}
-        />
+        <strong>Tema</strong>
+        <span className="small dim">Os oito temas do Hub Bible e o Verde do Hub Resumos. O botão do sol, no topo, troca rápido.</span>
+        <div className="xr-themes" role="radiogroup" aria-label="Tema">
+          {(['system', ...THEME_ORDER] as Theme[]).map((t) => (
+            <button
+              key={t}
+              role="radio"
+              aria-checked={theme === t}
+              className={`xr-theme${theme === t ? ' active' : ''}`}
+              data-theme-preview={t === 'system' ? undefined : t}
+              onClick={() => {
+                setTheme(t);
+                applyTheme(t);
+              }}
+            >
+              <span className="xr-theme-swatch" aria-hidden="true" />
+              {THEME_LABEL[t]}
+            </button>
+          ))}
+        </div>
       </section>
     </div>
   );
