@@ -5,7 +5,7 @@ import { useToast } from '../../components/Toast';
 import { SaveStatus } from '../../components/SaveStatus';
 import { ConfirmDialog, SelectInput, TextInput } from '../../components/ui';
 import { downloadJson, hubStudyBackup, safeName } from '../../core/backup';
-import { deleteMaterial, duplicateMaterial, KIND_LABEL, newSection, PART_LABEL, saveMaterial } from '../../core/materials';
+import { deleteMaterial, duplicateMaterial, KIND_LABEL, newSection, PART_LABEL, resplitMaterial, saveMaterial } from '../../core/materials';
 import type { Material, MaterialKind } from '../../core/types';
 
 /**
@@ -19,6 +19,7 @@ export function EditTab({ material }: { material: Material }) {
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [removing, setRemoving] = useState(false);
+  const [resplitting, setResplitting] = useState(false);
   const dirty = useRef(false);
   const latest = useRef(draft);
   latest.current = draft;
@@ -168,10 +169,30 @@ export function EditTab({ material }: { material: Material }) {
         >
           Duplicar
         </button>
+        <button className="btn btn-sm" onClick={() => setResplitting(true)}>
+          Reorganizar as partes pelo sumário
+        </button>
         <button className="btn btn-sm btn-danger" onClick={() => setRemoving(true)}>
           Excluir material
         </button>
       </div>
+
+      <ConfirmDialog
+        open={resplitting}
+        title="Reorganizar as partes?"
+        message={`O texto continua o mesmo; o app lê de novo o sumário do livro (ou os títulos de capítulo) e divide as partes por ele, deixando de fora capa e ficha catalográfica. Hoje são ${draft.sections.length} partes. O andamento do passo a passo recomeça.`}
+        confirmLabel="Reorganizar"
+        danger={false}
+        onCancel={() => setResplitting(false)}
+        onConfirm={async () => {
+          await saveMaterial(latest.current);
+          dirty.current = false;
+          const next = await resplitMaterial(latest.current);
+          setDraft(next);
+          setResplitting(false);
+          notify(`Pronto: ${next.sections.length} partes.`);
+        }}
+      />
 
       <ConfirmDialog
         open={removing}

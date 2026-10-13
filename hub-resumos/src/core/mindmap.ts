@@ -6,11 +6,13 @@ import type { ActionItem, Material } from './types';
  * Mapa mental interativo do material.
  *
  * No centro, o material; em volta, cada assunto (cada parte do texto); ao
- * tocar num assunto, abrem os desdobramentos dele. Nada é resumido nem
- * escrito pelo app: cada desdobramento é um trecho do próprio texto, inteiro
- * — destaque, definição, item de lista, referência bíblica (com a frase em
- * que aparece), pergunta e cada parágrafo. O rótulo do círculo é curto só
- * para caber; o texto completo aparece ao tocar.
+ * tocar num assunto, abrem os pontos principais dele — no máximo
+ * MAX_POINTS, para o mapa ser objetivo e fácil de estudar. Nada é escrito
+ * pelo app: cada ponto é um trecho do próprio texto, na ordem de
+ * importância — destaque, definição, base bíblica (com a frase em que
+ * aparece), item de lista, pergunta e, se ainda faltar, a frase principal
+ * de cada parágrafo. O rótulo do círculo é curto só para caber; a frase
+ * inteira aparece ao tocar.
  */
 
 export type MindNodeType = 'conceito' | 'pratica' | 'biblica' | 'pergunta' | 'texto';
@@ -102,6 +104,8 @@ export function circleLabel(text: string, width = 12, lines = 2): string {
 
 const APPLICATION_TITLE = /aplica|pr[aá]tic|desafio|a[cç][aã]o|a[cç][oõ]es|tarefa|compromisso|exerc[ií]cio|passos/i;
 const pad = (n: number) => String(n).padStart(2, '0');
+/** Pontos por assunto: o bastante para entender, pouco para não cansar. */
+export const MAX_POINTS = 6;
 
 export function buildMindMap(material: Material, reading?: MaterialReading, actions: ActionItem[] = []): MindMapData {
   const r = reading ?? readMaterial(material);
@@ -113,32 +117,35 @@ export function buildMindMap(material: Material, reading?: MaterialReading, acti
     const practical = APPLICATION_TITLE.test(title);
     const children: MindChild[] = [];
     const seen = new Set<string>();
+    let available = 0;
     const add = (type: MindNodeType, label: string, tipTitle: string, body: string) => {
       const key = `${type}|${fold(body)}`;
       if (!body.trim() || seen.has(key)) return;
       seen.add(key);
+      available++;
+      if (children.length >= MAX_POINTS) return;
       children.push({ label: circleLabel(label), type, color: MIND_COLORS.tipo[type], tip: { title: tipTitle, body, source: source(title) } });
     };
 
     for (const h of s.highlights) add('conceito', h, 'Destaque', h);
     for (const d of s.definitions) add('conceito', d.term, d.term, d.meaning);
-    for (const item of s.listItems) {
-      if (s.definitions.some((d) => item.startsWith(d.term))) continue;
-      add(practical ? 'pratica' : 'texto', item, practical ? 'Prática' : 'Ponto', item);
-    }
     for (const ref of s.references) {
-      // a frase em que a referência aparece, inteira
+      // a frase em que a referência aparece
       const context = [...s.paragraphs, ...s.highlights, ...s.listItems]
         .flatMap(sentences)
         .find((x) => x.includes(ref.raw.trim()));
       add('biblica', ref.label, ref.label, context ?? ref.label);
     }
+    for (const item of s.listItems) {
+      if (s.definitions.some((d) => item.startsWith(d.term))) continue;
+      add(practical ? 'pratica' : 'texto', item, practical ? 'Prática' : 'Ponto', item);
+    }
     for (const q of s.questions) add('pergunta', q, 'Pergunta', q);
-    // cada parágrafo entra inteiro: o mapa não resume o texto
+    // só se ainda houver lugar: a frase principal (a primeira) de cada parágrafo
     for (const p of s.paragraphs) {
-      const first = sentences(p)[0] ?? p;
       if (s.questions.includes(p)) continue;
-      add(practical ? 'pratica' : 'texto', first, practical ? 'Prática' : 'Desenvolvimento', p);
+      const first = sentences(p)[0] ?? p;
+      add(practical ? 'pratica' : 'texto', first, practical ? 'Prática' : 'Ideia', first);
     }
 
     const color = MIND_COLORS.assuntos[i % MIND_COLORS.assuntos.length];
@@ -150,8 +157,8 @@ export function buildMindMap(material: Material, reading?: MaterialReading, acti
       textColor: color === '#C9973A' ? '#071320' : '#FFFFFF',
       tip: {
         title,
-        body: opening || 'Toque para ver os desdobramentos.',
-        source: `${children.length} desdobramento${children.length === 1 ? '' : 's'}${author}`,
+        body: opening || 'Toque para ver os pontos principais.',
+        source: `${children.length} ponto${children.length === 1 ? '' : 's'} principa${children.length === 1 ? 'l' : 'is'}${available > children.length ? ` (de ${available} no texto)` : ''}${author}`,
       },
       children,
     };
@@ -183,7 +190,7 @@ export function buildMindMap(material: Material, reading?: MaterialReading, acti
   const used = new Set(modules.flatMap((m) => m.children.map((c) => c.type)));
   return {
     title: material.title,
-    subtitle: `${modules.length} assuntos · toque num assunto para abrir os desdobramentos`,
+    subtitle: `${modules.length} assuntos · toque num assunto para ver os pontos principais`,
     center: {
       label: circleLabel(material.title.toUpperCase(), 12, 3),
       tip: {

@@ -33,10 +33,10 @@ export function ActionsTab({ material }: { material: Material }) {
             const fresh = suggestActions(material).filter((d) => !known.has(d.text));
             setDrafts(fresh);
             setChosen(new Set(fresh.map((_, i) => i)));
-            if (!fresh.length) notify('Nenhuma sugestão nova. Partes com título como “Aplicação”, “Desafio” ou linhas “- [ ] …” viram sugestão.');
+            if (!fresh.length) notify('Nenhuma sugestão nova. Viram sugestão: frases que pedem uma ação (“Pratique…”, “Devemos…”), partes como “Aplicação” e linhas “- [ ] …”.');
           }}
         >
-          Sugerir a partir das aplicações do texto
+          Sugerir ações do texto
         </button>
         {actions.length > 0 && (
           <span className="small dim">
@@ -130,7 +130,7 @@ export function ActionsTab({ material }: { material: Material }) {
         <EmptyState
           icon="check"
           title="Nenhuma ação ainda"
-          description="O plano de ação transforma o estudo em prática. Toque em “Sugerir a partir das aplicações do texto” (lê partes como “Aplicação” e linhas “- [ ] …”) ou escreva a sua ação no campo “Nova ação”."
+          description="O plano de ação transforma o estudo em prática. Toque em “Sugerir ações do texto” (lê partes como “Aplicação” e linhas “- [ ] …”) ou escreva a sua ação no campo “Nova ação”."
         />
       ) : !shown.length ? (
         <p className="small muted">Nenhuma ação com essa situação.</p>

@@ -28,7 +28,7 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
   {
     id: 'mapa',
     title: 'Mapa mental',
-    what: 'No centro, o material; em volta, os assuntos (cada parte do texto); ao tocar num assunto, abrem os desdobramentos dele, numerados.',
+    what: 'No centro, o material; em volta, os assuntos (cada parte do texto); ao tocar num assunto, abrem os pontos principais dele (até 6), numerados e tirados do texto.',
     how: [
       'Toque num assunto (ou no nome dele, acima do mapa) para abrir só ele; os outros ficam apagados.',
       'Toque num círculo para ler o trecho inteiro. Toque de novo no assunto, ou no centro, para voltar ao mapa completo.',
@@ -65,7 +65,7 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
     id: 'acoes',
     title: 'Plano de ação',
     what: 'O que fazer com o que foi estudado: ação, responsável, prazo e situação.',
-    how: ['“Sugerir ações” lê partes com título como “Aplicação” ou “Desafio” e as linhas “- [ ] …”.', 'Mude a situação conforme avança.'],
+    how: ['“Sugerir ações do texto” traz as frases que pedem uma ação (“Pratique…”, “Devemos…”, “O líder precisa…”), as partes como “Aplicação” e as linhas “- [ ] …”.', 'Mude a situação conforme avança.'],
   },
   {
     id: 'resumo',

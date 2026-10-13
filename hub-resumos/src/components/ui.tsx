@@ -262,6 +262,7 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel = 'Excluir',
+  danger = true,
   onConfirm,
   onCancel,
 }: {
@@ -269,6 +270,8 @@ export function ConfirmDialog({
   title: string;
   message: string;
   confirmLabel?: string;
+  /** Falso para confirmar algo que não apaga nada (botão na cor principal). */
+  danger?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -282,7 +285,7 @@ export function ConfirmDialog({
           <button className="btn btn-ghost" onClick={onCancel} style={{ flex: 1 }}>
             Cancelar
           </button>
-          <button className="btn btn-danger" onClick={onConfirm} style={{ flex: 1 }}>
+          <button className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`} onClick={onConfirm} style={{ flex: 1 }}>
             {confirmLabel}
           </button>
         </>

@@ -3,7 +3,7 @@ import { useCallback, useMemo, useRef } from 'react';
 import { useToast } from '../../components/Toast';
 import { listActions } from '../../core/actions';
 import { downloadBlob, safeName } from '../../core/backup';
-import { buildMindMap, MIND_TYPE_LABEL } from '../../core/mindmap';
+import { buildMindMap, MAX_POINTS, MIND_TYPE_LABEL } from '../../core/mindmap';
 import type { MaterialReading } from '../../core/text';
 import type { ActionItem, Material } from '../../core/types';
 import type { MindMapHandle } from '../mindmap/engine.js';
@@ -12,7 +12,7 @@ import { mindMapHtml } from '../mindmap/standalone';
 
 /**
  * Mapa mental interativo: cada assunto do material com todos os seus
- * desdobramentos, tirados do próprio texto, sem resumo.
+ * pontos principais (até MAX_POINTS), tirados do próprio texto.
  */
 export function MapTab({ material, reading }: { material: Material; reading: MaterialReading }) {
   const { notify } = useToast();
@@ -27,7 +27,6 @@ export function MapTab({ material, reading }: { material: Material; reading: Mat
   const onReady = useCallback((m: MindMapHandle | null) => {
     handle.current = m;
   }, []);
-  const total = data.modules.reduce((n, m) => n + m.children.length, 0);
   const name = safeName(material.title);
 
   if (!data.modules.length)
@@ -41,8 +40,9 @@ export function MapTab({ material, reading }: { material: Material; reading: Mat
   return (
     <div className="stack">
       <p className="small muted" style={{ margin: 0 }}>
-        No centro, o material; em volta, os {data.modules.length} assuntos; toque num assunto para abrir os desdobramentos ({total} no
-        total) e toque em qualquer círculo para ler o trecho inteiro. Nada é resumido: cada desdobramento é o texto do próprio material.
+        No centro, o material; em volta, os {data.modules.length} assuntos. Toque num assunto para ver os pontos principais dele
+        (até {MAX_POINTS}, do mais importante ao menos: destaques, definições, versículos, itens e perguntas) e toque num ponto para
+        ler a frase inteira. Tudo é tirado do próprio texto.
       </p>
 
       <MindMapView data={data} onReady={onReady} />
@@ -70,7 +70,7 @@ export function MapTab({ material, reading }: { material: Material; reading: Mat
       </div>
 
       <section className="card stack" style={{ gap: 'var(--sp-2)' }}>
-        <strong>Todos os desdobramentos, em texto</strong>
+        <strong>Os pontos principais, em texto</strong>
         <span className="small muted">O mesmo conteúdo do mapa, para ler em sequência.</span>
         {data.modules.map((m) => (
           <details key={m.id} className="xr-mm-list">

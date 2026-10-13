@@ -16,7 +16,6 @@ export function DnaTab({ material, reading }: { material: Material; reading: Mat
   useEffect(() => setIdea(material.centralIdea), [material.centralIdea]);
 
   const keyRef = reading.references[0];
-  const maxWords = Math.max(1, ...reading.sections.map((s) => s.words));
 
   return (
     <div className="xr-dna">
@@ -73,21 +72,6 @@ export function DnaTab({ material, reading }: { material: Material; reading: Mat
         ) : (
           <span className="small dim">Nenhuma referência bíblica no texto.</span>
         )}
-      </section>
-
-      <section className="card stack xr-span-2">
-        <strong>Estrutura</strong>
-        <ol className="xr-structure">
-          {reading.sections.map((s, i) => (
-            <li key={s.section.id}>
-              <span className="truncate">{s.section.title || `Parte ${i + 1}`}</span>
-              <span className="xr-bar" aria-hidden="true">
-                <i style={{ width: `${Math.max(4, Math.round((s.words / maxWords) * 100))}%` }} />
-              </span>
-              <span className="small dim">{s.words} pal.</span>
-            </li>
-          ))}
-        </ol>
       </section>
 
       {!reading.highlights.length && !reading.definitions.length && !reading.questions.length && (

@@ -5,9 +5,9 @@ import { readMaterial, splitIntoSections } from '../../src/core/text';
 import { suggestCards, addCards, answerCard, schedule } from '../../src/core/cards';
 import { suggestActions, addActions, listActions } from '../../src/core/actions';
 import { extractiveSummary } from '../../src/core/summary';
-import { buildMindMap, circleLabel } from '../../src/core/mindmap';
+import { buildMindMap, circleLabel, MAX_POINTS } from '../../src/core/mindmap';
 import { docxToText, readHubBackup } from '../../src/core/importers';
-import { createMaterial, deleteMaterial, getProgress, progressRatio, setStepDone } from '../../src/core/materials';
+import { createMaterial, deleteMaterial, getProgress, progressRatio, resplitMaterial, setStepDone } from '../../src/core/materials';
 import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restoreBackup } from '../../src/core/backup';
 import { createExampleMaterial } from '../../src/core/example';
 import { boardContent } from '../../src/core/boards';
@@ -64,6 +64,75 @@ await test('texto corrido vira seções pelos títulos', () => {
   assert(parts.map((p) => p.title).join('|') === 'Introdução|CAPÍTULO 1 — O COMEÇO|Segunda parte', parts.map((p) => p.title).join('|'));
 });
 
+await test('livro: segue o sumário, sem ficha catalográfica nem cabeçalhos de página', () => {
+  const para = (n: number) => Array.from({ length: n }, (_, i) => `Frase ${i + 1} do capítulo, com conteúdo de verdade para ler.`).join(' ');
+  const book = [
+    'JOHN C. MAXWELL',
+    'AS 21 IRREFUTÁVEIS LEIS DA LIDERANÇA',
+    'TRADUÇÃO DE',
+    'VALÉRIA LAMIM DELGADO FERNANDES',
+    'CIP-BRASIL. CATALOGAÇÃO-NA-FONTE',
+    'ISBN 978-85-6030-312-0',
+    '07-1021. CDD: 658.4092',
+    '',
+    'SUMÁRIO',
+    'Introdução ......................... 9',
+    '1. A lei do limite ................ 15',
+    '2. A lei da influência ............ 27',
+    '3. A lei do processo                41',
+    '',
+    'INTRODUÇÃO',
+    para(30),
+    'AS 21 IRREFUTÁVEIS LEIS DA LIDERANÇA',
+    para(10),
+    'CAPÍTULO 1',
+    'A LEI DO LIMITE',
+    para(40),
+    'AS 21 IRREFUTÁVEIS LEIS DA LIDERANÇA',
+    'CAPÍTULO 2',
+    'A LEI DA INFLUÊNCIA',
+    para(40),
+    'AS 21 IRREFUTÁVEIS LEIS DA LIDERANÇA',
+    'CAPÍTULO 3',
+    'A LEI DO PROCESSO',
+    para(40),
+  ].join('\n');
+  const parts = splitIntoSections(book, 'Introdução');
+  assert(parts.map((p) => p.title).join('|') === 'Introdução|1. A lei do limite|2. A lei da influência|3. A lei do processo', parts.map((p) => p.title).join('|'));
+  assert(!parts.some((p) => /ISBN|CDD/.test(p.text)), 'ficha catalográfica fora');
+  assert(parts.every((p) => p.text.length > 100), 'cada capítulo com o seu texto');
+
+  // sem sumário: ficha catalográfica e cabeçalho repetido não viram capítulo
+  const noToc = book.replace(/SUMÁRIO[\s\S]*?\n\n/, '');
+  const p2 = splitIntoSections(noToc, 'Introdução');
+  assert(p2.length <= 6, `${p2.length} partes: ${p2.map((p) => p.title).join('|')}`);
+  assert(!p2.some((p) => /isbn|cdd|cip/i.test(p.title)), 'nada de ISBN como título');
+  assert(p2.some((p) => /Capítulo 1 — A LEI DO LIMITE/i.test(p.title)), p2.map((p) => p.title).join('|'));
+});
+
+await test('livro já importado: reorganiza pelo sumário', async () => {
+  const para = 'Texto do capítulo com várias palavras para ler com calma. '.repeat(20);
+  // como a leitura antiga dividia: cada linha em maiúsculas virava uma parte
+  const old = await createMaterial({
+    title: 'Livro antigo',
+    kind: 'livro',
+    sections: [
+      { title: 'Maxwell', text: '' },
+      { title: 'Isbn 978-85-6030-312-0', text: '' },
+      { title: 'Sumário', text: 'Introdução 9\nA lei do limite 15\nA lei da influência 27' },
+      { title: 'Introdução', text: para },
+      { title: 'A lei do limite', text: para },
+      { title: 'A lei da influência', text: para },
+    ],
+  });
+  await setStepDone(old.id, old.sections[3].id, true);
+  const next = await resplitMaterial(old);
+  assert(next.sections.map((x) => x.title).join('|') === 'Introdução|A lei do limite|A lei da influência', next.sections.map((x) => x.title).join('|'));
+  assert(!next.sections.some((x) => /isbn/i.test(x.text)), 'ficha fora');
+  assert((await getProgress(old.id)).done.length === 0, 'andamento recomeça');
+  await deleteMaterial(old.id);
+});
+
 const material = await createMaterial({ title: 'Graça e Fé', kind: 'estudo', text: TEXT });
 const reading = readMaterial(material);
 
@@ -116,7 +185,7 @@ await test('plano de ação sugerido da seção de aplicação', () => {
   assert(!acts.some((a) => a.includes('Obras são fruto')), 'item de fora da aplicação');
 });
 
-await test('mapa mental: um assunto por parte, cada desdobramento com o texto inteiro', () => {
+await test('mapa mental: um assunto por parte, só os pontos principais, tirados do texto', () => {
   const map = buildMindMap(material, reading, [
     { id: 'a1', materialId: material.id, text: 'Orar pela família', owner: '', due: '2026-11-02', status: 'pendente', createdAt: '', updatedAt: '' } as never,
     { id: 'a2', materialId: material.id, text: 'Já feito', owner: '', due: '', status: 'feito', createdAt: '', updatedAt: '' } as never,
@@ -131,10 +200,10 @@ await test('mapa mental: um assunto por parte, cada desdobramento com o texto in
       const body = c.tip.body.replace(/\s+/g, ' ');
       assert(all.includes(body) || body === c.tip.title, `fora do texto: ${body}`);
     }
-  // cada parágrafo entra inteiro, sem corte
-  const paragraphs = reading.sections.flatMap((s) => s.paragraphs);
-  const bodies = new Set(map.modules.flatMap((m) => m.children.map((c) => c.tip.body)));
-  assert(paragraphs.every((p) => bodies.has(p) || reading.sections.some((s) => s.questions.includes(p))), 'parágrafo faltando');
+  // objetivo: no máximo MAX_POINTS por assunto, o destaque vem primeiro
+  assert(map.modules.every((m) => m.children.length <= MAX_POINTS), 'até 6 pontos por assunto');
+  const intro = map.modules[0];
+  assert(intro.children[0].type === 'conceito' && intro.children[0].tip.title === 'Destaque', 'destaque primeiro');
   assert(map.modules.some((m) => m.children.some((c) => c.type === 'biblica')), 'base bíblica');
   assert(map.legend[0].label === 'Centro / Assuntos', 'legenda');
   assert(JSON.stringify(map).length > 0, 'dados serializáveis (vão no .html)');
@@ -144,6 +213,18 @@ await test('rótulo do círculo: curto, sem cortar palavra no meio da linha', ()
   assert(circleLabel('Graça') === 'Graça', 'curto');
   assert(circleLabel('A graça é favor imerecido que transforma') === 'A graça é\nfavor…', JSON.stringify(circleLabel('A graça é favor imerecido que transforma')));
   assert(circleLabel('A graça é favor imerecido', 30, 2) === 'A graça é favor imerecido', 'cabe');
+});
+
+await test('plano de ação: frases do livro que pedem uma ação', async () => {
+  const book = await createMaterial({
+    title: 'Livro sem aplicação',
+    kind: 'livro',
+    sections: [{ title: 'A lei do limite', text: 'A liderança tem um teto. O líder precisa ouvir antes de falar com a equipe. Pratique a escuta atenta todos os dias da semana. A história continua no próximo capítulo. Você já pensou nisso?' }],
+  });
+  const acts = suggestActions(book).map((a) => a.text);
+  assert(acts.includes('O líder precisa ouvir antes de falar com a equipe.') && acts.includes('Pratique a escuta atenta todos os dias da semana.'), acts.join('|'));
+  assert(acts.length === 2, `${acts.length}: ${acts.join('|')}`);
+  await deleteMaterial(book.id);
 });
 
 await test('Word (.docx) importado: títulos e listas', async () => {
