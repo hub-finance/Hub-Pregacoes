@@ -118,10 +118,14 @@ export function buildMindMap(material: Material, reading?: MaterialReading, acti
     const children: MindChild[] = [];
     const seen = new Set<string>();
     let available = 0;
+    const labels = new Set<string>();
     const add = (type: MindNodeType, label: string, tipTitle: string, body: string) => {
       const key = `${type}|${fold(body)}`;
-      if (!body.trim() || seen.has(key)) return;
+      // o mesmo rótulo duas vezes no mapa não ensina nada: fica só o primeiro
+      const labelKey = fold(circleLabel(label)).replace(/\W+/g, ' ').trim();
+      if (!body.trim() || seen.has(key) || labels.has(labelKey)) return;
       seen.add(key);
+      labels.add(labelKey);
       available++;
       if (children.length >= MAX_POINTS) return;
       children.push({ label: circleLabel(label), type, color: MIND_COLORS.tipo[type], tip: { title: tipTitle, body, source: source(title) } });

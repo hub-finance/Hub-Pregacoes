@@ -32,12 +32,44 @@ devocionais de 7/14/21/30 dias) e material do instrutor e do participante.
 Detalhes em `docs/GERAR-EXPORTAR.md`. Testes: `npm run test:export` (20
 casos) e teste no navegador do fluxo inteiro, em 390px, sem erros.
 
-### Retomar daqui — Gerar e Exportar (fase 4)
+### Retomar daqui — Gerar e Exportar: o que falta do prompt original
 
-1. Sugestões da IA (os 30%): marcadas como sugestão, com aceitar, editar ou
-   rejeitar, sem nunca entrar no texto sem a ação do autor.
-2. Conferir no APK o download (grava em Documentos) e o compartilhamento dos
-   arquivos gerados — testado só no navegador.
+Conferido item por item contra o prompt do usuário ("HUB BIBLE — MÓDULO DE
+GERAÇÃO, FORMATAÇÃO E EXPORTAÇÃO DE DOCUMENTOS") em 13/10. Fases 1, 2 e 3 estão
+feitas. Falta:
+
+**IA (princípio 70/30, seções 2 e 11 do prompt)**
+1. Sugestões da IA no documento: organizar, apontar lacunas e sugerir melhorias,
+   sempre marcadas como sugestão, com **aceitar, editar ou rejeitar** cada uma,
+   sem nunca entrar no texto sem a ação do autor e com o original recuperável.
+   (O Hub Resumos já usa o Gemini com chave do usuário; dá para seguir o mesmo
+   modelo aqui.)
+
+**Modelos que o prompt pede e ainda não existem (seção 4)**
+2. Pregações: "Mensagem com aplicações práticas", "Roteiro de apelo ou
+   conclusão" e "Versão para apresentação em slides".
+3. Devocionais: "Série de devocionais" (hoje há os planos de 7/14/21/30 dias).
+4. Treinamentos: "Exercícios e avaliações".
+
+**Formatos (seção 5)**
+5. PowerPoint (.pptx) — junto com a versão em slides.
+6. Texto simples (.txt) e HTML.
+7. Imagens dentro do documento (hoje só o logotipo da capa), em Word e PDF.
+
+**Editor e editorial (seções 6, 7 e 8)**
+8. Escolha da família da letra (hoje vem do modelo visual; só o tamanho é livre).
+9. Escolha do modelo de capa (hoje a capa segue o modelo visual).
+10. Opção de numerar ou não a capa (hoje a capa nunca recebe número).
+11. Modelos visuais personalizados pelo usuário (além dos 5 prontos e do
+    "usar como meu padrão").
+
+**Por decisão do usuário (só no aparelho, sem conta), não feitos (seções 9, 11, 13)**
+12. Servidor, login, permissões entre usuários, links de download protegidos e
+    política de retenção. Se um dia houver contas, retomar daqui.
+
+**Conferências**
+13. Conferir no APK o download (grava em Documentos) e o compartilhamento dos
+    arquivos gerados — testado só no navegador.
 
 ### 0l. ✅ Base doutrinária importável e "Leitura na linha da fé"
 

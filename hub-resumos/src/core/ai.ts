@@ -89,12 +89,12 @@ export function buildPrompt(material: Material, scope: string): { prompt: string
     : `a parte “${scopeTitle}” ${KIND_NAME[material.kind]} “${material.title}”`;
   const prompt = [
     `Você é um assistente de estudo para pastores, líderes, professores e membros de igreja. Leia ${what}${material.author ? `, de ${material.author}` : ''}, e escreva em português do Brasil, com linguagem clara, didática e respeitosa:`,
-    `- resumo: ${whole ? 'de 4 a 8 parágrafos curtos, cobrindo o material do começo ao fim, na ordem dele' : 'de 2 a 4 parágrafos curtos'}, fiel ao texto;`,
-    '- ideias: de 5 a 8 ideias principais, uma frase cada;',
-    '- aplicacoes: de 3 a 6 aplicações práticas que o próprio texto ensina ou que decorrem diretamente dele;',
-    '- perguntas: de 3 a 5 perguntas para reflexão pessoal ou discussão em grupo;',
-    '- conceitos: até 8 termos importantes, com a definição no sentido em que o texto os usa.',
-    'Regras: baseie-se somente no texto abaixo; não invente fatos, histórias, citações nem referências bíblicas que não estejam nele (se citar a Bíblia, use só as referências que aparecem no texto); não copie trechos longos literalmente; se o texto não trouxer algum item, devolva a lista vazia.',
+    `- resumo: ${whole ? 'de 2 a 4 parágrafos curtos, no máximo 160 palavras ao todo, com a mensagem e a linha de raciocínio do material do começo ao fim' : '1 ou 2 parágrafos curtos, no máximo 80 palavras'}, fiel ao texto. Selecione o essencial: o leitor quer entender e aplicar rápido, não reler o livro;`,
+    '- ideias: de 3 a 5 ideias principais, uma frase curta cada (até 20 palavras), sem repetir o resumo;',
+    '- aplicacoes: de 3 a 4 aplicações práticas que o próprio texto ensina ou que decorrem diretamente dele, cada uma começando por um verbo;',
+    '- perguntas: 3 perguntas para reflexão pessoal ou discussão em grupo;',
+    '- conceitos: até 5 termos importantes, com a definição curta no sentido em que o texto os usa.',
+    'Regras: baseie-se somente no texto abaixo; não invente fatos, histórias, citações nem referências bíblicas que não estejam nele (se citar a Bíblia, use só as referências que aparecem no texto); não copie trechos longos literalmente; não use reticências nem corte frases; se o texto não trouxer algum item, devolva a lista vazia.',
     '',
     'TEXTO:',
     text.slice(0, MAX_CHARS),
@@ -149,7 +149,7 @@ function explain(status: number, detail: string): string {
 }
 
 /** Chama o Gemini pedindo JSON no formato `schema`; devolve o texto da resposta. */
-async function callGemini(
+export async function callGemini(
   prompt: string,
   config: { key: string; model: string },
   schema: object,
@@ -185,7 +185,7 @@ async function callGemini(
 }
 
 /** Usa o modelo configurado; se o automático saiu de linha, acha o Flash atual e repete. */
-async function withModel<T>(opts: { fetchImpl?: typeof fetch }, run: (config: { key: string; model: string }) => Promise<T>): Promise<T> {
+export async function withModel<T>(opts: { fetchImpl?: typeof fetch }, run: (config: { key: string; model: string }) => Promise<T>): Promise<T> {
   const config = await getGeminiConfig();
   try {
     return await run(config);

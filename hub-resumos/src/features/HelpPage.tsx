@@ -8,6 +8,42 @@ import { createExampleMaterial } from '../core/example';
 /** Cada aba do material: o que mostra, como usar e o que dá para baixar. */
 export const TAB_HELP: Array<{ id: string; title: string; what: string; how: string[]; files?: string }> = [
   {
+    id: 'captar',
+    title: 'Captar',
+    what: 'Entender a mensagem em 30 a 60 segundos: síntese, tese, texto-base, objetivo e as principais verdades.',
+    how: [
+      'Tudo o que aparece em Captar, Compreender, Aprofundar, Aplicar e DNA sai de uma única estrutura do estudo — por isso nada se repete nem se contradiz.',
+      'Com a IA ligada, toque em “Montar com IA”: ela lê o material inteiro e monta a estrutura. Sem a IA, a estrutura é montada só com o texto, mais simples.',
+      '“Editar” abre a estrutura para você ajustar antes de usar ou imprimir. Cada item mostra se está no texto ou se é inferência da IA, e “ver no texto” abre a parte de origem.',
+    ],
+    files: '“Imprimir / PDF” em todas as camadas.',
+  },
+  {
+    id: 'compreender',
+    title: 'Compreender',
+    what: 'A progressão do argumento (fluxograma: cada etapa responde a uma pergunta e prepara a seguinte) e o mapa mental da esquerda para a direita.',
+    how: ['No mapa, toque num ramo para abrir e num item para ler a explicação; “Abrir todos os ramos” mostra o conjunto.'],
+    files: 'Mapa interativo (.html, abre sem internet) e PDF.',
+  },
+  {
+    id: 'aprofundar',
+    title: 'Aprofundar',
+    what: 'O que fundamenta cada afirmação: cartões bíblicos (texto e fundamento), de princípio (verdade e significado) e de conexão (relação entre textos e ideias).',
+    how: ['Versículos que não aparecem no material ficam marcados com ⚠ para você conferir.'],
+  },
+  {
+    id: 'aplicar',
+    title: 'Aplicar e recordar',
+    what: 'Cartões de revisão (pergunta e resposta ao tocar), aplicações e perguntas para reflexão.',
+    how: ['“Levar ao plano de ação” passa as aplicações para o seu plano, com responsável e prazo.', '“Revisar com repetição espaçada” abre os seus cartões de revisão do dia.'],
+  },
+  {
+    id: 'dna',
+    title: 'DNA da mensagem',
+    what: 'A essência do estudo: tese, convicções, a matriz Princípio (o quê) · Base bíblica (onde) · Aplicação (como) e o resultado esperado.',
+    how: ['Ajuste a matriz em “Editar”, na faixa do alto.'],
+  },
+  {
     id: 'painel',
     title: 'Painel',
     what: 'A visão geral do material: andamento, números, ideia central e atalhos para as outras visões.',
@@ -20,14 +56,14 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
     how: ['Toque em “Começar” ou “Continuar”.', 'Escreva a sua anotação e marque “Concluir” ao terminar a parte.', 'O app lembra onde você parou.'],
   },
   {
-    id: 'dna',
-    title: 'DNA',
+    id: 'analise',
+    title: 'Análise do texto',
     what: 'O que o texto tem de essencial: ideia central (escrita por você), destaques, definições, perguntas, versículos e palavras-chave.',
     how: ['Escreva a ideia central com as suas palavras.', 'O resto é lido do texto: “> ” marca destaque; “Termo: definição” entra no glossário; frases com “?” viram perguntas.'],
   },
   {
     id: 'mapa',
-    title: 'Mapa mental',
+    title: 'Mapa em círculos',
     what: 'No centro, o material; em volta, os assuntos (cada parte do texto); ao tocar num assunto, abrem os pontos principais dele (até 6), numerados e tirados do texto.',
     how: [
       'Toque num assunto (ou no nome dele, acima do mapa) para abrir só ele; os outros ficam apagados.',
@@ -44,7 +80,7 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
     how: [
       'Escolha o modelo e as cores (papel ou azul e dourado).',
       'Tudo vem do próprio texto: cada parte vira um bloco, e frases longas aparecem encurtadas no quadro.',
-      'Escrever a ideia central (aba DNA) e marcar destaques e definições deixa os quadros mais ricos.',
+      'Escrever a ideia central (aba Análise do texto, em Mais ferramentas) e marcar destaques e definições deixa os quadros mais ricos.',
     ],
     files: 'Imagem PNG de cada quadro, compartilhamento, ou os seis num arquivo .zip.',
   },
@@ -175,7 +211,7 @@ export default function HelpPage() {
       </section>
 
       <h2 className="xr-h2" style={{ marginTop: 'var(--sp-5)' }}>
-        As visões do material
+        As camadas e as ferramentas do material
       </h2>
       <div className="stack" style={{ gap: 'var(--sp-2)' }}>
         {TAB_HELP.map((t) => (

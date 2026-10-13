@@ -58,6 +58,8 @@ export interface Material {
    * marcados como feitos pela IA.
    */
   ai?: Record<string, AiSummary>;
+  /** A estrutura única do estudo, da qual saem as 4 camadas e o DNA. */
+  brief?: StudyBrief;
   createdAt: number;
   updatedAt: number;
   openedAt?: number;
@@ -128,4 +130,74 @@ export interface ActionItem {
 export interface KeyValue<T = unknown> {
   key: string;
   value: T;
+}
+
+/* ------------------------- estrutura única do estudo ------------------------ */
+
+/** De onde veio o item: dito no texto, ou inferência feita pela IA. */
+export type BriefOrigin = 'texto' | 'ia';
+
+export interface BriefStep {
+  /** 2 a 5 palavras: "A fonte da visão". */
+  title: string;
+  /** A pergunta que a etapa responde. */
+  question: string;
+  /** Uma frase completa. */
+  explanation: string;
+  /** Como leva à próxima etapa: "alimenta", "gera", "permite"… */
+  link: string;
+  refs: string[];
+  /** Título da parte do material de onde vem. */
+  section: string;
+  origin: BriefOrigin;
+}
+
+export interface BriefBranch {
+  /** 1 a 3 palavras. */
+  label: string;
+  summary: string;
+  leaves: Array<{ label: string; detail: string; ref?: string }>;
+  section: string;
+}
+
+export type BriefCardKind = 'biblico' | 'principio' | 'conexao' | 'revisao';
+
+export interface BriefCard {
+  kind: BriefCardKind;
+  /** Bíblico: a referência · Princípio: o princípio · Conexão: origem → relacionado · Revisão: a pergunta. */
+  front: string;
+  /** Bíblico: a verdade central · Princípio: a explicação · Conexão: a explicação · Revisão: a resposta. */
+  back: string;
+  /** Bíblico: relação com a mensagem · Princípio: a implicação. */
+  extra?: string;
+  ref?: string;
+  section: string;
+  origin: BriefOrigin;
+}
+
+export interface BriefDnaRow {
+  principle: string;
+  base: string;
+  application: string;
+  origin: BriefOrigin;
+}
+
+export interface StudyBrief {
+  thesis: string;
+  /** 2 ou 3 frases: entender a mensagem em 30–60 segundos. */
+  synthesis: string;
+  objective: string;
+  baseText: string[];
+  truths: Array<{ text: string; section: string; origin: BriefOrigin }>;
+  steps: BriefStep[];
+  branches: BriefBranch[];
+  cards: BriefCard[];
+  dna: { thesis: string; convictions: string[]; rows: BriefDnaRow[]; outcome: string };
+  applications: string[];
+  questions: string[];
+  /** Quem montou: a IA (com revisão do usuário) ou as regras do app. */
+  source: 'ia' | 'regras';
+  model?: string;
+  createdAt: number;
+  editedAt?: number;
 }

@@ -41,6 +41,13 @@ material novo), **duplicar** e **excluir só aquele material**, com confirmaçã
 PNG), quadros (PNG ou .zip), infográfico (PNG), consulta rápida (PDF pela impressão), resumo (.md),
 envio ao Hub Bible (.json) e a cópia de segurança de tudo (.json).
 
+### Princípio do sistema: qualidade e ganho de tempo
+
+O Hub Resumos existe para o leitor **entender e aplicar o livro em menos
+tempo**, não para repetir o livro. Cada visão (mapa, quadros, resumos, cartões,
+IA) escolhe e condensa o que importa: poucos pontos, bem escolhidos, em vez de
+listas longas. Na dúvida entre mostrar mais ou mostrar melhor, mostrar melhor.
+
 ### Princípio de autoria
 
 Sem a IA, o app **não inventa conteúdo**: tudo o que ele aponta — destaque,
@@ -136,15 +143,29 @@ os editores mostram “Salvando…” / “Salvo às hh:mm”.
 
 ## Próximos passos (anotados com o usuário)
 
+**Prompt de ajustes dos resumos (relatório + slides do usuário):** ver
+`docs/AJUSTES-RESUMOS.md` — estrutura única do estudo, 4 camadas, progressão
+lógica, 4 tipos de cartão, DNA em matriz, sem reticências, PDF e Word.
+Já feito (ver a seção 4 do arquivo); falta testar a montagem com a IA real.
+
+Tudo o que falta fica nesta lista e em `hub-bible/docs/PENDENCIAS.md`, para
+continuar depois — sempre com o princípio acima: qualidade e ganho de tempo.
+
 - **Cores para escolher nas ferramentas** (pedido para depois, não agora): mais
   opções de cor nos quadros, no mapa mental e no infográfico, para o usuário
   escolher a que preferir. Hoje os quadros têm “Papel” e “Azul e dourado”.
 - Slides de treinamento.
+- **Primeiro, amanhã:** mapa mental com pontos repetidos (“Origens”, “Origens”,
+  “Origens” em “A Igreja Triunfante”). O título do capítulo e os cabeçalhos de
+  página viram falsa “definição” (“Origens: Satanás…”). Descartar título e
+  cabeçalhos repetidos como definição, não repetir pontos com o mesmo nome e
+  preferir frases que ensinam.
 - Testar a IA com a chave real do Gemini (3.8 Flash) no aparelho do usuário.
 - Aviso “Nova versão disponível — toque para atualizar”, para não precisar
   fechar e abrir o app depois de cada publicação.
 - Entender qual aba o usuário chamou de “artesanal” e por que não gerou nada.
-- Fase 4 do Hub Bible (sugestões da IA) e conferência no APK.
+- Hub Bible: o que falta do prompt do Gerar e Exportar está listado em
+  `hub-bible/docs/PENDENCIAS.md` (“Retomar daqui — Gerar e Exportar”).
 
 ## Limitações
 

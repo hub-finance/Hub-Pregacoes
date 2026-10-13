@@ -11,6 +11,8 @@ import { createMaterial, deleteMaterial, getProgress, progressRatio, resplitMate
 import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restoreBackup } from '../../src/core/backup';
 import { createExampleMaterial } from '../../src/core/example';
 import { boardContent } from '../../src/core/boards';
+import { buildBriefByRules, buildBriefWithAi, parseBriefAnswer, refsNotInText, sectionIdByTitle } from '../../src/core/brief';
+import { briefWordHtml } from '../../src/core/briefDoc';
 import { aiChapterTitles, askGemini, buildPrompt, getGeminiConfig, parseAiAnswer, pickFlashModel, removeAiSummary, summarizeWithAi, testGeminiKey, WHOLE } from '../../src/core/ai';
 import { setSetting } from '../../src/core/db';
 import { db } from '../../src/core/db';
@@ -170,6 +172,17 @@ await test('A Igreja Triunfante: sumário sem título, perguntas e títulos em d
   const split = splitByChapterTitles(garbled, fromAi);
   assert(split?.length === 12 && split[3].title === '4. Fazendo Distinção entre Opressão, Obsessão e Possessão', `${split?.length}`);
   await setSetting('geminiKey', '');
+});
+
+await test('cabeçalho de página não vira definição nem ponto repetido no mapa', async () => {
+  const body = Array.from({ length: 3 }, (_, i) => `Origens: Satanás e Seu Reino\n${i * 2 + 7}\nSatanás foi criado como um querubim ungido e se rebelou contra Deus. O orgulho levou à sua queda (Ezequiel 28:14).\nA IGREJA TRIUNFANTE`).join('\n');
+  const m = await createMaterial({ title: 'Teste', kind: 'livro', sections: [{ title: '1. Origens: Satanás e Seu Reino', text: `Graça: favor imerecido de Deus.\n${body}` }] });
+  const r = readMaterial(m);
+  assert(r.definitions.length === 1 && r.definitions[0].term === 'Graça', r.definitions.map((d) => d.term).join('|'));
+  const map = buildMindMap(m, r);
+  const labels = map.modules[0].children.map((c) => c.label);
+  assert(new Set(labels).size === labels.length && !labels.some((l) => /^Origens$/.test(l)), labels.join('|'));
+  await deleteMaterial(m.id);
 });
 
 await test('livro em seções (sem a palavra capítulo)', () => {
@@ -469,6 +482,70 @@ await test('IA (Gemini): pedido, resposta, erros e onde fica guardado', async ()
   assert(!(await db.materials.get(ex.id))?.ai?.[ex.sections[0].id], 'resumo apagado');
   await setSetting('geminiKey', '');
   await deleteMaterial(ex.id);
+});
+
+await test('estrutura do estudo: regras (sem IA) — poucos itens, do texto, sem reticências', async () => {
+  const ex = await createExampleMaterial();
+  const b = buildBriefByRules(ex);
+  assert(b.source === 'regras' && b.thesis === ex.centralIdea, 'tese = ideia central');
+  assert(b.steps.length === 5 && b.steps.every((x) => x.title && !/…/.test(x.title)), b.steps.map((x) => x.title).join('|'));
+  assert(b.steps[0].title === 'Introdução' && b.steps[1].question === 'Quem é o meu próximo?', `${b.steps[0].title} / ${b.steps[1].question}`);
+  assert(b.branches.every((x) => x.label.split(/\s+/).filter((w) => w !== '·').length <= 6 && !/ (de|do|da|que)$/.test(x.label) && x.leaves.length <= 4), b.branches.map((x) => x.label).join('|'));
+  // enxuto: nada fora dos cartões passa do limite de leitura, e a explicação não repete a pergunta
+  const words = (t: string) => t.split(/\s+/).filter(Boolean).length;
+  assert(words(b.synthesis) <= 60, `síntese longa: ${words(b.synthesis)}`);
+  assert(b.steps.every((x) => !x.question || x.explanation !== x.question), 'etapa repete a pergunta');
+  const biblical = b.cards.filter((c) => c.kind === 'biblico').map((c) => c.back);
+  assert(new Set(biblical).size === biblical.length, 'cartões bíblicos com o mesmo contexto');
+  // Word: as 4 camadas e o DNA, com a tese e a matriz de 3 colunas
+  const doc = briefWordHtml(ex.title, ex.author, b);
+  assert(['Captar', 'Compreender', 'Aprofundar', 'Aplicar', 'DNA da mensagem', 'Base bíblica (onde)'].every((x) => doc.includes(x)) && doc.includes('urn:schemas-microsoft-com:office:word'), 'documento do Word');
+  assert(!/…/.test(doc), 'Word sem reticências');
+  const labels = b.branches.flatMap((x) => x.leaves.map((l) => l.label));
+  assert(b.branches.every((x) => new Set(x.leaves.map((l) => l.label)).size === x.leaves.length), labels.join('|'));
+  assert(b.cards.some((c) => c.kind === 'biblico') && b.cards.some((c) => c.kind === 'principio') && b.cards.some((c) => c.kind === 'revisao'), 'tipos de cartão');
+  assert(b.dna.rows.length >= 2 && b.dna.rows.every((r) => r.principle), 'matriz DNA');
+  assert(!JSON.stringify(b).includes('…'), 'sem reticências');
+  assert(refsNotInText(b, ex).size === 0, 'versículos do texto');
+  assert(sectionIdByTitle(ex, 'A compaixão que age') === ex.sections[3].id, 'liga à parte');
+});
+
+await test('estrutura do estudo: IA — pedido, leitura, limites e conferência dos versículos', async () => {
+  const ex = await createExampleMaterial();
+  const answer = {
+    tese: 'Amar o próximo é aproximar-se de quem precisa.',
+    sintese: 'A parábola responde quem é o próximo. A compaixão vê, aproxima-se e age.',
+    objetivo: 'Levar o leitor a agir com compaixão.',
+    textoBase: ['Lucas 10:25-37'],
+    verdades: [{ texto: 'A compaixão termina em atitude.', secao: 'A compaixão que age', origem: 'texto' }],
+    progressao: Array.from({ length: 9 }, (_, i) => ({ etapa: `Etapa ${i + 1}`, pergunta: 'Por quê?', explicacao: 'Explicação…', ligacao: 'gera', referencias: i === 0 ? ['Lucas 10:25-37', 'Apocalipse 3:20'] : [], secao: 'Introdução', origem: i % 2 ? 'ia' : 'texto' })),
+    ramos: [{ rotulo: 'O Conflito', resumo: 'Quem é o próximo?', secao: 'A pergunta do intérprete da lei', folhas: [{ rotulo: 'Lei', detalhe: 'Deuteronômio 6:5', referencia: 'Deuteronômio 6:5' }] }],
+    cartoes: [
+      { tipo: 'biblico', frente: 'Lucas 10:33', verso: 'O samaritano teve compaixão.', extra: 'Centro da mensagem', referencia: 'Lucas 10:33', secao: 'A compaixão que age', origem: 'texto' },
+      { tipo: 'conexao', frente: 'Lei → Compaixão', verso: 'Conhecer a lei não basta.', secao: 'A pergunta do intérprete da lei', origem: 'ia' },
+      { tipo: 'revisao', frente: 'O que a compaixão faz?', verso: 'Age.', secao: 'A compaixão que age', origem: 'texto' },
+    ],
+    dna: { tese: '', conviccoes: ['Amar é agir'], matriz: [{ principio: 'A compaixão age', base: 'Lucas 10:33', aplicacao: 'Ajudar alguém nesta semana', origem: 'texto' }], resultado: 'Uma igreja que se aproxima.' },
+    aplicacoes: ['Visitar alguém'],
+    perguntas: ['Quem é o meu próximo hoje?'],
+  };
+  const parsed = parseBriefAnswer(JSON.stringify(answer));
+  assert(parsed.steps.length === 6, 'no máximo 6 etapas');
+  assert(!parsed.steps[0].explanation.includes('…'), 'reticências removidas');
+  assert(parsed.dna.thesis === answer.tese, 'tese do DNA herdada');
+  assert(parsed.cards.map((c) => c.kind).join(',') === 'biblico,conexao,revisao', parsed.cards.map((c) => c.kind).join(','));
+  await setSetting('geminiKey', 'chave-teste');
+  let prompt = '';
+  const fake = (async (_u: string, init: RequestInit) => {
+    prompt = JSON.parse(String(init.body)).contents[0].parts[0].text;
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(answer) }] } }] }), { status: 200 });
+  }) as unknown as typeof fetch;
+  const b = await buildBriefWithAi(ex, { fetchImpl: fake });
+  assert(b.source === 'ia' && b.model === 'gemini-3.8-flash', `${b.source} ${b.model}`);
+  assert(/LINHA DE RACIOCÍNIO/.test(prompt) && /SOMENTE as que aparecem/.test(prompt) && prompt.includes('## A compaixão que age'), 'pedido');
+  const bad = refsNotInText(b, ex);
+  assert(bad.has('Apocalipse 3:20') && !bad.has('Lucas 10:25-37') && !bad.has('Lucas 10:33'), [...bad].join('|'));
+  await setSetting('geminiKey', '');
 });
 
 console.log(lines.join('\n'));
