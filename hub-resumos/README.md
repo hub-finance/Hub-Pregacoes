@@ -143,6 +143,10 @@ os editores mostram “Salvando…” / “Salvo às hh:mm”.
 
 ## Próximos passos (anotados com o usuário)
 
+**Prompt de ajustes dos resumos (relatório + slides do usuário):** ver
+`docs/AJUSTES-RESUMOS.md` — estrutura única do estudo, 4 camadas, progressão
+lógica, 4 tipos de cartão, DNA em matriz, sem reticências, PDF e Word.
+
 Tudo o que falta fica nesta lista e em `hub-bible/docs/PENDENCIAS.md`, para
 continuar depois — sempre com o princípio acima: qualidade e ganho de tempo.
 
