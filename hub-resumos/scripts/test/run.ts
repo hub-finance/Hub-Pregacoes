@@ -538,8 +538,9 @@ await test('estrutura sem IA: cobre o livro inteiro, não só os primeiros capí
   const b = buildBriefByRules(m);
   const idx = (title: string) => sections.findIndex((x) => x.title === title);
   const stepAt = b.steps.map((x) => idx(x.section));
-  assert(b.steps.length === 6 && Math.max(...stepAt) >= 10 && Math.min(...stepAt) <= 1, `etapas: ${stepAt.join(',')}`);
-  assert(b.branches.length === 5 && b.branches.some((x) => idx(x.section) >= 9), b.branches.map((x) => x.section).join('|'));
+  // uma etapa e um ramo para cada capítulo, em ordem
+  assert(b.steps.length === 12 && stepAt.join(',') === sections.map((_, i) => i).join(','), `etapas: ${stepAt.join(',')}`);
+  assert(b.branches.length === 12 && b.branches.every((x, i) => idx(x.section) === i), b.branches.map((x) => x.section).join('|'));
   const truthAt = b.truths.map((x) => idx(x.section));
   assert(b.truths.length === 5 && Math.max(...truthAt) >= 9, `verdades: ${truthAt.join(',')}`);
   assert(b.dna.rows.length === 5 && b.dna.convictions.length > 0, `dna ${b.dna.rows.length} conv ${b.dna.convictions.length}`);
@@ -548,6 +549,20 @@ await test('estrutura sem IA: cobre o livro inteiro, não só os primeiros capí
   // nada de pedaço solto nem pontuação emendada
   const texts = [b.thesis, b.synthesis, ...b.truths.map((x) => x.text), ...b.steps.map((x) => x.explanation), ...b.dna.rows.map((x) => x.principle)];
   assert(texts.every((t) => !/^isso/i.test(t) && !/[,;:]\.$/.test(t)), texts.filter((t) => /^isso/i.test(t) || /[,;:]\.$/.test(t)).join(' | '));
+
+  // com introdução: ela dá a tese, o objetivo e a 1ª etapa; depois, um capítulo por etapa
+  const withIntro = {
+    ...m,
+    sections: [
+      { id: 'intro', title: 'Introdução', text: 'Neste livro quero ajudar cada leitor a viver a oração, o perdão e a esperança como hábitos diários.\n\nA vida cristã cresce quando a Palavra de Deus orienta cada decisão do dia, e a oração sustenta o caminho.' },
+      ...sections,
+    ],
+  } as unknown as Material;
+  const bi = buildBriefByRules(withIntro);
+  assert(bi.steps.length === 13 && bi.steps[0].section === 'Introdução' && bi.steps[0].title === 'Introdução', bi.steps.slice(0, 2).map((x) => x.title).join(' | '));
+  assert(/Neste livro quero ajudar/.test(bi.objective), `objetivo: ${bi.objective}`);
+  assert(bi.thesis && withIntro.sections[0].text.includes(bi.thesis.replace(/\.$/, '').slice(0, 25)), `tese: ${bi.thesis}`);
+  assert(bi.synthesis.length > 0, 'síntese');
 });
 
 await test('estrutura do estudo: IA — pedido, leitura, limites e conferência dos versículos', async () => {

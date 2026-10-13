@@ -160,6 +160,14 @@ export function turnForSection(material: Material, section: Material['sections']
 /** Estrutura montada só com o texto (sem IA). */
 /* ------------- seleção inteligente: o livro inteiro, não só o começo ------------- */
 
+/**
+ * Sem IA, a progressão e o mapa têm a introdução e cada capítulo, um por um;
+ * só um livro com mais partes que isso tem capítulos juntados.
+ */
+const MAX_PARTS = 40;
+const INTRO_TITLE = /^(introdu[cç][aã]o|pref[aá]cio|apresenta[cç][aã]o|pr[oó]logo|palavra (inicial|do autor)|ao leitor|antes de come[cç]ar)\b/i;
+const PURPOSE = /\b(objetivo|prop[oó]sito|este livro|neste livro|esta obra|nesta obra|este estudo|neste estudo|escrevi|pretend[eo]|desej[oa] que|quero que|minha ora[cç][aã]o [eé])\b/i;
+
 /** Divide em até `n` blocos seguidos e equilibrados (12 capítulos em 6 → 2 em cada). */
 export function groupsOf<T>(items: T[], n: number): T[][] {
   const k = Math.min(n, items.length);
@@ -333,15 +341,26 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
   };
   const fresh = (list: Picked[]) => list.find((p) => !used.has(fold(p.text)));
 
-  // a tese: a ideia central do autor; senão, a frase mais forte do livro inteiro
+  // a introdução (ou prefácio, apresentação) é onde o autor diz o propósito do livro
+  const intro = sections.slice(0, 3).find((s) => INTRO_TITLE.test(cleanTitle(s.section.title)));
+  const chapters = sections.filter((s) => s !== intro);
+  const introRanked = intro ? rankSentences([intro], keys) : [];
+
+  // a tese: a ideia central do autor; senão, a frase mais forte da introdução; senão, do livro inteiro
   const allRanked = rankSentences(sections, keys);
-  const thesisPick = material.centralIdea.trim() ? undefined : take(allRanked.find((p) => p.s.highlights.length && p.score >= 2) ?? allRanked[0]);
+  const thesisPick = material.centralIdea.trim()
+    ? undefined
+    : take(introRanked.find((p) => p.score >= 1) ?? allRanked.find((p) => p.s.highlights.length && p.score >= 2) ?? allRanked[0]);
   const thesis = concise(material.centralIdea.trim() || thesisPick?.text || '', 30);
   used.add(fold(thesis));
 
-  // a síntese: começo, meio e fim do livro, uma frase de cada
+  // o objetivo: a frase da introdução em que o autor diz para que escreveu
+  const objectivePick = intro ? take(sectionSentences(intro).filter((x) => PURPOSE.test(x) && !x.endsWith('?') && !used.has(fold(x))).map((text) => ({ text, s: intro, score: 0 }))[0]) : undefined;
+  const objective = objectivePick ? concise(objectivePick.text) : '';
+
+  // a síntese: a introdução, depois o meio e o fim do livro, uma frase de cada
   const synthesisParts: string[] = [];
-  for (const g of groupsOf(sections, 3)) {
+  for (const g of [...(intro ? [[intro]] : []), ...groupsOf(chapters, intro ? 2 : 3)]) {
     const p = take(fresh(rankSentences(g, keys)));
     if (!p) continue;
     const sentence = concise(p.text);
@@ -350,8 +369,8 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
   }
   const synthesis = synthesisParts.join(' ');
 
-  // a progressão: o livro inteiro em até 6 etapas (capítulos agrupados em ordem)
-  const steps = groupsOf(sections, L.steps).map((g) => {
+  // a progressão: a introdução e uma etapa para cada capítulo (pedido do usuário)
+  const steps = groupsOf(sections, MAX_PARTS).map((g) => {
     const ranked = rankSentences(g, keys);
     const rep = representative(g, ranked);
     const question = g.flatMap((s) => s.questions)[0] ?? '';
@@ -368,7 +387,7 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
   });
 
   // o mapa: até 5 ramos cobrindo o livro todo; as folhas são o melhor de cada bloco
-  const branches = groupsOf(sections, L.branches).map((g) => {
+  const branches = groupsOf(sections, MAX_PARTS).map((g) => {
     const ranked = rankSentences(g, keys);
     const rep = representative(g, ranked);
     const summaryPick = ranked[0];
@@ -462,7 +481,7 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
     thesis,
     ...findTurnsByRules(r),
     synthesis,
-    objective: '',
+    objective,
     baseText: r.references.slice(0, 3).map((x) => x.label),
     truths,
     steps,
