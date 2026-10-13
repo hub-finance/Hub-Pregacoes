@@ -3,7 +3,7 @@ import { callGemini, withModel } from './ai';
 import { findReferences, fold } from './bible';
 import { db, now } from './db';
 import { extractiveSummary } from './summary';
-import { readMaterial, sectionKeywords, sentences, type MaterialReading, type SectionReading } from './text';
+import { cleanTitle, readMaterial, sectionKeywords, sentences, type MaterialReading, type SectionReading } from './text';
 import type { ActionItem, BriefCard, BriefOrigin, Material, StudyBrief } from './types';
 
 /**
@@ -21,12 +21,7 @@ import type { ActionItem, BriefCard, BriefOrigin, Material, StudyBrief } from '.
 /** Limites de quantidade: poucos itens, bem escolhidos (qualidade, não quantidade). */
 export const BRIEF_LIMITS = { truths: 5, steps: 6, branches: 5, leaves: 4, cardsPerKind: 3, dnaRows: 5, applications: 5, questions: 5 };
 
-/** Tira "1." / "Capítulo 3 —" do começo do título, para rótulos curtos. */
-export const cleanTitle = (title: string) =>
-  title
-    .replace(/^(cap[ií]tulo|li[cç][aã]o|m[oó]dulo|parte|aula|unidade|se[cç][cç]?[aã]o|sess[aã]o|t[oó]pico|livro)\s+[\divxlc]+\s*[—–:.-]?\s*/i, '')
-    .replace(/^\d{1,3}[.)]?\s+/, '')
-    .trim() || title;
+export { cleanTitle } from './text';
 
 /**
  * Rótulo curto que não parece cortado: o título inteiro quando cabe; senão as

@@ -1,5 +1,5 @@
 import { fold } from './bible';
-import { readMaterial, sentences, type MaterialReading } from './text';
+import { cleanTitle, readMaterial, sentences, type MaterialReading } from './text';
 import type { ActionItem, Material } from './types';
 
 /**
@@ -156,7 +156,7 @@ export function buildMindMap(material: Material, reading?: MaterialReading, acti
     const opening = s.highlights[0] ?? sentences(s.paragraphs[0] ?? '')[0] ?? s.listItems[0] ?? '';
     return {
       id: i + 1,
-      label: `${pad(i + 1)}\n${circleLabel(title.toUpperCase(), 11, 2)}`,
+      label: `${pad(i + 1)}\n${circleLabel(cleanTitle(title).toUpperCase(), 11, 2)}`,
       color,
       textColor: color === '#C9973A' ? '#071320' : '#FFFFFF',
       tip: {
