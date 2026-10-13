@@ -53,7 +53,10 @@ você. As sugestões só entram quando você as escolhe.
 com as próprias palavras da IA. O pedido manda não inventar fatos nem
 referências; o resultado fica **separado do texto** (`material.ai`), sempre
 marcado como “feito pela IA” e pode ser apagado. O texto vai do aparelho direto
-para o Google (`core/ai.ts`), sem servidor do Hub. Sem chave, nada muda.
+para o Google (`core/ai.ts`), sem servidor do Hub. A IA também faz a **leitura inteligente do sumário**: ao importar um livro (ou em
+Editar › “Ler o sumário com IA”), ela lê o começo do livro e devolve os títulos
+dos capítulos, seções ou lições; o app divide o texto procurando cada título.
+Sem chave, nada muda.
 
 ### Como escrever o texto para o app entender melhor
 

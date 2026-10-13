@@ -83,8 +83,12 @@ export async function duplicateMaterial(id: string): Promise<Material> {
  * materiais importados antes da leitura pelo sumário. O andamento por parte
  * recomeça, porque as partes mudam.
  */
+/** O material de volta num texto só, cada título na sua linha, como veio do arquivo. */
+export const joinedText = (material: Material) =>
+  material.sections.map((s, i) => (i === 0 && /^introdu[cç][aã]o$/i.test(s.title) ? s.text : `${s.title}\n${s.text}`)).join('\n');
+
 export async function resplitMaterial(material: Material, titles?: string[]): Promise<Material> {
-  const text = material.sections.map((s, i) => (i === 0 && /^introdu[cç][aã]o$/i.test(s.title) ? s.text : `${s.title}\n${s.text}`)).join('\n');
+  const text = joinedText(material);
   const parts = titles?.length ? splitByChapterTitles(text, titles) : splitIntoSections(text, 'Introdução');
   if (!parts) throw new Error('Não achei esses títulos no texto. Confira se estão escritos como no livro.');
   const next = { ...material, sections: parts.map((p) => newSection(p.title, p.text)), updatedAt: now() };

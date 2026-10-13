@@ -11,7 +11,7 @@ import { createMaterial, deleteMaterial, getProgress, progressRatio, resplitMate
 import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restoreBackup } from '../../src/core/backup';
 import { createExampleMaterial } from '../../src/core/example';
 import { boardContent } from '../../src/core/boards';
-import { askGemini, buildPrompt, getGeminiConfig, parseAiAnswer, pickFlashModel, removeAiSummary, summarizeWithAi, testGeminiKey, WHOLE } from '../../src/core/ai';
+import { aiChapterTitles, askGemini, buildPrompt, getGeminiConfig, parseAiAnswer, pickFlashModel, removeAiSummary, summarizeWithAi, testGeminiKey, WHOLE } from '../../src/core/ai';
 import { setSetting } from '../../src/core/db';
 import { db } from '../../src/core/db';
 import type { Card } from '../../src/core/types';
@@ -112,7 +112,7 @@ await test('livro: segue o sumário, sem ficha catalográfica nem cabeçalhos de
   assert(p2.some((p) => /Capítulo 1 — A LEI DO LIMITE/i.test(p.title)), p2.map((p) => p.title).join('|'));
 });
 
-await test('A Igreja Triunfante: sumário sem título, perguntas e títulos em duas linhas', () => {
+await test('A Igreja Triunfante: sumário sem título, perguntas e títulos em duas linhas', async () => {
   const toc = [
     '1. Origens: Satanás e Seu Reino. . . . . . . . . . . . . . . . . . . . . 7',
     '2. Divisão Bíblica do Homem: Espírito, Alma e Corpo. . . . .29',
@@ -157,6 +157,19 @@ await test('A Igreja Triunfante: sumário sem título, perguntas e títulos em d
   // com o sumário legível no texto, a procura começa depois dele
   const withToc = splitByChapterTitles(book, titles);
   assert(withToc?.length === 12 && withToc.every((p) => p.text.length > 500), `${withToc?.length}`);
+
+  // leitura inteligente: a IA lê o começo do livro e devolve os títulos
+  await setSetting('geminiKey', 'chave-teste');
+  let sent = '';
+  const ai = (async (_url: string, init: RequestInit) => {
+    sent = JSON.parse(String(init.body)).contents[0].parts[0].text;
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ titulos: titles.map((t, i) => `${i + 1}. ${t}`) }) }] } }] }), { status: 200 });
+  }) as unknown as typeof fetch;
+  const fromAi = await aiChapterTitles(garbled, { fetchImpl: ai });
+  assert(fromAi.length === 12 && /sumário ou índice/.test(sent) && /seções, lições ou partes/.test(sent), 'pedido e resposta');
+  const split = splitByChapterTitles(garbled, fromAi);
+  assert(split?.length === 12 && split[3].title === '4. Fazendo Distinção entre Opressão, Obsessão e Possessão', `${split?.length}`);
+  await setSetting('geminiKey', '');
 });
 
 await test('livro em seções (sem a palavra capítulo)', () => {

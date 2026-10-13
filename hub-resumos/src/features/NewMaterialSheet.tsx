@@ -5,6 +5,8 @@ import { useToast } from '../components/Toast';
 import { SelectInput, TextArea, TextInput } from '../components/ui';
 import { importMaterialFile, readJsonFile } from '../core/backup';
 import { importFile, readHubBackup, type HubCandidate } from '../core/importers';
+import { aiChapterTitles, getGeminiConfig } from '../core/ai';
+import { countWords, splitByChapterTitles } from '../core/text';
 import { createMaterial, KIND_LABEL } from '../core/materials';
 import type { MaterialKind } from '../core/types';
 
@@ -61,13 +63,30 @@ export function NewMaterialSheet({ open, onClose }: { open: boolean; onClose: ()
         return;
       }
       if (!title.trim() && !text.trim()) throw new Error('Escreva um título ou cole o texto.');
+      // livro ou arquivo grande, com a IA ligada: ela lê o sumário e o app divide pelos capítulos dela
+      let sections: Array<{ title: string; text: string }> | undefined;
+      let aiNote = '';
+      if ((mode === 'arquivo' || kind === 'livro') && countWords(text) > 3000 && (await getGeminiConfig()).key) {
+        setBusy('A IA está lendo o sumário do livro…');
+        try {
+          const parts = splitByChapterTitles(text, await aiChapterTitles(text));
+          if (parts) {
+            sections = parts;
+            aiNote = `A IA leu o sumário: ${parts.length} capítulos.`;
+          } else aiNote = 'A IA leu o sumário, mas não achei os capítulos no texto; usei a leitura sem IA.';
+        } catch (err) {
+          aiNote = `${(err as Error).message} Usei a leitura sem IA.`;
+        }
+        setBusy('Organizando o material…');
+      }
       const m = await createMaterial({
         title: title || 'Sem título',
         kind,
         author,
-        text,
+        ...(sections ? { sections } : { text }),
         source: mode === 'arquivo' && fileName ? { type: 'arquivo', name: fileName } : { type: 'manual' },
       });
+      if (aiNote) notify(aiNote);
       reset();
       onClose();
       navigate(`/m/${m.id}${text.trim() ? '' : '?aba=editar'}`);

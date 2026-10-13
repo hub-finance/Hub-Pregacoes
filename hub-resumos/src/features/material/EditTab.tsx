@@ -6,7 +6,9 @@ import { SaveStatus } from '../../components/SaveStatus';
 import { Sheet } from '../../components/Sheet';
 import { ConfirmDialog, SelectInput, TextArea, TextInput } from '../../components/ui';
 import { downloadJson, hubStudyBackup, safeName } from '../../core/backup';
-import { deleteMaterial, duplicateMaterial, KIND_LABEL, newSection, PART_LABEL, resplitMaterial, saveMaterial } from '../../core/materials';
+import { deleteMaterial, duplicateMaterial, joinedText, KIND_LABEL, newSection, PART_LABEL, resplitMaterial, saveMaterial } from '../../core/materials';
+import { aiChapterTitles, getGeminiConfig } from '../../core/ai';
+import { useLiveQuery } from 'dexie-react-hooks';
 import type { Material, MaterialKind } from '../../core/types';
 
 /**
@@ -23,6 +25,8 @@ export function EditTab({ material }: { material: Material }) {
   const [resplitting, setResplitting] = useState(false);
   const [askTitles, setAskTitles] = useState(false);
   const [titlesText, setTitlesText] = useState('');
+  const [aiBusy, setAiBusy] = useState(false);
+  const aiOn = useLiveQuery(async () => !!(await getGeminiConfig()).key, [], false);
   const dirty = useRef(false);
   const latest = useRef(draft);
   latest.current = draft;
@@ -172,6 +176,30 @@ export function EditTab({ material }: { material: Material }) {
         >
           Duplicar
         </button>
+        {aiOn && (
+          <button
+            className="btn btn-sm btn-primary"
+            disabled={aiBusy}
+            onClick={async () => {
+              setAiBusy(true);
+              try {
+                await saveMaterial(latest.current);
+                dirty.current = false;
+                const titles = await aiChapterTitles(joinedText(latest.current));
+                // mostra o que a IA achou, para conferir antes de dividir
+                setTitlesText(titles.join('\n'));
+                setAskTitles(true);
+                notify(`A IA achou ${titles.length} capítulos. Confira e toque em “Dividir por estes capítulos”.`);
+              } catch (err) {
+                notify((err as Error).message, 'error');
+              } finally {
+                setAiBusy(false);
+              }
+            }}
+          >
+            {aiBusy ? 'A IA está lendo o sumário…' : 'Ler o sumário com IA'}
+          </button>
+        )}
         <button className="btn btn-sm" onClick={() => setResplitting(true)}>
           Reorganizar as partes pelo sumário
         </button>
