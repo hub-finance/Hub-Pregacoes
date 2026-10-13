@@ -149,7 +149,7 @@ function explain(status: number, detail: string): string {
 }
 
 /** Chama o Gemini pedindo JSON no formato `schema`; devolve o texto da resposta. */
-async function callGemini(
+export async function callGemini(
   prompt: string,
   config: { key: string; model: string },
   schema: object,
@@ -185,7 +185,7 @@ async function callGemini(
 }
 
 /** Usa o modelo configurado; se o automático saiu de linha, acha o Flash atual e repete. */
-async function withModel<T>(opts: { fetchImpl?: typeof fetch }, run: (config: { key: string; model: string }) => Promise<T>): Promise<T> {
+export async function withModel<T>(opts: { fetchImpl?: typeof fetch }, run: (config: { key: string; model: string }) => Promise<T>): Promise<T> {
   const config = await getGeminiConfig();
   try {
     return await run(config);

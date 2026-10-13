@@ -11,6 +11,7 @@ import { createMaterial, deleteMaterial, getProgress, progressRatio, resplitMate
 import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restoreBackup } from '../../src/core/backup';
 import { createExampleMaterial } from '../../src/core/example';
 import { boardContent } from '../../src/core/boards';
+import { buildBriefByRules, buildBriefWithAi, parseBriefAnswer, refsNotInText, sectionIdByTitle } from '../../src/core/brief';
 import { aiChapterTitles, askGemini, buildPrompt, getGeminiConfig, parseAiAnswer, pickFlashModel, removeAiSummary, summarizeWithAi, testGeminiKey, WHOLE } from '../../src/core/ai';
 import { setSetting } from '../../src/core/db';
 import { db } from '../../src/core/db';
@@ -480,6 +481,60 @@ await test('IA (Gemini): pedido, resposta, erros e onde fica guardado', async ()
   assert(!(await db.materials.get(ex.id))?.ai?.[ex.sections[0].id], 'resumo apagado');
   await setSetting('geminiKey', '');
   await deleteMaterial(ex.id);
+});
+
+await test('estrutura do estudo: regras (sem IA) — poucos itens, do texto, sem reticências', async () => {
+  const ex = await createExampleMaterial();
+  const b = buildBriefByRules(ex);
+  assert(b.source === 'regras' && b.thesis === ex.centralIdea, 'tese = ideia central');
+  assert(b.steps.length === 5 && b.steps.every((x) => x.title && !/…/.test(x.title)), b.steps.map((x) => x.title).join('|'));
+  assert(b.steps[0].title === 'Introdução' && b.steps[1].question === 'Quem é o meu próximo?', `${b.steps[0].title} / ${b.steps[1].question}`);
+  assert(b.branches.every((x) => x.label.split(' ').length <= 3 && x.leaves.length <= 4), 'ramos curtos');
+  const labels = b.branches.flatMap((x) => x.leaves.map((l) => l.label));
+  assert(b.branches.every((x) => new Set(x.leaves.map((l) => l.label)).size === x.leaves.length), labels.join('|'));
+  assert(b.cards.some((c) => c.kind === 'biblico') && b.cards.some((c) => c.kind === 'principio') && b.cards.some((c) => c.kind === 'revisao'), 'tipos de cartão');
+  assert(b.dna.rows.length >= 2 && b.dna.rows.every((r) => r.principle), 'matriz DNA');
+  assert(!JSON.stringify(b).includes('…'), 'sem reticências');
+  assert(refsNotInText(b, ex).size === 0, 'versículos do texto');
+  assert(sectionIdByTitle(ex, 'A compaixão que age') === ex.sections[3].id, 'liga à parte');
+});
+
+await test('estrutura do estudo: IA — pedido, leitura, limites e conferência dos versículos', async () => {
+  const ex = await createExampleMaterial();
+  const answer = {
+    tese: 'Amar o próximo é aproximar-se de quem precisa.',
+    sintese: 'A parábola responde quem é o próximo. A compaixão vê, aproxima-se e age.',
+    objetivo: 'Levar o leitor a agir com compaixão.',
+    textoBase: ['Lucas 10:25-37'],
+    verdades: [{ texto: 'A compaixão termina em atitude.', secao: 'A compaixão que age', origem: 'texto' }],
+    progressao: Array.from({ length: 9 }, (_, i) => ({ etapa: `Etapa ${i + 1}`, pergunta: 'Por quê?', explicacao: 'Explicação…', ligacao: 'gera', referencias: i === 0 ? ['Lucas 10:25-37', 'Apocalipse 3:20'] : [], secao: 'Introdução', origem: i % 2 ? 'ia' : 'texto' })),
+    ramos: [{ rotulo: 'O Conflito', resumo: 'Quem é o próximo?', secao: 'A pergunta do intérprete da lei', folhas: [{ rotulo: 'Lei', detalhe: 'Deuteronômio 6:5', referencia: 'Deuteronômio 6:5' }] }],
+    cartoes: [
+      { tipo: 'biblico', frente: 'Lucas 10:33', verso: 'O samaritano teve compaixão.', extra: 'Centro da mensagem', referencia: 'Lucas 10:33', secao: 'A compaixão que age', origem: 'texto' },
+      { tipo: 'conexao', frente: 'Lei → Compaixão', verso: 'Conhecer a lei não basta.', secao: 'A pergunta do intérprete da lei', origem: 'ia' },
+      { tipo: 'revisao', frente: 'O que a compaixão faz?', verso: 'Age.', secao: 'A compaixão que age', origem: 'texto' },
+    ],
+    dna: { tese: '', conviccoes: ['Amar é agir'], matriz: [{ principio: 'A compaixão age', base: 'Lucas 10:33', aplicacao: 'Ajudar alguém nesta semana', origem: 'texto' }], resultado: 'Uma igreja que se aproxima.' },
+    aplicacoes: ['Visitar alguém'],
+    perguntas: ['Quem é o meu próximo hoje?'],
+  };
+  const parsed = parseBriefAnswer(JSON.stringify(answer));
+  assert(parsed.steps.length === 6, 'no máximo 6 etapas');
+  assert(!parsed.steps[0].explanation.includes('…'), 'reticências removidas');
+  assert(parsed.dna.thesis === answer.tese, 'tese do DNA herdada');
+  assert(parsed.cards.map((c) => c.kind).join(',') === 'biblico,conexao,revisao', parsed.cards.map((c) => c.kind).join(','));
+  await setSetting('geminiKey', 'chave-teste');
+  let prompt = '';
+  const fake = (async (_u: string, init: RequestInit) => {
+    prompt = JSON.parse(String(init.body)).contents[0].parts[0].text;
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(answer) }] } }] }), { status: 200 });
+  }) as unknown as typeof fetch;
+  const b = await buildBriefWithAi(ex, { fetchImpl: fake });
+  assert(b.source === 'ia' && b.model === 'gemini-3.8-flash', `${b.source} ${b.model}`);
+  assert(/LINHA DE RACIOCÍNIO/.test(prompt) && /SOMENTE as que aparecem/.test(prompt) && prompt.includes('## A compaixão que age'), 'pedido');
+  const bad = refsNotInText(b, ex);
+  assert(bad.has('Apocalipse 3:20') && !bad.has('Lucas 10:25-37') && !bad.has('Lucas 10:33'), [...bad].join('|'));
+  await setSetting('geminiKey', '');
 });
 
 console.log(lines.join('\n'));
