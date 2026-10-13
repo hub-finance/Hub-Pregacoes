@@ -81,6 +81,15 @@ export function DnaTab({ material, reading }: { material: Material; reading: Mat
         </ol>
       </section>
 
+      {!reading.highlights.length && !reading.definitions.length && !reading.questions.length && (
+        <div className="notice">
+          <span>
+            <strong>O DNA fica mais rico com marcações no texto.</strong> Na aba Editar, use “&gt; ” no começo de uma frase para
+            destacar, “Termo: definição” para o glossário e termine perguntas com “?”.
+          </span>
+        </div>
+      )}
+
       <section className="card stack">
         <strong>Palavras-chave</strong>
         {reading.keywords.length ? (

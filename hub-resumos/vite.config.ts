@@ -17,7 +17,7 @@ export default defineConfig({
         id: 'hub-resumos',
         name: 'Hub Resumos — Resumos e Interpretações',
         short_name: 'Hub Resumos',
-        description: 'Painel, passo a passo, DNA, mapa de conceitos, cartões, consulta rápida, plano de ação e infográfico de livros, estudos e resumos.',
+        description: 'Painel, passo a passo, DNA, mapa mental, cartões, consulta rápida, plano de ação e infográfico de livros, estudos e resumos.',
         lang: 'pt-BR',
         start_url: './index.html',
         scope: './',

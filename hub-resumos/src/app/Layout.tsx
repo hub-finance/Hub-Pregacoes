@@ -20,6 +20,7 @@ const NAV: Array<{ to: string; label: string; icon: IconName }> = [
   { to: '/', label: 'Biblioteca', icon: 'library' },
   { to: '/revisar', label: 'Revisar cartões', icon: 'layers' },
   { to: '/config', label: 'Dados e ajustes', icon: 'settings' },
+  { to: '/ajuda', label: 'Ajuda', icon: 'info' },
 ];
 
 /** Casca do app: menu lateral em tela larga, barra inferior no celular. */
@@ -67,6 +68,9 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="brand" style={{ flex: 1, minWidth: 0 }}>
             <span className="topbar-title truncate">{current?.label ?? 'Hub Resumos'}</span>
           </div>
+          <button className="icon-btn" onClick={() => navigate('/ajuda')} aria-label="Ajuda" title="Ajuda">
+            <Icon name="info" />
+          </button>
           <button className="icon-btn" onClick={() => navigate('/config')} aria-label="Dados e ajustes">
             <Icon name="settings" />
           </button>

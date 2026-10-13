@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
+import { EmptyState } from '../../components/ui';
 import { getProgress, PART_LABEL, progressRatio, setCurrentStep, setStepDone, setStepNote } from '../../core/materials';
 import type { Material } from '../../core/types';
 import { RichText } from './RichText';
@@ -36,7 +37,18 @@ export function StepsTab({ material }: { material: Material }) {
   };
 
   if (!material.sections.length) {
-    return <p className="muted">Este material ainda não tem partes. Use a aba Editar para escrever ou colar o conteúdo.</p>;
+    return (
+      <EmptyState
+        icon="list"
+        title="Ainda não há partes para estudar"
+        description="O passo a passo mostra uma parte do texto por vez. Escreva ou cole o conteúdo na aba Editar, com um título para cada parte."
+        action={
+          <button className="btn btn-primary btn-sm" onClick={() => setParams({ aba: 'editar' })}>
+            Escrever o conteúdo
+          </button>
+        }
+      />
+    );
   }
 
   const done = new Set(progress?.done ?? []);

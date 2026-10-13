@@ -14,7 +14,7 @@ Cada material (livro, estudo ou resumo) ganha dez visões:
 | **Painel** | Andamento, partes, tempo de leitura, versículos, cartões do dia, ações abertas e o próximo passo |
 | **Passo a passo** | O material conduzido parte por parte, com anotação pessoal em cada passo; volta de onde parou |
 | **DNA** | Ideia central (escrita por você), identidade, texto-chave, estrutura, palavras-chave, versículos, destaques, glossário e perguntas |
-| **Mapa de conceitos** | Material no centro, partes em volta, conceitos e versículos ligados às partes onde aparecem; lista de ligações |
+| **Mapa mental** | Mapa interativo (canvas, azul-noite e dourado): o material no centro, cada parte como assunto e, ao tocar, todos os desdobramentos dela — destaques, definições, itens, versículos com a frase, perguntas e cada parágrafo inteiro, numerados e coloridos por tipo. Um assunto por vez (os outros apagam), “Expandir tudo”, zoom, arrastar, tela cheia e o texto completo de cada círculo. Baixa como **.html interativo** (abre sozinho, sem internet) e **PNG** |
 | **Cartões** | Frente e verso sugeridos do texto (definições, destaques com lacuna, perguntas, listas, referências) ou escritos à mão, com revisão espaçada |
 | **Consulta rápida** | Uma folha com o essencial, pronta para imprimir ou salvar em PDF, ou copiar como texto |
 | **Plano de ação** | Ações com responsável, prazo e situação; sugestões das partes de aplicação do texto |
@@ -27,8 +27,18 @@ Verde e branco, Escuro, Noite azul, Ministerial) e o Verde do Hub Resumos. O
 botão do sol, no topo, troca rápido; Dados e ajustes mostra todos.
 
 Além disso: **Revisar cartões** (todos os cartões vencidos de todos os
-materiais numa sessão) e **Dados e ajustes** (cópia de segurança, restauração,
-endereço do Hub Bible, tema).
+materiais numa sessão), **Dados e ajustes** (cópia de segurança, restauração,
+endereço do Hub Bible, tema) e **Ajuda** (primeiros passos, marcações do texto,
+cada aba explicada e perguntas frequentes; cada aba tem o seu “Como usar”).
+
+Na **biblioteca**: números gerais, “Continue de onde parou”, guia de primeiros
+passos, **material de exemplo** e, em cada material, **baixar** (.json com
+andamento, cartões e ações — volta pelo “Novo material › Importar arquivo”, como
+material novo), **duplicar** e **excluir só aquele material**, com confirmação.
+
+**Tudo o que é criado sai em arquivo:** material (.json), mapa mental (.html e
+PNG), infográfico (PNG), consulta rápida (PDF pela impressão), resumo (.md),
+envio ao Hub Bible (.json) e a cópia de segurança de tudo (.json).
 
 ### Princípio de autoria
 
@@ -71,7 +81,7 @@ npm ci
 npm run dev       # desenvolvimento
 npm run build     # gera dist/ (PWA)
 npm run preview   # serve o build
-npm test          # testes do núcleo (texto, cartões, resumo, mapa, importação, banco)
+npm test          # testes do núcleo (texto, cartões, resumo, mapa mental, importação, banco, material em arquivo, exemplo)
 node scripts/icons.mjs <caminho-do-playwright>   # regenera os PNG do ícone
 ```
 
@@ -98,7 +108,9 @@ O `netlify.toml` desta pasta define build, pasta publicada e cabeçalhos.
 src/
   core/        regras, sem tela: banco, leitura do texto, referências bíblicas,
                cartões, plano de ação, resumo, mapa, importação, cópia de segurança
-  features/    telas: biblioteca, material (abas), revisão, ajustes
+  features/    telas: biblioteca, material (abas), revisão, ajustes, ajuda
+    mindmap/   motor do mapa mental (engine.js, JS puro: o mesmo código vai
+               dentro do .html baixado) e a tela dele
   components/  primitivas visuais (as mesmas do Hub Bible)
   styles/      tokens e estilos do Hub Bible + resumos.css (cor verde própria)
 scripts/       testes e geração de ícones

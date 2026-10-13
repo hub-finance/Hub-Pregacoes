@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
-import { ConfirmDialog } from '../../components/ui';
+import { ConfirmDialog, EmptyState } from '../../components/ui';
 import { addCards, listCards, ORIGIN_LABEL, suggestCards, type CardDraft } from '../../core/cards';
 import { db } from '../../core/db';
 import type { Card, Material } from '../../core/types';
@@ -69,6 +69,14 @@ export function CardsTab({ material }: { material: Material }) {
         </button>
         <span className="small dim">{cards.length} cartão(ões)</span>
       </div>
+
+      {loaded && !cards.length && !drafts?.length && (
+        <EmptyState
+          icon="layers"
+          title="Nenhum cartão ainda"
+          description="Cartões são perguntas e respostas para memorizar. Toque em “Sugerir cartões do texto”: destaques, definições, listas e perguntas viram cartões, e você escolhe quais guardar."
+        />
+      )}
 
       {drafts && drafts.length > 0 && (
         <section className="card stack">

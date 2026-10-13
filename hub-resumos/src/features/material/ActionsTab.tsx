@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
+import { EmptyState } from '../../components/ui';
 import { addActions, listActions, STATUS_LABEL, suggestActions, updateAction, type ActionDraft } from '../../core/actions';
 import { db } from '../../core/db';
 import type { ActionItem, ActionStatus, Material } from '../../core/types';
@@ -125,8 +126,14 @@ export function ActionsTab({ material }: { material: Material }) {
         ))}
       </div>
 
-      {!shown.length ? (
-        <p className="small muted">Nenhuma ação {filter === 'todas' ? 'ainda' : 'com essa situação'}.</p>
+      {!actions.length ? (
+        <EmptyState
+          icon="check"
+          title="Nenhuma ação ainda"
+          description="O plano de ação transforma o estudo em prática. Toque em “Sugerir a partir das aplicações do texto” (lê partes como “Aplicação” e linhas “- [ ] …”) ou escreva a sua ação no campo “Nova ação”."
+        />
+      ) : !shown.length ? (
+        <p className="small muted">Nenhuma ação com essa situação.</p>
       ) : (
         shown.map((a) => <ActionRow key={a.id} item={a} />)
       )}

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sheet } from '../components/Sheet';
 import { useToast } from '../components/Toast';
 import { SelectInput, TextArea, TextInput } from '../components/ui';
-import { readJsonFile } from '../core/backup';
+import { importMaterialFile, readJsonFile } from '../core/backup';
 import { importFile, readHubBackup, type HubCandidate } from '../core/importers';
 import { createMaterial, KIND_LABEL } from '../core/materials';
 import type { MaterialKind } from '../core/types';
@@ -129,14 +129,14 @@ export function NewMaterialSheet({ open, onClose }: { open: boolean; onClose: ()
           <div className="stack" style={{ gap: 'var(--sp-2)' }}>
             <div className="row row-wrap">
               <button className="btn" onClick={() => fileInput.current?.click()} disabled={!!busy}>
-                Escolher arquivo (.txt, .md, .docx, .pdf)
+                Escolher arquivo (.txt, .md, .docx, .pdf ou material .json)
               </button>
               {fileName && <span className="small dim">{fileName}</span>}
             </div>
             <input
               ref={fileInput}
               type="file"
-              accept=".txt,.md,.markdown,.docx,.pdf,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              accept=".txt,.md,.markdown,.docx,.pdf,.json,application/json,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               hidden
               onChange={async (e) => {
                 const file = e.target.files?.[0];
@@ -144,6 +144,15 @@ export function NewMaterialSheet({ open, onClose }: { open: boolean; onClose: ()
                 if (!file) return;
                 setBusy('Lendo o arquivo…');
                 try {
+                  // material baixado do próprio Hub Resumos: volta inteiro, com andamento, cartões e ações
+                  if (/\.json$/i.test(file.name)) {
+                    const m = await importMaterialFile(await readJsonFile(file));
+                    notify('Material aberto na biblioteca, com andamento, cartões e plano de ação.');
+                    reset();
+                    onClose();
+                    navigate(`/m/${m.id}`);
+                    return;
+                  }
                   const imported = await importFile(file, setBusy);
                   setFileName(file.name);
                   setText(imported.text);
@@ -156,7 +165,7 @@ export function NewMaterialSheet({ open, onClose }: { open: boolean; onClose: ()
               }}
             />
             <p className="small dim" style={{ margin: 0 }}>
-              O arquivo é lido aqui no aparelho; nada é enviado para a internet. Revise o texto abaixo antes de criar.
+              O arquivo é lido aqui no aparelho; nada é enviado para a internet. Revise o texto abaixo antes de criar. Um material baixado do Hub Resumos (.json) volta completo, sem precisar criar.
             </p>
           </div>
         )}

@@ -20,7 +20,7 @@ export const TABS = [
   { id: 'painel', label: 'Painel' },
   { id: 'passos', label: 'Passo a passo' },
   { id: 'dna', label: 'DNA' },
-  { id: 'mapa', label: 'Mapa de conceitos' },
+  { id: 'mapa', label: 'Mapa mental' },
   { id: 'cartoes', label: 'Cartões' },
   { id: 'consulta', label: 'Consulta rápida' },
   { id: 'acoes', label: 'Plano de ação' },
@@ -84,6 +84,12 @@ export default function MaterialPage() {
             {t.label}
           </button>
         ))}
+      </div>
+
+      <div className="row" style={{ justifyContent: 'flex-end', marginTop: 'calc(-1 * var(--sp-2))', marginBottom: 'var(--sp-2)' }}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/ajuda?t=${tab}`)}>
+          ? Como usar: {TABS.find((t) => t.id === tab)?.label}
+        </button>
       </div>
 
       {tab === 'painel' && <DashboardTab material={material} reading={reading} go={go} />}

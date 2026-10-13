@@ -126,3 +126,66 @@ export function readJsonFile(file: File): Promise<unknown> {
 export const safeName = (title: string) =>
   // eslint-disable-next-line no-control-regex
   title.replace(/[\u0000-\u001f<>:"/\\|?*]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'material';
+
+/* --------------------------- um material em arquivo ---------------------- */
+
+export const MATERIAL_FILE_APP = 'hub-resumos-material';
+
+/**
+ * Um material sozinho, com o andamento, os cartões e o plano de ação, num
+ * arquivo .json. Serve para guardar, mandar a outra pessoa ou abrir em outro
+ * aparelho com o Hub Resumos ("Novo material › Importar arquivo").
+ */
+export async function materialFile(id: string) {
+  const material = await db.materials.get(id);
+  if (!material) throw new Error('Material não encontrado.');
+  const [progress, cards, actions] = await Promise.all([
+    db.progress.get(id),
+    db.cards.where('materialId').equals(id).toArray(),
+    db.actions.where('materialId').equals(id).toArray(),
+  ]);
+  return { app: MATERIAL_FILE_APP, version: 1, exportedAt: new Date().toISOString(), material, progress: progress ?? null, cards, actions };
+}
+
+/**
+ * Abre um arquivo de material como material novo (ids novos: nunca
+ * sobrescreve o que já existe, mesmo se o arquivo saiu deste aparelho).
+ */
+export async function importMaterialFile(json: unknown): Promise<Material> {
+  const f = json as Partial<Awaited<ReturnType<typeof materialFile>>>;
+  if (f?.app !== MATERIAL_FILE_APP || !f.material?.sections) throw new Error('Este arquivo não é um material do Hub Resumos.');
+  const t = now();
+  const id = uid('mat_');
+  const sectionIds = new Map<string, string>();
+  const material: Material = {
+    ...f.material,
+    id,
+    sections: f.material.sections.map((s) => {
+      const sid = uid('sec_');
+      sectionIds.set(s.id, sid);
+      return { ...s, id: sid };
+    }),
+    createdAt: t,
+    updatedAt: t,
+    openedAt: undefined,
+  };
+  const sec = (old?: string) => (old ? sectionIds.get(old) : undefined);
+  await db.transaction('rw', [db.materials, db.progress, db.cards, db.actions], async () => {
+    await db.materials.put(material);
+    if (f.progress)
+      await db.progress.put({
+        ...f.progress,
+        id,
+        done: f.progress.done.map((d) => sec(d)).filter((d): d is string => !!d),
+        notes: Object.fromEntries(Object.entries(f.progress.notes).map(([k, v]) => [sec(k) ?? k, v])),
+        current: sec(f.progress.current),
+      });
+    for (const c of f.cards ?? []) await db.cards.put({ ...c, id: uid('card_'), materialId: id, sectionId: sec(c.sectionId) });
+    for (const a of f.actions ?? []) await db.actions.put({ ...a, id: uid('act_'), materialId: id, sectionId: sec(a.sectionId) });
+  });
+  return material;
+}
+
+export function downloadText(text: string, filename: string, type = 'text/markdown;charset=utf-8') {
+  downloadBlob(new Blob([text], { type }), filename);
+}

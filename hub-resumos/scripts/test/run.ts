@@ -5,10 +5,11 @@ import { readMaterial, splitIntoSections } from '../../src/core/text';
 import { suggestCards, addCards, answerCard, schedule } from '../../src/core/cards';
 import { suggestActions, addActions, listActions } from '../../src/core/actions';
 import { extractiveSummary } from '../../src/core/summary';
-import { buildConceptMap } from '../../src/core/concepts';
+import { buildMindMap, circleLabel } from '../../src/core/mindmap';
 import { docxToText, readHubBackup } from '../../src/core/importers';
 import { createMaterial, deleteMaterial, getProgress, progressRatio, setStepDone } from '../../src/core/materials';
-import { createBackup, hubStudyBackup, restoreBackup } from '../../src/core/backup';
+import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restoreBackup } from '../../src/core/backup';
+import { createExampleMaterial } from '../../src/core/example';
 import { db } from '../../src/core/db';
 import type { Card } from '../../src/core/types';
 
@@ -114,14 +115,34 @@ await test('plano de ação sugerido da seção de aplicação', () => {
   assert(!acts.some((a) => a.includes('Obras são fruto')), 'item de fora da aplicação');
 });
 
-await test('mapa de conceitos: liga só onde o conceito aparece', () => {
-  const map = buildConceptMap({ ...material, concepts: ['evangelho'] }, reading);
-  const graca = map.nodes.find((n) => n.kind === 'conceito' && n.label.startsWith('graça'));
-  assert(graca && graca.sections.length >= 2, 'graça em várias seções');
-  const ev = map.nodes.find((n) => n.label === 'evangelho');
-  assert(ev?.pinned && ev.sections.length === 1, 'conceito fixado pelo usuário');
-  assert(map.nodes.every((n) => n.x >= 0 && n.x <= map.width && n.y >= 0 && n.y <= map.height), 'nós dentro da área');
-  assert(map.nodes.some((n) => n.kind === 'referencia'), 'referências no mapa');
+await test('mapa mental: um assunto por parte, cada desdobramento com o texto inteiro', () => {
+  const map = buildMindMap(material, reading, [
+    { id: 'a1', materialId: material.id, text: 'Orar pela família', owner: '', due: '2026-11-02', status: 'pendente', createdAt: '', updatedAt: '' } as never,
+    { id: 'a2', materialId: material.id, text: 'Já feito', owner: '', due: '', status: 'feito', createdAt: '', updatedAt: '' } as never,
+  ]);
+  assert(map.modules.length === material.sections.length + 1, `${map.modules.length} assuntos`);
+  const plano = map.modules[map.modules.length - 1];
+  assert(plano.children.length === 1 && plano.children[0].tip.body.includes('Prazo: 02/11/2026'), 'só ações abertas, com prazo');
+  // nada inventado: todo texto de desdobramento sai do material
+  const all = material.sections.map((s) => s.text).join('\n').replace(/\s+/g, ' ');
+  for (const m of map.modules.slice(0, -1))
+    for (const c of m.children) {
+      const body = c.tip.body.replace(/\s+/g, ' ');
+      assert(all.includes(body) || body === c.tip.title, `fora do texto: ${body}`);
+    }
+  // cada parágrafo entra inteiro, sem corte
+  const paragraphs = reading.sections.flatMap((s) => s.paragraphs);
+  const bodies = new Set(map.modules.flatMap((m) => m.children.map((c) => c.tip.body)));
+  assert(paragraphs.every((p) => bodies.has(p) || reading.sections.some((s) => s.questions.includes(p))), 'parágrafo faltando');
+  assert(map.modules.some((m) => m.children.some((c) => c.type === 'biblica')), 'base bíblica');
+  assert(map.legend[0].label === 'Centro / Assuntos', 'legenda');
+  assert(JSON.stringify(map).length > 0, 'dados serializáveis (vão no .html)');
+});
+
+await test('rótulo do círculo: curto, sem cortar palavra no meio da linha', () => {
+  assert(circleLabel('Graça') === 'Graça', 'curto');
+  assert(circleLabel('A graça é favor imerecido que transforma') === 'A graça é\nfavor…', JSON.stringify(circleLabel('A graça é favor imerecido que transforma')));
+  assert(circleLabel('A graça é favor imerecido', 30, 2) === 'A graça é favor imerecido', 'cabe');
 });
 
 await test('Word (.docx) importado: títulos e listas', async () => {
@@ -179,6 +200,36 @@ await test('banco: andamento, cartões, ações, cópia de segurança e exclusã
   const hub = hubStudyBackup({ ...material, centralIdea: 'Somos salvos pela graça.' });
   assert(hub.app === 'hub-bible' && hub.data.studies[0].sections.length === material.sections.length + 2, 'envio ao Hub');
   assert(hub.data.studies[0].mainText === 'Efésios 2:8-9', hub.data.studies[0].mainText);
+});
+
+await test('material em arquivo: baixa e volta como material novo, completo', async () => {
+  const file = JSON.parse(JSON.stringify(await materialFile(material.id)));
+  assert(file.app === 'hub-resumos-material' && file.cards.length > 0 && file.actions.length === 3, 'arquivo completo');
+  const copy = await importMaterialFile(file);
+  assert(copy.id !== material.id && copy.title === material.title, 'id novo, mesmo conteúdo');
+  assert(copy.sections.every((s, i) => s.id !== material.sections[i].id && s.text === material.sections[i].text), 'partes copiadas');
+  const p = await getProgress(copy.id);
+  assert(p.done.length === 1 && p.done[0] === copy.sections[0].id, 'andamento remapeado');
+  assert((await db.cards.where('materialId').equals(copy.id).count()) === file.cards.length, 'cartões');
+  assert((await listActions(copy.id)).length === 3, 'ações');
+  assert((await db.cards.where('materialId').equals(material.id).count()) === file.cards.length, 'original intacto');
+  let refused = false;
+  try {
+    await importMaterialFile({ app: 'outro' });
+  } catch {
+    refused = true;
+  }
+  assert(refused, 'arquivo estranho recusado');
+});
+
+await test('exemplo: usa todas as marcações e alimenta todas as visões', async () => {
+  const ex = await createExampleMaterial();
+  const r = readMaterial(ex);
+  assert(ex.tags.includes('exemplo') && ex.sections.length === 5, `${ex.sections.length} partes`);
+  assert(r.highlights.length >= 2 && r.definitions.length >= 3 && r.questions.length >= 2 && r.references.length >= 4, 'DNA');
+  assert(suggestActions(ex).length >= 2, 'ações');
+  const map = buildMindMap(ex, r);
+  assert(map.modules.length === 5 && map.modules.every((m) => m.children.length > 0), 'mapa com desdobramentos');
 });
 
 console.log(lines.join('\n'));
