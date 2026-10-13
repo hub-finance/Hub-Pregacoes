@@ -144,7 +144,8 @@ os editores mostram “Salvando…” / “Salvo às hh:mm”.
 - Aviso “Nova versão disponível — toque para atualizar”, para não precisar
   fechar e abrir o app depois de cada publicação.
 - Entender qual aba o usuário chamou de “artesanal” e por que não gerou nada.
-- Fase 4 do Hub Bible (sugestões da IA) e conferência no APK.
+- Hub Bible: o que falta do prompt do Gerar e Exportar está listado em
+  `hub-bible/docs/PENDENCIAS.md` (“Retomar daqui — Gerar e Exportar”).
 
 ## Limitações
 
