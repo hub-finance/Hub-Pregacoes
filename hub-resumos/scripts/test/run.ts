@@ -292,7 +292,8 @@ await test('mapa mental: um assunto por parte, só os pontos principais, tirados
 
 await test('rótulo do círculo: curto, sem cortar palavra no meio da linha', () => {
   assert(circleLabel('Graça') === 'Graça', 'curto');
-  assert(circleLabel('A graça é favor imerecido que transforma') === 'A graça é\nfavor…', JSON.stringify(circleLabel('A graça é favor imerecido que transforma')));
+  assert(circleLabel('A graça é favor imerecido que transforma', 12, 2) === 'A graça é\nfavor', JSON.stringify(circleLabel('A graça é favor imerecido que transforma', 12, 2)));
+  assert(circleLabel('Observando as ações de Deus na história do seu povo') === 'Observando\nas ações de\nDeus', JSON.stringify(circleLabel('Observando as ações de Deus na história do seu povo')));
   assert(circleLabel('A graça é favor imerecido', 30, 2) === 'A graça é favor imerecido', 'cabe');
 });
 
