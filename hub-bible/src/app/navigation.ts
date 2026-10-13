@@ -26,6 +26,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/sermoes', label: 'Gerador', icon: 'sermon', quick: true, group: 'ministerio' },
   { to: '/guias', label: 'Guias Doutrinários', shortLabel: 'Guias', icon: 'layers', quick: true, group: 'ministerio' },
   { to: '/planos', label: 'Plano de leitura', icon: 'calendar', quick: true, group: 'ministerio' },
+  { to: '/exportar', label: 'Gerar e Exportar', shortLabel: 'Exportar', icon: 'download', quick: true, group: 'ministerio' },
   { to: '/pregacao', label: 'Modo Pregação', icon: 'preach', quick: true, group: 'ministerio' },
   { to: '/painel', label: 'Minha vida ministerial', icon: 'chart', group: 'sistema' },
   { to: '/config', label: 'Configurações', icon: 'settings', quick: true, group: 'sistema' },

@@ -20,6 +20,7 @@ Scripts auxiliares:
 
 ```bash
 npm run bible:build  # reconstrói o texto bíblico a partir das fontes livres
+npm run test:export  # testes do Gerar e Exportar (gera e confere Word, PDF e Markdown)
 node scripts/generate-icons.mjs   # regenera os ícones do PWA
 ```
 
@@ -84,8 +85,15 @@ node scripts/generate-icons.mjs   # regenera os ícones do PWA
 ### Compartilhamento e dados
 - Compartilhamento pelo sistema nativo (Web Share API) e geração de **imagem** do versículo
   em canvas, com referência e assinatura do app.
-- Exportação de sermões, estudos, devocionais e materiais em **Markdown**, **TXT** e **PDF**
-  (via impressão do sistema).
+- Exportação rápida de sermões, estudos, devocionais e materiais em **Markdown**, **TXT** e
+  **PDF** (via impressão do sistema), pelo menu "…" de cada editor.
+- **Gerar e Exportar Arquivos** (`#/exportar`): o conteúdo já escrito vira **Word (.docx)**,
+  **PDF** ou **Markdown**, gerados no próprio aparelho e sem internet. Categorias e modelos
+  (pregações, devocionais, estudos, treinamentos, documentos institucionais), cinco modelos
+  visuais, capa com logotipo, sumário, numeração, cabeçalho e rodapé; revisão com estrutura e
+  visualização; aprovação por versão; biblioteca com pesquisa, filtros, versões e
+  re-exportação. O arquivo traz somente o texto do autor. Detalhes em
+  [`docs/GERAR-EXPORTAR.md`](docs/GERAR-EXPORTAR.md).
 - Backup completo dos dados em JSON, restauração, limpeza do texto baixado e exclusão total
   dos dados pessoais.
 
@@ -146,6 +154,7 @@ Passo a passo completo: [`docs/DEPLOY-VERCEL.md`](docs/DEPLOY-VERCEL.md).
 - [`docs/LICENCAS-BIBLIA.md`](docs/LICENCAS-BIBLIA.md) — regras de licenciamento do texto bíblico.
 - [`docs/DEPLOY-VERCEL.md`](docs/DEPLOY-VERCEL.md) — publicação, atualizações e domínio próprio.
 - [`docs/IMPORTAR-TRADUCOES.md`](docs/IMPORTAR-TRADUCOES.md) — instalar ARA, NVI, NTLH, KJA, NAA ou ACF a partir de cópia licenciada.
+- [`docs/GERAR-EXPORTAR.md`](docs/GERAR-EXPORTAR.md) — módulo Gerar e Exportar Arquivos: fluxo, código, bibliotecas, testes e limitações.
 - [`docs/PENDENCIAS.md`](docs/PENDENCIAS.md) — o que falta, o que já foi investigado e por onde retomar.
 
 ## Stack

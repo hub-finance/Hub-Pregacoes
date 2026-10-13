@@ -1,0 +1,345 @@
+/* =========================================================================
+   Hub Bible — Design tokens
+   Paleta sóbria e ministerial: papel quente, tinta profunda, dourado discreto.
+   Cinco temas: light (papel), dark (noite), sepia (leitura prolongada),
+   azul (noite azul) e celeste (azul e branco).
+   ========================================================================= */
+
+:root {
+  /* tipografia */
+  --font-ui: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, 'Times New Roman', serif;
+  --font-reader: var(--font-serif);
+
+  /* leitura (controladas em Configurações) */
+  --reader-scale: 1;
+  --reader-leading: 1.75;
+  --reader-measure: 38rem;
+  --reader-size: calc(1.075rem * var(--reader-scale));
+
+  /* raio e elevação */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 26px;
+  --r-full: 999px;
+
+  /* espaçamento */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  /* chrome */
+  --bottom-nav-h: 62px;
+  --topbar-h: 58px;
+  --rail-w: 264px;
+  --tap: 44px;
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur: 180ms;
+}
+
+/* ---------------------------------- claro -------------------------------- */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #faf8f5;
+  --bg-elevated: #ffffff;
+  --bg-sunken: #f2eee8;
+  --surface: #ffffff;
+  --surface-2: #f6f3ee;
+  --surface-hover: #efeae2;
+  --border: #e5ded4;
+  --border-strong: #d5cabb;
+  --text: #1b1a17;
+  --text-2: #56514a;
+  --text-3: #8a837a;
+  --accent: #8a6a2f;
+  --accent-strong: #6f5423;
+  --accent-soft: #f3ead9;
+  --accent-contrast: #ffffff;
+  --danger: #b23a35;
+  --success: #2f7a56;
+  --info: #2d5f8a;
+  --shadow-1: 0 1px 2px rgba(24, 20, 14, 0.05), 0 1px 3px rgba(24, 20, 14, 0.05);
+  --shadow-2: 0 6px 20px rgba(24, 20, 14, 0.08);
+  --shadow-3: 0 18px 48px rgba(24, 20, 14, 0.14);
+  --overlay: rgba(20, 17, 12, 0.4);
+}
+
+/* ---------------------------------- escuro ------------------------------- */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  /* Cinza-ardósia, longe do preto. O preto puro contra texto claro cansa a
+     vista numa leitura longa — a borda das letras "vibra". Este fundo é
+     claramente cinza: descansa a vista e ainda serve para ler no escuro. */
+  --bg: #22262e;
+  --bg-elevated: #2a2f38;
+  --bg-sunken: #1b1f26;
+  --surface: #2a2f38;
+  --surface-2: #333844;
+  --surface-hover: #3d4350;
+  --border: #3a404b;
+  --border-strong: #4c5361;
+  --text: #eef0f4;
+  --text-2: #b3bac6;
+  --text-3: #8891a0;
+  --accent: #d7b174;
+  --accent-strong: #e6c68f;
+  --accent-soft: #241f16;
+  --accent-contrast: #16130d;
+  --danger: #e07a72;
+  --success: #6ec397;
+  --info: #7fb2e0;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 20px 56px rgba(0, 0, 0, 0.6);
+  --overlay: rgba(0, 0, 0, 0.62);
+}
+
+/* ------------------------------- ministerial ----------------------------- */
+/* Azul profundo com ouro e branco — visual premium para o ministério.
+   Inspirado no padrão de apps ministeriais: fundo azul-noite, acentos
+   em dourado quente, texto branco puro. */
+:root[data-theme='ministerial'] {
+  color-scheme: dark;
+  --bg: #141e2e;
+  --bg-elevated: #1a2740;
+  --bg-sunken: #0f1824;
+  --surface: #1a2740;
+  --surface-2: #1f2f4a;
+  --surface-hover: #263856;
+  --border: #2a3d5c;
+  --border-strong: #3a5070;
+  --text: #f5f5f5;
+  --text-2: #c8cdd6;
+  --text-3: #8a95a6;
+  --accent: #c9a44a;
+  --accent-strong: #ddb85c;
+  --accent-soft: #2a2616;
+  --accent-contrast: #0e1118;
+  --danger: #e88b83;
+  --success: #74c9a2;
+  --info: #8fc3ef;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-3: 0 20px 56px rgba(0, 0, 0, 0.65);
+  --overlay: rgba(5, 10, 20, 0.7);
+}
+
+/* ------------------------------- noite azul ------------------------------ */
+/* Azul-marinho profundo com o realce num azul mais claro do mesmo tom: a
+   mesma família de cor do fundo ao destaque, para a tela ter uma nota só. */
+:root[data-theme='azul'] {
+  color-scheme: dark;
+  /* Azul-ardósia claro, e não azul-tinta. O marinho fechado tem o mesmo defeito
+     do preto: escuro e saturado, ele endurece a borda das letras claras. Aqui o
+     azul aparece como cor, e não como escuridão com um tom por cima. */
+  --bg: #24374f;
+  --bg-elevated: #2d425d;
+  --bg-sunken: #1c2d42;
+  --surface: #2d425d;
+  --surface-2: #364d6b;
+  --surface-hover: #41597a;
+  --border: #3c5573;
+  --border-strong: #4e6b8c;
+  --text: #eef3fa;
+  --text-2: #becddf;
+  --text-3: #97acc6;
+  --accent: #8cc5f0;
+  --accent-strong: #aad7f8;
+  --accent-soft: #2b4666;
+  --accent-contrast: #0e1c2b;
+  --danger: #e88b83;
+  --success: #74c9a2;
+  --info: #8fc3ef;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 20px 56px rgba(0, 0, 0, 0.6);
+  --overlay: rgba(8, 18, 32, 0.66);
+}
+
+/* ------------------------------ azul e branco ---------------------------- */
+/* Tema diurno com identidade azul: fundo claro levemente azulado, destaques
+   em azul-celeste, texto escuro. Limpo e sereno para leitura prolongada. */
+:root[data-theme='celeste'] {
+  color-scheme: light;
+  --bg: #eef4fb;
+  --bg-elevated: #f8fbff;
+  --bg-sunken: #e3edf7;
+  --surface: #f8fbff;
+  --surface-2: #e8f0fa;
+  --surface-hover: #dce8f5;
+  --border: #c5d6e8;
+  --border-strong: #a8bfd6;
+  --text: #1a2433;
+  --text-2: #445166;
+  --text-3: #7387a0;
+  --accent: #2563a8;
+  --accent-strong: #1d4e8a;
+  --accent-soft: #d6e6f5;
+  --accent-contrast: #ffffff;
+  --danger: #b23a35;
+  --success: #2f7a56;
+  --info: #2563a8;
+  --shadow-1: 0 1px 2px rgba(14, 28, 50, 0.06), 0 1px 3px rgba(14, 28, 50, 0.06);
+  --shadow-2: 0 6px 20px rgba(14, 28, 50, 0.1);
+  --shadow-3: 0 18px 48px rgba(14, 28, 50, 0.16);
+  --overlay: rgba(14, 28, 50, 0.4);
+}
+
+/* ---------------------------------- jardim ------------------------------- */
+/* Tema diurno verde e branco, espelhando o celeste: fundo levemente esverdeado,
+   acentos em verde médio, texto escuro com tom verde. Limpo e sereno. */
+:root[data-theme='jardim'] {
+  color-scheme: light;
+  --bg: #eef5f0;
+  --bg-elevated: #f7fbf8;
+  --bg-sunken: #e3efe7;
+  --surface: #f7fbf8;
+  --surface-2: #e8f2ec;
+  --surface-hover: #dceae1;
+  --border: #c0d8c8;
+  --border-strong: #a0c0ab;
+  --text: #1a2d22;
+  --text-2: #3d5545;
+  --text-3: #6d8e78;
+  --accent: #2d7d4a;
+  --accent-strong: #1c6b3a;
+  --accent-soft: #d0e8d5;
+  --accent-contrast: #ffffff;
+  --danger: #b23a35;
+  --success: #2d7d4a;
+  --info: #2d6d5a;
+  --shadow-1: 0 1px 2px rgba(14, 40, 24, 0.06), 0 1px 3px rgba(14, 40, 24, 0.06);
+  --shadow-2: 0 6px 20px rgba(14, 40, 24, 0.1);
+  --shadow-3: 0 18px 48px rgba(14, 40, 24, 0.16);
+  --overlay: rgba(14, 40, 24, 0.4);
+}
+
+/* ---------------------------------- safira ------------------------------- */
+/* Azul intermediário: mais forte que o celeste, mais claro que o noite azul.
+   O acento sobe um tom ao clicar — do azul-céu ao azul-cobalto. */
+:root[data-theme='safira'] {
+  color-scheme: light;
+  --bg: #dce8f4;
+  --bg-elevated: #eaf1f9;
+  --bg-sunken: #cddcec;
+  --surface: #eaf1f9;
+  --surface-2: #d4e2f0;
+  --surface-hover: #c4d6ea;
+  --border: #a8c0da;
+  --border-strong: #8dabc8;
+  --text: #152540;
+  --text-2: #354d6a;
+  --text-3: #5c7a9c;
+  --accent: #2b6cb0;
+  --accent-strong: #1e4f8a;
+  --accent-soft: #c0d8f0;
+  --accent-contrast: #ffffff;
+  --danger: #b23a35;
+  --success: #2f7a56;
+  --info: #2b6cb0;
+  --shadow-1: 0 1px 2px rgba(10, 30, 60, 0.07), 0 1px 3px rgba(10, 30, 60, 0.07);
+  --shadow-2: 0 6px 20px rgba(10, 30, 60, 0.12);
+  --shadow-3: 0 18px 48px rgba(10, 30, 60, 0.18);
+  --overlay: rgba(10, 25, 50, 0.42);
+}
+
+/* ---------------------------------- sépia -------------------------------- */
+:root[data-theme='sepia'] {
+  color-scheme: light;
+  --bg: #f3e9d8;
+  --bg-elevated: #fbf4e6;
+  --bg-sunken: #ebdfc9;
+  --surface: #fbf4e6;
+  --surface-2: #f2e6d1;
+  --surface-hover: #eadcc2;
+  --border: #e0d0b4;
+  --border-strong: #cdb894;
+  --text: #40331f;
+  --text-2: #6a5940;
+  --text-3: #93815f;
+  --accent: #8c5a24;
+  --accent-strong: #6f4718;
+  --accent-soft: #f0e0c6;
+  --accent-contrast: #fffaf0;
+  --danger: #a63e30;
+  --success: #4a7a4a;
+  --info: #3d6285;
+  --shadow-1: 0 1px 2px rgba(80, 60, 30, 0.08);
+  --shadow-2: 0 6px 20px rgba(80, 60, 30, 0.12);
+  --shadow-3: 0 18px 48px rgba(80, 60, 30, 0.2);
+  --overlay: rgba(60, 45, 20, 0.42);
+}
+
+/* ------------------------------ alto contraste --------------------------- */
+:root[data-contrast='high'][data-theme='ministerial'] {
+  --text: #ffffff;
+  --text-2: #e0e4ec;
+  --text-3: #bcc2cc;
+  --border: #3a4d6a;
+  --border-strong: #506888;
+  --accent: #e6c46a;
+}
+:root[data-contrast='high'][data-theme='dark'],
+:root[data-contrast='high'][data-theme='azul'] {
+  --text: #ffffff;
+  --text-2: #dfe4ec;
+  --text-3: #b9c0cc;
+  --border: #4a515e;
+  --border-strong: #6b7382;
+  --accent: #ffd79a;
+}
+:root[data-contrast='high'][data-theme='celeste'] {
+  --text: #0a1628;
+  --text-2: #1e3050;
+  --text-3: #3a5070;
+  --border: #8aa4c0;
+  --border-strong: #607d9e;
+  --accent: #1a4a80;
+}
+:root[data-contrast='high'][data-theme='safira'] {
+  --text: #0a1628;
+  --text-2: #15304e;
+  --text-3: #2e5070;
+  --border: #7a9abc;
+  --border-strong: #506e90;
+  --accent: #14407a;
+}
+:root[data-contrast='high'][data-theme='jardim'] {
+  --text: #0c1e14;
+  --text-2: #1a3826;
+  --text-3: #305a3e;
+  --border: #88b896;
+  --border-strong: #609a70;
+  --accent: #1a6030;
+}
+:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']):not([data-theme='jardim']):not([data-theme='safira']) {
+  --text: #000000;
+  --text-2: #2a2620;
+  --text-3: #4a443b;
+  --border: #9a8f7e;
+  --border-strong: #6d6355;
+  --accent: #5c4416;
+}
+
+/* ---------------------- categorias de marcação (grifos) ------------------- */
+:root {
+  --hl-promessas: #f2c14e;
+  --hl-fe: #4e9bf2;
+  --hl-cura: #4ec9a6;
+  --hl-santidade: #b98cf2;
+  --hl-espirito: #f28c4e;
+  --hl-lideranca: #6c8cf2;
+  --hl-familia: #f26c9b;
+  --hl-salvacao: #57c05a;
+  --hl-graca: #d6a75c;
+  --hl-amor: #ef5f5f;
+  --hl-ministerio: #58b6c9;
+  --hl-custom: #9aa0a6;
+}

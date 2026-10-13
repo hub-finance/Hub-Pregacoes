@@ -59,7 +59,9 @@ export default defineConfig({
         // e guardado em cache de runtime + IndexedDB.
         // reference/*.json (referências cruzadas, dicionário teológico, guias) é
         // pequeno (~2 MB) e sem ele essas telas ficam vazias sem internet.
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}', 'reference/*.json'],
+        // fonts/*.ttf: as fontes embutidas nos PDFs gerados (Gerar e Exportar);
+        // sem elas no aparelho, o PDF não sai sem internet.
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}', 'reference/*.json', 'fonts/*.ttf'],
         globIgnores: ['**/bible/**', '**/concordance/**', '**/lexicon/**'],
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/\/concordance\//, /\/lexicon\//, /\/bible\//],

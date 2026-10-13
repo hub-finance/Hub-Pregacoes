@@ -10,6 +10,7 @@ src/
 │   ├── ai/         contrato da IA bíblica (desligada por padrão)
 │   ├── bible/      cânon, referências, repositório de texto, busca
 │   ├── data/       CRUD por domínio (favoritos, anotações, documentos, planos…)
+│   ├── export/     Gerar e Exportar: modelos, temas, geradores de Word/PDF/Markdown
 │   ├── db/         schema Dexie/IndexedDB e tipos
 │   ├── plans/      geração dos planos de leitura
 │   ├── settings/   preferências do usuário (contexto React)
@@ -58,6 +59,7 @@ Capítulos e versículos são posicionais (índice + 1), o que mantém os arquiv
 | `plans` | planos de leitura e progresso |
 | `readingEvents` | histórico de leitura (sequência de dias, painel) |
 | `books` | texto bíblico em cache (pode ser limpo sem afetar dados pessoais) |
+| `exportDocs` / `exportVersions` / `exportFiles` | Gerar e Exportar: documento em revisão, versões aprovadas e arquivos gerados (v7 — ver `docs/GERAR-EXPORTAR.md`) |
 
 Todo registro do usuário carrega `id`, `userId` e `updatedAt` — o mínimo necessário
 para sincronização incremental futura com resolução "last write wins".

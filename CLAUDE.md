@@ -11,8 +11,8 @@ Guidance for Claude Code and other AI assistants working in this repository.
 | Remote | `https://github.com/hub-finance/Hub-Pregacoes` |
 | Owner | `hub-finance` |
 | Visibility | Public |
-| Contents | A single application, **Hub Bible**, under `hub-bible/` |
-| Deploy | Vercel (static), configured by `vercel.json` at the repository root |
+| Contents | Two independent applications: **Hub Bible** under `hub-bible/`, and **Hub Resumos** (summaries and interpretations) under `hub-resumos/` |
+| Deploy | Hub Bible: Vercel (static), configured by `vercel.json` at the repository root. Hub Resumos: its own Vercel project with Root Directory `hub-resumos` (`hub-resumos/vercel.json`) |
 
 **Language convention: Portuguese (pt-BR).** UI copy, code comments, commit
 messages and documentation are written in Portuguese. Identifiers (variables,
@@ -49,6 +49,16 @@ reading plans and a full-screen preaching mode.
 Read `hub-bible/README.md` first — it is the functional description of the app.
 **Picking up work in a new session: start from `hub-bible/docs/PENDENCIAS.md`**,
 which records what is left, what was already investigated, and why.
+
+### Hub Resumos
+
+A separate, standalone PWA in `hub-resumos/` (same stack and design tokens as
+Hub Bible, its own IndexedDB database `hub-resumos`). It must keep working on
+its own: never import from `hub-bible/`. It talks to Hub Bible only through
+files (it reads Hub Bible's backup JSON and writes a Hub-compatible backup with
+one Rhema study) and links (`#/biblia/<OSIS>/<chapter>?v=<verse>`). It does not
+use AI. Read `hub-resumos/README.md`; commands are run from `hub-resumos/`
+(`npm ci`, `npm run build`, `npm test`, `npx tsc --noEmit -p .`).
 
 ---
 
@@ -113,11 +123,18 @@ Run from `hub-bible/` (or use `npm --prefix hub-bible <script>` from the root).
 | Regenerate scripture data | `npm run bible:build` |
 | Regenerate the Strong lexicon | `npm run lexicon:build` (needs network) |
 | Regenerate PWA icons | `node scripts/generate-icons.mjs` |
+| Test the Gerar e Exportar module | `npm run test:export` |
 
-There is **no automated test suite and no linter configured.** Verification so
-far has been type-checking plus driving the built app in a headless browser
-(Playwright) across mobile, tablet and desktop widths. If you add tests, record
-the command here.
+There is **no general test suite and no linter configured.** The one automated
+test is `npm run test:export` (`scripts/test-export.mjs`), which generates real
+Word/PDF/Markdown files from the export module and opens them to check content;
+it bundles with esbuild and runs Dexie on `fake-indexeddb`. Other verification
+has been type-checking plus driving the built app in a headless browser
+(Playwright) across mobile, tablet and desktop widths.
+
+Use `npx tsc --noEmit -p .` to type-check. The `npm run typecheck` script runs
+`tsc -b --noEmit false`, which writes a `.js` copy next to every source file in
+`src/`; don't commit those.
 
 `npm run build` runs `tsc -b` before Vite, so a type error fails the build.
 

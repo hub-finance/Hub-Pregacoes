@@ -7,6 +7,34 @@ verificado; nada aqui é suposição. O que já foi entregue está no `README.md
 
 ## Entregues em 12/10/2026
 
+### 0n. ✅ Gerar e Exportar Arquivos — fases 1 e 2
+
+Pedido do usuário: módulo "Gerar e Exportar Arquivos" (Word, PDF, Markdown) com
+o princípio de autoria 70% humano / 30% IA. Decisões do usuário (12/10): manter
+tudo local, sem servidor e sem login; fazer agora as fases 1 (estrutura, Word,
+PDF, revisão, download) e 2 (biblioteca, histórico, versões, filtros,
+re-exportação). Documentação completa em `docs/GERAR-EXPORTAR.md`.
+
+- Rota `#/exportar` (menu Ministério › "Gerar e Exportar"). Nenhuma tela antiga
+  mudou; o banco ganhou só tabelas novas (v7).
+- O módulo **não chama a IA**: só formata o texto do autor.
+- Testes: `npm run test:export` (16 casos, todos passando em 12/10) e um teste de
+  ponta a ponta no navegador (390px e 1280px): criar a partir de uma mensagem,
+  revisar, PDF de conferência, aprovar, gerar Word + PDF + Markdown, baixar os
+  três, editar (volta a Rascunho), pesquisar na biblioteca; sem rolagem
+  horizontal e sem erro de página. O .docx também foi aberto no LibreOffice.
+
+### Retomar daqui — Gerar e Exportar (fases 3 e 4)
+
+1. Botão "Finalizar e exportar" nas telas de origem (Gerador, Rhema, Cursos),
+   abrindo o `#/exportar` já com a origem escolhida.
+2. Séries e compilados: vários documentos num arquivo só (série de mensagens,
+   plano devocional de 7/14/21/30 dias), e material do instrutor/participante.
+3. Sugestões da IA (os 30%): marcadas como sugestão, com aceitar, editar ou
+   rejeitar, sem nunca entrar no texto sem a ação do autor.
+4. Conferir no APK o download (grava em Documentos) e o compartilhamento dos
+   arquivos gerados — testado só no navegador.
+
 ### 0l. ✅ Base doutrinária importável e "Leitura na linha da fé"
 
 - `core/bible/doctrinalPack.ts` — importar/remover uma base doutrinária

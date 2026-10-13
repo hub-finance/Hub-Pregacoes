@@ -1,0 +1,339 @@
+/* =====================================================================
+   Gerar e Exportar Arquivos
+   A folha da visualização usa as cores do modelo visual escolhido (que são
+   as do arquivo), e não as do tema do app: o papel é sempre branco.
+   ===================================================================== */
+
+.xp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  width: 100%;
+  min-width: 0;
+}
+.xp-sheet-wrap {
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.18), 0 8px 24px rgb(0 0 0 / 0.08);
+}
+.xp-sheet {
+  position: relative;
+  box-sizing: border-box;
+  background: #fff;
+  color: var(--xp-text);
+  font-family: var(--xp-body);
+  font-size: var(--xp-size);
+  line-height: var(--xp-leading);
+  overflow-wrap: anywhere;
+}
+.xp-header,
+.xp-footer {
+  font-family: var(--xp-head);
+  font-size: 9px;
+  color: var(--xp-muted);
+}
+.xp-header {
+  text-align: right;
+  margin: -24px 0 16px;
+}
+.xp-footer {
+  margin-top: 28px;
+  border-top: 1px dashed #ddd;
+  padding-top: 6px;
+}
+.xp-title {
+  font-family: var(--xp-head);
+  font-size: var(--xp-title-size);
+  font-weight: 700;
+  color: var(--xp-title);
+  line-height: 1.15;
+}
+.xp-subtitle {
+  font-style: italic;
+  color: var(--xp-muted);
+  margin-top: 4px;
+}
+.xp-meta {
+  font-family: 'HubSourceSans', sans-serif;
+  font-size: 0.85em;
+  color: var(--xp-muted);
+  margin: 4px 0 10px;
+}
+.xp-h1 {
+  font-family: var(--xp-head);
+  font-size: var(--xp-h1-size);
+  font-weight: 700;
+  color: var(--xp-heading);
+  line-height: 1.15;
+  margin: 1.3em 0 0.5em;
+}
+.xp-h1.ruled {
+  border-bottom: 0.8px solid var(--xp-accent);
+  padding-bottom: 3px;
+}
+.xp-h2 {
+  font-family: var(--xp-head);
+  font-size: var(--xp-h2-size);
+  font-weight: 700;
+  color: var(--xp-heading);
+  margin: 0.9em 0 0.35em;
+}
+.xp-p {
+  margin: 0 0 0.6em;
+  text-align: var(--xp-align);
+}
+.xp-highlight {
+  background: var(--xp-highlight);
+  border-left: 3px solid var(--xp-heading);
+  padding: 7px 10px 7px 11px;
+  margin: 4px 0 0.9em;
+}
+.xp-highlight p,
+.xp-quote p {
+  margin: 0 0 3px;
+}
+.xp-quote {
+  background: var(--xp-quote);
+  border-left: 2.2px solid var(--xp-accent);
+  padding: 7px 10px 7px 11px;
+  margin: 4px 0 0.9em 8px;
+  font-style: italic;
+  text-align: var(--xp-align);
+}
+.xp-quote cite {
+  display: block;
+  text-align: right;
+  font-style: normal;
+  font-weight: 700;
+  font-family: 'HubSourceSans', sans-serif;
+  font-size: 0.8em;
+  color: var(--xp-accent);
+}
+.xp-list {
+  margin: 0 0 0.7em;
+  padding-left: 1.6em;
+}
+.xp-list li {
+  margin-bottom: 3px;
+}
+.xp-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4px 0 0.9em;
+  font-size: 0.92em;
+}
+.xp-table th,
+.xp-table td {
+  border: 0.6px solid #c8c8c8;
+  padding: 4px 6px;
+  text-align: left;
+  vertical-align: top;
+}
+.xp-table th {
+  background: var(--xp-highlight);
+}
+.xp-break {
+  margin: 18px 0 6px;
+  border-top: 1px dashed #b9b9b9;
+  font-family: 'HubSourceSans', sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a9a9a;
+  text-align: center;
+  padding-top: 2px;
+}
+.xp-notes-line {
+  border-bottom: 0.5px solid #bfbfbf;
+  height: calc(var(--xp-size) * 2.2);
+}
+.xp-note {
+  font-family: 'HubSourceSans', sans-serif;
+  font-size: 9px;
+  color: #9a9a9a;
+  margin-top: 12px;
+}
+.xp-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 90px;
+}
+.xp-cover img {
+  margin-bottom: 28px;
+  height: auto;
+}
+.xp-cover-title {
+  font-family: var(--xp-head);
+  font-weight: 700;
+  font-size: calc(var(--xp-title-size) * 1.15);
+  color: var(--xp-title);
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+.xp-cover-subtitle {
+  font-style: italic;
+  color: var(--xp-muted);
+  font-size: 1.25em;
+}
+.xp-cover-rule {
+  width: 120px;
+  border-top: 1.2px solid var(--xp-accent);
+  margin: 18px 0 40px;
+}
+.xp-cover-meta {
+  font-size: 1.05em;
+  margin-bottom: 4px;
+}
+.xp-toc {
+  font-weight: 700;
+  margin: 4px 0 2px;
+}
+.xp-toc.sub {
+  font-weight: 400;
+  padding-left: 14px;
+}
+
+/* ----------------------------- tela do módulo ----------------------------- */
+
+.xp-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.xp-status.aprovado {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.xp-status.finalizado {
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 40%, transparent);
+}
+.xp-outline {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.xp-outline-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 4px 4px 4px 8px;
+  border-radius: var(--r-sm);
+  min-height: var(--tap);
+}
+.xp-outline-row:nth-child(odd) {
+  background: var(--surface-2);
+}
+.xp-outline-row.sub {
+  padding-left: 26px;
+}
+.xp-outline-title {
+  /* no celular o título ganha a linha inteira e os botões descem para a de baixo */
+  flex: 1 1 160px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+}
+.xp-themes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  gap: var(--sp-2);
+}
+.xp-theme {
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+  background: var(--surface);
+  min-height: var(--tap);
+}
+.xp-theme.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.xp-swatch {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.xp-swatch i {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgb(0 0 0 / 0.08);
+}
+.xp-file {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.xp-file-name {
+  flex: 1 1 180px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.xp-check {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--tap);
+  font-size: 0.9rem;
+}
+.xp-check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+.xp-source-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  max-height: 46vh;
+  overflow-y: auto;
+}
+.xp-source {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  text-align: left;
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  min-height: var(--tap);
+}
+.xp-source.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.xp-source[disabled] {
+  opacity: 0.55;
+}
+.xp-error {
+  color: var(--danger);
+}

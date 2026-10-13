@@ -1,0 +1,1737 @@
+/* =========================================================================
+   Shell da aplicação — mobile first; a partir de 900px vira layout dividido
+   (menu lateral fixo + área de conteúdo), otimizado para tablet Android.
+   ========================================================================= */
+
+.app-shell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--bg);
+}
+
+.app-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom));
+}
+
+.page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--sp-4) var(--sp-4) var(--sp-7);
+  min-width: 0;
+}
+.page-wide {
+  max-width: 1400px;
+}
+
+/* --------------------------------- topbar -------------------------------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--topbar-h);
+  padding: calc(var(--status-h, env(safe-area-inset-top, 0px)) + var(--sp-2)) var(--sp-3) var(--sp-2);
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-title {
+  font-size: 1.02rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  min-width: 0;
+}
+.topbar-sub {
+  font-size: 0.74rem;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  display: grid;
+  place-content: center;
+  background: linear-gradient(160deg, var(--accent), var(--accent-strong));
+  color: var(--accent-contrast);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+/* ------------------------------ menu lateral ----------------------------- */
+.rail {
+  display: none;
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  width: var(--rail-w);
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-4) var(--sp-3);
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+.rail-group-label {
+  padding: var(--sp-4) var(--sp-3) var(--sp-1);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-weight: 600;
+}
+.rail-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 10px var(--sp-3);
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  font-size: 0.93rem;
+  font-weight: 500;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  min-height: var(--tap);
+}
+.rail-item:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.rail-item.active {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+.rail-item .ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  flex: none;
+  color: var(--text-3);
+}
+.rail-item.active .ico,
+.rail-item:hover .ico {
+  color: currentColor;
+}
+
+/* ------------------------------ nav inferior ----------------------------- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  backdrop-filter: blur(16px) saturate(1.3);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: var(--bottom-nav-h);
+  font-size: 0.66rem;
+  font-weight: 500;
+  color: var(--text-3);
+  letter-spacing: 0.01em;
+}
+.bottom-nav-item .ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+}
+.bottom-nav-item.active {
+  color: var(--accent-strong);
+}
+
+@media (min-width: 900px) {
+  .app-shell {
+    grid-template-columns: var(--rail-w) 1fr;
+  }
+  .rail {
+    display: flex;
+  }
+  .bottom-nav,
+  .topbar .menu-toggle {
+    display: none;
+  }
+  .app-main {
+    padding-bottom: 0;
+  }
+  .page {
+    padding: var(--sp-5) var(--sp-6) var(--sp-7);
+  }
+}
+
+/* =============================== componentes ============================= */
+
+/* botões */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: var(--tap);
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 550;
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease),
+    border-color var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  white-space: nowrap;
+}
+.btn:hover {
+  background: var(--surface-hover);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+.btn-primary:hover {
+  background: var(--accent-strong);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--text-2);
+}
+.btn-ghost:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.btn-outline {
+  background: transparent;
+  border-color: var(--border-strong);
+}
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+.btn-danger:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+.btn-sm {
+  /* 44px é o mínimo de toque adotado no projeto; "sm" fica na densidade
+     horizontal e no corpo da fonte, não na altura */
+  min-height: var(--tap);
+  padding: 0 var(--sp-3);
+  font-size: 0.82rem;
+  border-radius: var(--r-sm);
+}
+.btn-block {
+  width: 100%;
+}
+.icon-btn {
+  display: inline-grid;
+  place-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  flex: none;
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  font-size: 1.1rem;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.icon-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.icon-btn.active {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+
+/* cartões */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+  box-shadow: var(--shadow-1);
+}
+.card-flat {
+  box-shadow: none;
+}
+.card-link {
+  display: block;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+/* `.card-link` é aplicado a <a>/<button>; quando combinado com os utilitários de
+   layout, eles precisam continuar valendo */
+.card-link.row {
+  display: flex;
+  align-items: center;
+}
+.card-link.stack {
+  display: flex;
+  flex-direction: column;
+}
+.card-link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+  border-color: var(--border-strong);
+}
+.card-title {
+  font-size: 1rem;
+  font-weight: 620;
+}
+
+/* seções */
+.section {
+  margin-top: var(--sp-6);
+}
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+/* links de apoio no cabeçalho da seção ("ver todos", "painel completo"):
+   o texto é pequeno, mas a área de toque não pode ser */
+.section-head a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0 var(--sp-1);
+}
+.section-title {
+  font-size: 0.73rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.page-title {
+  font-size: 1.6rem;
+  font-weight: 660;
+  letter-spacing: -0.02em;
+}
+.page-lead {
+  color: var(--text-2);
+  margin-top: var(--sp-1);
+  font-size: 0.92rem;
+}
+
+/* grades */
+.grid {
+  display: grid;
+  gap: var(--sp-3);
+}
+.grid-quick {
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: var(--sp-2);
+}
+.grid-cards {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+.grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+
+/* atalho da home */
+.quick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-2);
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  text-align: center;
+  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  min-height: 100px;
+}
+.quick:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.quick:active {
+  transform: scale(0.97);
+}
+.quick .ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+.quick span {
+  max-width: 100%;
+  font-size: 0.82rem;
+  font-weight: 580;
+  color: var(--text-2);
+  line-height: 1.3;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+/* No celular, três colunas fixas: com quadros de 128px caberiam só duas, e a
+   grade ficaria comprida demais. A letra diminui para "Concordância" e
+   "Configurações" caberem inteiras. Fica depois de .quick span para valer. */
+@media (max-width: 440px) {
+  .grid-quick {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .quick {
+    padding-inline: 4px;
+  }
+  .quick span {
+    font-size: 0.7rem;
+  }
+}
+@media (max-width: 340px) {
+  .quick {
+    padding-inline: 2px;
+  }
+  .quick span {
+    font-size: 0.66rem;
+  }
+}
+
+/* chips / tags */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
+  font-weight: 550;
+  color: var(--text-2);
+  white-space: nowrap;
+  min-height: var(--tap);
+}
+/* chip só de ícone precisa de largura de toque também */
+.chip:empty,
+.chip.icon-only {
+  min-width: var(--tap);
+  justify-content: center;
+}
+.chip.active {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent-strong);
+}
+.chip-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+.chip-row {
+  display: flex;
+  gap: var(--sp-2);
+  overflow-x: auto;
+  padding-bottom: var(--sp-1);
+  scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar {
+  display: none;
+}
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text-3);
+}
+
+/* formulários */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field > label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: 0.01em;
+}
+.input,
+.textarea,
+.select {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 10px var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  font-size: 0.94rem;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.textarea {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.6;
+  font-family: inherit;
+}
+.select {
+  appearance: none;
+  padding-right: var(--sp-6);
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  min-height: var(--tap);
+}
+.search-field input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 0.94rem;
+  min-width: 0;
+}
+.switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  min-height: var(--tap);
+}
+.switch-track {
+  width: 46px;
+  height: 27px;
+  flex: none;
+  border-radius: var(--r-full);
+  background: var(--border-strong);
+  padding: 3px;
+  transition: background var(--dur) var(--ease);
+}
+.switch-track.on {
+  background: var(--accent);
+}
+.switch-knob {
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-1);
+  transition: transform var(--dur) var(--ease);
+}
+.switch-track.on .switch-knob {
+  transform: translateX(19px);
+}
+
+/* listas */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  text-align: left;
+  min-height: 54px;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.list-item:hover {
+  background: var(--surface-hover);
+}
+.list-body {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+/* título e legenda são `span`: sem `block` os dois correm colados na mesma
+   linha assim que o nome fica comprido ("…AtualizadaPortuguês · Direitos…") */
+.list-title {
+  display: block;
+  font-weight: 570;
+  font-size: 0.95rem;
+}
+.list-meta {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* estado vazio */
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-7) var(--sp-4);
+  text-align: center;
+  color: var(--text-3);
+}
+.empty .ico {
+  display: inline-flex;
+  color: var(--text-3);
+  opacity: 0.75;
+}
+.empty h3 {
+  color: var(--text-2);
+  font-size: 1rem;
+}
+
+/* modal / sheet */
+.overlay {
+  position: fixed;
+  inset: 0;
+  /* acima de tudo, inclusive do Modo Pregação (100): o painel é levado para o
+     corpo da página, então precisa vencer a tela cheia por z-index */
+  z-index: 120;
+  background: var(--overlay);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fade var(--dur) var(--ease);
+  padding: 0;
+}
+@media (min-width: 720px) {
+  .overlay {
+    align-items: center;
+    padding: var(--sp-5);
+  }
+}
+.sheet {
+  width: 100%;
+  max-width: 640px;
+  max-height: 92dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  box-shadow: var(--shadow-3);
+  animation: slide-up 220ms var(--ease);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.sheet-lg {
+  max-width: 860px;
+}
+@media (min-width: 720px) {
+  .sheet {
+    border-radius: var(--r-xl);
+    max-height: 88dvh;
+  }
+}
+.sheet-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+  border-bottom: 1px solid var(--border);
+}
+.sheet-title {
+  font-size: 1.02rem;
+  font-weight: 620;
+  flex: 1;
+  min-width: 0;
+}
+.sheet-body {
+  padding: var(--sp-4);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+/* O corpo do painel rola; quem está dentro dele não encolhe. Sem isto, com a
+   lista longa e a tela baixa, o navegador espremia a barra de abas
+   (Antigo/Novo Testamento) até virar um risco — e não havia como trocar de
+   testamento. Vale para todo o painel, não só para o seletor de livros. */
+.sheet-body > * {
+  flex: none;
+}
+.sheet-foot {
+  display: flex;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+  border-top: 1px solid var(--border);
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes slide-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+
+/* toast */
+.toast-wrap {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + var(--sp-3));
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: min(92vw, 460px);
+  pointer-events: none;
+}
+@media (min-width: 900px) {
+  .toast-wrap {
+    bottom: var(--sp-5);
+  }
+}
+/* avisos do sistema (atualização/offline) vão para o topo, para nunca cobrir a
+   barra de ações do leitor nem a navegação inferior */
+.toast-wrap.top {
+  top: calc(var(--status-h, env(safe-area-inset-top, 0px)) + var(--sp-3));
+  bottom: auto;
+}
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-3);
+  font-size: 0.88rem;
+  animation: slide-up 200ms var(--ease);
+}
+.toast.error {
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  color: var(--danger);
+}
+
+/* indicador de carregamento */
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* barra de progresso */
+.progress {
+  height: 8px;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.progress > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  transition: width 320ms var(--ease);
+}
+
+/* faixa de status offline */
+.net-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.8rem;
+  font-weight: 550;
+  border-bottom: 1px solid var(--border);
+}
+
+/* estatísticas */
+.stat {
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.stat-value {
+  font-size: 1.7rem;
+  font-weight: 660;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.stat-label {
+  font-size: 0.76rem;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-top: 2px;
+}
+
+/* destaque: versículo do dia */
+.verse-hero {
+  position: relative;
+  overflow: hidden;
+  padding: var(--sp-5);
+  border-radius: var(--r-xl);
+  border: 1px solid var(--border);
+  background: linear-gradient(155deg, var(--surface) 0%, var(--surface-2) 100%);
+}
+.verse-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto auto;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%);
+  transform: translate(35%, -40%);
+  pointer-events: none;
+}
+.verse-hero-text {
+  font-family: var(--font-reader);
+  font-size: 1.16rem;
+  line-height: 1.65;
+  position: relative;
+}
+.verse-hero-ref {
+  margin-top: var(--sp-3);
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+/* aviso/alerta */
+.notice {
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-2);
+  line-height: 1.55;
+}
+.notice-accent {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--accent-strong);
+}
+
+/* ajuda — acordeão de tópicos */
+.help-topic {
+  padding: 0;
+}
+.help-topic > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  cursor: pointer;
+  list-style: none;
+  min-height: var(--tap);
+}
+.help-topic > summary::-webkit-details-marker {
+  display: none;
+}
+.help-topic-icon {
+  display: inline-flex;
+  color: var(--accent);
+  flex: none;
+}
+.help-topic > summary .card-title {
+  flex: 1;
+}
+.help-topic[open] .help-topic-caret {
+  transform: rotate(180deg);
+}
+.help-topic-caret {
+  transition: transform var(--dur) var(--ease);
+  flex: none;
+}
+.help-steps {
+  list-style: decimal;
+  padding: 0 var(--sp-5) var(--sp-4) calc(var(--sp-5) + var(--sp-4));
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  color: var(--text-2);
+  line-height: 1.6;
+  font-size: 0.94rem;
+}
+.help-steps li::marker {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ------------------------- anotações: bloco de notas ---------------------- */
+/* Uma anotação atrás da outra, separadas por um filete. Sem caixa, sem sombra:
+   o que se lê aqui é o próprio texto, e cada moldura era uma interrupção. */
+.notepad {
+  border-top: 1px solid var(--border);
+}
+.notepad-entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-1);
+  border-bottom: 1px solid var(--border);
+}
+.notepad-ref {
+  color: var(--accent-strong);
+  font-weight: 650;
+  font-size: 0.86rem;
+  text-align: left;
+}
+.notepad-title {
+  font-size: 1.02rem;
+  font-weight: 620;
+  margin: 0;
+}
+.notepad-text {
+  /* a quebra de linha que o usuário digitou é conteúdo, não formatação */
+  white-space: pre-wrap;
+  line-height: 1.7;
+  color: var(--text-2);
+  margin: 0;
+}
+/* os botões esperam a vez: a anotação é para ler, editar é o segundo passo */
+.notepad-actions {
+  opacity: 0.55;
+  transition: opacity var(--dur) var(--ease);
+}
+.notepad-entry:hover .notepad-actions,
+.notepad-entry:focus-within .notepad-actions {
+  opacity: 1;
+}
+/* no toque não existe "passar o mouse": lá os botões ficam sempre legíveis */
+@media (hover: none) {
+  .notepad-actions {
+    opacity: 1;
+  }
+}
+
+
+/* abas */
+.tabs {
+  display: flex;
+  gap: var(--sp-1);
+  padding: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+.tab {
+  flex: 1;
+  min-width: max-content;
+  padding: 8px var(--sp-3);
+  border-radius: var(--r-sm);
+  font-size: 0.85rem;
+  font-weight: 550;
+  color: var(--text-2);
+  min-height: var(--tap);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.tab.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+}
+
+/* ==================== montagem do sermão em blocos ======================== */
+/* A referência visual é o sermão que o pastor já escreve no Word: subtítulo
+   com filete, parágrafo justificado, quadro de destaque, citação recuada. */
+
+.sermon-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* barra de formatação — acompanha a rolagem, logo abaixo da barra do topo */
+.format-bar {
+  position: sticky;
+  top: calc(var(--topbar-h) + var(--status-h, env(safe-area-inset-top, 0px)));
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  padding: 4px;
+  margin-bottom: var(--sp-2);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: saturate(1.4) blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+  transition: opacity var(--dur) var(--ease);
+}
+.format-bar.idle {
+  opacity: 0.55;
+}
+.format-btn {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  font-size: 1.02rem;
+}
+.format-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.format-color .color-dot {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border-strong);
+}
+.format-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  margin: 0 4px;
+}
+.format-hint {
+  display: none;
+  padding-right: var(--sp-2);
+}
+@media (min-width: 760px) {
+  .format-hint {
+    display: inline;
+  }
+}
+
+/* ------------------------------- o bloco --------------------------------- */
+.sermon-block {
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  padding: var(--sp-2) var(--sp-3);
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.sermon-block.active {
+  border-color: var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+.sermon-block-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  opacity: 0.4;
+  transition: opacity var(--dur) var(--ease);
+}
+.sermon-block:hover .sermon-block-bar,
+.sermon-block.active .sermon-block-bar,
+.sermon-block-bar:focus-within {
+  opacity: 1;
+}
+.block-type {
+  min-height: var(--tap);
+  padding: 0 var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.scripture-ref-row {
+  margin-bottom: var(--sp-2);
+}
+.input-sm {
+  min-height: var(--tap);
+  padding: 6px var(--sp-3);
+  font-size: 0.9rem;
+}
+.block-add {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px dashed var(--border);
+}
+.block-add .btn {
+  gap: 6px;
+}
+/* Cabeçalho de grupo dentro da folha do "+": separa as partes do sermão dos
+   tipos de bloco sem transformar a lista em duas listas. */
+.list-group {
+  margin: var(--sp-3) 0 var(--sp-1);
+  padding: 0 var(--sp-1);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.list-group:first-child {
+  margin-top: 0;
+}
+
+/* --------------------------- o texto de dentro ---------------------------- */
+.sb-input {
+  position: relative;
+  outline: none;
+  min-height: 1.7em;
+  padding: 4px 2px;
+  font-family: var(--font-reader);
+  font-size: 1.03rem;
+  line-height: 1.72;
+  color: var(--text);
+  overflow-wrap: break-word;
+}
+.sb-input[data-empty]::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  left: 2px;
+  top: 4px;
+  right: 2px;
+  color: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* seção: o subtítulo com o filete dourado por baixo */
+.sb-section .sb-input {
+  font-family: var(--font-ui);
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--accent-strong);
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--accent);
+  margin-top: var(--sp-3);
+}
+.sb-text .sb-input {
+  text-align: justify;
+  hyphens: auto;
+}
+.sb-highlight .sb-input {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: var(--sp-3);
+}
+.sb-scripture .sb-input {
+  font-style: italic;
+  color: var(--text-2);
+  border-left: 3px solid var(--accent);
+  padding-left: var(--sp-3);
+}
+.sb-scripture-ref {
+  margin-top: 4px;
+  text-align: right;
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+/* a base do aplicativo tira os marcadores de toda lista; aqui eles voltam,
+   porque numa lista de sermão o marcador é o que separa um ponto do outro */
+.sb-list .sb-input ul,
+.sb-list .sb-input ol {
+  margin: 0;
+  padding-left: 1.4em;
+  list-style: disc;
+}
+.sb-list .sb-input ol {
+  list-style: decimal;
+}
+.sb-list .sb-input li::marker {
+  color: var(--accent);
+}
+.sb-list .sb-input li {
+  margin-bottom: 0.35em;
+}
+.sb-input a {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+
+/* -------------------------- versículo no original ------------------------- */
+.strong-words {
+  line-height: 2;
+  font-family: var(--font-reader);
+  font-size: 1rem;
+}
+.strong-word {
+  display: inline;
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
+}
+.strong-word:hover {
+  background: var(--accent-soft);
+}
+.strong-word.active {
+  background: var(--accent-soft);
+  outline: 1.5px solid var(--accent);
+  outline-offset: -1px;
+}
+.strong-word-text {
+  font-weight: 500;
+}
+.strong-code {
+  font-family: var(--font-ui);
+  font-size: 0.6em;
+  color: var(--accent);
+  font-weight: 600;
+  vertical-align: super;
+  margin-left: 1px;
+}
+
+/* definição ao estilo Olive Tree */
+.strong-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+  border-top: 2px solid var(--border);
+  padding-top: var(--sp-4);
+}
+.strong-detail-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.strong-detail-word {
+  font-family: var(--font-reader);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.strong-detail-codes {
+  display: flex;
+  gap: 8px;
+}
+.strong-detail-code {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.strong-detail-entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--surface);
+  border-radius: var(--r-md);
+  border-left: 3px solid var(--accent);
+}
+.strong-detail-topic {
+  font-family: var(--font-reader);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.strong-detail-source {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
+.strong-definition {
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+.strong-definition p {
+  margin: 0 0 0.5em;
+}
+
+.lexicon-lemma {
+  font-family: var(--font-reader);
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+
+/* ---------------------- filtros da tela de dicionário ---------------------- */
+.dict-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--sp-3);
+}
+.dict-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.dict-filter:hover {
+  border-color: var(--accent);
+}
+.dict-filter.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.dict-filter-count {
+  font-size: 0.65rem;
+  opacity: 0.5;
+}
+
+/* ------------------- busca dentro do material aberto ---------------------- */
+/* Colada ao arquivo, logo abaixo da barra dele: numa apostila longa, o que se
+   procura e onde se procura precisam estar à mesma vista. */
+.doc-search {
+  padding: var(--sp-3) var(--sp-3) var(--sp-2);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.doc-hits {
+  list-style: none;
+  margin: var(--sp-2) 0 0;
+  padding: 0;
+  /* a lista rola por dentro: sessenta achados não podem empurrar o documento
+     para fora da tela */
+  max-height: 15rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.doc-hits li + li {
+  border-top: 1px solid var(--border);
+}
+.doc-hits button {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-1);
+  text-align: left;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.doc-hits button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.doc-hit-page {
+  flex: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--accent-strong);
+  text-transform: uppercase;
+}
+.doc-hit-text {
+  min-width: 0;
+}
+.doc-hits mark {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 650;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+/* ------------------ folha de anotação: bloco de notas --------------------- */
+/* Sem rótulo em cima nem quadro em volta: o que cada linha espera está escrito
+   nela mesma. Três caixas empilhadas faziam parecer formulário; aqui se escreve. */
+.note-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.note-form-ref,
+.note-form-title,
+.note-form-text {
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-family: inherit;
+  padding: var(--sp-2) 0;
+}
+.note-form-ref:focus,
+.note-form-title:focus,
+.note-form-text:focus {
+  outline: none;
+}
+/* a linha fina marca onde se escreve, e engrossa no campo em uso — o bastante
+   para saber onde está o cursor, sem devolver a moldura */
+.note-form-ref,
+.note-form-title {
+  border-bottom: 1px solid var(--border);
+  min-height: var(--tap);
+}
+.note-form-ref:focus,
+.note-form-title:focus {
+  border-bottom-color: var(--accent);
+}
+.note-form-ref {
+  font-size: 0.9rem;
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+.note-form-title {
+  font-size: 1.15rem;
+  font-weight: 620;
+}
+.note-form-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  resize: vertical;
+  min-height: 40vh;
+}
+.note-form ::placeholder {
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+/* ---------------- cor de fundo da imagem do versículo --------------------- */
+.share-bg-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin: var(--sp-3) 0;
+}
+.share-bg {
+  width: var(--tap);
+  height: var(--tap);
+  flex: none;
+  border-radius: var(--r-md);
+  border: 2px solid var(--border);
+  display: grid;
+  place-content: center;
+  transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.share-bg:active {
+  transform: scale(0.94);
+}
+.share-bg.active {
+  border-color: var(--accent);
+}
+/* a bolinha traz a cor de realce daquele fundo: é como a referência vai sair */
+.share-bg span {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--r-full);
+  opacity: 0.9;
+}
+.share-bg.active span {
+  width: 14px;
+  height: 14px;
+  opacity: 1;
+}
+
+/* ------------------- Rhema: o corpo do estudo em seções ------------------- */
+/* Um painel só, com as seções que o autor acrescentou. O filete separa uma da
+   outra sem transformar cada uma num quadro — o estudo é um texto contínuo. */
+.study-body {
+  border-top: 1px solid var(--border);
+  padding-top: var(--sp-3);
+  gap: var(--sp-4);
+}
+.study-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--border);
+}
+.study-section-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: var(--tap);
+}
+/* o mesmo desenho para o título fixo e para o que se digita nas seções livres:
+   trocar de tipo não pode mudar o peso visual do cabeçalho */
+h2.study-section-title,
+input.study-section-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--accent-strong);
+  margin: 0;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+}
+input.study-section-title:focus {
+  outline: none;
+  border-bottom: 1px solid var(--accent);
+}
+.study-add {
+  align-self: flex-start;
+}
+
+/* ==========================================================================
+   Bloco de anotações flutuante (sobre a Bíblia)
+
+   É uma janela, e não uma tela: quem escreve durante a pregação continua com o
+   texto à vista por baixo. Por isso ela é pequena, some com um toque e volta
+   onde estava. Em tela estreita não flutua — vira uma faixa colada embaixo,
+   porque arrastar janela em celular é briga perdida.
+   ========================================================================== */
+.notepad-fab {
+  position: fixed;
+  right: var(--sp-4);
+  bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + var(--sp-4));
+  z-index: 55;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: none;
+  box-shadow: var(--shadow-2);
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.notepad-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-3);
+}
+@media (min-width: 900px) {
+  .notepad-fab {
+    bottom: var(--sp-5);
+  }
+}
+
+.notepad-float {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-3);
+  overflow: hidden;
+}
+/* tela estreita: faixa embaixo, acima da navegação */
+.notepad-float.docked {
+  left: 0;
+  right: 0;
+  bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom));
+  height: 58dvh;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  border-bottom: none;
+}
+.notepad-float-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  cursor: grab;
+  /* a barra é a alça: arrastar não pode virar seleção de texto */
+  user-select: none;
+  touch-action: none;
+}
+.notepad-float-head:active {
+  cursor: grabbing;
+}
+.notepad-float.docked .notepad-float-head {
+  cursor: default;
+}
+.notepad-float-title {
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* folha em branco: sem moldura, sem rótulo — é bloco de notas */
+.notepad-float-area {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  line-height: 1.65;
+  padding: var(--sp-3);
+}
+.notepad-float-foot {
+  display: flex;
+  align-items: center;
+  padding: 2px var(--sp-2) 2px var(--sp-3);
+  border-top: 1px solid var(--border);
+}
+.notepad-float-resize {
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+  touch-action: none;
+  background:
+    linear-gradient(135deg, transparent 50%, var(--border) 50%, var(--border) 62%, transparent 62%),
+    linear-gradient(135deg, transparent 72%, var(--border) 72%, var(--border) 84%, transparent 84%);
+}
+/* a alça: diz sem palavras que a janela se arrasta */
+.notepad-float-grip {
+  width: 26px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-strong);
+  opacity: 0.8;
+}
+
+/* ==========================================================================
+   Leitura imersiva
+
+   Enquanto se lê, a tela é só o texto: o menu lateral sai, e a barra do alto,
+   a do leitor e a navegação de baixo saem de cena — sem sumir do documento,
+   para que voltem no lugar de sempre a um toque. Numa tela de tablet essas três
+   barras comiam mais de um terço do espaço que deveria ser Escritura.
+
+   Quando voltam, flutuam por cima do texto em vez de empurrá-lo: assim o
+   versículo que estava sendo lido não pula de lugar.
+   ========================================================================== */
+.app-shell.immersive {
+  grid-template-columns: 1fr;
+}
+.app-shell.immersive .rail {
+  display: none;
+}
+.app-shell.immersive .app-main {
+  padding-top: var(--status-h, env(safe-area-inset-top, 0px));
+  padding-bottom: 0;
+}
+/* sem a barra lateral, o hambúrguer volta a ser a porta do menu no tablet */
+.app-shell.immersive .topbar .menu-toggle {
+  display: inline-grid;
+}
+.app-shell.immersive .topbar,
+.app-shell.immersive .reader-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  transition: transform var(--dur-2, 220ms) var(--ease), opacity var(--dur-2, 220ms) var(--ease);
+}
+.app-shell.immersive .topbar {
+  top: 0;
+}
+.app-shell.immersive .reader-bar {
+  top: calc(var(--topbar-h) + var(--status-h, env(safe-area-inset-top, 0px)));
+}
+.app-shell.immersive .bottom-nav {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .app-shell.immersive .page {
+    padding-top: var(--sp-4);
+  }
+}

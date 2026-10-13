@@ -9,6 +9,9 @@ import type {
   DictionaryEntry,
   DictionaryInfo,
   Devotional,
+  ExportDoc,
+  ExportFile,
+  ExportVersion,
   Favorite,
   Highlight,
   KeyValue,
@@ -50,6 +53,9 @@ export class HubBibleDB extends Dexie {
   commentaries!: Table<CommentaryInfo, string>;
   commentaryEntries!: Table<CommentaryEntry, string>;
   aiAnalyses!: Table<AiAnalysis, string>;
+  exportDocs!: Table<ExportDoc, string>;
+  exportVersions!: Table<ExportVersion, string>;
+  exportFiles!: Table<ExportFile, string>;
 
   constructor() {
     super('hub-bible');
@@ -102,6 +108,15 @@ export class HubBibleDB extends Dexie {
     this.version(6).stores({
       aiAnalyses: 'id, userId, task, reference, lookupKey, updatedAt, createdAt',
     });
+
+    // v7 — Gerar e Exportar Arquivos: o documento em revisão, as versões
+    // aprovadas e os arquivos gerados (Word, PDF, Markdown). Só acrescenta
+    // tabelas; nada do que já existe é tocado.
+    this.version(7).stores({
+      exportDocs: 'id, userId, category, status, updatedAt, createdAt, title',
+      exportVersions: 'id, docId, [docId+version], createdAt',
+      exportFiles: 'id, docId, versionId, format, createdAt',
+    });
   }
 }
 
@@ -140,6 +155,9 @@ export async function clearUserData(): Promise<void> {
       db.readingEvents,
       db.attachments,
       db.aiAnalyses,
+      db.exportDocs,
+      db.exportVersions,
+      db.exportFiles,
     ],
     async () => {
       await Promise.all([
@@ -154,6 +172,9 @@ export async function clearUserData(): Promise<void> {
         db.readingEvents.clear(),
         db.attachments.clear(),
         db.aiAnalyses.clear(),
+        db.exportDocs.clear(),
+        db.exportVersions.clear(),
+        db.exportFiles.clear(),
       ]);
     },
   );
