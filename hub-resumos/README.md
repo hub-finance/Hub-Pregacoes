@@ -137,6 +137,9 @@ os editores mostram “Salvando…” / “Salvo às hh:mm”.
   opções de cor nos quadros, no mapa mental e no infográfico, para o usuário
   escolher a que preferir. Hoje os quadros têm “Papel” e “Azul e dourado”.
 - Slides de treinamento.
+- Testar a IA com a chave real do Gemini (3.8 Flash) no aparelho do usuário.
+- Entender qual aba o usuário chamou de “artesanal” e por que não gerou nada.
+- Fase 4 do Hub Bible (sugestões da IA) e conferência no APK.
 
 ## Limitações
 
