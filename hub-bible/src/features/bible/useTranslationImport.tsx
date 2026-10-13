@@ -190,6 +190,8 @@ export function useTranslationImport({ catalog, onImported }: Options) {
       type="file"
       accept="application/json,.json,.SQLite3,.sqlite3,.sqlite,.db,application/octet-stream"
       className="sr-only"
+      aria-label="Escolher o arquivo da tradução"
+      tabIndex={-1}
       onChange={(e) => void onFile(e.target.files?.[0])}
     />
   );

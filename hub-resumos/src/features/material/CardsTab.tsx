@@ -87,7 +87,7 @@ export function CardsTab({ material }: { material: Material }) {
               {chosen.size === drafts.length ? 'Desmarcar todas' : 'Marcar todas'}
             </button>
           </div>
-          <span className="small dim">Escolha quais guardar. Você pode editar ou excluir qualquer cartão depois.</span>
+          <span className="small dim">Escolha quais salvar. Você pode editar ou excluir qualquer cartão depois.</span>
           <div className="xr-pick-list" style={{ maxHeight: 'none' }}>
             {drafts.map((d, i) => (
               <label key={i} className="xr-pick">
@@ -121,11 +121,11 @@ export function CardsTab({ material }: { material: Material }) {
               disabled={!chosen.size}
               onClick={async () => {
                 const added = await addCards(material.id, drafts.filter((_, i) => chosen.has(i)));
-                notify(`${added.length} cartão(ões) guardado(s).`);
+                notify(`${added.length} cartão(ões) salvo(s).`);
                 setDrafts(null);
               }}
             >
-              Guardar {chosen.size} cartão(ões)
+              Salvar {chosen.size} cartão(ões)
             </button>
             <button className="btn btn-ghost" onClick={() => setDrafts(null)}>
               Descartar sugestões
@@ -154,10 +154,10 @@ export function CardsTab({ material }: { material: Material }) {
               await addCards(material.id, [{ front, back, origin: 'manual' }]);
               setFront('');
               setBack('');
-              notify('Cartão guardado.');
+              notify('Cartão salvo.');
             }}
           >
-            Guardar cartão
+            Salvar cartão
           </button>
         </div>
       </section>

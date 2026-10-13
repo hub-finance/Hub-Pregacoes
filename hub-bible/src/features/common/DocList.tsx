@@ -119,6 +119,8 @@ export function DocList<T extends BaseDoc>({
           type="file"
           accept={importAccept}
           className="sr-only"
+          aria-label="Escolher arquivo para importar"
+          tabIndex={-1}
           onChange={async (e) => {
             const file = e.target.files?.[0];
             e.target.value = '';

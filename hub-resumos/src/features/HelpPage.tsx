@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Breadcrumb } from '../components/Breadcrumb';
 import { PageHeader } from '../components/ui';
 import { useToast } from '../components/Toast';
 import { createExampleMaterial } from '../core/example';
@@ -35,6 +36,17 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
       'As cores dizem o tipo: conceito, prática, base bíblica, pergunta ou desenvolvimento (veja a legenda).',
     ],
     files: 'Mapa interativo (.html, abre em qualquer navegador, sem internet) e imagem (PNG) com tudo aberto.',
+  },
+  {
+    id: 'quadros',
+    title: 'Quadros',
+    what: 'O material em seis formatos de quadro, como imagem: DNA do livro, folha de consulta, mapa de conceitos, painel completo, fluxograma e cartões.',
+    how: [
+      'Escolha o modelo e as cores (papel ou azul e dourado).',
+      'Tudo vem do próprio texto: cada parte vira um bloco, e frases longas aparecem encurtadas no quadro.',
+      'Escrever a ideia central (aba DNA) e marcar destaques e definições deixa os quadros mais ricos.',
+    ],
+    files: 'Imagem PNG de cada quadro, compartilhamento, ou os seis num arquivo .zip.',
   },
   {
     id: 'cartoes',
@@ -80,7 +92,7 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
 
 const FAQ: Array<[string, string]> = [
   ['Como excluo um material?', 'Na biblioteca, no cartão do material, toque no ícone de lixeira. Só aquele material sai (com o andamento, os cartões e as ações dele); a biblioteca e os outros materiais continuam. Também dá para excluir na aba Editar.'],
-  ['Posso baixar o que criei e usar de novo?', 'Sim. No cartão do material, o ícone de baixar gera um arquivo .json com o material, o andamento, os cartões e as ações. Para usar de novo (neste ou em outro aparelho), vá em Novo material › Importar arquivo e escolha esse arquivo. Cada visão também tem o seu arquivo: mapa (.html e PNG), infográfico (PNG), consulta rápida (PDF), resumo (.md).'],
+  ['Posso baixar o que criei e usar de novo?', 'Sim. No cartão do material, o ícone de baixar gera um arquivo .json com o material, o andamento, os cartões e as ações. Para usar de novo (neste ou em outro aparelho), vá em Novo material › Importar arquivo e escolha esse arquivo. Cada visão também tem o seu arquivo: mapa (.html e PNG), quadros (PNG ou .zip), infográfico (PNG), consulta rápida (PDF), resumo (.md).'],
   ['Onde ficam os meus dados?', 'Só neste aparelho, no próprio navegador. Não há conta nem servidor. Para não perder nada, faça a cópia de segurança em Dados e ajustes.'],
   ['Funciona sem internet?', 'Sim, depois de aberto uma vez. Instale pelo menu do navegador (“Instalar app” ou “Adicionar à tela inicial”).'],
   ['O app inventa conteúdo?', 'Não. Tudo o que aparece nas visões sai do texto que você trouxe. O que não está no texto (como a ideia central) é você quem escreve.'],
@@ -104,6 +116,7 @@ export default function HelpPage() {
 
   return (
     <div className="page">
+      <Breadcrumb items={[{ label: 'Biblioteca', to: '/' }, { label: 'Ajuda' }]} />
       <PageHeader title="Ajuda" lead="Como o Hub Resumos organiza um livro, estudo ou resumo — e como tirar proveito de cada visão." />
 
       <section className="card stack" id="ajuda-comecar">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SaveStatus } from '../../components/SaveStatus';
 import { saveMaterial } from '../../core/materials';
 import type { MaterialReading } from '../../core/text';
 import type { Material } from '../../core/types';
@@ -11,6 +12,7 @@ import { RefList } from './RefList';
  */
 export function DnaTab({ material, reading }: { material: Material; reading: MaterialReading }) {
   const [idea, setIdea] = useState(material.centralIdea);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
   useEffect(() => setIdea(material.centralIdea), [material.centralIdea]);
 
   const keyRef = reading.references[0];
@@ -25,11 +27,18 @@ export function DnaTab({ material, reading }: { material: Material; reading: Mat
           rows={3}
           value={idea}
           onChange={(e) => setIdea(e.target.value)}
-          onBlur={() => idea !== material.centralIdea && saveMaterial({ ...material, centralIdea: idea.trim() })}
+          onBlur={async () => {
+            if (idea === material.centralIdea) return;
+            await saveMaterial({ ...material, centralIdea: idea.trim() });
+            setSavedAt(Date.now());
+          }}
           placeholder="Em uma ou duas frases, com as suas palavras: o que este material ensina?"
           aria-label="Ideia central"
         />
-        <span className="small dim">Escrita por você — o app não escreve a interpretação.</span>
+        <div className="row row-wrap" style={{ justifyContent: 'space-between' }}>
+          <span className="small dim">Escrita por você — o app não escreve a interpretação. Grava ao sair do campo.</span>
+          <SaveStatus pending={idea !== material.centralIdea} savedAt={savedAt} />
+        </div>
       </section>
 
       <section className="card stack">

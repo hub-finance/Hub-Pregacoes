@@ -7,7 +7,7 @@ conversa quando você quiser, por arquivo e por link.
 
 ## O que faz
 
-Cada material (livro, estudo ou resumo) ganha dez visões:
+Cada material (livro, estudo ou resumo) ganha onze visões:
 
 | Aba | O que mostra |
 |---|---|
@@ -15,6 +15,7 @@ Cada material (livro, estudo ou resumo) ganha dez visões:
 | **Passo a passo** | O material conduzido parte por parte, com anotação pessoal em cada passo; volta de onde parou |
 | **DNA** | Ideia central (escrita por você), identidade, texto-chave, estrutura, palavras-chave, versículos, destaques, glossário e perguntas |
 | **Mapa mental** | Mapa interativo (canvas, azul-noite e dourado): o material no centro, cada parte como assunto e, ao tocar, todos os desdobramentos dela — destaques, definições, itens, versículos com a frase, perguntas e cada parágrafo inteiro, numerados e coloridos por tipo. Um assunto por vez (os outros apagam), “Expandir tudo”, zoom, arrastar, tela cheia e o texto completo de cada círculo. Baixa como **.html interativo** (abre sozinho, sem internet) e **PNG** |
+| **Quadros** | O material em seis formatos de quadro, como imagem (1080 px de largura): **DNA do livro**, **folha de consulta**, **mapa de conceitos**, **painel completo**, **fluxograma** e **cartões**. Papel claro ou azul e dourado; PNG, compartilhar ou os seis num .zip. Só trechos do texto |
 | **Cartões** | Frente e verso sugeridos do texto (definições, destaques com lacuna, perguntas, listas, referências) ou escritos à mão, com revisão espaçada |
 | **Consulta rápida** | Uma folha com o essencial, pronta para imprimir ou salvar em PDF, ou copiar como texto |
 | **Plano de ação** | Ações com responsável, prazo e situação; sugestões das partes de aplicação do texto |
@@ -37,7 +38,7 @@ andamento, cartões e ações — volta pelo “Novo material › Importar arqui
 material novo), **duplicar** e **excluir só aquele material**, com confirmação.
 
 **Tudo o que é criado sai em arquivo:** material (.json), mapa mental (.html e
-PNG), infográfico (PNG), consulta rápida (PDF pela impressão), resumo (.md),
+PNG), quadros (PNG ou .zip), infográfico (PNG), consulta rápida (PDF pela impressão), resumo (.md),
 envio ao Hub Bible (.json) e a cópia de segurança de tudo (.json).
 
 ### Princípio de autoria
@@ -115,6 +116,13 @@ src/
   styles/      tokens e estilos do Hub Bible + resumos.css (cor verde própria)
 scripts/       testes e geração de ícones
 ```
+
+## Acessibilidade
+
+Verificado com o axe (WCAG 2.1/2.2 AA) em todas as telas e nos nove temas:
+contraste dos textos secundários, rótulos dos campos, alvos de toque de 44 px,
+foco visível. Cada tela de material tem a trilha “Biblioteca › Material › Aba”;
+os editores mostram “Salvando…” / “Salvo às hh:mm”.
 
 ## Limitações
 

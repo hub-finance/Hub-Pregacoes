@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Breadcrumb } from '../components/Breadcrumb';
 import { Spinner } from '../components/ui';
 import { db } from '../core/db';
 import { KIND_LABEL, touchMaterial } from '../core/materials';
@@ -65,11 +66,13 @@ export default function MaterialPage() {
 
   return (
     <div className="page page-wide">
-      <div className="row row-wrap" style={{ marginBottom: 'var(--sp-2)' }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>
-          ← Biblioteca
-        </button>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: 'Biblioteca', to: '/' },
+          { label: material.title, to: `/m/${material.id}` },
+          { label: TABS.find((t) => t.id === tab)?.label ?? '' },
+        ]}
+      />
       <header style={{ marginBottom: 'var(--sp-4)' }}>
         <div className="row row-wrap" style={{ gap: 'var(--sp-2)' }}>
           <span className="badge">{KIND_LABEL[material.kind]}</span>

@@ -106,10 +106,10 @@ export default function SettingsPage() {
                 return;
               }
               await setSetting('hubUrl', v);
-              notify(v ? 'Endereço guardado.' : 'Ligação com o Hub Bible desligada.');
+              notify(v ? 'Endereço salvo.' : 'Ligação com o Hub Bible desligada.');
             }}
           >
-            Guardar endereço
+            Salvar endereço
           </button>
         </div>
         <span className="small dim">

@@ -269,7 +269,7 @@ export function InfographicTab({ material, reading }: { material: Material; read
               if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: material.title });
               else {
                 downloadBlob(file, file.name);
-                notify('Este aparelho não compartilha imagens; o download foi iniciado.');
+                notify('Este aparelho não compartilha imagens; a imagem foi baixada.');
               }
             } catch (err) {
               if ((err as Error).name !== 'AbortError') notify((err as Error).message, 'error');

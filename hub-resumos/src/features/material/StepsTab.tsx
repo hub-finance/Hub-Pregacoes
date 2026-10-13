@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
+import { SaveStatus } from '../../components/SaveStatus';
 import { EmptyState } from '../../components/ui';
 import { getProgress, PART_LABEL, progressRatio, setCurrentStep, setStepDone, setStepNote } from '../../core/materials';
 import type { Material } from '../../core/types';
@@ -21,6 +22,8 @@ export function StepsTab({ material }: { material: Material }) {
   const index = material.sections.findIndex((s) => s.id === stepId);
   const section = index >= 0 ? material.sections[index] : null;
   const [note, setNote] = useState('');
+  // guarda de qual passo é a hora, para não mostrar "Salvo" de outro passo
+  const [noteSaved, setNoteSaved] = useState<{ id: string; at: number } | null>(null);
 
   useEffect(() => {
     if (section && progress) setNote(progress.notes[section.id] ?? '');
@@ -99,7 +102,9 @@ export function StepsTab({ material }: { material: Material }) {
   const next = material.sections[index + 1];
 
   const saveNote = async () => {
-    if ((progress?.notes[section.id] ?? '') !== note) await setStepNote(material.id, section.id, note);
+    if ((progress?.notes[section.id] ?? '') === note) return;
+    await setStepNote(material.id, section.id, note);
+    setNoteSaved({ id: section.id, at: Date.now() });
   };
 
   return (
@@ -126,6 +131,7 @@ export function StepsTab({ material }: { material: Material }) {
         <span>Minha anotação neste passo</span>
         <textarea className="textarea" rows={4} value={note} onChange={(e) => setNote(e.target.value)} onBlur={saveNote} placeholder="O que Deus falou comigo, dúvidas, como aplicar…" />
       </label>
+      <SaveStatus pending={(progress?.notes[section.id] ?? '') !== note} savedAt={noteSaved?.id === section.id ? noteSaved.at : null} />
 
       <div className="row row-wrap">
         <button className="btn" onClick={async () => {
