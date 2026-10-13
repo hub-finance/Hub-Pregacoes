@@ -41,6 +41,28 @@ versão aprovada → baixar, compartilhar ou guardar.
 - Se guardar na biblioteca falhar (falta de espaço, por exemplo), o arquivo
   gerado continua disponível para baixar, e a tela diz o que aconteceu.
 
+## Integração com as telas (fase 3)
+
+- **Atalhos nas telas de origem**, que abrem o novo documento com a origem, a
+  categoria e o modelo já escolhidos (`#/exportar?origem=…&id=…&categoria=…&modelo=…`):
+  - Gerador: **Finalizar e exportar** (pregação › mensagem completa);
+  - Cursos: **Gerar Word ou PDF** (devocional › diário);
+  - Rhema: **Exportar estudo** e **Transformar em apostila** (treinamento › apostila);
+  - Plano de leitura: **Gerar arquivo do plano** (devocional › plano de leitura bíblica).
+  Material que só existe como arquivo importado não mostra o atalho.
+- **Plano de leitura como origem:** a descrição do plano e uma tabela por semana
+  (dia, leitura, ✓ lido / ☐ a ler), tudo vindo do próprio plano.
+- **Vários conteúdos num documento só** ("Juntar vários num só documento"):
+  série de mensagens, série de estudos, plano devocional de 7, 14, 21 ou 30
+  dias, apostila com vários módulos. Cada conteúdo vira um título, numerado pelo
+  modelo ("Dia 3 — …", "Mensagem 2 — …"), na ordem em que foi marcado; os
+  títulos de dentro dele viram subtítulos. Ao reordenar na Estrutura, o título
+  leva junto os seus subtítulos e a numeração acompanha a nova ordem.
+- **Material do instrutor e do participante:** na Estrutura, "Só instrutor"
+  marca uma seção. Na geração, saem duas versões de cada formato — a do
+  instrutor (completa) e a do participante (sem essas seções e o que vem abaixo
+  delas) —, com o nome do arquivo terminando em `- instrutor` / `- participante`.
+
 ## Onde está o código
 
 | Camada | Arquivo | Responsabilidade |
@@ -115,6 +137,6 @@ isolamento do usuário local) e a falha ao guardar. Os arquivos ficam em
 - Cursos e estudos que só existem como **arquivo importado** (PDF/Word) não podem
   ser formatados — o texto está no arquivo original.
 - PowerPoint, TXT e HTML **não** aparecem como opção: não estão implementados.
-- Fases ainda não feitas: integração por botão nas telas de origem ("Finalizar e
-  exportar"), séries e compilados de vários documentos, planos devocionais de
-  7/14/21/30 dias num arquivo só, e sugestões da IA com aceitar/rejeitar.
+- Num plano devocional de N dias, o app avisa quando a quantidade escolhida é
+  diferente de N, mas não impede — os dias são os devocionais que o autor tem.
+- Fase ainda não feita: sugestões da IA com aceitar/editar/rejeitar.

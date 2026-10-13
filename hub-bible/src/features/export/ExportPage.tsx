@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
@@ -17,7 +17,8 @@ import { FORMAT_SHORT } from '../../core/export/files';
 import { SOURCE_LABEL } from '../../core/export/sources';
 import { categoryById, EXPORT_CATEGORIES, modelById } from '../../core/export/templates';
 import { themeById } from '../../core/export/themes';
-import { NewExportSheet } from './NewExportSheet';
+import { NewExportSheet, type ExportPreset } from './NewExportSheet';
+import type { ExportSourceKind } from '../../core/db/types';
 import { STATUS_LABEL } from './status';
 import '../../styles/export.css';
 
@@ -29,6 +30,23 @@ export default function ExportPage() {
   const { notify } = useToast();
   const rows = useLiveQuery(() => loadExportLibrary(), [], [] as LibraryRow[]);
   const [creating, setCreating] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const [preset, setPreset] = useState<ExportPreset | null>(null);
+
+  // vindo de outra tela ("Finalizar e exportar" no Gerador, "Gerar arquivo do
+  // plano"…): o novo documento abre com a origem, a categoria e o modelo já escolhidos
+  useEffect(() => {
+    const origem = params.get('origem');
+    if (!origem) return;
+    setPreset({
+      sourceKind: origem as ExportSourceKind,
+      sourceId: params.get('id') ?? undefined,
+      category: params.get('categoria') ?? undefined,
+      model: params.get('modelo') ?? undefined,
+    });
+    setCreating(true);
+    setParams({}, { replace: true });
+  }, [params, setParams]);
   const [removing, setRemoving] = useState<LibraryRow | null>(null);
   const [filter, setFilter] = useState<LibraryFilter>({ query: '', category: 'todas', status: 'todos', days: 0 });
 
@@ -50,7 +68,13 @@ export default function ExportPage() {
         title="Gerar e Exportar Arquivos"
         lead="Transforme mensagens, estudos, devocionais e materiais em Word, PDF ou Markdown — revisados e aprovados por você."
         actions={
-          <button className="btn btn-primary" onClick={() => setCreating(true)}>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setPreset(null);
+              setCreating(true);
+            }}
+          >
             ＋ Novo documento
           </button>
         }
@@ -177,7 +201,14 @@ export default function ExportPage() {
         </div>
       )}
 
-      <NewExportSheet open={creating} onClose={() => setCreating(false)} />
+      <NewExportSheet
+        open={creating}
+        preset={preset}
+        onClose={() => {
+          setCreating(false);
+          setPreset(null);
+        }}
+      />
 
       <ConfirmDialog
         open={!!removing}

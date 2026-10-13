@@ -7,6 +7,7 @@ import { bookName } from '../../core/bible/canon';
 import { getPlan, nextPendingDay, planProgress, toggleDay } from '../../core/data/plans';
 import { dayChapterCount } from '../../core/plans/templates';
 import type { PlanDay, ReadingPlan } from '../../core/db/types';
+import { exportLink } from '../common/EditorShell';
 
 const rangeLabel = (range: [string, number, number]) =>
   range[1] === range[2]
@@ -69,6 +70,11 @@ export default function PlanDetailPage() {
       <div className="row" style={{ marginBottom: 'var(--sp-4)' }}>
         <button className="btn btn-ghost btn-sm" onClick={() => navigate('/planos')}>
           ← Planos
+        </button>
+        <span className="spacer" />
+        <button className="btn btn-sm btn-outline" onClick={() => navigate(exportLink('plan', plan.id, 'devocional', 'plano-leitura'))}>
+          <Icon name="download" size={16} />
+          Gerar arquivo do plano
         </button>
       </div>
 

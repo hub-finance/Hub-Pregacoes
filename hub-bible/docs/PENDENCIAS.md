@@ -24,15 +24,19 @@ re-exportação). Documentação completa em `docs/GERAR-EXPORTAR.md`.
   três, editar (volta a Rascunho), pesquisar na biblioteca; sem rolagem
   horizontal e sem erro de página. O .docx também foi aberto no LibreOffice.
 
-### Retomar daqui — Gerar e Exportar (fases 3 e 4)
+### 0o. ✅ Gerar e Exportar — fase 3 (integração e compilados)
 
-1. Botão "Finalizar e exportar" nas telas de origem (Gerador, Rhema, Cursos),
-   abrindo o `#/exportar` já com a origem escolhida.
-2. Séries e compilados: vários documentos num arquivo só (série de mensagens,
-   plano devocional de 7/14/21/30 dias), e material do instrutor/participante.
-3. Sugestões da IA (os 30%): marcadas como sugestão, com aceitar, editar ou
+Atalhos nas telas de origem (Gerador, Cursos, Rhema, Plano de leitura), plano
+de leitura como origem, vários conteúdos num documento só (séries e planos
+devocionais de 7/14/21/30 dias) e material do instrutor e do participante.
+Detalhes em `docs/GERAR-EXPORTAR.md`. Testes: `npm run test:export` (20
+casos) e teste no navegador do fluxo inteiro, em 390px, sem erros.
+
+### Retomar daqui — Gerar e Exportar (fase 4)
+
+1. Sugestões da IA (os 30%): marcadas como sugestão, com aceitar, editar ou
    rejeitar, sem nunca entrar no texto sem a ação do autor.
-4. Conferir no APK o download (grava em Documentos) e o compartilhamento dos
+2. Conferir no APK o download (grava em Documentos) e o compartilhamento dos
    arquivos gerados — testado só no navegador.
 
 ### 0l. ✅ Base doutrinária importável e "Leitura na linha da fé"

@@ -12,7 +12,7 @@ import {
   type SermonBlock,
 } from '../db/types';
 import { BASE_LAYOUT, categoryById, layoutFor, modelById } from '../export/templates';
-import { loadSource } from '../export/sources';
+import { loadCompiled, loadSource } from '../export/sources';
 import { EXPORT_THEMES, PAGE_MM } from '../export/themes';
 
 /**
@@ -170,16 +170,20 @@ export interface NewExportInput {
   model: string;
   sourceKind: ExportSourceKind;
   sourceId?: string;
+  /** Vários conteúdos num documento só, na ordem em que devem entrar. */
+  sources?: Array<{ kind: ExportSourceKind; id: string }>;
   title?: string;
 }
 
 const cloneBlocks = (blocks: SermonBlock[]): SermonBlock[] => blocks.map((b) => ({ ...b }));
-const emptyStructure = (): ExportStructure => ({ pageBreaks: [], subheadings: [] });
+const emptyStructure = (): ExportStructure => ({ pageBreaks: [], subheadings: [], instructorOnly: [] });
 
 export async function createExportDoc(input: NewExportInput): Promise<ExportDoc> {
   const category = categoryById(input.category).id;
-  const model = modelById(category, input.model).id;
-  const loaded = await loadSource(input.sourceKind, input.sourceId);
+  const modelDef = modelById(category, input.model);
+  const model = modelDef.id;
+  const compiled = input.sources && input.sources.length > 1 ? await loadCompiled(input.sources, modelDef.compile?.label) : null;
+  const loaded = compiled ?? (await loadSource(input.sourceKind, input.sourceId));
   const layout = normalizeLayout(layoutFor(category, model, await getPreferredLayout()));
   // sugestões da própria origem (o tema da mensagem, a data dela); o autor revisa
   if (!layout.subtitle) layout.subtitle = cleanText(loaded.subtitle);
@@ -196,7 +200,8 @@ export async function createExportDoc(input: NewExportInput): Promise<ExportDoc>
     status: 'rascunho',
     original: cloneBlocks(loaded.blocks),
     content: cloneBlocks(loaded.blocks),
-    structure: emptyStructure(),
+    structure: { ...emptyStructure(), subheadings: compiled?.subheadings ?? [] },
+    originalStructure: { ...emptyStructure(), subheadings: compiled?.subheadings ?? [] },
     layout,
     versionCount: 0,
     formats: [],
@@ -227,6 +232,7 @@ export async function saveDraft(id: string, patch: DraftPatch): Promise<ExportDo
   next.structure = {
     pageBreaks: next.structure.pageBreaks.filter((b) => ids.has(b)),
     subheadings: next.structure.subheadings.filter((b) => ids.has(b)),
+    instructorOnly: (next.structure.instructorOnly ?? []).filter((b) => ids.has(b)),
   };
   next.status = await statusOf(next);
   await db.exportDocs.put(next);
@@ -255,7 +261,11 @@ export async function approveVersion(id: string): Promise<{ doc: ExportDoc; vers
       version: doc.versionCount + 1,
       title: doc.title,
       content: cloneBlocks(doc.content),
-      structure: { pageBreaks: [...doc.structure.pageBreaks], subheadings: [...doc.structure.subheadings] },
+      structure: {
+        pageBreaks: [...doc.structure.pageBreaks],
+        subheadings: [...doc.structure.subheadings],
+        instructorOnly: [...(doc.structure.instructorOnly ?? [])],
+      },
       layout: { ...doc.layout },
       createdAt: now(),
     };
@@ -294,7 +304,7 @@ export async function restoreVersion(docId: string, versionId: string): Promise<
 export async function restoreOriginal(docId: string): Promise<ExportDoc> {
   const doc = await db.exportDocs.get(docId);
   if (!doc) throw new Error('Documento não encontrado.');
-  return saveDraft(docId, { content: cloneBlocks(doc.original), structure: emptyStructure() });
+  return saveDraft(docId, { content: cloneBlocks(doc.original), structure: doc.originalStructure ?? emptyStructure() });
 }
 
 /* ------------------------------- arquivos ------------------------------- */
@@ -303,7 +313,7 @@ export async function restoreOriginal(docId: string): Promise<ExportDoc> {
 export async function storeFile(
   doc: ExportDoc,
   version: ExportVersion,
-  data: { format: ExportFile['format']; filename: string; mime: string; blob: Blob; pages?: number },
+  data: { format: ExportFile['format']; filename: string; mime: string; blob: Blob; pages?: number; edition?: ExportFile['edition'] },
 ): Promise<{ file: ExportFile; doc: ExportDoc }> {
   const file: ExportFile = {
     id: uid('fil_'),
@@ -316,6 +326,7 @@ export async function storeFile(
     mime: data.mime,
     size: data.blob.size,
     pages: data.pages,
+    edition: data.edition,
     blob: data.blob,
     createdAt: now(),
   };

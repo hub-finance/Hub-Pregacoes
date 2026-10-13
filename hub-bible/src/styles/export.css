@@ -337,3 +337,21 @@
 .xp-error {
   color: var(--danger);
 }
+
+/* número de ordem na escolha de vários conteúdos */
+.xp-order {
+  display: grid;
+  place-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+.xp-source.active .xp-order {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}

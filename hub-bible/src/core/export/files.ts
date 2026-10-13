@@ -1,4 +1,4 @@
-import type { ExportFormat } from '../db/types';
+import type { ExportEdition, ExportFormat } from '../db/types';
 
 /**
  * Nome, tipo e conferência dos arquivos gerados.
@@ -33,7 +33,7 @@ export const MAX_FILE_BYTES = 40 * 1024 * 1024;
  * Nome de arquivo seguro em qualquer sistema: mantém acentos, tira o que o
  * Windows, o Android ou o Drive recusam, e limita o comprimento.
  */
-export function safeFileName(title: string, version: number, format: ExportFormat): string {
+export function safeFileName(title: string, version: number, format: ExportFormat, edition?: ExportEdition): string {
   const base =
     title
       .normalize('NFC')
@@ -44,7 +44,7 @@ export function safeFileName(title: string, version: number, format: ExportForma
       .replace(/^[.\s]+|[.\s]+$/g, '')
       .slice(0, 80)
       .trim() || 'Documento';
-  return `${base} - v${version}.${format}`;
+  return `${base} - v${version}${edition ? ` - ${edition}` : ''}.${format}`;
 }
 
 export interface Validation {

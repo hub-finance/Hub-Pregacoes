@@ -1,4 +1,4 @@
-import type { ExportDoc, ExportFile, ExportFormat, ExportVersion } from '../db/types';
+import type { ExportDoc, ExportEdition, ExportFile, ExportFormat, ExportVersion } from '../db/types';
 import {
   getApprovedVersion,
   getExportDoc,
@@ -7,7 +7,7 @@ import {
   storeFile,
   validateForExport,
 } from '../data/exportDocs';
-import { buildRenderDoc, type RenderDoc } from './model';
+import { buildRenderDoc, contentForEdition, hasEditions, type RenderDoc } from './model';
 import { FORMAT_MIME, FORMAT_SHORT, MAX_FILE_BYTES, safeFileName, validateFile } from './files';
 
 /**
@@ -22,6 +22,7 @@ import { FORMAT_MIME, FORMAT_SHORT, MAX_FILE_BYTES, safeFileName, validateFile }
 
 export interface GeneratedFile {
   format: ExportFormat;
+  edition?: ExportEdition;
   ok: boolean;
   filename: string;
   /** O arquivo em mãos — presente mesmo quando não deu para guardar. */
@@ -53,10 +54,10 @@ export async function renderBlob(render: RenderDoc, format: ExportFormat): Promi
   }
 }
 
-export function renderOf(version: ExportVersion): RenderDoc {
+export function renderOf(version: ExportVersion, edition?: ExportEdition): RenderDoc {
   return buildRenderDoc({
     title: version.title,
-    content: version.content,
+    content: contentForEdition(version.content, version.structure, edition),
     structure: version.structure,
     layout: normalizeLayout(version.layout),
   });
@@ -78,6 +79,11 @@ export async function generateFiles(
   docId: string,
   formats: ExportFormat[],
   onStep?: (message: string) => void,
+  /**
+   * Versões a gerar quando o documento tem partes só do instrutor. Sem
+   * divisão no documento, sai um arquivo só por formato.
+   */
+  editions: ExportEdition[] = ['instrutor', 'participante'],
 ): Promise<GenerationResult> {
   let doc = await getExportDoc(docId);
   if (!doc) throw new Error('Documento não encontrado.');
@@ -87,24 +93,30 @@ export async function generateFiles(
   if (problem) throw new Error(problem);
 
   onStep?.('Montando o documento…');
-  const render = renderOf(version);
-  if (!render.nodes.length) throw new Error('A versão aprovada não tem conteúdo para o arquivo.');
+  const plan: Array<{ edition?: ExportEdition; render: RenderDoc }> = hasEditions(version.structure)
+    ? editions.map((edition) => ({ edition, render: renderOf(version, edition) }))
+    : [{ render: renderOf(version) }];
+  if (!plan.length || plan.some((p) => !p.render.nodes.length)) {
+    throw new Error('A versão aprovada não tem conteúdo para o arquivo.');
+  }
 
   const files: GeneratedFile[] = [];
-  for (const format of formats) {
-    const filename = safeFileName(version.title, version.version, format);
+  const jobs = plan.flatMap((p) => formats.map((format) => ({ ...p, format })));
+  for (const { edition, render, format } of jobs) {
+    const filename = safeFileName(version.title, version.version, format, edition);
+    const what = `${FORMAT_SHORT[format]}${edition ? ` (${edition})` : ''}`;
     const started = performance.now();
-    onStep?.(`Gerando ${FORMAT_SHORT[format]}…`);
+    onStep?.(`Gerando ${what}…`);
     let blob: Blob;
     try {
       blob = await renderBlob(render, format);
     } catch (err) {
       await logExport({ at: Date.now(), op: 'gerar', format, ok: false, ms: performance.now() - started, error: (err as Error)?.message });
-      files.push({ format, ok: false, filename, error: friendly(err, format) });
+      files.push({ format, edition, ok: false, filename, error: friendly(err, format) });
       continue;
     }
 
-    onStep?.(`Conferindo o ${FORMAT_SHORT[format]}…`);
+    onStep?.(`Conferindo o ${what}…`);
     let check;
     try {
       check = await validateFile(blob, format);
@@ -121,15 +133,15 @@ export async function generateFiles(
       error: check.ok ? undefined : check.reason,
     });
     if (!check.ok) {
-      files.push({ format, ok: false, filename, error: check.reason });
+      files.push({ format, edition, ok: false, filename, error: check.reason });
       continue;
     }
 
-    const result: GeneratedFile = { format, ok: true, filename, blob, pages: check.pages };
+    const result: GeneratedFile = { format, edition, ok: true, filename, blob, pages: check.pages };
     if (blob.size > MAX_FILE_BYTES) {
       result.storeError = 'O arquivo é grande demais para guardar na biblioteca; baixe-o agora.';
     } else {
-      onStep?.(`Guardando o ${FORMAT_SHORT[format]}…`);
+      onStep?.(`Guardando o ${what}…`);
       try {
         const stored = await storeFile(doc, version, {
           format,
@@ -137,6 +149,7 @@ export async function generateFiles(
           mime: FORMAT_MIME[format],
           blob,
           pages: check.pages,
+          edition,
         });
         result.file = stored.file;
         doc = stored.doc;

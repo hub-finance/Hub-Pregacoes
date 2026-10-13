@@ -2,9 +2,11 @@ import { db } from '../db/db';
 import { escapeHtml } from '../backup';
 import { blocksFromSermon, mainScriptureOf, newBlock } from '../data/sermonContent';
 import { sectionsOf, sectionTitle } from '../data/studySections';
+import { bookName } from '../bible/canon';
 import type {
   Devotional,
   ExportSource,
+  ReadingPlan,
   ExportSourceKind,
   LibraryDoc,
   Sermon,
@@ -36,6 +38,8 @@ export const SOURCE_LABEL: Record<ExportSourceKind, string> = {
   study: 'Rhema (estudo)',
   devotional: 'Cursos e devocionais',
   doc: 'Material da biblioteca (antigo)',
+  plan: 'Plano de leitura',
+  compiled: 'Vários conteúdos',
   blank: 'Documento em branco',
 };
 
@@ -157,13 +161,34 @@ export function libraryBlocks(doc: LibraryDoc): SermonBlock[] {
   return blocks;
 }
 
+const rangeLabel = ([book, from, to]: [string, number, number]) =>
+  from === to ? `${bookName(book)} ${from}` : `${bookName(book)} ${from}-${to}`;
+
+/**
+ * O plano de leitura como documento: a descrição do plano e, semana a semana,
+ * uma tabela com o dia, a leitura e se já foi lida. Tudo vem do próprio plano.
+ */
+export function planBlocks(plan: ReadingPlan): SermonBlock[] {
+  const blocks: SermonBlock[] = [];
+  if (plan.description?.trim()) blocks.push(newBlock('text', escapeHtml(plan.description.trim())));
+  const done = new Set(plan.completedDays);
+  for (let start = 0; start < plan.days.length; start += 7) {
+    const week = plan.days.slice(start, start + 7);
+    blocks.push(newBlock('section', escapeHtml(`Semana ${start / 7 + 1} — dias ${week[0].day} a ${week[week.length - 1].day}`)));
+    const rows = week.map((d) => `| ${d.day} | ${escapeHtml(d.ranges.map(rangeLabel).join(' · '))} | ${done.has(d.day) ? '✓' : '☐'} |`);
+    blocks.push(newBlock('text', ['| Dia | Leitura | Lido |', '|---|---|---|', ...rows].join('<br>')));
+  }
+  return blocks;
+}
+
 /** Tudo o que pode servir de origem, do mais recente para o mais antigo. */
 export async function listSources(): Promise<SourceOption[]> {
-  const [sermons, studies, devotionals, docs] = await Promise.all([
+  const [sermons, studies, devotionals, docs, plans] = await Promise.all([
     db.sermons.toArray(),
     db.studies.toArray(),
     db.devotionals.toArray(),
     db.libraryDocs.toArray(),
+    db.plans.toArray(),
   ]);
   const date = (iso?: string) => (iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR') : '');
   const options: SourceOption[] = [
@@ -199,6 +224,16 @@ export async function listSources(): Promise<SourceOption[]> {
       updatedAt: d.updatedAt,
       fileOnly: false,
     })),
+    ...plans
+      .filter((p) => !p.archived)
+      .map((p) => ({
+        kind: 'plan' as const,
+        id: p.id,
+        title: p.name,
+        subtitle: `${p.totalDays} dias · ${p.completedDays.length} lidos`,
+        updatedAt: p.updatedAt,
+        fileOnly: false,
+      })),
   ];
   return options.sort((a, b) => b.updatedAt - a.updatedAt);
 }
@@ -216,7 +251,7 @@ const dateLabelOf = (iso?: string) =>
 
 /** Carrega a origem escolhida e a converte em blocos. */
 export async function loadSource(kind: ExportSourceKind, id?: string): Promise<LoadedSource> {
-  if (kind === 'blank' || !id) {
+  if (kind === 'blank' || kind === 'compiled' || !id) {
     return { source: { kind: 'blank', title: 'Documento em branco' }, blocks: [], subtitle: '', dateLabel: '' };
   }
   switch (kind) {
@@ -245,7 +280,50 @@ export async function loadSource(kind: ExportSourceKind, id?: string): Promise<L
       if (!doc) throw new Error('O material escolhido não foi encontrado.');
       return { source: { kind, id, title: doc.title }, blocks: libraryBlocks(doc), subtitle: '', dateLabel: '' };
     }
+    case 'plan': {
+      const plan = await db.plans.get(id);
+      if (!plan) throw new Error('O plano de leitura escolhido não foi encontrado.');
+      return { source: { kind, id, title: plan.name }, blocks: planBlocks(plan), subtitle: `${plan.totalDays} dias de leitura`, dateLabel: '' };
+    }
   }
+}
+
+export interface CompiledSource extends LoadedSource {
+  /** Títulos de dentro de cada parte, rebaixados a subtítulo. */
+  subheadings: string[];
+}
+
+/**
+ * Vários conteúdos num documento só — uma série de mensagens, um plano
+ * devocional com todos os dias. Cada conteúdo vira um título (com o rótulo
+ * da série, quando há: "Mensagem 2 — …", "Dia 5 — …") e os títulos de dentro
+ * dele viram subtítulos. O texto de cada um entra inteiro, na ordem escolhida.
+ */
+export async function loadCompiled(
+  parts: Array<{ kind: ExportSourceKind; id: string }>,
+  label?: string,
+): Promise<CompiledSource> {
+  if (parts.length < 2) throw new Error('Escolha pelo menos dois conteúdos para juntar.');
+  const blocks: SermonBlock[] = [];
+  const subheadings: string[] = [];
+  const loaded: NonNullable<ExportSource['parts']> = [];
+  for (const [i, part] of parts.entries()) {
+    const one = await loadSource(part.kind, part.id);
+    const title = one.source.title || 'Sem título';
+    loaded.push({ kind: part.kind, id: part.id, title });
+    blocks.push(newBlock('section', escapeHtml(label ? `${label} ${i + 1} — ${title}` : title)));
+    for (const block of one.blocks) {
+      if (block.type === 'section') subheadings.push(block.id);
+      blocks.push(block);
+    }
+  }
+  return {
+    source: { kind: 'compiled', title: `${parts.length} conteúdos`, parts: loaded },
+    blocks,
+    subheadings,
+    subtitle: '',
+    dateLabel: '',
+  };
 }
 
 /** Rota do documento de origem, para o "abrir origem" da biblioteca. */
@@ -258,6 +336,8 @@ export function sourceRoute(source: ExportSource): string | null {
       return `/rhema/${source.id}`;
     case 'devotional':
       return `/cursos/${source.id}`;
+    case 'plan':
+      return `/planos/${source.id}`;
     // o Material da biblioteca não tem mais tela própria (a rota leva ao Rhema)
     default:
       return null;

@@ -5,7 +5,8 @@ import { useToast } from '../../components/Toast';
 import { ConfirmDialog } from '../../components/ui';
 import { formatBytes } from '../../core/data/attachments';
 import { approveVersion, listFiles, listVersions, removeFile, restoreVersion } from '../../core/data/exportDocs';
-import type { ExportDoc, ExportFile, ExportFormat, ExportVersion } from '../../core/db/types';
+import type { ExportDoc, ExportEdition, ExportFile, ExportFormat, ExportVersion } from '../../core/db/types';
+import { hasEditions } from '../../core/export/model';
 import { deliverFile, shareExportFile } from '../../core/export/deliver';
 import { FORMAT_LABEL, FORMAT_SHORT } from '../../core/export/files';
 import { generateFiles, type GeneratedFile } from '../../core/export/generate';
@@ -26,6 +27,7 @@ const when = (t: number) =>
 export function FilesTab({ doc, flush, replace }: Props) {
   const { notify } = useToast();
   const [formats, setFormats] = useState<ExportFormat[]>(['docx', 'pdf']);
+  const [editions, setEditions] = useState<ExportEdition[]>(['instrutor', 'participante']);
   const [step, setStep] = useState<string | null>(null);
   const [results, setResults] = useState<GeneratedFile[] | null>(null);
   const [fatal, setFatal] = useState<string | null>(null);
@@ -37,6 +39,10 @@ export function FilesTab({ doc, flush, replace }: Props) {
   const versions = useLiveQuery(() => listVersions(doc.id), [doc.id, doc.versionCount], [] as ExportVersion[]);
 
   const busy = step !== null;
+  /** A divisão vale pela versão aprovada, que é de onde os arquivos saem. */
+  const approvedVersion = versions?.find((v) => v.version === doc.approvedVersion);
+  const split = approvedVersion ? hasEditions(approvedVersion.structure) : hasEditions(doc.structure);
+  const toggleEdition = (e: ExportEdition) => setEditions((prev) => (prev.includes(e) ? prev.filter((x) => x !== e) : [...prev, e]));
   const unapprovedChanges = doc.status === 'rascunho';
 
   const approve = async () => {
@@ -59,14 +65,23 @@ export function FilesTab({ doc, flush, replace }: Props) {
       notify('Escolha pelo menos um formato.', 'error');
       return;
     }
+    if (split && !editions.length) {
+      notify('Escolha a versão do instrutor, a do participante ou as duas.', 'error');
+      return;
+    }
     setResults(null);
     setFatal(null);
     setStep('Preparando…');
     try {
-      const result = await generateFiles(doc.id, chosen, setStep);
+      const result = await generateFiles(doc.id, chosen, setStep, editions);
       replace(result.doc);
       // um novo pedido só para os que falharam substitui o resultado deles
-      setResults((prev) => (only && prev ? [...prev.filter((r) => !only.includes(r.format)), ...result.files] : result.files));
+      // ao tentar de novo, o que já tinha dado certo fica; o resto é substituído
+      setResults((prev) => {
+        if (!only || !prev) return result.files;
+        const kept = prev.filter((r) => r.ok);
+        return [...kept, ...result.files.filter((r) => !kept.some((k) => k.filename === r.filename))];
+      });
     } catch (err) {
       setFatal((err as Error).message);
     } finally {
@@ -92,7 +107,7 @@ export function FilesTab({ doc, flush, replace }: Props) {
 
   const toggleFormat = (f: ExportFormat) => setFormats((prev) => (prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]));
 
-  const failed = results?.filter((r) => !r.ok).map((r) => r.format) ?? [];
+  const failed = [...new Set(results?.filter((r) => !r.ok).map((r) => r.format) ?? [])];
 
   return (
     <div className="stack">
@@ -140,6 +155,21 @@ export function FilesTab({ doc, flush, replace }: Props) {
             </label>
           ))}
         </div>
+        {split && (
+          <div className="stack" style={{ gap: 4 }}>
+            <div className="row row-wrap" role="group" aria-label="Versões">
+              <label className="xp-check">
+                <input type="checkbox" checked={editions.includes('instrutor')} onChange={() => toggleEdition('instrutor')} />
+                Material do instrutor (completo)
+              </label>
+              <label className="xp-check">
+                <input type="checkbox" checked={editions.includes('participante')} onChange={() => toggleEdition('participante')} />
+                Material do participante
+              </label>
+            </div>
+            <span className="small dim">O do participante sai sem as partes marcadas como “Só instrutor”.</span>
+          </div>
+        )}
         <div className="row row-wrap">
           <button className="btn btn-primary" onClick={() => generate()} disabled={busy || !doc.approvedVersion || !formats.length}>
             {busy ? 'Gerando…' : 'Gerar arquivos'}
@@ -174,10 +204,10 @@ export function FilesTab({ doc, flush, replace }: Props) {
         {results && (
           <div className="stack" style={{ gap: 'var(--sp-2)' }}>
             {results.map((r) => (
-              <div key={r.format} className="xp-file">
+              <div key={r.filename} className="xp-file">
                 <Icon name={r.ok ? 'check' : 'warning'} size={18} />
                 <span className="xp-file-name">
-                  {r.ok ? `${FORMAT_SHORT[r.format]} gerado e conferido` : `${FORMAT_SHORT[r.format]} não foi gerado`}
+                  {r.ok ? `${FORMAT_SHORT[r.format]}${r.edition ? ` (${r.edition})` : ''} gerado e conferido` : `${FORMAT_SHORT[r.format]}${r.edition ? ` (${r.edition})` : ''} não foi gerado`}
                   <span className="small dim" style={{ display: 'block', fontWeight: 400 }}>
                     {r.ok
                       ? [r.filename, r.blob ? formatBytes(r.blob.size) : '', r.pages ? `${r.pages} página${r.pages > 1 ? 's' : ''}` : '']
@@ -229,7 +259,8 @@ export function FilesTab({ doc, flush, replace }: Props) {
               <span className="xp-file-name">
                 {f.filename}
                 <span className="small dim" style={{ display: 'block', fontWeight: 400 }}>
-                  {FORMAT_SHORT[f.format]} · versão {f.version} · {formatBytes(f.size)}
+                  {FORMAT_SHORT[f.format]}
+                  {f.edition ? ` · ${f.edition}` : ''} · versão {f.version} · {formatBytes(f.size)}
                   {f.pages ? ` · ${f.pages} pág.` : ''} · {when(f.createdAt)}
                 </span>
               </span>

@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Icon } from '../../components/Icon';
 import { ConfirmDialog } from '../../components/ui';
 import { useToast } from '../../components/Toast';
 import { exportAsMarkdown, exportAsPdf, exportAsText } from '../../core/backup';
@@ -18,8 +19,31 @@ interface Props {
   /** Conteúdo exportável em HTML (impressão / PDF). */
   toHtml: () => string;
   extraActions?: ReactNode;
+  /**
+   * O conteúdo tem texto para virar arquivo. Falso no material que só existe
+   * como PDF/Word importado — esse já é um arquivo, não há o que formatar.
+   */
+  exportable?: boolean;
   children: ReactNode;
 }
+
+/**
+ * O atalho para o Gerar e Exportar, com o nome que cada tela pede: quem
+ * termina uma mensagem quer "finalizar e exportar"; quem termina um estudo
+ * pode querer transformá-lo em apostila.
+ */
+const EXPORT_ACTIONS: Record<DocKind, Array<{ label: string; categoria: string; modelo: string }>> = {
+  sermon: [{ label: 'Finalizar e exportar', categoria: 'pregacao', modelo: 'mensagem-completa' }],
+  devotional: [{ label: 'Gerar Word ou PDF', categoria: 'devocional', modelo: 'diario' }],
+  study: [
+    { label: 'Exportar estudo', categoria: 'estudo', modelo: 'tematico' },
+    { label: 'Transformar em apostila', categoria: 'treinamento', modelo: 'apostila' },
+  ],
+  doc: [{ label: 'Exportar', categoria: 'institucional', modelo: 'mensagem' }],
+};
+
+export const exportLink = (kind: string, id: string, categoria: string, modelo: string) =>
+  `/exportar?${new URLSearchParams({ origem: kind, id, categoria, modelo })}`;
 
 /** Moldura comum dos editores: status de gravação, exportação e exclusão. */
 export function EditorShell({
@@ -32,6 +56,7 @@ export function EditorShell({
   toMarkdown,
   toHtml,
   extraActions,
+  exportable = true,
   children,
 }: Props) {
   const navigate = useNavigate();
@@ -54,6 +79,21 @@ export function EditorShell({
           …
         </button>
       </div>
+
+      {exportable && (
+        <div className="row row-wrap" style={{ gap: 'var(--sp-2)', marginBottom: 'var(--sp-4)' }}>
+          {EXPORT_ACTIONS[kind].map((action) => (
+            <button
+              key={action.label}
+              className="btn btn-sm btn-outline"
+              onClick={() => navigate(exportLink(kind, docId, action.categoria, action.modelo))}
+            >
+              <Icon name="download" size={16} />
+              {action.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {menu && (
         <div className="card stack" style={{ marginBottom: 'var(--sp-4)' }}>

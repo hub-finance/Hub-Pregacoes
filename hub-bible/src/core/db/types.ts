@@ -508,13 +508,15 @@ export type ExportStatus = 'rascunho' | 'aprovado' | 'finalizado';
 
 export type ExportFormat = 'docx' | 'pdf' | 'md';
 
-export type ExportSourceKind = 'sermon' | 'study' | 'devotional' | 'doc' | 'blank';
+export type ExportSourceKind = 'sermon' | 'study' | 'devotional' | 'doc' | 'plan' | 'compiled' | 'blank';
 
 /** De onde veio o conteúdo — para mostrar na biblioteca e voltar à origem. */
 export interface ExportSource {
   kind: ExportSourceKind;
   id?: ID;
   title: string;
+  /** Documento compilado: as origens, na ordem em que entraram. */
+  parts?: Array<{ kind: ExportSourceKind; id: ID; title: string }>;
 }
 
 /** Logotipo da capa, já reduzido e guardado como `data:` URL. */
@@ -564,7 +566,15 @@ export interface ExportStructure {
   pageBreaks: ID[];
   /** Seções rebaixadas a subtítulo (nível 2). */
   subheadings: ID[];
+  /**
+   * Seções só do material do instrutor: entram na versão do instrutor e ficam
+   * de fora da versão do participante. Ausente em documentos antigos.
+   */
+  instructorOnly?: ID[];
 }
+
+/** Versão do arquivo quando há partes só do instrutor. */
+export type ExportEdition = 'instrutor' | 'participante';
 
 export interface ExportDoc {
   id: ID;
@@ -580,6 +590,8 @@ export interface ExportDoc {
   /** O rascunho em revisão. */
   content: SermonBlock[];
   structure: ExportStructure;
+  /** Estrutura com que o documento nasceu (num compilado, os subtítulos de cada parte). */
+  originalStructure?: ExportStructure;
   layout: ExportLayout;
   /** Número da última versão aprovada. */
   approvedVersion?: number;
@@ -623,6 +635,8 @@ export interface ExportFile {
   size: number;
   /** Páginas do PDF, quando conhecidas. */
   pages?: number;
+  /** Versão do instrutor ou do participante; ausente quando não há essa divisão. */
+  edition?: ExportEdition;
   blob: Blob;
   createdAt: number;
 }

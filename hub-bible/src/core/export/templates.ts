@@ -20,6 +20,13 @@ export interface ExportModel {
   hint: string;
   /** Padrões que o modelo aplica sobre os da categoria. */
   defaults?: Partial<ExportLayout>;
+  /**
+   * Modelo feito para juntar vários conteúdos (série, plano de vários dias).
+   * `label` numera cada parte ("Mensagem 1 — …", "Dia 3 — …"); `parts` é a
+   * quantidade esperada, quando o modelo tem uma (plano de 7 dias). `multi`:
+   * o modelo só faz sentido com vários conteúdos, e a escolha já abre assim.
+   */
+  compile?: { label?: string; parts?: number; multi?: boolean };
 }
 
 export interface ExportCategoryDef {
@@ -48,6 +55,7 @@ export const EXPORT_CATEGORIES: ExportCategoryDef[] = [
       { id: 'textual', label: 'Pregação textual', hint: 'Desenvolvida a partir de um texto bíblico.' },
       { id: 'tematica', label: 'Pregação temática', hint: 'Desenvolvida a partir de um tema.' },
       { id: 'expositivo', label: 'Estudo expositivo', hint: 'Exposição verso a verso.', defaults: { theme: 'academico' } },
+      { id: 'serie', label: 'Série de mensagens', hint: 'Várias mensagens num só arquivo, cada uma em página nova.', defaults: BOOKLET, compile: { label: 'Mensagem', multi: true } },
       { id: 'roteiro', label: 'Roteiro de ministração', hint: 'Sequência do culto ou da ministração.', defaults: { theme: 'institucional' } },
       { id: 'reflexao', label: 'Mensagem com perguntas para reflexão', hint: 'Com espaço para anotar as respostas.', defaults: { notesSpace: true } },
       { id: 'impressao', label: 'Versão para impressão', hint: 'Folha limpa, em preto.', defaults: { theme: 'classico' } },
@@ -58,7 +66,7 @@ export const EXPORT_CATEGORIES: ExportCategoryDef[] = [
     id: 'devocional',
     label: 'Devocionais',
     description: 'Devocional diário e para líderes, famílias, grupos e igreja.',
-    preferredSources: ['devotional'],
+    preferredSources: ['devotional', 'plan'],
     defaults: { theme: 'pastoral', cover: false, toc: false, pageNumbers: false, notesSpace: true },
     models: [
       { id: 'diario', label: 'Devocional diário', hint: 'Uma página para o dia, com espaço para anotações.' },
@@ -66,6 +74,14 @@ export const EXPORT_CATEGORIES: ExportCategoryDef[] = [
       { id: 'familias', label: 'Devocional para famílias', hint: 'Leitura em casa, com espaço para anotações.' },
       { id: 'grupos', label: 'Devocional para grupos', hint: 'Para pequenos grupos e células.' },
       { id: 'igreja', label: 'Devocional para a igreja', hint: 'Para distribuição na igreja.', defaults: { notesSpace: false } },
+      ...[7, 14, 21, 30].map((days) => ({
+        id: `plano-${days}`,
+        label: `Plano devocional de ${days} dias`,
+        hint: `Escolha ${days} devocionais: cada um vira um dia, em página própria.`,
+        defaults: { cover: true, toc: days >= 14, pageNumbers: true, breakBeforeSections: true, notesSpace: false },
+        compile: { label: 'Dia', parts: days, multi: true },
+      })),
+      { id: 'plano-leitura', label: 'Plano de leitura bíblica', hint: 'Um plano de leitura do app, semana a semana, com o que já foi lido.', defaults: { cover: true, pageNumbers: true, notesSpace: false, theme: 'classico' } },
     ],
   },
   {
@@ -84,6 +100,7 @@ export const EXPORT_CATEGORIES: ExportCategoryDef[] = [
       { id: 'expositivo', label: 'Estudo expositivo', hint: 'Exposição verso a verso.' },
       { id: 'pequenos-grupos', label: 'Estudo para pequenos grupos', hint: 'Com espaço para as respostas do grupo.', defaults: { theme: 'didatico', notesSpace: true } },
       { id: 'individual', label: 'Estudo individual', hint: 'Para o estudo pessoal, com espaço para anotações.', defaults: { notesSpace: true } },
+      { id: 'serie-estudos', label: 'Série de estudos', hint: 'Vários estudos num só arquivo, cada um em página nova.', defaults: { cover: true, toc: true, pageNumbers: true, breakBeforeSections: true }, compile: { label: 'Estudo', multi: true } },
       { id: 'professores', label: 'Material de apoio para professores', hint: 'Com capa e sumário.', defaults: { ...BOOKLET, theme: 'didatico' } },
     ],
   },
@@ -94,7 +111,7 @@ export const EXPORT_CATEGORIES: ExportCategoryDef[] = [
     preferredSources: ['doc', 'study', 'devotional'],
     defaults: { theme: 'didatico', ...BOOKLET },
     models: [
-      { id: 'apostila', label: 'Apostila de treinamento', hint: 'Capa, sumário e cada módulo em página nova.' },
+      { id: 'apostila', label: 'Apostila de treinamento', hint: 'Capa, sumário e cada módulo em página nova.', compile: { label: 'Módulo' } },
       { id: 'manual-formacao', label: 'Manual de formação ministerial', hint: 'Material de formação em módulos.' },
       { id: 'lideres', label: 'Material para líderes', hint: 'Orientação para a liderança.' },
       { id: 'equipes', label: 'Treinamento de equipes', hint: 'Para capacitação de equipes de serviço.' },
