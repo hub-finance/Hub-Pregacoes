@@ -2,8 +2,7 @@ import { suggestActions } from './actions';
 import { callGemini, withModel } from './ai';
 import { findReferences, fold } from './bible';
 import { db, now } from './db';
-import { extractiveSummary } from './summary';
-import { cleanTitle, readMaterial, referenceSentence, sectionKeywords, sentences, type MaterialReading, type SectionReading } from './text';
+import { cleanTitle, readMaterial, referenceSentence, sectionSentences, STOPWORDS, sectionKeywords, sentences, type MaterialReading, type SectionReading } from './text';
 import type { ActionItem, BriefCard, BriefChapterTurn, BriefInflection, BriefOrigin, Material, StudyBrief } from './types';
 
 /**
@@ -55,12 +54,13 @@ const wordCount = (s: string) => s.split(/\s+/).filter(Boolean).length;
 export function concise(text: string, max = BRIEF_WORDS.sentence): string {
   const raw = sentences(text)[0] ?? text.trim();
   // trechos sem ponto final (títulos, itens de lista) ganham o ponto, para não emendarem na frase seguinte
-  const first = raw && !/[.!?:]$/.test(raw) ? `${raw}.` : raw;
+  const first = raw && !/[.!?:]$/.test(raw) ? `${raw.replace(/[,;—–\s]+$/, '')}.` : raw;
   if (wordCount(first) <= max) return first;
-  const parts = first.split(/(?<=[;:—–])\s+|,\s+(?=(?:mas|porém|pois|porque|e|que|quando|para|pois)\b)|,\s+/);
+  // cada pedaço leva a sua pontuação original ("escrito:", "pecado,"): nada de ":," inventado
+  const parts = first.split(/(?<=[,;:—–])\s+/);
   let out = '';
   for (const part of parts) {
-    const next = out ? `${out}, ${part}` : part;
+    const next = out ? `${out} ${part}` : part;
     if (wordCount(next) > max) break;
     out = next;
   }
@@ -158,84 +158,305 @@ export function turnForSection(material: Material, section: Material['sections']
 }
 
 /** Estrutura montada só com o texto (sem IA). */
+/* ------------- seleção inteligente: o livro inteiro, não só o começo ------------- */
+
+/** Divide em até `n` blocos seguidos e equilibrados (12 capítulos em 6 → 2 em cada). */
+export function groupsOf<T>(items: T[], n: number): T[][] {
+  const k = Math.min(n, items.length);
+  return Array.from({ length: k }, (_, i) => items.slice(Math.floor((i * items.length) / k), Math.floor(((i + 1) * items.length) / k)));
+}
+
+/** Frases que dependem da anterior para fazer sentido ("Isso…", "Ele…") não servem sozinhas. */
+const DEPENDENT = /^(isso|isto|aquilo|esse|essa|esses|essas|este|esta|estes|estas|ele|ela|eles|elas|assim|também|além disso|por isso|portanto|então|e|mas|ou|aqui|ali|nesse|nessa|neste|nesta|dessa|desse|disso|porque|pois|porquanto|ora|porém|logo|daí|dessa forma|desta forma)\b/i;
+const GREETING = /\b(sa[uú]da[mi]?|sa[uú]dem|seja convosco|sejam convosco|com todos v[oó]s|am[eé]m\.?$|um abra[cç]o|obrigad[oa] pela|bem-vindos?)\b/i;
+
+/**
+ * Nota de uma frase para um resumo: fala do assunto do livro (palavras-chave),
+ * tem tamanho de frase que se lê de uma vez, se sustenta sozinha e, quando o
+ * autor destacou, vale mais. Perguntas e frases soltas ficam de fora.
+ */
+function sentenceScore(x: string, keys: Set<string>, highlight: boolean): number {
+  const words = x.split(/\s+/).length;
+  if (x.endsWith('?') || x.endsWith(':') || words < 7 || words > 40) return -1;
+  const hits = (x.match(/[\p{L}]{4,}/gu) ?? []).filter((w) => keys.has(fold(w.toLowerCase()))).length;
+  let score = hits / Math.sqrt(words) + (highlight ? 2 : 0) + (FAITH.test(x) ? 0.4 : 0) + (findReferences(x).length ? 0.3 : 0);
+  if (DEPENDENT.test(x)) score -= 1.2;
+  // pedaço de frase (começa em minúscula ou parêntese) não se lê sozinho
+  if (/^[\p{Ll}(\[]/u.test(x)) score -= 1.5;
+  // saudações e despedidas não são a mensagem
+  if (GREETING.test(x)) score -= 1.5;
+  if (/\d{3,}|https?:|www\./.test(x)) score -= 1;
+  // frases muito curtas dizem pouco; as de 12 a 30 palavras explicam melhor
+  if (words < 10) score -= 0.4;
+  return score;
+}
+
+interface Picked {
+  text: string;
+  s: SectionReading;
+  score: number;
+}
+
+/** A nota de cada frase de uma parte, calculada uma vez (por leitura e palavras-chave). */
+const RANK_CACHE = new WeakMap<SectionReading, { keys: Set<string>; list: Picked[] }>();
+
+function rankSection(s: SectionReading, keys: Set<string>): Picked[] {
+  const hit = RANK_CACHE.get(s);
+  if (hit && hit.keys === keys) return hit.list;
+  const list: Picked[] = [];
+  for (const text of sectionSentences(s)) {
+    const score = sentenceScore(text, keys, s.highlights.some((h) => text.includes(h)));
+    if (score > 0) list.push({ text, s, score });
+  }
+  RANK_CACHE.set(s, { keys, list });
+  return list;
+}
+
+/** As melhores frases de um bloco de capítulos, da melhor para a pior. */
+function rankSentences(group: SectionReading[], keys: Set<string>): Picked[] {
+  return group.flatMap((s) => rankSection(s, keys)).sort((a, b) => b.score - a.score);
+}
+
+/** O capítulo que melhor representa o bloco: o de mais destaques, versículos e frases fortes. */
+function representative(group: SectionReading[], ranked: Picked[]): SectionReading {
+  const weight = (s: SectionReading) => s.highlights.length * 2 + Math.min(s.references.length, 6) * 0.5 + (ranked.find((p) => p.s === s)?.score ?? 0);
+  return [...group].sort((a, b) => weight(b) - weight(a))[0];
+}
+
+/** Os versículos mais citados de um bloco. */
+function topRefs(group: SectionReading[], n: number): string[] {
+  const count = new Map<string, number>();
+  for (const s of group) for (const r of s.references) count.set(r.label, (count.get(r.label) ?? 0) + 1);
+  return [...count.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(([label]) => label);
+}
+
+/** "Capítulo 2", "Parte 3": título que não diz o assunto. */
+const GENERIC_TITLE = /^(cap[ií]tulo|parte|li[cç][aã]o|m[oó]dulo|aula|unidade|se[cç][aã]o|sess[aã]o|t[oó]pico|livro)?\s*[\divxlc]+\.?$/i;
+
+/** "jesus" → "Jesus" quando o texto sempre escreve com maiúscula (nome próprio). */
+function displayWord(word: string, group: SectionReading[]): string {
+  const cap = word[0].toUpperCase() + word.slice(1);
+  const text = group.map((s) => s.section.text).join(' ');
+  const upper = (text.match(new RegExp(`\\b${cap}\\b`, 'g')) ?? []).length;
+  const lower = (text.match(new RegExp(`\\b${word}\\b`, 'g')) ?? []).length;
+  return upper > lower * 2 ? cap : word;
+}
+
+const VERB_FORM = /(am|ai|ei|ou|ndo|mos|ste|sse|ssem|riam|vam|avam|ava|ara|aram|eram|iram|aste|este|iste|ais|eis)$/;
+
+/** Em quantas partes cada palavra aparece (calculado uma vez por leitura). */
+const DOC_FREQ = new WeakMap<MaterialReading, Map<string, number>>();
+const wordsOf = (text: string) => (text.match(/[\p{L}]{5,}/gu) ?? []).map((w) => w.toLowerCase()).filter((w) => !STOPWORDS.has(w));
+
+function docFreq(r: MaterialReading): Map<string, number> {
+  let df = DOC_FREQ.get(r);
+  if (!df) {
+    df = new Map();
+    for (const s of r.sections) for (const w of new Set(wordsOf(s.section.text).map((x) => fold(x)))) df.set(w, (df.get(w) ?? 0) + 1);
+    DOC_FREQ.set(r, df);
+  }
+  return df;
+}
+
+/**
+ * Os temas próprios de um bloco ("Lei, pecado e carne"): palavras que aparecem
+ * muito ali e pouco no resto do livro. Palavras do livro inteiro ("Senhor",
+ * "Cristo") não distinguem um trecho do outro e ficam de fora.
+ */
+function themeOf(group: SectionReading[], r: MaterialReading, n = 3): string {
+  const df = docFreq(r);
+  const total = r.sections.length;
+  const counts = new Map<string, { n: number; form: string }>();
+  for (const s of group)
+    for (const w of wordsOf(s.section.text)) {
+      const k = fold(w);
+      const e = counts.get(k) ?? { n: 0, form: w };
+      e.n++;
+      counts.set(k, e);
+    }
+  const words = [...counts.entries()]
+    // formas de verbo ("praticam", "saudai", "falando") não nomeiam um tema
+    .filter(([k, e]) => e.n >= 2 && !VERB_FORM.test(k))
+    .map(([k, e]) => ({ form: e.form, score: e.n * Math.log(1 + total / (df.get(k) ?? 1)) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, n)
+    .map((x) => displayWord(x.form, group));
+  if (!words.length) return '';
+  const cap = words[0][0].toUpperCase() + words[0].slice(1);
+  return words.length === 1 ? cap : `${[cap, ...words.slice(1, -1)].join(', ')} e ${words[words.length - 1]}`;
+}
+
+/** O nome de um bloco: o título do capítulo quando diz o assunto; senão, os temas dele. */
+function groupName(group: SectionReading[], rep: SectionReading, r: MaterialReading): string {
+  const title = cleanTitle(rep.section.title).trim();
+  return !title || GENERIC_TITLE.test(title) ? themeOf(group, r) || title || 'Parte' : shortLabel(title, 6);
+}
+
+/** Rótulo curto de uma frase: as palavras-chave do livro que ela contém. */
+function leafLabel(text: string, keys: Set<string>): string {
+  const found: string[] = [];
+  for (const w of text.match(/[\p{L}]{4,}/gu) ?? []) {
+    const k = fold(w.toLowerCase());
+    if (keys.has(k) && !found.some((f) => fold(f.toLowerCase()) === k)) found.push(w.toLowerCase());
+    if (found.length === 2) break;
+  }
+  if (!found.length) return shortLabel(sectionKeywordsOf(text), 3);
+  const label = found.join(' e ');
+  return label[0].toUpperCase() + label.slice(1);
+}
+
+/** "cap. 3–4" quando o bloco junta capítulos. */
+function rangeLabel(group: SectionReading[], all: SectionReading[]): string {
+  if (group.length < 2) return '';
+  const a = all.indexOf(group[0]) + 1;
+  const b = all.indexOf(group[group.length - 1]) + 1;
+  return ` (${a}–${b})`;
+}
+
+const KEYS = new WeakMap<MaterialReading, Set<string>>();
+function keySetOf(r: MaterialReading): Set<string> {
+  let k = KEYS.get(r);
+  if (!k) KEYS.set(r, (k = new Set(r.keywords.map((x) => fold(x.word.toLowerCase())))));
+  return k;
+}
+
+/** Estrutura montada só com o texto (sem IA), escolhendo do livro inteiro. */
 export function buildBriefByRules(material: Material, reading?: MaterialReading, actions: ActionItem[] = []): StudyBrief {
   const r = reading ?? readMaterial(material);
   const L = BRIEF_LIMITS;
   const sections = r.sections.filter((s) => s.section.text.trim());
-  const first = sections[0];
-  const thesis = concise(material.centralIdea.trim() || r.highlights[0]?.text || (first ? keyRaw(first) : ''), 30);
-  const summary = extractiveSummary(material, 'curto', r);
+  const keys = keySetOf(r);
+  const used = new Set<string>();
+  const take = (p?: Picked) => {
+    if (p) used.add(fold(p.text));
+    return p;
+  };
+  const fresh = (list: Picked[]) => list.find((p) => !used.has(fold(p.text)));
+
+  // a tese: a ideia central do autor; senão, a frase mais forte do livro inteiro
+  const allRanked = rankSentences(sections, keys);
+  const thesisPick = material.centralIdea.trim() ? undefined : take(allRanked.find((p) => p.s.highlights.length && p.score >= 2) ?? allRanked[0]);
+  const thesis = concise(material.centralIdea.trim() || thesisPick?.text || '', 30);
+  used.add(fold(thesis));
+
+  // a síntese: começo, meio e fim do livro, uma frase de cada
   const synthesisParts: string[] = [];
-  for (const sentence of summary.flatMap((p) => p.sentences).filter((x) => x !== thesis).map((x) => concise(x))) {
+  for (const g of groupsOf(sections, 3)) {
+    const p = take(fresh(rankSentences(g, keys)));
+    if (!p) continue;
+    const sentence = concise(p.text);
     if (synthesisParts.length && wordCount([...synthesisParts, sentence].join(' ')) > BRIEF_WORDS.synthesis) break;
     synthesisParts.push(sentence);
-    if (synthesisParts.length === 3) break;
   }
   const synthesis = synthesisParts.join(' ');
 
-  const steps = sections.slice(0, L.steps).map((s) => ({
-    title: shortLabel(cleanTitle(s.section.title), 6),
-    question: s.questions[0] ?? '',
-    // a explicação não pode repetir a pergunta da etapa
-    explanation: answerOf(s, s.questions[0] ?? ''),
-    link: '',
-    refs: s.references.slice(0, 2).map((x) => x.label),
-    section: s.section.title,
-    origin: 'texto' as BriefOrigin,
-  }));
+  // a progressão: o livro inteiro em até 6 etapas (capítulos agrupados em ordem)
+  const steps = groupsOf(sections, L.steps).map((g) => {
+    const ranked = rankSentences(g, keys);
+    const rep = representative(g, ranked);
+    const question = g.flatMap((s) => s.questions)[0] ?? '';
+    const best = take(fresh(ranked.filter((p) => fold(p.text) !== fold(question))));
+    return {
+      title: groupName(g, rep, r) + rangeLabel(g, sections),
+      question,
+      explanation: best ? concise(best.text) : answerOf(rep, question),
+      link: '',
+      refs: topRefs(g, 2),
+      section: (best?.s ?? rep).section.title,
+      origin: 'texto' as BriefOrigin,
+    };
+  });
 
-  const branches = sections.slice(0, L.branches).map((s) => {
+  // o mapa: até 5 ramos cobrindo o livro todo; as folhas são o melhor de cada bloco
+  const branches = groupsOf(sections, L.branches).map((g) => {
+    const ranked = rankSentences(g, keys);
+    const rep = representative(g, ranked);
+    const summaryPick = ranked[0];
     const leaves: StudyBrief['branches'][number]['leaves'] = [];
     const seen = new Set<string>();
-    // o resumo do ramo não se repete nas folhas, nem a mesma frase em duas folhas
-    const seenDetail = new Set<string>([fold(keyOf(s))]);
+    const seenDetail = new Set<string>(summaryPick ? [fold(concise(summaryPick.text))] : []);
     const push = (label: string, detail: string, ref?: string) => {
       const k = fold(label);
       const d = fold(detail);
-      if (!label || !detail || seen.has(k) || (seenDetail.has(d) && d !== k) || leaves.length >= L.leaves) return;
+      if (!label || !detail || seen.has(k) || seenDetail.has(d) || leaves.length >= L.leaves) return;
       seen.add(k);
       seenDetail.add(d);
       leaves.push({ label, detail, ref });
     };
-    for (const d of s.definitions) push(shortLabel(d.term, 3), concise(d.meaning));
-    for (const ref of s.references) push(ref.label, concise(contextOf(s, ref)) || ref.label, ref.label);
-    for (const h of s.highlights) push(shortLabel(sectionKeywordsOf(h), 3), concise(h));
-    for (const q of s.questions) push('Pergunta', q);
-    return { label: shortLabel(cleanTitle(s.section.title), 6), summary: keyOf(s), leaves, section: s.section.title };
+    // definições que falam do assunto do livro primeiro
+    const defScore = (d: { term: string; meaning: string }) => sentenceScore(`${d.term} é ${d.meaning}`, keys, false);
+    const defs = g.flatMap((s) => s.definitions).sort((a, b) => defScore(b) - defScore(a));
+    for (const d of defs.slice(0, 2)) push(shortLabel(d.term, 3), concise(d.meaning));
+    for (const label of topRefs(g, 2)) {
+      const s = g.find((x) => x.references.some((ref) => ref.label === label))!;
+      const ref = s.references.find((x) => x.label === label)!;
+      push(label, concise(contextOf(s, ref)) || label, label);
+    }
+    for (const p of ranked.slice(1, 8)) push(leafLabel(p.text, keys), concise(p.text));
+    return { label: groupName(g, rep, r), summary: summaryPick ? concise(summaryPick.text) : keyOf(rep), leaves, section: rep.section.title };
   });
 
+  // as verdades: a melhor de cada trecho do livro (do começo ao fim)
+  const truths = groupsOf(sections, L.truths)
+    .map((g) => take(fresh(rankSentences(g, keys))))
+    .filter((p): p is Picked => !!p)
+    .map((p) => ({ text: concise(p.text), section: p.s.section.title, origin: 'texto' as BriefOrigin }));
+
+  // cartões bíblicos: os versículos mais citados do livro, cada um com a sua frase
   const cards: BriefCard[] = [];
   const usedContexts = new Set<string>();
-  for (const s of sections) {
-    for (const ref of s.references) {
-      if (cards.filter((c) => c.kind === 'biblico').length >= L.cardsPerKind) break;
-      const ctx = contextOf(s, ref);
-      // dois versículos citados na mesma frase não viram dois cartões iguais
-      if (!ctx || usedContexts.has(ctx)) continue;
-      usedContexts.add(ctx);
-      cards.push({ kind: 'biblico', front: ref.label, back: ctx, extra: cleanTitle(s.section.title), ref: ref.label, section: s.section.title, origin: 'texto' });
-    }
+  for (const ref of r.references) {
+    if (cards.length >= L.cardsPerKind) break;
+    const s = sections.find((x) => x.references.some((y) => y.label === ref.label));
+    if (!s) continue;
+    const ctx = contextOf(s, ref);
+    // dois versículos citados na mesma frase não viram dois cartões iguais
+    if (!ctx || usedContexts.has(ctx)) continue;
+    usedContexts.add(ctx);
+    cards.push({ kind: 'biblico', front: ref.label, back: concise(ctx, 35), extra: cleanTitle(s.section.title), ref: ref.label, section: s.section.title, origin: 'texto' });
   }
-  for (const h of r.highlights.slice(0, L.cardsPerKind)) {
-    const s = sections.find((x) => x.section.id === h.sectionId);
-    cards.push({ kind: 'principio', front: h.text, back: s ? (sentences(s.paragraphs[0] ?? '')[0] ?? '') : '', section: s?.section.title ?? '', origin: 'texto' });
+  // princípios: destaques do autor espalhados pelo livro (os que ainda não apareceram)
+  for (const g of groupsOf(sections, L.cardsPerKind)) {
+    const p = take(fresh(rankSentences(g, keys).filter((x) => x.s.highlights.some((h) => x.text.includes(h)))) ?? fresh(rankSentences(g, keys)));
+    if (!p) continue;
+    const list = sectionSentences(p.s);
+    const next = list[list.indexOf(p.text) + 1];
+    cards.push({ kind: 'principio', front: concise(p.text), back: next && !next.endsWith('?') ? concise(next) : '', section: p.s.section.title, origin: 'texto' });
   }
-  for (const d of r.definitions.slice(0, L.cardsPerKind)) {
-    const s = sections.find((x) => x.section.id === d.sectionId);
-    cards.push({ kind: 'revisao', front: `O que é ${d.term.toLowerCase()}?`, back: d.meaning, section: s?.section.title ?? '', origin: 'texto' });
+  // revisão: uma definição de cada trecho do livro
+  for (const g of groupsOf(sections.filter((s) => s.definitions.length), L.cardsPerKind)) {
+    const d = g.flatMap((s) => s.definitions)[0];
+    const s = g.find((x) => x.definitions.includes(d));
+    if (d) cards.push({ kind: 'revisao', front: `O que é ${d.term.toLowerCase()}?`, back: concise(d.meaning), section: s?.section.title ?? '', origin: 'texto' });
   }
 
-  const applicationsAll = [...actions.filter((a) => a.status !== 'feito').map((a) => a.text), ...suggestActions(material).map((a) => a.text)];
-  const applications = [...new Set(applicationsAll)].slice(0, L.applications);
-  const rows = sections
-    .filter((s) => s.highlights.length || s.definitions.length)
-    .slice(0, L.dnaRows)
-    .map((s, i) => ({
-      principle: concise(s.highlights[0] ?? `${s.definitions[0].term}: ${s.definitions[0].meaning}`),
-      base: s.references[0]?.label ?? '',
-      application: applications[i] ?? '',
-      origin: 'texto' as BriefOrigin,
-    }));
+  // aplicações: as do plano primeiro; depois, as do texto espalhadas pelo livro
+  const drafts = suggestActions(material);
+  const bySection = groupsOf(sections, L.applications).map((g) => drafts.filter((a) => g.some((s) => s.section.id === a.sectionId)));
+  const spread: string[] = [];
+  for (let i = 0; spread.length < L.applications * 2 && bySection.some((b) => b[i]); i++) for (const b of bySection) if (b[i]) spread.push(b[i].text);
+  const applications = [...new Set([...actions.filter((a) => a.status !== 'feito').map((a) => a.text), ...spread])].slice(0, L.applications);
+
+  // DNA: um princípio de cada trecho, com o versículo mais citado dele
+  const rows = groupsOf(sections, L.dnaRows)
+    .map((g, i) => {
+      const ranked = rankSentences(g, keys);
+      const p = fresh(ranked.filter((x) => x.s.highlights.some((h) => x.text.includes(h)))) ?? fresh(ranked);
+      const d = g.flatMap((s) => s.definitions)[0];
+      const principle = p ? concise(p.text) : d ? concise(`${d.term}: ${d.meaning}`) : '';
+      if (p) take(p);
+      return { principle, base: topRefs(g, 1)[0] ?? '', application: applications[i] ?? '', origin: 'texto' as BriefOrigin };
+    })
+    .filter((row) => row.principle);
+
+  // convicções: o que o autor mais afirma, do começo ao fim, sem repetir o que já apareceu
+  const convictions = groupsOf(sections, 3)
+    .map((g) => take(fresh(rankSentences(g, keys).filter((x) => x.score >= 0.6))))
+    .filter((p): p is Picked => !!p)
+    .map((p) => concise(p.text));
+
+  // perguntas: uma de cada trecho do livro
+  const questions = groupsOf(sections.filter((s) => s.questions.length), L.questions).map((g) => g.flatMap((s) => s.questions)[0]);
 
   return {
     thesis,
@@ -243,16 +464,13 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
     synthesis,
     objective: '',
     baseText: r.references.slice(0, 3).map((x) => x.label),
-    truths: (r.highlights.length ? r.highlights.map((h) => ({ text: h.text, id: h.sectionId })) : sections.map((s) => ({ text: keyOf(s), id: s.section.id })))
-      .filter((t) => t.text && t.text !== thesis)
-      .slice(0, L.truths)
-      .map((t) => ({ text: concise(t.text), section: sections.find((s) => s.section.id === t.id)?.section.title ?? '', origin: 'texto' as BriefOrigin })),
+    truths,
     steps,
     branches,
     cards,
-    dna: { thesis, convictions: r.highlights.slice(0, 3).map((h) => concise(h.text)), rows, outcome: applications[0] ?? '' },
+    dna: { thesis, convictions, rows, outcome: applications[0] ?? '' },
     applications,
-    questions: r.questions.slice(0, L.questions).map((q) => q.text),
+    questions,
     source: 'regras',
     createdAt: now(),
   };

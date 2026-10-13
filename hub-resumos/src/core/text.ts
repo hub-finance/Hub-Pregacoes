@@ -120,7 +120,7 @@ export function sentences(paragraph: string): string[] {
 
 /* ------------------------------ palavras-chave ------------------------------ */
 
-const STOPWORDS = new Set(
+export const STOPWORDS = new Set(
   `a à às ao aos as o os um uma uns umas de do da dos das em no na nos nas num numa por pelo pela pelos pelas para pra
   com sem sob sobre entre até após ante contra desde e ou mas nem que se porque pois quando como onde enquanto
   também já ainda só apenas mais menos muito muita muitos muitas pouco pouca tão tanto toda todo todos todas tudo

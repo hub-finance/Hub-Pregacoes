@@ -22,7 +22,7 @@ export function CompreenderTab({ material, reading }: { material: Material; read
       <section className="xr-panel">
         <span className="xr-eyebrow">Progressão lógica do estudo</span>
         {brief.source === 'regras' && (
-          <span className="small dim">Sem a IA, as etapas seguem as partes do material. Com a IA, mostram a linha de raciocínio (causa e efeito).</span>
+          <span className="small dim">Sem a IA, as etapas percorrem o material inteiro, do começo ao fim (partes agrupadas em ordem), com a frase mais forte de cada trecho. Com a IA, mostram a linha de raciocínio (causa e efeito).</span>
         )}
         <ol className="xr-flow">
           {brief.steps.map((s, i) => (
