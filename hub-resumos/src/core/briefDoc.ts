@@ -1,3 +1,4 @@
+import { cleanTitle } from './text';
 import type { StudyBrief } from './types';
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -33,6 +34,14 @@ export function briefWordHtml(title: string, author: string, brief: StudyBrief):
   const rows = brief.dna.rows
     .map((r) => `<tr><td>${esc(r.principle)}${iaMark(r.origin)}</td><td>${esc(r.base)}</td><td>${esc(r.application)}</td></tr>`)
     .join('');
+  const inf = brief.inflection;
+  const guessMark = (g?: boolean) => (g ? ' <span class="ia">(sugestão)</span>' : '');
+  const turnBlock = inf?.turn
+    ? `<h3>Ponto de inflexão — a virada da mensagem</h3><table><tr><th>Antes</th><th>A virada</th><th>Depois</th></tr><tr><td>${esc(inf.before)}</td><td><b>${esc(inf.turn)}</b>${inf.ref ? `<br><span class="ref">${esc(inf.ref)}</span>` : ''}${iaMark(inf.origin)}${guessMark(inf.guess)}</td><td>${esc(inf.after)}</td></tr></table>`
+    : '';
+  const turns = (brief.chapterTurns ?? [])
+    .map((t) => `<li><b>${esc(cleanTitle(t.section))}:</b> ${esc(t.turn)}${t.ref && !t.turn.includes(t.ref) ? ` <span class="ref">(${esc(t.ref)})</span>` : ''}${iaMark(t.origin)}${guessMark(t.guess)}</li>`)
+    .join('');
   const source = brief.source === 'ia' ? `Estrutura montada pela IA${brief.model ? ` (${esc(brief.model)})` : ''}${brief.editedAt ? ' e revisada pelo usuário' : ''}.` : 'Estrutura montada só com o texto do material.';
 
   return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
@@ -55,8 +64,10 @@ ${brief.synthesis ? `<p>${esc(brief.synthesis)}</p>` : ''}
 ${brief.objective ? `<p><b>Objetivo:</b> ${esc(brief.objective)}</p>` : ''}
 ${brief.truths.length ? `<h3>Principais verdades</h3>${list(brief.truths.map((t) => t.text + (t.origin === 'ia' ? ' (inferência da IA)' : '')))}` : ''}
 
+${turnBlock}
 <h2>2. Compreender — progressão do estudo</h2>
 <table>${steps}</table>
+${turns ? `<h3>As viradas de cada parte</h3><ol>${turns}</ol>` : ''}
 ${branches ? `<h3>Mapa mental</h3><ul>${branches}</ul>` : ''}
 
 <h2>3. Aprofundar — cartões de estudo</h2>

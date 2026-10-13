@@ -2,6 +2,7 @@ import type { MaterialReading } from '../../core/text';
 import type { Material } from '../../core/types';
 import { BriefBar } from './BriefBar';
 import { LayerHead, OriginBadge, RefChip, useBrief } from './common';
+import { InflectionPanel } from './Inflection';
 
 /** DNA da mensagem: a essência, a convicção e a direção — em matriz de 3 colunas. */
 export function DnaMatrixTab({ material, reading }: { material: Material; reading: MaterialReading }) {
@@ -32,6 +33,8 @@ export function DnaMatrixTab({ material, reading }: { material: Material; readin
           )}
         </article>
       )}
+
+      <InflectionPanel material={material} inflection={brief.inflection} bad={badRefs} />
 
       {dna.rows.length > 0 ? (
         <div className="xr-matrix-wrap">

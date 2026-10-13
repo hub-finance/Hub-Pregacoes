@@ -4,7 +4,7 @@ import { findReferences, fold } from './bible';
 import { db, now } from './db';
 import { extractiveSummary } from './summary';
 import { cleanTitle, readMaterial, sectionKeywords, sentences, type MaterialReading, type SectionReading } from './text';
-import type { ActionItem, BriefCard, BriefOrigin, Material, StudyBrief } from './types';
+import type { ActionItem, BriefCard, BriefChapterTurn, BriefInflection, BriefOrigin, Material, StudyBrief } from './types';
 
 /**
  * A estrutura única do estudo (pedido do usuário, docs/AJUSTES-RESUMOS.md):
@@ -86,6 +86,75 @@ function answerOf(s: SectionReading, question: string): string {
 /** A frase do texto em que a referência aparece. */
 function contextOf(s: SectionReading, raw: string): string {
   return [...s.paragraphs, ...s.highlights, ...s.listItems].flatMap(sentences).find((x) => x.includes(raw.trim())) ?? '';
+}
+
+/* --------------------------- ponto de inflexão --------------------------- */
+
+/** Palavras que costumam marcar a virada de uma mensagem. */
+const TURN_MARK = /\b(mas|por[eé]m|contudo|todavia|entretanto|no entanto|at[eé] que|ent[aã]o|caindo em si|de repente|a partir da[ií]|a partir de ent[aã]o|foi quando|em vez de|ao inv[eé]s de|e sim)\b/i;
+const FAITH = /\b(deus|senhor|jesus|cristo|esp[ií]rito|f[eé]|gra[cç]a|palavra|promessa|alian[cç]a)\b/i;
+
+interface TurnCandidate {
+  sentence: string;
+  before: string;
+  after: string;
+  score: number;
+}
+
+/**
+ * Sem IA: a frase mais provável de ser a virada de uma parte. Só uma
+ * sugestão (marcada assim na tela), para o usuário confirmar ou trocar.
+ */
+function turnOf(s: SectionReading): TurnCandidate | undefined {
+  const body = [...s.paragraphs, ...s.listItems].flatMap(sentences);
+  // os destaques do autor também concorrem (podem estar fora dos parágrafos)
+  const list = [...body, ...s.highlights.filter((h) => !body.some((x) => x.includes(h)))];
+  const isHighlight = (x: string) => s.highlights.some((h) => x.includes(h) || h.includes(x));
+  let best: TurnCandidate | undefined;
+  list.forEach((sentence, i) => {
+    const words = sentence.split(/\s+/).length;
+    if (sentence.endsWith('?') || words < 6 || words > 45) return;
+    const marked = TURN_MARK.test(sentence);
+    const high = isHighlight(sentence);
+    if (!marked && !high) return;
+    const score = (marked ? 3 : 0) + (high ? 2 : 0) + (findReferences(sentence).length ? 1 : 0) + (FAITH.test(sentence) ? 0.5 : 0);
+    if (!best || score > best.score) {
+      const near = (j: number) => (list[j] && !list[j].endsWith('?') ? concise(list[j]) : '');
+      best = { sentence, before: near(i - 1), after: near(i + 1), score };
+    }
+  });
+  return best;
+}
+
+/** As viradas por capítulo e a virada geral, pelas regras (sugestões). */
+export function findTurnsByRules(r: MaterialReading): { inflection?: BriefInflection; chapterTurns: BriefChapterTurn[] } {
+  const found = r.sections
+    .filter((s) => s.section.text.trim())
+    .map((s) => ({ s, c: turnOf(s) }))
+    .filter((x): x is { s: SectionReading; c: TurnCandidate } => !!x.c);
+  const refOf = (text: string) => findReferences(text)[0]?.label;
+  const chapterTurns = found.map(({ s, c }) => ({ section: s.section.title, turn: concise(c.sentence, 30), ref: refOf(c.sentence), origin: 'texto' as BriefOrigin, guess: true }));
+  const top = [...found].sort((a, b) => b.c.score - a.c.score)[0];
+  const inflection = top && {
+    before: top.c.before,
+    turn: concise(top.c.sentence, 30),
+    after: top.c.after,
+    ref: refOf(top.c.sentence) ?? top.s.references[0]?.label,
+    section: top.s.section.title,
+    origin: 'texto' as BriefOrigin,
+    guess: true,
+  };
+  return { inflection, chapterTurns };
+}
+
+/**
+ * A virada de uma parte para o Passo a passo: a da estrutura salva (IA ou
+ * revisada pelo usuário) ou, sem ela, a sugestão das regras.
+ */
+export function turnForSection(material: Material, section: Material['sections'][number]): BriefChapterTurn | undefined {
+  const saved = material.brief?.chapterTurns?.find((t) => t.section === section.title);
+  if (saved || material.brief?.chapterTurns?.length) return saved;
+  return findTurnsByRules(readMaterial({ ...material, sections: [section] })).chapterTurns[0];
 }
 
 /** Estrutura montada só com o texto (sem IA). */
@@ -170,6 +239,7 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
 
   return {
     thesis,
+    ...findTurnsByRules(r),
     synthesis,
     objective: '',
     baseText: r.references.slice(0, 3).map((x) => x.label),
@@ -200,6 +270,15 @@ const BRIEF_SCHEMA = {
   type: 'OBJECT',
   properties: {
     tese: { type: 'STRING' },
+    pontoDeInflexao: {
+      type: 'OBJECT',
+      properties: { antes: { type: 'STRING' }, virada: { type: 'STRING' }, depois: { type: 'STRING' }, referencia: { type: 'STRING' }, secao: { type: 'STRING' }, origem: ORIGIN },
+      required: ['antes', 'virada', 'depois', 'secao', 'origem'],
+    },
+    viradas: {
+      type: 'ARRAY',
+      items: { type: 'OBJECT', properties: { secao: { type: 'STRING' }, virada: { type: 'STRING' }, referencia: { type: 'STRING' }, origem: ORIGIN }, required: ['secao', 'virada', 'origem'] },
+    },
     sintese: { type: 'STRING' },
     objetivo: { type: 'STRING' },
     textoBase: { type: 'ARRAY', items: { type: 'STRING' } },
@@ -262,10 +341,12 @@ const BRIEF_SCHEMA = {
     aplicacoes: { type: 'ARRAY', items: { type: 'STRING' } },
     perguntas: { type: 'ARRAY', items: { type: 'STRING' } },
   },
-  required: ['tese', 'sintese', 'objetivo', 'textoBase', 'verdades', 'progressao', 'ramos', 'cartoes', 'dna', 'aplicacoes', 'perguntas'],
+  required: ['tese', 'pontoDeInflexao', 'viradas', 'sintese', 'objetivo', 'textoBase', 'verdades', 'progressao', 'ramos', 'cartoes', 'dna', 'aplicacoes', 'perguntas'],
 };
 
 const MAX_CHARS = 1_500_000;
+/** Viradas por capítulo: um livro grande tem dezenas de capítulos. */
+const MAX_TURNS = 40;
 
 export function buildBriefPrompt(material: Material): string {
   const L = BRIEF_LIMITS;
@@ -275,6 +356,8 @@ export function buildBriefPrompt(material: Material): string {
     '',
     'Preencha:',
     '- tese: a mensagem central em uma frase de até 20 palavras;',
+    '- pontoDeInflexao: a VIRADA da mensagem, o insight supremo — o momento em que a direção muda (do problema para a resposta, da visão antiga para a nova). "antes": como era, em uma frase; "virada": o que muda e por quê, em uma frase de até 25 palavras; "depois": o novo posicionamento, em uma frase; "referencia": o versículo em que a virada acontece, se houver no material;',
+    `- viradas: a virada de CADA parte do material (cada "##"), na ordem, uma frase de até 20 palavras cada (até ${MAX_TURNS}); "secao" com o título exato da parte;`,
     `- sintese: no máximo 2 frases curtas (até ${BRIEF_WORDS.synthesis} palavras ao todo), para entender a mensagem em 20 segundos;`,
     '- objetivo: o que o material quer produzir no leitor, em uma frase;',
     '- textoBase: as referências bíblicas principais do material;',
@@ -324,8 +407,17 @@ export function parseBriefAnswer(raw: string): Omit<StudyBrief, 'source' | 'crea
         .map((c) => ({ kind: k, front: str(c.frente), back: str(c.verso), extra: str(c.extra) || undefined, ref: str(c.referencia) || undefined, section: str(c.secao), origin: origin(c.origem) }))
         .filter((c) => c.front && c.back),
     );
+  const pi = (d.pontoDeInflexao ?? {}) as Record<string, unknown>;
+  const inflection = str(pi.virada)
+    ? { before: str(pi.antes), turn: str(pi.virada), after: str(pi.depois), ref: str(pi.referencia) || undefined, section: str(pi.secao), origin: origin(pi.origem) }
+    : undefined;
   return {
     thesis,
+    inflection,
+    chapterTurns: objs(d.viradas)
+      .slice(0, MAX_TURNS)
+      .map((v) => ({ section: str(v.secao), turn: str(v.virada), ref: str(v.referencia) || undefined, origin: origin(v.origem) }))
+      .filter((v) => v.turn),
     synthesis: str(d.sintese),
     objective: str(d.objetivo),
     baseText: arr(d.textoBase),
@@ -385,6 +477,8 @@ export function refsNotInText(brief: StudyBrief, material: Material): Set<string
     ...brief.branches.flatMap((b) => b.leaves.map((l) => l.ref ?? '')),
     ...brief.cards.map((c) => c.ref ?? ''),
     ...brief.dna.rows.map((r) => r.base),
+    brief.inflection?.ref ?? '',
+    ...(brief.chapterTurns ?? []).map((t) => t.ref ?? ''),
   ].filter(Boolean);
   const bad = new Set<string>();
   for (const ref of all) {

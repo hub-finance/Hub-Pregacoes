@@ -182,8 +182,33 @@ export interface BriefDnaRow {
   origin: BriefOrigin;
 }
 
+/**
+ * Ponto de inflexão: a virada da mensagem, o "insight supremo" (pedido do
+ * usuário). `guess`: sugestão das regras (sem IA), para o usuário confirmar.
+ */
+export interface BriefInflection {
+  before: string;
+  turn: string;
+  after: string;
+  ref?: string;
+  section: string;
+  origin: BriefOrigin;
+  guess?: boolean;
+}
+
+/** A virada de cada capítulo: uma frase só. */
+export interface BriefChapterTurn {
+  section: string;
+  turn: string;
+  ref?: string;
+  origin: BriefOrigin;
+  guess?: boolean;
+}
+
 export interface StudyBrief {
   thesis: string;
+  inflection?: BriefInflection;
+  chapterTurns?: BriefChapterTurn[];
   /** 2 ou 3 frases: entender a mensagem em 30–60 segundos. */
   synthesis: string;
   objective: string;

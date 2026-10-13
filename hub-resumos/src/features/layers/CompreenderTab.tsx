@@ -5,12 +5,15 @@ import type { MaterialReading } from '../../core/text';
 import type { Material, StudyBrief } from '../../core/types';
 import { BriefBar } from './BriefBar';
 import { LayerHead, OriginBadge, RefChip, SeeInText, STEP_TONES, useBrief } from './common';
+import { ChapterTurns } from './Inflection';
 import { directionalMapHtml } from './mapHtml';
 
 /** Camada 2 — Compreender: a progressão do argumento e o conjunto das ideias. */
 export function CompreenderTab({ material, reading }: { material: Material; reading: MaterialReading }) {
   const { brief, badRefs } = useBrief(material, reading);
   const { notify } = useToast();
+  // a etapa em que a mensagem vira (mesma parte do ponto de inflexão)
+  const turnAt = brief.inflection ? brief.steps.findIndex((s) => s.section === brief.inflection?.section) : -1;
   return (
     <div className="stack xr-layer">
       <BriefBar material={material} brief={brief} />
@@ -24,7 +27,8 @@ export function CompreenderTab({ material, reading }: { material: Material; read
         <ol className="xr-flow">
           {brief.steps.map((s, i) => (
             <li key={i}>
-              <div className={`xr-flow-step tone-${STEP_TONES[i % STEP_TONES.length]}`}>
+              <div className={`xr-flow-step tone-${STEP_TONES[i % STEP_TONES.length]}${turnAt === i ? ' is-inflection' : ''}`}>
+                {turnAt === i && <span className="xr-flow-turn">★ Ponto de inflexão</span>}
                 <strong>
                   {i + 1}. {s.title}
                 </strong>
@@ -47,6 +51,8 @@ export function CompreenderTab({ material, reading }: { material: Material; read
           ))}
         </ol>
       </section>
+
+      <ChapterTurns material={material} turns={brief.chapterTurns} bad={badRefs} />
 
       <section className="xr-panel">
         <div className="row row-wrap" style={{ justifyContent: 'space-between' }}>

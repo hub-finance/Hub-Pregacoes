@@ -281,10 +281,14 @@ await test('mapa mental: um assunto por parte, só os pontos principais, tirados
       const body = c.tip.body.replace(/\s+/g, ' ');
       assert(all.includes(body) || body === c.tip.title, `fora do texto: ${body}`);
     }
-  // objetivo: no máximo MAX_POINTS por assunto, o destaque vem primeiro
+  // objetivo: no máximo MAX_POINTS por assunto; o ponto de inflexão vem primeiro, depois o destaque
   assert(map.modules.every((m) => m.children.length <= MAX_POINTS), 'até 6 pontos por assunto');
   const intro = map.modules[0];
-  assert(intro.children[0].type === 'conceito' && intro.children[0].tip.title === 'Destaque', 'destaque primeiro');
+  const firstKinds = intro.children.slice(0, 2).map((c) => c.type);
+  assert(firstKinds[0] === 'virada' || (intro.children[0].type === 'conceito' && intro.children[0].tip.title === 'Destaque'), firstKinds.join(','));
+  // a virada não repete a mesma frase como outro ponto
+  const bodies = intro.children.map((c) => c.tip.body.replace(/[.!?]$/, ''));
+  assert(new Set(bodies).size === bodies.length, bodies.join(' | '));
   assert(map.modules.some((m) => m.children.some((c) => c.type === 'biblica')), 'base bíblica');
   assert(map.legend[0].label === 'Centro / Assuntos', 'legenda');
   assert(JSON.stringify(map).length > 0, 'dados serializáveis (vão no .html)');
@@ -509,12 +513,24 @@ await test('estrutura do estudo: regras (sem IA) — poucos itens, do texto, sem
   assert(!JSON.stringify(b).includes('…'), 'sem reticências');
   assert(refsNotInText(b, ex).size === 0, 'versículos do texto');
   assert(sectionIdByTitle(ex, 'A compaixão que age') === ex.sections[3].id, 'liga à parte');
+  // ponto de inflexão sem IA: sugestões tiradas do texto, marcadas como sugestão
+  assert(b.inflection?.turn && b.inflection.guess && ex.sections.some((x) => x.text.includes(b.inflection!.turn.replace(/\.$/, '').slice(0, 30))), JSON.stringify(b.inflection));
+  assert((b.chapterTurns?.length ?? 0) >= 2 && b.chapterTurns!.every((t) => t.guess && t.turn && !t.turn.endsWith('?')), JSON.stringify(b.chapterTurns));
+  const doc2 = briefWordHtml(ex.title, ex.author, b);
+  assert(doc2.includes('Ponto de inflexão') && doc2.includes('As viradas de cada parte'), 'Word com o ponto de inflexão');
+  const mm = buildMindMap(ex);
+  assert(mm.modules.some((m) => m.children[0]?.type === 'virada'), 'mapa com o ponto de inflexão');
 });
 
 await test('estrutura do estudo: IA — pedido, leitura, limites e conferência dos versículos', async () => {
   const ex = await createExampleMaterial();
   const answer = {
     tese: 'Amar o próximo é aproximar-se de quem precisa.',
+    pontoDeInflexao: { antes: 'Dois religiosos passaram de largo.', virada: 'Mas um samaritano viu, teve compaixão e se aproximou…', depois: 'O próximo é quem eu decido amar.', referencia: 'Lucas 10:33', secao: 'A compaixão que age', origem: 'texto' },
+    viradas: [
+      { secao: 'Introdução', virada: 'Jesus responde com uma história.', origem: 'texto' },
+      { secao: 'A compaixão que age', virada: 'A compaixão vira atitude.', referencia: 'Lucas 10:33', origem: 'ia' },
+    ],
     sintese: 'A parábola responde quem é o próximo. A compaixão vê, aproxima-se e age.',
     objetivo: 'Levar o leitor a agir com compaixão.',
     textoBase: ['Lucas 10:25-37'],
@@ -534,6 +550,8 @@ await test('estrutura do estudo: IA — pedido, leitura, limites e conferência 
   assert(parsed.steps.length === 6, 'no máximo 6 etapas');
   assert(!parsed.steps[0].explanation.includes('…'), 'reticências removidas');
   assert(parsed.dna.thesis === answer.tese, 'tese do DNA herdada');
+  assert(parsed.inflection?.turn === 'Mas um samaritano viu, teve compaixão e se aproximou' && parsed.inflection.ref === 'Lucas 10:33' && !parsed.inflection.guess, JSON.stringify(parsed.inflection));
+  assert(parsed.chapterTurns?.length === 2 && parsed.chapterTurns[1].origin === 'ia', 'viradas por parte');
   assert(parsed.cards.map((c) => c.kind).join(',') === 'biblico,conexao,revisao', parsed.cards.map((c) => c.kind).join(','));
   await setSetting('geminiKey', 'chave-teste');
   let prompt = '';
@@ -543,6 +561,7 @@ await test('estrutura do estudo: IA — pedido, leitura, limites e conferência 
   }) as unknown as typeof fetch;
   const b = await buildBriefWithAi(ex, { fetchImpl: fake });
   assert(b.source === 'ia' && b.model === 'gemini-3.8-flash', `${b.source} ${b.model}`);
+  assert(/pontoDeInflexao: a VIRADA da mensagem, o insight supremo/.test(prompt) && /viradas: a virada de CADA parte/.test(prompt), 'pede o ponto de inflexão');
   assert(/LINHA DE RACIOCÍNIO/.test(prompt) && /SOMENTE as que aparecem/.test(prompt) && prompt.includes('## A compaixão que age'), 'pedido');
   const bad = refsNotInText(b, ex);
   assert(bad.has('Apocalipse 3:20') && !bad.has('Lucas 10:25-37') && !bad.has('Lucas 10:33'), [...bad].join('|'));

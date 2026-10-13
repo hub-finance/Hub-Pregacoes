@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Sheet } from '../../components/Sheet';
 import { useToast } from '../../components/Toast';
 import { saveBrief } from '../../core/brief';
-import type { BriefCardKind, Material, StudyBrief } from '../../core/types';
+import { cleanTitle } from '../../core/text';
+import type { BriefCardKind, BriefInflection, Material, StudyBrief } from '../../core/types';
 
 const KIND_LABEL: Record<BriefCardKind, string> = { biblico: 'Bíblico', principio: 'Princípio', conexao: 'Conexão', revisao: 'Revisão' };
 const lines = (v: string) => v.split('\n').map((x) => x.trim()).filter(Boolean);
@@ -15,6 +16,8 @@ export function BriefEditor({ open, material, brief, onClose }: { open: boolean;
     if (open) setD(structuredClone(brief));
   }, [open, brief]);
   const set = (patch: Partial<StudyBrief>) => setD((x) => ({ ...x, ...patch }));
+  const setTurn = (patch: Partial<BriefInflection>) =>
+    setD((x) => ({ ...x, inflection: { before: '', turn: '', after: '', section: '', origin: 'texto', ...x.inflection, ...patch } }));
 
   const save = async () => {
     const clean: StudyBrief = {
@@ -23,6 +26,14 @@ export function BriefEditor({ open, material, brief, onClose }: { open: boolean;
       cards: d.cards.filter((c) => c.front.trim() && c.back.trim()),
       dna: { ...d.dna, rows: d.dna.rows.filter((r) => r.principle.trim()) },
       branches: d.branches.filter((b) => b.label.trim()),
+      // o que o usuário reescreveu deixa de ser "sugestão"
+      inflection: d.inflection?.turn.trim() ? { ...d.inflection, guess: d.inflection.turn === brief.inflection?.turn ? brief.inflection?.guess : false } : undefined,
+      chapterTurns: d.chapterTurns
+        ?.filter((t) => t.turn.trim())
+        .map((t) => {
+          const was = brief.chapterTurns?.find((x) => x.section === t.section);
+          return { ...t, guess: was && was.turn === t.turn ? was.guess : false };
+        }),
       editedAt: Date.now(),
     };
     await saveBrief(material.id, clean);
@@ -65,6 +76,28 @@ export function BriefEditor({ open, material, brief, onClose }: { open: boolean;
             rows={4}
             onChange={(v) => set({ truths: lines(v).map((text, i) => ({ text, section: d.truths[i]?.section ?? '', origin: d.truths[i]?.text === text ? d.truths[i].origin : 'texto' })) })}
           />
+        </fieldset>
+
+        <fieldset>
+          <legend>Ponto de inflexão — a virada da mensagem</legend>
+          <Field label="Antes (como era)" value={d.inflection?.before ?? ''} onChange={(before) => setTurn({ before })} rows={2} />
+          <Field label="A virada (o que muda e por quê)" value={d.inflection?.turn ?? ''} onChange={(turn) => setTurn({ turn })} rows={2} />
+          <Field label="Depois (o novo posicionamento)" value={d.inflection?.after ?? ''} onChange={(after) => setTurn({ after })} rows={2} />
+          <Field label="Versículo da virada" value={d.inflection?.ref ?? ''} onChange={(ref) => setTurn({ ref: ref || undefined })} />
+          {(d.chapterTurns?.length ?? 0) > 0 && (
+            <>
+              <span className="small muted">A virada de cada parte (uma frase; deixe em branco para tirar)</span>
+              {d.chapterTurns!.map((t, i) => (
+                <Field
+                  key={`${t.section}-${i}`}
+                  label={cleanTitle(t.section) || `Parte ${i + 1}`}
+                  value={t.turn}
+                  rows={2}
+                  onChange={(turn) => set({ chapterTurns: d.chapterTurns!.map((x, j) => (j === i ? { ...x, turn } : x)) })}
+                />
+              ))}
+            </>
+          )}
         </fieldset>
 
         <fieldset>
