@@ -22,6 +22,10 @@ Cada material (livro, estudo ou resumo) ganha dez visões:
 | **Infográfico** | Imagem PNG (retrato ou quadrado, 4 paletas) para baixar ou compartilhar |
 | **Editar** | Título, tipo, autor, etiquetas, ideia central e as partes; enviar ao Hub Bible |
 
+**Temas:** os oito do Hub Bible (Claro, Sépia, Azul e branco, Azul safira,
+Verde e branco, Escuro, Noite azul, Ministerial) e o Verde do Hub Resumos. O
+botão do sol, no topo, troca rápido; Dados e ajustes mostra todos.
+
 Além disso: **Revisar cartões** (todos os cartões vencidos de todos os
 materiais numa sessão) e **Dados e ajustes** (cópia de segurança, restauração,
 endereço do Hub Bible, tema).
@@ -80,6 +84,13 @@ repositório. Na Vercel: **Add New › Project**, escolha o repositório
 `Hub-Pregacoes` e, em **Root Directory**, `hub-resumos`. O `vercel.json` desta
 pasta já define instalação, build e cabeçalhos. Depois, no celular, abra o
 endereço no Chrome e use **Instalar aplicativo**.
+
+### Ou na Netlify
+
+O site `hub-resumos` já existe na Netlify do usuário (https://hub-resumos.netlify.app,
+ainda sem publicação). No painel da Netlify: **Project configuration › Build &
+deploy › Link repository** → `Hub-Pregacoes`, **Base directory** `hub-resumos`.
+O `netlify.toml` desta pasta define build, pasta publicada e cabeçalhos.
 
 ## Estrutura
 
