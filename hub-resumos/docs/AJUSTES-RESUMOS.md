@@ -143,3 +143,16 @@ Feito:
 Falta:
 - Testar a montagem pela IA com a chave real do Gemini.
 - Avaliar se as abas antigas de "Mais ferramentas" ainda são necessárias.
+
+## 5. Ponto de inflexão (pedido do usuário)
+
+"A virada da mensagem, o insight supremo." Um geral e um por capítulo:
+- Geral (`brief.inflection`): Antes → A virada → Depois, com o versículo; em
+  Captar, no DNA, marcado com ★ na progressão de Compreender e no Word.
+- Por capítulo (`brief.chapterTurns`): uma frase; em Compreender ("As viradas
+  do livro"), no topo de cada parte do Passo a passo e como ★ no mapa em
+  círculos.
+- Com a IA: pedidos no mesmo JSON da estrutura. Sem a IA: as regras sugerem a
+  frase com marca de virada ("mas", "porém", "até que", "então"…) ou o
+  destaque do autor, marcada como "sugestão"; ao reescrever em Editar, deixa
+  de ser sugestão.

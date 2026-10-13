@@ -2,6 +2,7 @@ import type { MaterialReading } from '../../core/text';
 import type { Material } from '../../core/types';
 import { BriefBar } from './BriefBar';
 import { LayerHead, OriginBadge, RefChip, SeeInText, useBrief } from './common';
+import { InflectionPanel } from './Inflection';
 
 /** Camada 1 — Captar: entender a mensagem em 30 a 60 segundos. */
 export function CaptarTab({ material, reading }: { material: Material; reading: MaterialReading }) {
@@ -38,6 +39,8 @@ export function CaptarTab({ material, reading }: { material: Material; reading: 
           </p>
         )}
       </article>
+
+      <InflectionPanel material={material} inflection={brief.inflection} bad={badRefs} />
 
       {brief.truths.length > 0 && (
         <section className="xr-panel">

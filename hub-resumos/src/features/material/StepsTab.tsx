@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
 import { SaveStatus } from '../../components/SaveStatus';
 import { EmptyState } from '../../components/ui';
+import { turnForSection } from '../../core/brief';
 import { getProgress, PART_LABEL, progressRatio, setCurrentStep, setStepDone, setStepNote } from '../../core/materials';
 import type { Material } from '../../core/types';
 import { AiSummaryView } from './AiPanel';
@@ -23,6 +24,7 @@ export function StepsTab({ material }: { material: Material }) {
   const index = material.sections.findIndex((s) => s.id === stepId);
   const section = index >= 0 ? material.sections[index] : null;
   const [note, setNote] = useState('');
+  const turn = useMemo(() => (section ? turnForSection(material, section) : undefined), [material, section]);
   // guarda de qual passo é a hora, para não mostrar "Salvo" de outro passo
   const [noteSaved, setNoteSaved] = useState<{ id: string; at: number } | null>(null);
 
@@ -125,6 +127,15 @@ export function StepsTab({ material }: { material: Material }) {
 
       <article className="card stack">
         <h2 className="xr-step-title">{section.title || `${part} ${index + 1}`}</h2>
+        {turn && (
+          <div className="xr-step-turn">
+            <span className="xr-eyebrow">★ Ponto de inflexão {turn.guess ? '· sugestão' : ''}</span>
+            <p>
+              {turn.turn}
+              {turn.ref && !turn.turn.includes(turn.ref) ? ` (${turn.ref})` : ''}
+            </p>
+          </div>
+        )}
         <RichText text={section.text} />
       </article>
 

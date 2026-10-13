@@ -1,4 +1,5 @@
 import { fold } from './bible';
+import { findTurnsByRules } from './brief';
 import { cleanTitle, readMaterial, sentences, type MaterialReading } from './text';
 import type { ActionItem, Material } from './types';
 
@@ -15,9 +16,10 @@ import type { ActionItem, Material } from './types';
  * inteira aparece ao tocar.
  */
 
-export type MindNodeType = 'conceito' | 'pratica' | 'biblica' | 'pergunta' | 'texto';
+export type MindNodeType = 'virada' | 'conceito' | 'pratica' | 'biblica' | 'pergunta' | 'texto';
 
 export const MIND_TYPE_LABEL: Record<MindNodeType, string> = {
+  virada: 'Ponto de inflexão',
   conceito: 'Conceitos-chave',
   pratica: 'Práticas e ações',
   biblica: 'Base bíblica',
@@ -34,6 +36,7 @@ export const MIND_COLORS = {
   texto: '#D9E0E9',
   apagado: '#8A9BB0',
   tipo: {
+    virada: '#9A6B12',
     conceito: '#8B1A2E',
     pratica: '#1A5E3A',
     biblica: '#2A4060',
@@ -121,6 +124,9 @@ export function buildMindMap(material: Material, reading?: MaterialReading, acti
   const author = material.author ? ` — ${material.author}` : '';
   const source = (part: string) => `${part}${author}`;
 
+  // a virada de cada capítulo: a da estrutura salva (IA ou revisada) ou a sugestão das regras
+  const turns = material.brief?.chapterTurns?.length ? material.brief.chapterTurns : findTurnsByRules(r).chapterTurns;
+
   const modules: MindModule[] = r.sections.map((s, i) => {
     const title = s.section.title || `Parte ${i + 1}`;
     const practical = APPLICATION_TITLE.test(title);
@@ -129,7 +135,8 @@ export function buildMindMap(material: Material, reading?: MaterialReading, acti
     let available = 0;
     const labels = new Set<string>();
     const add = (type: MindNodeType, label: string, tipTitle: string, body: string) => {
-      const key = `${type}|${fold(body)}`;
+      // a mesma frase não volta com outro tipo (ex.: a virada que também é destaque)
+      const key = fold(body).replace(/\s*\([^)]*\)\s*$/, '').replace(/[.!?;:\s]+$/, '');
       // o mesmo rótulo duas vezes no mapa não ensina nada: fica só o primeiro
       const labelKey = fold(circleLabel(label)).replace(/\W+/g, ' ').trim();
       if (!body.trim() || seen.has(key) || labels.has(labelKey)) return;
@@ -140,6 +147,8 @@ export function buildMindMap(material: Material, reading?: MaterialReading, acti
       children.push({ label: circleLabel(label), type, color: MIND_COLORS.tipo[type], tip: { title: tipTitle, body, source: source(title) } });
     };
 
+    const turn = turns.find((t) => t.section === s.section.title);
+    if (turn) add('virada', 'Ponto de inflexão', turn.guess ? 'Ponto de inflexão (sugestão)' : 'Ponto de inflexão', turn.turn + (turn.ref && !turn.turn.includes(turn.ref) ? ` (${turn.ref})` : ''));
     for (const h of s.highlights) add('conceito', h, 'Destaque', h);
     for (const d of s.definitions) add('conceito', d.term, d.term, d.meaning);
     for (const ref of s.references) {
