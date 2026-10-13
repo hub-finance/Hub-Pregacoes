@@ -60,7 +60,14 @@ one Rhema study) and links (`#/biblia/<OSIS>/<chapter>?v=<verse>`). AI is
 optional: with a Gemini key the user saves in settings, `src/core/ai.ts` calls
 the Gemini API straight from the browser and stores the result in
 `material.ai`, always labelled as AI output and kept apart from the author's
-text; without a key nothing changes. Read `hub-resumos/README.md`; commands are run from `hub-resumos/`
+text; without a key nothing changes.
+
+**Guiding principle from the user (owner): quality and time saved, not
+quantity.** Hub Resumos exists to help the reader understand and apply a book
+quickly. Every view (map, boards, summaries, cards, AI output) must select and
+condense what matters — never repeat the book back at length. Prefer few,
+well-chosen points (e.g. the mind map caps 6 per subject) over exhaustive
+lists. Read `hub-resumos/README.md`; commands are run from `hub-resumos/`
 (`npm ci`, `npm run build`, `npm test`, `npx tsc --noEmit -p .`).
 
 ---

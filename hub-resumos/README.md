@@ -41,6 +41,13 @@ material novo), **duplicar** e **excluir só aquele material**, com confirmaçã
 PNG), quadros (PNG ou .zip), infográfico (PNG), consulta rápida (PDF pela impressão), resumo (.md),
 envio ao Hub Bible (.json) e a cópia de segurança de tudo (.json).
 
+### Princípio do sistema: qualidade e ganho de tempo
+
+O Hub Resumos existe para o leitor **entender e aplicar o livro em menos
+tempo**, não para repetir o livro. Cada visão (mapa, quadros, resumos, cartões,
+IA) escolhe e condensa o que importa: poucos pontos, bem escolhidos, em vez de
+listas longas. Na dúvida entre mostrar mais ou mostrar melhor, mostrar melhor.
+
 ### Princípio de autoria
 
 Sem a IA, o app **não inventa conteúdo**: tudo o que ele aponta — destaque,
@@ -135,6 +142,9 @@ foco visível. Cada tela de material tem a trilha “Biblioteca › Material ›
 os editores mostram “Salvando…” / “Salvo às hh:mm”.
 
 ## Próximos passos (anotados com o usuário)
+
+Tudo o que falta fica nesta lista e em `hub-bible/docs/PENDENCIAS.md`, para
+continuar depois — sempre com o princípio acima: qualidade e ganho de tempo.
 
 - **Cores para escolher nas ferramentas** (pedido para depois, não agora): mais
   opções de cor nos quadros, no mapa mental e no infográfico, para o usuário
