@@ -14,8 +14,10 @@ import type { AiSummary, Material } from './types';
  *   marcado como feito pela IA, para ser revisado.
  */
 
-/** Apelido do Google para o Flash mais recente; usado só se a escolha automática falhar. */
-export const DEFAULT_GEMINI_MODEL = 'gemini-flash-latest';
+/** O modelo escolhido pelo usuário: Gemini 3.8 Flash. */
+export const PREFERRED_GEMINI_MODEL = 'gemini-3.8-flash';
+/** Usado só se a chave não listar modelos: o pedido vai para o 3.8 Flash. */
+export const DEFAULT_GEMINI_MODEL = PREFERRED_GEMINI_MODEL;
 export const GEMINI_KEY_SETTING = 'geminiKey';
 /** Modelo escolhido pelo usuário (vazio = automático). */
 export const GEMINI_MODEL_SETTING = 'geminiModel';
@@ -39,7 +41,8 @@ export async function getGeminiConfig(): Promise<{ key: string; model: string; a
 const API = 'https://generativelanguage.googleapis.com/v1beta';
 
 /**
- * O Flash mais novo e estável entre os modelos que a chave pode usar. Os
+ * O Gemini 3.8 Flash quando a chave tem acesso a ele; senão, o Flash mais
+ * novo e estável entre os modelos que a chave pode usar. Os
  * nomes mudam com o tempo (2.5, 3.x…) e o Google restringe os antigos a quem
  * já os usava; por isso o app pergunta ao Google em vez de fixar um nome.
  * Fica de fora o que não serve para resumir: lite, imagem, áudio, voz,
@@ -51,6 +54,8 @@ export function pickFlashModel(models: Array<{ name: string; supportedGeneration
     .map((m) => m.name.replace(/^models\//, ''))
     .filter((n) => /^gemini-.*flash/.test(n) && !/lite|image|audio|tts|live|embed|exp|thinking|8b/.test(n));
   if (!ok.length) return null;
+  // o 3.8 Flash, escolhido pelo usuário, vem primeiro sempre que a chave tiver acesso a ele
+  if (ok.includes(PREFERRED_GEMINI_MODEL)) return PREFERRED_GEMINI_MODEL;
   const version = (n: string) => Number(/gemini-(\d+(?:\.\d+)?)/.exec(n)?.[1] ?? 0);
   const score = (n: string) => version(n) * 100 - (/preview/.test(n) ? 50 : 0) - (/-\d{3}$|-\d{2}-\d{4}$/.test(n) ? 1 : 0);
   return ok.sort((a, b) => score(b) - score(a) || a.length - b.length)[0];

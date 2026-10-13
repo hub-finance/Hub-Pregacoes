@@ -74,8 +74,8 @@ export function AiSettings() {
         label="Modelo (opcional)"
         value={model}
         onChange={setModel}
-        placeholder="Automático: o Gemini Flash mais novo da sua chave"
-        hint="Deixe em branco: ao conferir a chave, o app pergunta ao Google e escolhe o Flash mais novo disponível."
+        placeholder="Automático: Gemini 3.8 Flash"
+        hint="Deixe em branco para usar o Gemini 3.8 Flash. Se a chave não tiver acesso a ele, o app escolhe o Flash mais novo disponível."
       />
       <div className="row row-wrap">
         <button className="btn btn-primary" onClick={save} disabled={busy}>

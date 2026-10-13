@@ -384,7 +384,10 @@ await test('IA (Gemini): pedido, resposta, erros e onde fica guardado', async ()
     { name: 'models/text-embedding-004', supportedGenerationMethods: ['embedContent'] },
   ];
   assert(pickFlashModel(list) === 'gemini-3.8-flash', String(pickFlashModel(list)));
+  // sem o 3.8 na conta: o Flash mais novo e estável
+  assert(pickFlashModel(list.filter((m) => m.name !== 'models/gemini-3.8-flash')) === 'gemini-3.9-flash-preview' || pickFlashModel(list.filter((m) => m.name !== 'models/gemini-3.8-flash')) === 'gemini-2.5-flash', String(pickFlashModel(list.filter((m) => m.name !== 'models/gemini-3.8-flash'))));
   assert(pickFlashModel([{ name: 'models/gemini-flash-latest' }]) === 'gemini-flash-latest', 'apelido quando não há outro');
+  assert((await getGeminiConfig()).model === 'gemini-3.8-flash', 'padrão é o 3.8 Flash');
   const listing = (async () => new Response(JSON.stringify({ models: list }), { status: 200 })) as unknown as typeof fetch;
   assert((await testGeminiKey({ key: 'k' }, listing)) === 'gemini-3.8-flash', 'chave conferida acha o Flash');
 
