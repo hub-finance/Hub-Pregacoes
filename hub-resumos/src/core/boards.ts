@@ -13,7 +13,7 @@ import type { ActionItem, Material } from './types';
 export type BoardKind = 'dna' | 'consulta' | 'conceitos' | 'painel' | 'fluxo' | 'cartoes';
 
 export const BOARDS: Array<{ id: BoardKind; label: string; lead: string }> = [
-  { id: 'dna', label: 'DNA do livro', lead: 'Ideia central, a estrutura parte por parte e as aplicações.' },
+  { id: 'dna', label: 'DNA do livro', lead: 'Ideia central, palavras-chave, base bíblica e aplicações.' },
   { id: 'consulta', label: 'Folha de consulta', lead: 'Cada parte com o ponto-chave e um exemplo do texto, e o principal ensinamento.' },
   { id: 'conceitos', label: 'Mapa de conceitos', lead: 'O material no centro, ligado aos conceitos de cada parte.' },
   { id: 'painel', label: 'Painel completo', lead: 'Ideias principais, conceitos, aplicações e base bíblica num só quadro.' },

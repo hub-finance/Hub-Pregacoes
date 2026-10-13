@@ -246,47 +246,41 @@ function bullet(c: Ctx, x: number, y: number, color: string) {
 
 function drawDna(c: Ctx, k: Colors, d: BoardContent): number {
   let y = header(c, k, d);
-  const leftW = 380;
-  const rx = PAD + leftW + 40;
+  const leftW = 540;
+  const rx = PAD + leftW + 50;
   const rw = BOARD_WIDTH - PAD - rx;
-  // coluna da esquerda: ideia central (ou texto-chave)
+  // esquerda: a ideia central (ou o texto-chave), em letra grande
   let ly = y;
-  if (d.central) {
-    ly += tag(c, d.centralLabel, PAD, ly, k.tags[0], k.tagInk).h + 18;
-    const end = para(c, d.central, PAD, ly, leftW, 30, k.ink, 12, { lh: 1.35 });
-    underline(c, PAD, end + 6, Math.min(leftW, 260), k.rule);
-    ly = end + 30;
+  const central = d.central || d.ideas[0] || '';
+  if (central) {
+    ly += tag(c, d.centralLabel || 'Texto-chave', PAD, ly, k.tags[0], k.tagInk).h + 18;
+    const end = para(c, central, PAD, ly, leftW, 34, k.ink, 10, { lh: 1.35 });
+    underline(c, PAD, end + 8, Math.min(leftW, 300), k.rule);
+    ly = end + 34;
   }
-  if (d.keywords.length) {
-    ly += tag(c, 'Palavras-chave', PAD, ly, k.tags[4], k.tagInk, 22).h + 14;
-    ly = para(c, d.keywords.slice(0, 8).join(' · '), PAD, ly, leftW, 24, k.soft, 4) + 20;
-  }
-  // coluna da direita: a estrutura, parte por parte
+  // direita: palavras-chave e base bíblica, tiradas do texto
   let ry = y;
-  ry += tag(c, 'Estrutura', rx, ry, k.tags[1], k.tagInk).h + 16;
-  const parts = d.parts.slice(0, 7);
-  const boxTop = ry;
-  ry += 18;
-  parts.forEach((p, i) => {
-    const titleW = 190;
-    const keyW = rw - 70 - titleW - 40 - 18;
-    const th = measurePara(c, p.title, titleW, 25, 2, 800);
-    const kh = p.key ? measurePara(c, p.key, keyW, 20, 4) : 0;
-    const h = Math.max(th, kh, 48);
-    circleNum(c, p.n, rx + 36, ry + Math.min(h, 60) / 2, 22, k.tags[(i + 1) % k.tags.length], k.tagInk);
-    para(c, p.title, rx + 70, ry, titleW, 25, k.ink, 2, { weight: 800 });
-    if (p.key) {
-      arrow(c, rx + 70 + titleW + 6, ry + 18, rx + 70 + titleW + 30, ry + 18, k.soft, 2);
-      para(c, p.key, rx + 70 + titleW + 40, ry, keyW, 20, k.soft, 4);
-    }
-    ry += h + 20;
-  });
-  if (d.parts.length > parts.length) ry = para(c, `+ ${d.parts.length - parts.length} partes no material`, rx + 70, ry, rw - 80, 20, k.soft, 1, { weight: 700 }) + 12;
-  c.strokeStyle = k.ink;
-  c.lineWidth = 2.5;
-  roundRect(c, rx, boxTop, rw, ry - boxTop, 18);
-  c.stroke();
-  y = Math.max(ly, ry) + 40;
+  if (d.keywords.length) {
+    ry += tag(c, 'Palavras-chave', rx, ry, k.tags[4], k.tagInk, 22).h + 14;
+    ry = para(c, d.keywords.slice(0, 8).join(' · '), rx, ry, rw, 23, k.soft, 5) + 24;
+  }
+  if (d.references.length) {
+    ry += tag(c, 'Base bíblica', rx, ry, k.tags[2], k.tagInk, 22).h + 14;
+    d.references.slice(0, 6).forEach((t) => {
+      bullet(c, rx + 8, ry + 13, k.tags[2]);
+      ry = para(c, t, rx + 26, ry, rw - 26, 22, k.ink, 1) + 8;
+    });
+    ry += 12;
+  }
+  if (ry > y) {
+    c.strokeStyle = k.soft + '88';
+    c.lineWidth = 2;
+    c.beginPath();
+    c.moveTo(PAD + leftW + 25, y);
+    c.lineTo(PAD + leftW + 25, Math.max(ly, ry) - 20);
+    c.stroke();
+  }
+  y = Math.max(ly, ry) + 30;
   // embaixo: aplicações em colunas
   if (d.applications.length) {
     y += tag(c, d.applicationsLabel, PAD, y, k.tags[0], k.tagInk).h + 24;

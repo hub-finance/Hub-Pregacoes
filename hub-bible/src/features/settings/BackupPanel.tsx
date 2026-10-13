@@ -313,8 +313,6 @@ export function BackupPanel() {
         type="file"
         accept="application/json,.json"
         className="sr-only"
-        aria-label="Escolher a cópia de segurança para restaurar"
-        tabIndex={-1}
         onChange={async (e) => {
           const file = e.target.files?.[0];
           if (!file) return;

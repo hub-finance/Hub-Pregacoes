@@ -47,9 +47,6 @@ function renderVerseWords(
 ) {
   const words = verseWords(text);
   const strongIndices = new Set(tags.map(([idx]) => idx));
-  // As palavras com Strong respondem ao toque (dois toques abrem o estudo da
-  // palavra); não são paradas de teclado, para não prender o Tab palavra a
-  // palavra. No teclado, o versículo inteiro é o botão.
   return words.map((word, i) => {
     if (strongIndices.has(i)) {
       return (
@@ -74,6 +71,8 @@ function renderVerseWords(
                 onVerseTap(verse);
               }
             }}
+            role="button"
+            tabIndex={0}
           >
             {word}
           </span>
@@ -597,7 +596,9 @@ export default function BiblePage() {
                         className="verse-crossref-btn"
                         onClick={(e) => { e.stopPropagation(); openCrossRefForVerse(verse); }}
                         title="Referências cruzadas"
-                        aria-hidden="true"
+                        aria-label="Referências cruzadas"
+                        role="button"
+                        tabIndex={0}
                       >
                         <Icon name="cross" size={13} />
                       </span>
@@ -670,7 +671,9 @@ export default function BiblePage() {
                       className="verse-crossref-btn"
                       onClick={(e) => { e.stopPropagation(); openCrossRefForVerse(verse); }}
                       title="Referências cruzadas"
-                      aria-hidden="true"
+                      aria-label="Referências cruzadas"
+                      role="button"
+                      tabIndex={0}
                     >
                       <Icon name="cross" size={13} />
                     </span>

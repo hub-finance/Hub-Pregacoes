@@ -140,7 +140,7 @@
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  background: var(--bg-elevated);
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
   backdrop-filter: blur(16px) saturate(1.3);
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);
@@ -1368,12 +1368,12 @@
 .dict-filter.active {
   background: var(--accent-soft);
   border-color: var(--accent);
-  color: var(--accent-strong, var(--accent));
+  color: var(--accent);
   font-weight: 600;
 }
 .dict-filter-count {
   font-size: 0.65rem;
-  opacity: 1;
+  opacity: 0.5;
 }
 
 /* ------------------- busca dentro do material aberto ---------------------- */

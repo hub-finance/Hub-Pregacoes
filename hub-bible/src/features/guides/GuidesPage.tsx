@@ -223,8 +223,6 @@ export default function GuidesPage() {
         type="file"
         accept="application/json,.json"
         className="sr-only"
-        aria-label="Escolher o arquivo de guias"
-        tabIndex={-1}
         onChange={(e) => void onFile(e.target.files?.[0])}
       />
 
