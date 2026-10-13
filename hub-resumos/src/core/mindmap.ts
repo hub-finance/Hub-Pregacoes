@@ -1,6 +1,6 @@
 import { fold } from './bible';
 import { findTurnsByRules } from './brief';
-import { cleanTitle, readMaterial, sentences, type MaterialReading } from './text';
+import { cleanTitle, readMaterial, referenceSentence, sentences, type MaterialReading } from './text';
 import type { ActionItem, Material } from './types';
 
 /**
@@ -153,10 +153,8 @@ export function buildMindMap(material: Material, reading?: MaterialReading, acti
     for (const d of s.definitions) add('conceito', d.term, d.term, d.meaning);
     for (const ref of s.references) {
       // a frase em que a referência aparece
-      const context = [...s.paragraphs, ...s.highlights, ...s.listItems]
-        .flatMap(sentences)
-        .find((x) => x.includes(ref.raw.trim()));
-      add('biblica', ref.label, ref.label, context ?? ref.label);
+      const context = referenceSentence(s, ref);
+      add('biblica', ref.label, ref.label, context || ref.label);
     }
     for (const item of s.listItems) {
       if (s.definitions.some((d) => item.startsWith(d.term))) continue;

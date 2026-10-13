@@ -1,6 +1,5 @@
 import { db, now, uid } from './db';
-import { findReferences } from './bible';
-import { readMaterial, sentences } from './text';
+import { readMaterial, referenceSentence, sentences } from './text';
 import type { Card, CardOrigin, Material } from './types';
 
 /**
@@ -118,9 +117,7 @@ export function suggestCards(material: Material): CardDraft[] {
     }
 
     for (const r of s.references) {
-      const where = [...s.paragraphs, ...s.highlights, ...s.listItems]
-        .flatMap(sentences)
-        .find((x) => findReferences(x).some((found) => found.label === r.label));
+      const where = referenceSentence(s, r);
       if (!where) continue;
       drafts.push({
         sectionId: s.section.id,
