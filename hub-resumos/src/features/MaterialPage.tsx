@@ -5,7 +5,7 @@ import { Breadcrumb } from '../components/Breadcrumb';
 import { Spinner } from '../components/ui';
 import { db } from '../core/db';
 import { KIND_LABEL, touchMaterial } from '../core/materials';
-import { readMaterial } from '../core/text';
+import { readMaterial, sectionsKey } from '../core/text';
 import { ActionsTab } from './material/ActionsTab';
 import { CardsTab } from './material/CardsTab';
 import { DashboardTab } from './material/DashboardTab';
@@ -57,7 +57,10 @@ export default function MaterialPage() {
   const tab = (TABS.find((t) => t.id === params.get('aba'))?.id ?? 'captar') as TabId;
   const [moreOpen, setMoreOpen] = useState(false);
   const material = useLiveQuery(() => (id ? db.materials.get(id) : undefined), [id], null);
-  const reading = useMemo(() => (material ? readMaterial(material) : null), [material]);
+  const textKey = material ? sectionsKey(material.sections) : '';
+  // só o texto das partes conta para a leitura (ver sectionsKey)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const reading = useMemo(() => (material ? readMaterial(material) : null), [material?.id, textKey]);
 
   useEffect(() => {
     if (id) void touchMaterial(id);

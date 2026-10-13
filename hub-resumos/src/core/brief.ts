@@ -3,7 +3,7 @@ import { callGemini, withModel } from './ai';
 import { findReferences, fold } from './bible';
 import { db, now } from './db';
 import { extractiveSummary } from './summary';
-import { cleanTitle, readMaterial, sectionKeywords, sentences, type MaterialReading, type SectionReading } from './text';
+import { cleanTitle, readMaterial, referenceSentence, sectionKeywords, sentences, type MaterialReading, type SectionReading } from './text';
 import type { ActionItem, BriefCard, BriefChapterTurn, BriefInflection, BriefOrigin, Material, StudyBrief } from './types';
 
 /**
@@ -84,8 +84,8 @@ function answerOf(s: SectionReading, question: string): string {
 }
 
 /** A frase do texto em que a referência aparece. */
-function contextOf(s: SectionReading, raw: string): string {
-  return [...s.paragraphs, ...s.highlights, ...s.listItems].flatMap(sentences).find((x) => x.includes(raw.trim())) ?? '';
+function contextOf(s: SectionReading, ref: { label: string; raw: string }): string {
+  return referenceSentence(s, ref);
 }
 
 /* --------------------------- ponto de inflexão --------------------------- */
@@ -198,7 +198,7 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
       leaves.push({ label, detail, ref });
     };
     for (const d of s.definitions) push(shortLabel(d.term, 3), concise(d.meaning));
-    for (const ref of s.references) push(ref.label, concise(contextOf(s, ref.raw)) || ref.label, ref.label);
+    for (const ref of s.references) push(ref.label, concise(contextOf(s, ref)) || ref.label, ref.label);
     for (const h of s.highlights) push(shortLabel(sectionKeywordsOf(h), 3), concise(h));
     for (const q of s.questions) push('Pergunta', q);
     return { label: shortLabel(cleanTitle(s.section.title), 6), summary: keyOf(s), leaves, section: s.section.title };
@@ -209,7 +209,7 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
   for (const s of sections) {
     for (const ref of s.references) {
       if (cards.filter((c) => c.kind === 'biblico').length >= L.cardsPerKind) break;
-      const ctx = contextOf(s, ref.raw);
+      const ctx = contextOf(s, ref);
       // dois versículos citados na mesma frase não viram dois cartões iguais
       if (!ctx || usedContexts.has(ctx)) continue;
       usedContexts.add(ctx);
@@ -468,9 +468,9 @@ export async function buildBriefWithAi(material: Material, opts: { signal?: Abor
  * Referências da estrutura que NÃO aparecem no texto do material (a IA pode
  * errar): o app mostra um aviso nelas.
  */
-export function refsNotInText(brief: StudyBrief, material: Material): Set<string> {
+export function refsNotInText(brief: StudyBrief, material: Material, reading?: MaterialReading): Set<string> {
   // o livro e o capítulo precisam estar citados no material
-  const inText = new Set(readMaterial(material).references.map((r) => `${r.osis}.${r.chapter}`));
+  const inText = new Set((reading ?? readMaterial(material)).references.map((r) => `${r.osis}.${r.chapter}`));
   const all = [
     ...brief.baseText,
     ...brief.steps.flatMap((s) => s.refs),
@@ -502,6 +502,16 @@ export async function saveBrief(materialId: string, brief: StudyBrief | undefine
 }
 
 /** A estrutura salva, ou a das regras quando ainda não há nenhuma. */
+/** A estrutura das regras, guardada por leitura: trocar de aba não refaz o trabalho. */
+const RULES_CACHE = new WeakMap<MaterialReading, { key: string; brief: StudyBrief }>();
+
 export function currentBrief(material: Material, reading?: MaterialReading, actions: ActionItem[] = []): StudyBrief {
-  return material.brief ?? buildBriefByRules(material, reading, actions);
+  if (material.brief) return material.brief;
+  if (!reading) return buildBriefByRules(material, reading, actions);
+  const key = [material.title, material.centralIdea, ...actions.map((a) => `${a.id}:${a.status}:${a.text}`)].join('\u0001');
+  const hit = RULES_CACHE.get(reading);
+  if (hit && hit.key === key) return hit.brief;
+  const brief = buildBriefByRules(material, reading, actions);
+  RULES_CACHE.set(reading, { key, brief });
+  return brief;
 }

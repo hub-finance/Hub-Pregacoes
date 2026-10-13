@@ -11,7 +11,7 @@ import type { ActionItem, BriefOrigin, Material, StudyBrief } from '../../core/t
 export function useBrief(material: Material, reading: MaterialReading): { brief: StudyBrief; badRefs: Set<string> } {
   const actions = useLiveQuery(() => listActions(material.id), [material.id], [] as ActionItem[]);
   const brief = useMemo(() => currentBrief(material, reading, actions), [material, reading, actions]);
-  const badRefs = useMemo(() => refsNotInText(brief, material), [brief, material]);
+  const badRefs = useMemo(() => refsNotInText(brief, material, reading), [brief, material, reading]);
   return { brief, badRefs };
 }
 

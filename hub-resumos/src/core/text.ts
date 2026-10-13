@@ -482,3 +482,47 @@ export const cleanTitle = (title: string) =>
     .replace(/^(cap[ií]tulo|li[cç][aã]o|m[oó]dulo|parte|aula|unidade|se[cç][cç]?[aã]o|sess[aã]o|t[oó]pico|livro)\s+[\divxlc]+\s*[—–:.-]?\s*/i, '')
     .replace(/^\d{1,3}\s*[.)—–:-]?\s+/, '')
     .trim() || title;
+
+/* -------------------- frases de uma parte, separadas uma vez -------------------- */
+
+const SENTENCES = new WeakMap<SectionReading, string[]>();
+const REF_SENTENCE = new WeakMap<SectionReading, Map<string, string>>();
+
+/**
+ * As frases de uma parte (parágrafos, destaques e listas). Separar o texto em
+ * frases a cada versículo deixava o app travando em livros grandes: agora é
+ * feito uma vez por parte e reaproveitado.
+ */
+export function sectionSentences(s: SectionReading): string[] {
+  let list = SENTENCES.get(s);
+  if (!list) {
+    list = [...s.paragraphs, ...s.highlights, ...s.listItems].flatMap(sentences);
+    SENTENCES.set(s, list);
+  }
+  return list;
+}
+
+/** A primeira frase da parte em que a referência aparece (vazio se não achar). */
+export function referenceSentence(s: SectionReading, ref: { label: string; raw: string }): string {
+  let map = REF_SENTENCE.get(s);
+  if (!map) {
+    map = new Map();
+    for (const x of sectionSentences(s)) for (const found of findReferences(x)) if (!map.has(found.label)) map.set(found.label, x);
+    REF_SENTENCE.set(s, map);
+  }
+  return map.get(ref.label) ?? sectionSentences(s).find((x) => x.includes(ref.raw.trim())) ?? '';
+}
+
+/**
+ * Uma impressão digital do texto das partes: a leitura do livro (que leva
+ * centenas de milissegundos num livro grande) só é refeita quando o texto
+ * muda — não quando o material é só aberto ou ganha um resumo da IA.
+ */
+export function sectionsKey(sections: Material['sections']): string {
+  let h = 2166136261;
+  for (const s of sections) {
+    const t = `${s.id}\u0001${s.title}\u0001${s.text}\u0002`;
+    for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619);
+  }
+  return `${sections.length}:${(h >>> 0).toString(36)}`;
+}
