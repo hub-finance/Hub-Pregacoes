@@ -19,7 +19,7 @@ Cada material (livro, estudo ou resumo) ganha onze visões:
 | **Cartões** | Frente e verso sugeridos do texto (definições, destaques com lacuna, perguntas, listas, referências) ou escritos à mão, com revisão espaçada |
 | **Consulta rápida** | Uma folha com o essencial, pronta para imprimir ou salvar em PDF, ou copiar como texto |
 | **Plano de ação** | Ações com responsável, prazo e situação; sugestões das partes de aplicação do texto |
-| **Resumo** | Frases do próprio texto (curto, médio, longo); pode virar um novo material para você completar |
+| **Resumo** | **Com IA (opcional, Gemini):** livro inteiro ou capítulo por capítulo — resumo, ideias, aplicações, perguntas e conceitos, marcado como “feito pela IA”, separado do texto; aplicações vão ao plano de ação; aparece também no Passo a passo. **Sem IA:**  Frases do próprio texto (curto, médio, longo); pode virar um novo material para você completar |
 | **Infográfico** | Imagem PNG (retrato ou quadrado, 4 paletas) para baixar ou compartilhar |
 | **Editar** | Título, tipo, autor, etiquetas, ideia central e as partes; enviar ao Hub Bible |
 
@@ -43,10 +43,17 @@ envio ao Hub Bible (.json) e a cópia de segurança de tudo (.json).
 
 ### Princípio de autoria
 
-O app **não usa IA e não inventa conteúdo**. Tudo o que ele aponta — destaque,
+Sem a IA, o app **não inventa conteúdo**: tudo o que ele aponta — destaque,
 termo, pergunta, referência, frase do resumo, sugestão de cartão ou de ação —
 está literalmente no texto. A interpretação (a ideia central) é escrita por
 você. As sugestões só entram quando você as escolhe.
+
+**IA opcional (Gemini, do Google).** Com uma chave cadastrada em Dados e ajustes
+(guardada só no aparelho), a aba Resumo resume o livro inteiro ou cada capítulo
+com as próprias palavras da IA. O pedido manda não inventar fatos nem
+referências; o resultado fica **separado do texto** (`material.ai`), sempre
+marcado como “feito pela IA” e pode ser apagado. O texto vai do aparelho direto
+para o Google (`core/ai.ts`), sem servidor do Hub. Sem chave, nada muda.
 
 ### Como escrever o texto para o app entender melhor
 
@@ -134,7 +141,8 @@ os editores mostram “Salvando…” / “Salvo às hh:mm”.
 ## Limitações
 
 - Sem IA: o resumo é **extrativo** (frases do texto), e as sugestões de cartões e
-  ações dependem das marcações do texto.
+  ações dependem das marcações e das frases do texto. A IA precisa de internet
+  e da chave do Gemini; o uso pode ter limite ou custo, conforme a conta Google.
 - PDF digitalizado (só imagem) não tem texto para importar.
 - O texto do versículo não vem junto (o app não inclui a Bíblia); a referência
   abre no Hub Bible quando o endereço está configurado.

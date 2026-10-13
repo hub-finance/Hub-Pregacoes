@@ -178,7 +178,7 @@ function titleKey(s: string): string {
     .replace(/[^a-z0-9 ]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-    .replace(/^(capitulo|cap|licao|modulo|parte|aula|unidade)\s+[0-9ivxlc]+\s*/, '')
+    .replace(/^(capitulo|cap|licao|modulo|parte|aula|unidade|secao|seccao|sessao|topico|livro)\s+[0-9ivxlc]+\s*/, '')
     .replace(/^[0-9ivxlc]{1,4}\s+/, '')
     .trim();
 }
@@ -186,7 +186,7 @@ function titleKey(s: string): string {
 const TOC_HEAD = /^(sum[aá]rio|[ií]ndice|conte[uú]do|contents)$/i;
 /** "1. A lei do limite ........ 15" → "1. A lei do limite" (sem os pontos e o número da página). */
 const tocEntry = (line: string) => line.replace(/[\s.·…_–-]*\d{1,4}\s*$/, '').replace(/\s+/g, ' ').trim();
-const CHAPTER_NUMBER = /^(cap[ií]tulo|li[cç][aã]o|m[oó]dulo|parte|aula|unidade)?\s*[\divxlc]{1,4}\.?$/i;
+const CHAPTER_NUMBER = /^(cap[ií]tulo|li[cç][aã]o|m[oó]dulo|parte|aula|unidade|se[cç][cç]?[aã]o|sess[aã]o|t[oó]pico|livro)?\s*[\divxlc]{1,4}\.?$/i;
 /** Ficha catalográfica, créditos e números soltos não são capítulos. */
 const FRONT_MATTER = /isbn|\bcdd\b|\bcdu\b|\bcip\b|cataloga[cç][aã]o|©|copyright|direitos reservados|editora|tradu[cç][aã]o|impress[aã]o|^\d[\d\s./:-]*$|\d{4,}/i;
 
@@ -259,7 +259,7 @@ function splitByToc(lines: string[]): Part[] | null {
  * Texto corrido (colado ou importado) dividido em partes:
  * 1. pelo sumário do livro, quando há um (ver splitByToc);
  * 2. por títulos claros — `# Título` (os marcadores do PDF entram assim) ou
- *    "Capítulo 3 — …", "Lição 2", "Módulo 1";
+ *    "Capítulo 3 — …", "Seção 2", "Parte I", "Lição 2", "Módulo 1", "Tópico 4";
  * 3. só sem nada disso, por linhas curtas em MAIÚSCULAS — ignorando ficha
  *    catalográfica e cabeçalhos que se repetem em toda página, e juntando à
  *    parte anterior os pedaços pequenos demais para serem capítulo.
@@ -278,7 +278,7 @@ export function splitIntoSections(text: string, fallbackTitle = 'Conteúdo'): Pa
   const strong = (t: string): string | null => {
     const md = /^#{1,4}\s+(.+?)\s*#*$/.exec(t);
     if (md) return md[1];
-    if (/^(cap[ií]tulo|li[cç][aã]o|m[oó]dulo|parte|aula|unidade|semana|dia)\s+[\divxlc]+\b.{0,80}$/i.test(t)) return t;
+    if (/^(cap[ií]tulo|li[cç][aã]o|m[oó]dulo|parte|aula|unidade|semana|dia|se[cç][cç]?[aã]o|sess[aã]o|t[oó]pico|livro)\s+[\divxlc]+\b.{0,80}$/i.test(t)) return t;
     return null;
   };
   const counts = new Map<string, number>();

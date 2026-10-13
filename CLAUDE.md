@@ -56,8 +56,11 @@ A separate, standalone PWA in `hub-resumos/` (same stack and design tokens as
 Hub Bible, its own IndexedDB database `hub-resumos`). It must keep working on
 its own: never import from `hub-bible/`. It talks to Hub Bible only through
 files (it reads Hub Bible's backup JSON and writes a Hub-compatible backup with
-one Rhema study) and links (`#/biblia/<OSIS>/<chapter>?v=<verse>`). It does not
-use AI. Read `hub-resumos/README.md`; commands are run from `hub-resumos/`
+one Rhema study) and links (`#/biblia/<OSIS>/<chapter>?v=<verse>`). AI is
+optional: with a Gemini key the user saves in settings, `src/core/ai.ts` calls
+the Gemini API straight from the browser and stores the result in
+`material.ai`, always labelled as AI output and kept apart from the author's
+text; without a key nothing changes. Read `hub-resumos/README.md`; commands are run from `hub-resumos/`
 (`npm ci`, `npm run build`, `npm test`, `npx tsc --noEmit -p .`).
 
 ---

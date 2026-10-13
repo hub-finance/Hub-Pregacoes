@@ -11,6 +11,8 @@ import { createMaterial, deleteMaterial, getProgress, progressRatio, resplitMate
 import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restoreBackup } from '../../src/core/backup';
 import { createExampleMaterial } from '../../src/core/example';
 import { boardContent } from '../../src/core/boards';
+import { askGemini, buildPrompt, parseAiAnswer, removeAiSummary, summarizeWithAi, WHOLE } from '../../src/core/ai';
+import { setSetting } from '../../src/core/db';
 import { db } from '../../src/core/db';
 import type { Card } from '../../src/core/types';
 
@@ -108,6 +110,12 @@ await test('livro: segue o sumário, sem ficha catalográfica nem cabeçalhos de
   assert(p2.length <= 6, `${p2.length} partes: ${p2.map((p) => p.title).join('|')}`);
   assert(!p2.some((p) => /isbn|cdd|cip/i.test(p.title)), 'nada de ISBN como título');
   assert(p2.some((p) => /Capítulo 1 — A LEI DO LIMITE/i.test(p.title)), p2.map((p) => p.title).join('|'));
+});
+
+await test('livro em seções (sem a palavra capítulo)', () => {
+  const t = (n: string) => `${n}\nTexto desta seção com várias palavras para ler e estudar com calma.`;
+  const parts = splitIntoSections([t('Seção 1 — O chamado'), t('Seção 2 — A missão'), 'SEÇÃO 3', 'O envio', 'Texto final da seção três.'].join('\n'), 'Introdução');
+  assert(parts.map((p) => p.title).join('|') === 'Seção 1 — O chamado|Seção 2 — A missão|SEÇÃO 3 — O envio', parts.map((p) => p.title).join('|'));
 });
 
 await test('livro já importado: reorganiza pelo sumário', async () => {
@@ -327,6 +335,51 @@ await test('quadros: todo texto sai do material', async () => {
   assert(b.parts.length === 5 && b.parts.every((p) => p.key), 'cada parte com ponto-chave');
   assert(b.centralLabel === 'Ideia central' && b.applicationsLabel === 'Aplicações' && b.applications.length >= 2, 'aplicações');
   assert(b.references.length >= 4 && b.cards.length >= 4, 'versículos e cartões');
+});
+
+await test('IA (Gemini): pedido, resposta, erros e onde fica guardado', async () => {
+  const ex = await createMaterial({ title: 'Estudo IA', kind: 'estudo', author: 'Pr. Teste', text: '# Parte um\nTexto da parte um.\n# Parte dois\nTexto da parte dois.' });
+  const whole = buildPrompt(ex, WHOLE);
+  assert(whole.prompt.includes('## Parte um') && whole.prompt.includes('## Parte dois') && whole.prompt.includes('Pr. Teste'), 'livro inteiro no pedido');
+  assert(/não invente/.test(whole.prompt) && /português do Brasil/.test(whole.prompt), 'regras de fidelidade');
+  const one = buildPrompt(ex, ex.sections[1].id);
+  assert(one.scopeTitle === 'Parte dois' && !one.prompt.includes('Texto da parte um'), 'só a parte pedida');
+
+  const answer = { resumo: 'Resumo da IA.', ideias: ['Ideia 1'], aplicacoes: ['Aplicar 1', 'Aplicar 2'], perguntas: ['Pergunta?'], conceitos: [{ termo: 'Graça', definicao: 'Favor.' }] };
+  assert(parseAiAnswer('```json\n' + JSON.stringify(answer) + '\n```').aplicacoes.length === 2, 'aceita bloco ```json');
+  let bad = '';
+  try { parseAiAnswer('não é json'); } catch (e) { bad = (e as Error).message; }
+  assert(/formato inesperado/.test(bad), bad);
+
+  const calls: Array<{ url: string; init: RequestInit }> = [];
+  const ok = (async (url: string, init: RequestInit) => {
+    calls.push({ url, init });
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(answer) }] } }] }), { status: 200 });
+  }) as unknown as typeof fetch;
+  const fail = (status: number, message: string) =>
+    (async () => new Response(JSON.stringify({ error: { message } }), { status })) as unknown as typeof fetch;
+  const cfg = { key: 'chave-teste', model: 'gemini-2.5-flash' };
+  const r = await askGemini('oi', cfg, { fetchImpl: ok });
+  assert(r.resumo === 'Resumo da IA.', 'resposta lida');
+  assert(calls[0].url.includes('gemini-2.5-flash:generateContent') && (calls[0].init.headers as Record<string, string>)['x-goog-api-key'] === 'chave-teste', 'chave no cabeçalho');
+  for (const [st, msg, expect] of [[400, 'API key not valid', /chave do Gemini não é válida/], [429, 'quota', /limite de uso/], [503, 'x', /instável/]] as const) {
+    let m = '';
+    try { await askGemini('oi', cfg, { fetchImpl: fail(st, msg) }); } catch (e) { m = (e as Error).message; }
+    assert(expect.test(m), `${st}: ${m}`);
+  }
+  let noKey = '';
+  try { await askGemini('oi', { key: '', model: 'x' }, { fetchImpl: ok }); } catch (e) { noKey = (e as Error).message; }
+  assert(/Cadastre a chave/.test(noKey), noKey);
+
+  await setSetting('geminiKey', 'chave-teste');
+  const saved = await summarizeWithAi(ex.id, ex.sections[0].id, { fetchImpl: ok });
+  const after = await db.materials.get(ex.id);
+  assert(saved.provider === 'gemini' && after?.ai?.[ex.sections[0].id]?.resumo === 'Resumo da IA.', 'guardado no material');
+  assert(after?.sections[0].text === 'Texto da parte um.', 'texto do autor intacto');
+  await removeAiSummary(ex.id, ex.sections[0].id);
+  assert(!(await db.materials.get(ex.id))?.ai?.[ex.sections[0].id], 'resumo apagado');
+  await setSetting('geminiKey', '');
+  await deleteMaterial(ex.id);
 });
 
 console.log(lines.join('\n'));

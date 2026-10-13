@@ -52,9 +52,30 @@ export interface Material {
   concepts: string[];
   source: MaterialSource;
   favorite?: boolean;
+  /**
+   * Resumos feitos pela IA (opcional), por escopo: 'livro' para o material
+   * inteiro ou o id da parte. Ficam separados do texto do autor e sempre
+   * marcados como feitos pela IA.
+   */
+  ai?: Record<string, AiSummary>;
   createdAt: number;
   updatedAt: number;
   openedAt?: number;
+}
+
+/** Resumo gerado pela IA para o material inteiro ou para uma parte. */
+export interface AiSummary {
+  /** Título do que foi resumido (o material ou a parte). */
+  scopeTitle: string;
+  resumo: string;
+  ideias: string[];
+  aplicacoes: string[];
+  perguntas: string[];
+  conceitos: Array<{ termo: string; definicao: string }>;
+  /** Qual IA e qual modelo escreveram, para ficar registrado. */
+  provider: 'gemini';
+  model: string;
+  createdAt: number;
 }
 
 /** Andamento do passo a passo de um material. */

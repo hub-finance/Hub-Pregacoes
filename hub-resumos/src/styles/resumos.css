@@ -845,3 +845,38 @@ button.xr-stat {
   white-space: nowrap;
   max-width: 60vw;
 }
+
+/* IA (opcional) */
+.xr-ai-card {
+  border-left: 4px solid var(--accent);
+}
+.xr-ai-badge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.xr-ai-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.xr-badge-ok {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.xr-help-item-summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 650;
+  cursor: pointer;
+}
