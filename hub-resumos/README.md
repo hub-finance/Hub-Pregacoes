@@ -53,7 +53,10 @@ você. As sugestões só entram quando você as escolhe.
 com as próprias palavras da IA. O pedido manda não inventar fatos nem
 referências; o resultado fica **separado do texto** (`material.ai`), sempre
 marcado como “feito pela IA” e pode ser apagado. O texto vai do aparelho direto
-para o Google (`core/ai.ts`), sem servidor do Hub. Sem chave, nada muda.
+para o Google (`core/ai.ts`), sem servidor do Hub. A IA também faz a **leitura inteligente do sumário**: ao importar um livro (ou em
+Editar › “Ler o sumário com IA”), ela lê o começo do livro e devolve os títulos
+dos capítulos, seções ou lições; o app divide o texto procurando cada título.
+Sem chave, nada muda.
 
 ### Como escrever o texto para o app entender melhor
 
@@ -137,6 +140,11 @@ os editores mostram “Salvando…” / “Salvo às hh:mm”.
   opções de cor nos quadros, no mapa mental e no infográfico, para o usuário
   escolher a que preferir. Hoje os quadros têm “Papel” e “Azul e dourado”.
 - Slides de treinamento.
+- Testar a IA com a chave real do Gemini (3.8 Flash) no aparelho do usuário.
+- Aviso “Nova versão disponível — toque para atualizar”, para não precisar
+  fechar e abrir o app depois de cada publicação.
+- Entender qual aba o usuário chamou de “artesanal” e por que não gerou nada.
+- Fase 4 do Hub Bible (sugestões da IA) e conferência no APK.
 
 ## Limitações
 

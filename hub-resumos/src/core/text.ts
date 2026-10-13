@@ -196,33 +196,113 @@ const FRONT_MATTER = /isbn|\bcdd\b|\bcdu\b|\bcip\b|cataloga[cç][aã]o|©|copyri
  * livro é dividido onde os capítulos realmente começam. O que vem antes do
  * primeiro capítulo (capa, ficha catalográfica, o próprio sumário) fica de fora.
  */
-function splitByToc(lines: string[]): Part[] | null {
-  const limit = Math.max(400, Math.floor(lines.length * 0.4));
+/** Termina com o número da página: "…… 29", ". . . 7", "Reino 15". */
+const HAS_PAGE = /(?:[.·…_–-]\s?){2,}\s*\d{1,4}\s*$|\s\d{1,4}\s*$/;
+/** Começa com o número do capítulo: "1. ", "10 ", "3) ". */
+const STARTS_NUMBER = /^\d{1,3}[.)]?\s+\S/;
+
+/**
+ * Onde começam as entradas do sumário. Pela linha "Sumário"/"Índice" ou,
+ * quando ela não veio no texto do PDF, por um bloco de linhas numeradas com o
+ * número da página no fim ("1. Origens … 7", "2. Divisão … 29"…), logo no
+ * começo do livro.
+ */
+function tocStart(lines: string[], limit: number): number {
   const head = lines.findIndex((l, i) => i < limit && TOC_HEAD.test(l.trim()));
-  if (head < 0) return null;
+  if (head >= 0) return head + 1;
+  for (let i = 0; i < limit && i < lines.length; i++) {
+    const t = lines[i].trim();
+    if (!/^1[.)]?\s+\S/.test(t)) continue;
+    let numbered = 0;
+    let paged = 0;
+    for (let j = i, seen = 0; j < lines.length && seen < 60; j++) {
+      const u = lines[j].trim();
+      if (!u) continue;
+      seen++;
+      if (u.length > 160) break;
+      if (STARTS_NUMBER.test(u)) numbered++;
+      if (HAS_PAGE.test(u)) paged++;
+    }
+    if (numbered >= 3 && paged >= 3) return i;
+  }
+  return -1;
+}
+
+/**
+ * Sumário do próprio livro: as entradas logo abaixo de "Sumário"/"Índice"
+ * (ou o bloco numerado com páginas). Títulos que são perguntas e títulos
+ * quebrados em duas linhas ("4. Fazendo Distinção entre Opressão, /
+ * Obsessão e Possessão . . . 83") entram inteiros. Depois, cada entrada é
+ * procurada no corpo, na mesma ordem; o livro é dividido onde os capítulos
+ * realmente começam. O que vem antes do primeiro capítulo (capa, ficha
+ * catalográfica, o próprio sumário) fica de fora.
+ */
+function readToc(lines: string[]): { entries: string[]; end: number } | null {
+  const limit = Math.max(400, Math.floor(lines.length * 0.4));
+  const start = tocStart(lines, limit);
+  if (start < 0) return null;
   const entries: string[] = [];
   let misses = 0;
-  let end = head;
-  for (let j = head + 1; j < lines.length && j < head + 400 && misses < 4; j++) {
-    const raw = lines[j].trim();
+  let end = start - 1;
+  let pending = '';
+  const push = (raw: string, at: number) => {
+    const e = tocEntry(raw);
+    if (e.length >= 3 && e.length <= 160 && /\p{L}{2}/u.test(e) && !TOC_HEAD.test(e)) {
+      entries.push(e);
+      end = at;
+      misses = 0;
+      return true;
+    }
+    return false;
+  };
+  for (let j = start; j < lines.length && j < start + 400 && misses < 4; j++) {
+    let raw = lines[j].trim();
     if (!raw) continue;
     // o texto corrido começou: o sumário acabou
     if (raw.length > 160) break;
-    const e = tocEntry(raw);
     // o primeiro título do sumário reaparece: é o começo do livro, não outra entrada
-    if (entries.length >= 3 && entries.some((x) => titleKey(x) === titleKey(e))) break;
-    const ok = raw.length <= 120 && e.length >= 3 && /\p{L}{2}/u.test(e) && !/[.!?]$/.test(e.replace(/\.{2,}$/, '')) && !TOC_HEAD.test(e);
-    if (ok) {
-      entries.push(e);
-      end = j;
-      misses = 0;
-    } else misses++;
+    if (entries.length >= 3 && entries.some((x) => titleKey(x) === titleKey(tocEntry(raw)))) break;
+    if (pending) {
+      // continuação do título da linha anterior (não começa com número)
+      if (!STARTS_NUMBER.test(raw)) {
+        raw = `${pending} ${raw}`;
+        pending = '';
+      } else {
+        push(pending, j - 1);
+        pending = '';
+      }
+    }
+    // sumário numerado ("1.", "2."…): a primeira linha sem número encerra o sumário
+    const numbered = entries.filter((x) => STARTS_NUMBER.test(x)).length;
+    if (entries.length >= 3 && numbered >= entries.length * 0.7 && !STARTS_NUMBER.test(raw)) break;
+    // título numerado sem página: pode continuar na linha de baixo
+    if (STARTS_NUMBER.test(raw) && !HAS_PAGE.test(raw)) {
+      pending = raw;
+      continue;
+    }
+    if (!push(raw, j)) misses++;
   }
-  if (entries.length < 3) return null;
+  if (pending) push(pending, end + 1);
+  return entries.length >= 3 ? { entries, end } : null;
+}
 
-  // procura cada entrada no corpo, depois do sumário e na ordem
+function splitByToc(lines: string[]): Part[] | null {
+  const toc = readToc(lines);
+  if (!toc) return null;
+  const { entries, end } = toc;
+
+  return locateChapters(lines, entries, end + 1);
+}
+
+/**
+ * Procura cada título no corpo, a partir da linha `from` e na mesma ordem, e
+ * divide ali. Aceita o título com ou sem "Capítulo 3"/"3." na frente, em
+ * maiúsculas ou não, e quebrado em até três linhas. Só divide se achar a
+ * maioria dos títulos.
+ */
+function locateChapters(lines: string[], entries: string[], from: number): Part[] | null {
   const starts: Array<{ line: number; body: number; title: string }> = [];
-  let cursor = end + 1;
+  let cursor = from;
   for (const entry of entries) {
     const key = titleKey(entry);
     if (key.length < 3) continue;
@@ -231,9 +311,11 @@ function splitByToc(lines: string[]): Part[] | null {
       if (!t || t.length > key.length + 40) continue;
       const lk = titleKey(t);
       const two = k + 1 < lines.length ? titleKey(`${t} ${lines[k + 1].trim()}`) : '';
+      const three = k + 2 < lines.length ? titleKey(`${t} ${lines[k + 1].trim()} ${lines[k + 2].trim()}`) : '';
       let body = -1;
       if (lk === key) body = k + 1;
       else if (two === key && lines[k + 1].trim().length <= key.length + 40) body = k + 2;
+      else if (three === key && lines[k + 1].trim().length + lines[k + 2].trim().length <= key.length + 40) body = k + 3;
       if (body < 0) continue;
       // "CAPÍTULO 1" numa linha e o título na seguinte: o capítulo começa no número
       let line = k;
@@ -253,6 +335,20 @@ function splitByToc(lines: string[]): Part[] | null {
     title: s.title,
     text: lines.slice(s.body, i + 1 < starts.length ? starts[i + 1].line : lines.length).join('\n'),
   }));
+}
+
+/**
+ * Divide pelos títulos que o usuário informou (um por linha), procurando
+ * cada um no texto. Devolve null se não achar a maioria deles.
+ */
+export function splitByChapterTitles(text: string, titles: string[]): Part[] | null {
+  const lines = text.replace(/\r\n?/g, '\n').split('\n');
+  const entries = titles.map((t) => tocEntry(t.trim())).filter((t) => titleKey(t).length >= 3);
+  if (!entries.length) return null;
+  // o sumário também traz os títulos: a procura começa depois dele
+  const from = (readToc(lines)?.end ?? -1) + 1;
+  const parts = locateChapters(lines, entries, from) ?? (from > 0 ? locateChapters(lines, entries, 0) : null);
+  return parts && parts.map((p) => ({ title: p.title.trim(), text: p.text.replace(/\n{3,}/g, '\n\n').trim() }));
 }
 
 /**

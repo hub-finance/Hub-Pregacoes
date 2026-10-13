@@ -148,12 +148,13 @@ function explain(status: number, detail: string): string {
   return `A IA recusou o pedido (${status}). ${detail.slice(0, 160)}`;
 }
 
-/** Chama o Gemini e devolve o resumo; `fetchImpl` permite testar sem internet. */
-export async function askGemini(
+/** Chama o Gemini pedindo JSON no formato `schema`; devolve o texto da resposta. */
+async function callGemini(
   prompt: string,
   config: { key: string; model: string },
+  schema: object,
   opts: { signal?: AbortSignal; fetchImpl?: typeof fetch } = {},
-): Promise<Pick<AiSummary, 'resumo' | 'ideias' | 'aplicacoes' | 'perguntas' | 'conceitos'>> {
+): Promise<string> {
   if (!config.key) throw new Error('Cadastre a chave do Gemini em Dados e ajustes para usar a IA.');
   const url = `${API}/models/${encodeURIComponent(config.model)}:generateContent`;
   let res: Response;
@@ -163,7 +164,7 @@ export async function askGemini(
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.key },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.3, maxOutputTokens: 8192, responseMimeType: 'application/json', responseSchema: SCHEMA },
+        generationConfig: { temperature: 0.2, maxOutputTokens: 8192, responseMimeType: 'application/json', responseSchema: schema },
       }),
       signal: opts.signal,
     });
@@ -177,10 +178,65 @@ export async function askGemini(
     promptFeedback?: { blockReason?: string };
   };
   if (!res.ok) throw new Error(explain(res.status, json.error?.message ?? ''));
-  if (json.promptFeedback?.blockReason) throw new Error('O Gemini não aceitou resumir este texto.');
+  if (json.promptFeedback?.blockReason) throw new Error('O Gemini não aceitou ler este texto.');
   const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
   if (!text) throw new Error('A IA não devolveu texto. Tente de novo.');
-  return parseAiAnswer(text);
+  return text;
+}
+
+/** Usa o modelo configurado; se o automático saiu de linha, acha o Flash atual e repete. */
+async function withModel<T>(opts: { fetchImpl?: typeof fetch }, run: (config: { key: string; model: string }) => Promise<T>): Promise<T> {
+  const config = await getGeminiConfig();
+  try {
+    return await run(config);
+  } catch (err) {
+    if (!config.auto || !/modelo da IA não foi encontrado/.test((err as Error).message)) throw err;
+    config.model = await detectFlashModel(config.key, opts.fetchImpl);
+    await setSetting(GEMINI_AUTO_MODEL_SETTING, config.model);
+    return run(config);
+  }
+}
+
+/** Chama o Gemini e devolve o resumo; `fetchImpl` permite testar sem internet. */
+export async function askGemini(
+  prompt: string,
+  config: { key: string; model: string },
+  opts: { signal?: AbortSignal; fetchImpl?: typeof fetch } = {},
+): Promise<Pick<AiSummary, 'resumo' | 'ideias' | 'aplicacoes' | 'perguntas' | 'conceitos'>> {
+  return parseAiAnswer(await callGemini(prompt, config, SCHEMA, opts));
+}
+
+/** Quanto do começo do livro vai para a IA achar o sumário (capa, ficha, sumário e as primeiras páginas). */
+const TOC_CHARS = 60_000;
+
+/**
+ * Leitura inteligente do sumário: a IA lê o começo do livro (onde estão o
+ * sumário ou o índice) e devolve os títulos dos capítulos — ou seções,
+ * lições, partes — na ordem e escritos como no livro. Quem divide o texto
+ * continua sendo o app (splitByChapterTitles), procurando cada título.
+ */
+export async function aiChapterTitles(text: string, opts: { signal?: AbortSignal; fetchImpl?: typeof fetch } = {}): Promise<string[]> {
+  const prompt = [
+    'Abaixo está o começo de um livro ou estudo (capa, ficha catalográfica, sumário ou índice e as primeiras páginas).',
+    'Liste os títulos das divisões principais do conteúdo — capítulos, seções, lições ou partes, o que o livro usar —, na ordem, escritos exatamente como aparecem no sumário ou no texto.',
+    'Regras: não inclua números de página; mantenha o número do capítulo se fizer parte do título (ex.: "1. Origens"); junte num só título o que estiver quebrado em duas linhas; não inclua capa, ficha catalográfica, dedicatória, agradecimentos, prefácio de outra pessoa, o próprio sumário nem cabeçalhos de página; se houver partes e capítulos, liste os capítulos; não invente títulos.',
+    '',
+    'TEXTO:',
+    text.slice(0, TOC_CHARS),
+  ].join('\n');
+  const schema = { type: 'OBJECT', properties: { titulos: { type: 'ARRAY', items: { type: 'STRING' } } }, required: ['titulos'] };
+  return withModel(opts, async (config) => {
+    const raw = await callGemini(prompt, config, schema, opts);
+    let data: { titulos?: unknown };
+    try {
+      data = JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/```$/, ''));
+    } catch {
+      throw new Error('A IA respondeu num formato inesperado. Tente de novo.');
+    }
+    const titles = strings(data.titulos);
+    if (titles.length < 2) throw new Error('A IA não achou o sumário deste livro.');
+    return titles;
+  });
 }
 
 /** Resume o escopo (material inteiro ou uma parte) e grava no material. */
@@ -191,19 +247,13 @@ export async function summarizeWithAi(
 ): Promise<AiSummary> {
   const material = await db.materials.get(materialId);
   if (!material) throw new Error('Material não encontrado.');
-  const config = await getGeminiConfig();
   const { prompt, scopeTitle } = buildPrompt(material, scope);
-  let answer;
-  try {
-    answer = await askGemini(prompt, config, opts);
-  } catch (err) {
-    // o modelo automático saiu de linha: acha o Flash atual e tenta de novo
-    if (!config.auto || !/modelo da IA não foi encontrado/.test((err as Error).message)) throw err;
-    config.model = await detectFlashModel(config.key, opts.fetchImpl);
-    await setSetting(GEMINI_AUTO_MODEL_SETTING, config.model);
-    answer = await askGemini(prompt, config, opts);
-  }
-  const summary: AiSummary = { scopeTitle, ...answer, provider: 'gemini', model: config.model, createdAt: now() };
+  let model = '';
+  const answer = await withModel(opts, (config) => {
+    model = config.model;
+    return askGemini(prompt, config, opts);
+  });
+  const summary: AiSummary = { scopeTitle, ...answer, provider: 'gemini', model, createdAt: now() };
   // relê antes de gravar: o usuário pode ter editado o material enquanto a IA trabalhava
   const latest = await db.materials.get(materialId);
   if (latest) await db.materials.put({ ...latest, ai: { ...(latest.ai ?? {}), [scope]: summary } });

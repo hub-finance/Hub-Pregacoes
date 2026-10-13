@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
 import { SaveStatus } from '../../components/SaveStatus';
-import { ConfirmDialog, SelectInput, TextInput } from '../../components/ui';
+import { Sheet } from '../../components/Sheet';
+import { ConfirmDialog, SelectInput, TextArea, TextInput } from '../../components/ui';
 import { downloadJson, hubStudyBackup, safeName } from '../../core/backup';
-import { deleteMaterial, duplicateMaterial, KIND_LABEL, newSection, PART_LABEL, resplitMaterial, saveMaterial } from '../../core/materials';
+import { deleteMaterial, duplicateMaterial, joinedText, KIND_LABEL, newSection, PART_LABEL, resplitMaterial, saveMaterial } from '../../core/materials';
+import { aiChapterTitles, getGeminiConfig } from '../../core/ai';
+import { useLiveQuery } from 'dexie-react-hooks';
 import type { Material, MaterialKind } from '../../core/types';
 
 /**
@@ -20,6 +23,10 @@ export function EditTab({ material }: { material: Material }) {
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [removing, setRemoving] = useState(false);
   const [resplitting, setResplitting] = useState(false);
+  const [askTitles, setAskTitles] = useState(false);
+  const [titlesText, setTitlesText] = useState('');
+  const [aiBusy, setAiBusy] = useState(false);
+  const aiOn = useLiveQuery(async () => !!(await getGeminiConfig()).key, [], false);
   const dirty = useRef(false);
   const latest = useRef(draft);
   latest.current = draft;
@@ -169,13 +176,87 @@ export function EditTab({ material }: { material: Material }) {
         >
           Duplicar
         </button>
+        {aiOn && (
+          <button
+            className="btn btn-sm btn-primary"
+            disabled={aiBusy}
+            onClick={async () => {
+              setAiBusy(true);
+              try {
+                await saveMaterial(latest.current);
+                dirty.current = false;
+                const titles = await aiChapterTitles(joinedText(latest.current));
+                // mostra o que a IA achou, para conferir antes de dividir
+                setTitlesText(titles.join('\n'));
+                setAskTitles(true);
+                notify(`A IA achou ${titles.length} capítulos. Confira e toque em “Dividir por estes capítulos”.`);
+              } catch (err) {
+                notify((err as Error).message, 'error');
+              } finally {
+                setAiBusy(false);
+              }
+            }}
+          >
+            {aiBusy ? 'A IA está lendo o sumário…' : 'Ler o sumário com IA'}
+          </button>
+        )}
         <button className="btn btn-sm" onClick={() => setResplitting(true)}>
           Reorganizar as partes pelo sumário
+        </button>
+        <button className="btn btn-sm" onClick={() => setAskTitles(true)}>
+          Informar os capítulos
         </button>
         <button className="btn btn-sm btn-danger" onClick={() => setRemoving(true)}>
           Excluir material
         </button>
       </div>
+
+      <Sheet
+        open={askTitles}
+        title="Informar os capítulos"
+        onClose={() => setAskTitles(false)}
+        footer={
+          <>
+            <button className="btn btn-ghost" onClick={() => setAskTitles(false)} style={{ flex: 1 }}>
+              Cancelar
+            </button>
+            <button
+              className="btn btn-primary"
+              style={{ flex: 1 }}
+              disabled={!titlesText.trim()}
+              onClick={async () => {
+                try {
+                  await saveMaterial(latest.current);
+                  dirty.current = false;
+                  const next = await resplitMaterial(latest.current, titlesText.split('\n').filter((t) => t.trim()));
+                  setDraft(next);
+                  setAskTitles(false);
+                  notify(`Pronto: ${next.sections.length} capítulos.`);
+                } catch (err) {
+                  notify((err as Error).message, 'error');
+                }
+              }}
+            >
+              Dividir por estes capítulos
+            </button>
+          </>
+        }
+      >
+        <div className="stack">
+          <p className="small muted" style={{ margin: 0 }}>
+            Cole ou digite os títulos dos capítulos, <strong>um por linha</strong>, como estão no sumário do livro (o número
+            e a página podem vir junto). O app procura cada um no texto e divide exatamente ali. O andamento do passo a passo
+            recomeça.
+          </p>
+          <TextArea
+            label="Capítulos"
+            value={titlesText}
+            onChange={setTitlesText}
+            rows={10}
+            placeholder={'1. Origens: Satanás e Seu Reino\n2. Divisão Bíblica do Homem: Espírito, Alma e Corpo\n3. O Diabo ou a Carne?'}
+          />
+        </div>
+      </Sheet>
 
       <ConfirmDialog
         open={resplitting}

@@ -1,5 +1,5 @@
 import { db, now, uid } from './db';
-import { splitIntoSections } from './text';
+import { splitByChapterTitles, splitIntoSections } from './text';
 import type { Material, MaterialKind, MaterialSource, Progress, Section } from './types';
 
 /** Gravação e leitura dos materiais, do andamento e das exclusões em cascata. */
@@ -78,13 +78,19 @@ export async function duplicateMaterial(id: string): Promise<Material> {
 
 /**
  * Junta as partes de volta num texto só (cada título na sua linha, como
- * estava no arquivo) e divide de novo pelo sumário/títulos. Serve para
+ * estava no arquivo) e divide de novo: pelos títulos que o usuário informou
+ * ou, sem eles, pelo sumário/títulos. Serve para
  * materiais importados antes da leitura pelo sumário. O andamento por parte
  * recomeça, porque as partes mudam.
  */
-export async function resplitMaterial(material: Material): Promise<Material> {
-  const text = material.sections.map((s, i) => (i === 0 && /^introdu[cç][aã]o$/i.test(s.title) ? s.text : `${s.title}\n${s.text}`)).join('\n');
-  const parts = splitIntoSections(text, 'Introdução');
+/** O material de volta num texto só, cada título na sua linha, como veio do arquivo. */
+export const joinedText = (material: Material) =>
+  material.sections.map((s, i) => (i === 0 && /^introdu[cç][aã]o$/i.test(s.title) ? s.text : `${s.title}\n${s.text}`)).join('\n');
+
+export async function resplitMaterial(material: Material, titles?: string[]): Promise<Material> {
+  const text = joinedText(material);
+  const parts = titles?.length ? splitByChapterTitles(text, titles) : splitIntoSections(text, 'Introdução');
+  if (!parts) throw new Error('Não achei esses títulos no texto. Confira se estão escritos como no livro.');
   const next = { ...material, sections: parts.map((p) => newSection(p.title, p.text)), updatedAt: now() };
   await db.transaction('rw', [db.materials, db.progress], async () => {
     await db.materials.put(next);

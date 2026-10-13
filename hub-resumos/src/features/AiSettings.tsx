@@ -16,8 +16,9 @@ export function AiSettings() {
 
   useEffect(() => {
     void getGeminiConfig().then((c) => {
-      setKey(c.key);
-      setModel(c.auto ? '' : c.model);
+      // não apaga o que a pessoa já começou a digitar enquanto a tela carregava
+      setKey((typed) => typed || c.key);
+      setModel((typed) => typed || (c.auto ? '' : c.model));
       setSaved(!!c.key);
       setInUse(c.key ? c.model : '');
     });
