@@ -75,29 +75,38 @@ export interface MindMapData {
   legend: Array<{ label: string; color: string }>;
 }
 
+const LOOSE_END = /^(a|o|as|os|de|do|da|dos|das|que|e|em|no|na|nos|nas|um|uma|para|pelo|pela|por|com|sem|ao|aos|à|às|se|seu|sua|é|me|te|lhe|não|também|mesmo|mais|muito|já)$/i;
+
 /**
- * Rótulo do círculo: até `lines` linhas de até `width` letras, quebrando
- * entre palavras; o que não cabe vira reticências (o texto inteiro fica no toque).
+ * Rótulo do círculo: até `lines` linhas de até `width` letras, só com palavras
+ * inteiras e sem reticências (pedido do usuário). O que não cabe fica de fora
+ * e o rótulo não termina em palavra solta ("de", "que"); o texto inteiro
+ * aparece ao tocar.
  */
-export function circleLabel(text: string, width = 12, lines = 2): string {
-  const words = text.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+export function circleLabel(text: string, width = 12, lines = 3): string {
+  const words = text.replace(/[“”"]/g, '').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
   const out: string[] = [];
   let line = '';
+  let used = 0;
   for (const word of words) {
-    const w = word.length > width ? `${word.slice(0, width - 1)}…` : word;
-    if (!line) line = w;
-    else if (`${line} ${w}`.length <= width) line = `${line} ${w}`;
+    if (!line) line = word;
+    else if (`${line} ${word}`.length <= width) line = `${line} ${word}`;
     else {
       out.push(line);
-      line = w;
-      if (out.length === lines) break;
+      if (out.length === lines) {
+        line = '';
+        break;
+      }
+      line = word;
     }
+    used++;
   }
-  if (out.length < lines && line) out.push(line);
-  const used = out.join(' ').replace(/…/g, '').split(' ').length;
-  if (used < words.length && out.length) {
-    const last = out[out.length - 1];
-    out[out.length - 1] = last.length >= width ? `${last.slice(0, width - 1)}…` : `${last}…`;
+  if (line && out.length < lines) out.push(line);
+  if (used < words.length) {
+    // cortado: tira pontuação e palavras soltas do fim
+    const kept = out.join(' ').replace(/[,;:—–-]+$/, '').split(' ');
+    while (kept.length > 1 && LOOSE_END.test(kept[kept.length - 1].replace(/[,;:.]$/, ''))) kept.pop();
+    return circleLabel(kept.join(' ').replace(/[,;:—–-]+$/, ''), width, lines);
   }
   return out.join('\n');
 }
