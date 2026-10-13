@@ -1,13 +1,16 @@
 import { db, now, uid } from './db';
-import { readSection } from './text';
+import { readSection, sentences } from './text';
 import type { ActionItem, ActionStatus, Material } from './types';
 
 /**
  * Plano de ação: o que fazer com o que foi estudado.
  *
- * As sugestões vêm das seções de aplicação do próprio material (títulos como
- * "Aplicação", "Para praticar", "Desafio", "Ação") e de linhas marcadas como
- * tarefa (`- [ ] …`). O usuário escolhe, ajusta e define responsável e prazo.
+ * As sugestões vêm do próprio material: linhas marcadas como tarefa
+ * (`- [ ] …`), as seções de aplicação (títulos como "Aplicação", "Para
+ * praticar", "Desafio", "Ação") e, em qualquer parte, as frases que pedem uma
+ * ação ("Faça…", "Pratique…", "Devemos…", "O líder precisa…"). A frase vem
+ * inteira, como está no texto. O usuário escolhe, ajusta e define
+ * responsável e prazo.
  */
 
 export const STATUS_LABEL: Record<ActionStatus, string> = {
@@ -17,6 +20,14 @@ export const STATUS_LABEL: Record<ActionStatus, string> = {
 };
 
 const APPLICATION_TITLE = /aplica|pr[aá]tic|desafio|a[cç][aã]o|a[cç][oõ]es|tarefa|compromisso|exerc[ií]cio|passos/i;
+/** Frase que começa mandando fazer algo (imperativo). */
+const IMPERATIVE =
+  /^(seja|sejam|fa[cç]a|fa[cç]am|comece|comecem|pratique|pratiquem|lembre-se|procure|busque|escreva|separe|reserve|dedique|evite|ore|orem|leia|leiam|aplique|pergunte-se|tome|defina|estabele[cç]a|crie|invista|desenvolva|cultive|ou[cç]a|aprenda|ensine|sirva|perdoe|ame|honre|confie|decida|assuma|mantenha|use|identifique|anote|compartilhe|avalie|planeje|treine|delegue|valorize|reconhe[cç]a|escolha|pare|volte|aproxime-se|esteja|tenha|d[eê])\b/i;
+/** Frase de dever: "devemos…", "você precisa…", "o líder deve…". */
+const DUTY = /\b(devemos|precisamos|temos que|voc[eê] (deve|precisa|tem que)|(o|a|todo|cada) [\p{L}]+ (deve|precisa|tem que))\b/iu;
+/** Quantas frases do texto, no máximo, viram sugestão (para não afogar o plano). */
+const MAX_FROM_SENTENCES = 15;
+
 const TASK_LINE = /^\s*[-*]\s*\[\s?\]\s*(.+)$/;
 
 export interface ActionDraft {
@@ -37,6 +48,19 @@ export function suggestActions(material: Material): ActionDraft[] {
     for (const item of items) {
       const text = item.replace(/^\[\s?\]\s*/, '').trim();
       if (text.length >= 6 && text.length <= 280) out.push({ sectionId: section.id, text });
+    }
+  }
+  // frases do texto que pedem uma ação, em todo o material
+  let fromSentences = 0;
+  for (const section of material.sections) {
+    if (fromSentences >= MAX_FROM_SENTENCES) break;
+    const reading = readSection(section);
+    for (const sentence of [...reading.listItems, ...reading.highlights, ...reading.paragraphs.flatMap(sentences)]) {
+      const text = sentence.replace(/^\[\s?\]\s*/, '').trim();
+      if (text.length < 20 || text.length > 220 || /\?$/.test(text)) continue;
+      if (!IMPERATIVE.test(text) && !DUTY.test(text)) continue;
+      out.push({ sectionId: section.id, text });
+      if (++fromSentences >= MAX_FROM_SENTENCES) break;
     }
   }
   const seen = new Set<string>();

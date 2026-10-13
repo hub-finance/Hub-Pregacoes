@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useLocation } from 'react-router-dom';
 import { useToast } from '../components/Toast';
 import { PageHeader, TextInput } from '../components/ui';
 import { applyTheme, currentTheme, THEME_LABEL, THEME_ORDER, type Theme } from '../app/theme';
 import { createBackup, downloadJson, markBackupDone, readJsonFile, restoreBackup } from '../core/backup';
 import { db, getSetting, setSetting } from '../core/db';
+import { AiSettings } from './AiSettings';
 
-/** Dados e ajustes: cópia de segurança, ligação com o Hub Bible e tema. */
+/** Dados e ajustes: cópia de segurança, IA (opcional), ligação com o Hub Bible e tema. */
 export default function SettingsPage() {
   const { notify } = useToast();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -33,6 +35,12 @@ export default function SettingsPage() {
       if (e.usage !== undefined) setUsage(`${(e.usage / 1024 / 1024).toFixed(1)} MB usados neste aparelho`);
     });
   }, []);
+
+  const location = useLocation();
+  // "Ligar a IA" (aba Resumo) chega aqui com #ia: rola até a seção
+  useEffect(() => {
+    if (location.hash === '#ia') document.getElementById('ia')?.scrollIntoView({ block: 'start' });
+  }, [location.hash]);
 
   const daysSince = info?.lastBackupAt ? Math.floor((Date.now() - info.lastBackupAt) / 864e5) : null;
 
@@ -88,6 +96,8 @@ export default function SettingsPage() {
         </div>
         <span className="small dim">Restaurar junta a cópia ao que já existe; nada é apagado.</span>
       </section>
+
+      <AiSettings />
 
       <section className="card stack" style={{ marginBottom: 'var(--sp-4)' }}>
         <strong>Ligação com o Hub Bible</strong>

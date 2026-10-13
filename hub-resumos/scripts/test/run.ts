@@ -5,12 +5,14 @@ import { readMaterial, splitIntoSections } from '../../src/core/text';
 import { suggestCards, addCards, answerCard, schedule } from '../../src/core/cards';
 import { suggestActions, addActions, listActions } from '../../src/core/actions';
 import { extractiveSummary } from '../../src/core/summary';
-import { buildMindMap, circleLabel } from '../../src/core/mindmap';
+import { buildMindMap, circleLabel, MAX_POINTS } from '../../src/core/mindmap';
 import { docxToText, readHubBackup } from '../../src/core/importers';
-import { createMaterial, deleteMaterial, getProgress, progressRatio, setStepDone } from '../../src/core/materials';
+import { createMaterial, deleteMaterial, getProgress, progressRatio, resplitMaterial, setStepDone } from '../../src/core/materials';
 import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restoreBackup } from '../../src/core/backup';
 import { createExampleMaterial } from '../../src/core/example';
 import { boardContent } from '../../src/core/boards';
+import { askGemini, buildPrompt, getGeminiConfig, parseAiAnswer, pickFlashModel, removeAiSummary, summarizeWithAi, testGeminiKey, WHOLE } from '../../src/core/ai';
+import { setSetting } from '../../src/core/db';
 import { db } from '../../src/core/db';
 import type { Card } from '../../src/core/types';
 
@@ -62,6 +64,81 @@ await test('referências bíblicas no texto (sem confundir palavras comuns)', ()
 await test('texto corrido vira seções pelos títulos', () => {
   const parts = splitIntoSections('Apresentação do livro.\n\nCAPÍTULO 1 — O COMEÇO\nTexto um.\n\n## Segunda parte\nTexto dois.', 'Introdução');
   assert(parts.map((p) => p.title).join('|') === 'Introdução|CAPÍTULO 1 — O COMEÇO|Segunda parte', parts.map((p) => p.title).join('|'));
+});
+
+await test('livro: segue o sumário, sem ficha catalográfica nem cabeçalhos de página', () => {
+  const para = (n: number) => Array.from({ length: n }, (_, i) => `Frase ${i + 1} do capítulo, com conteúdo de verdade para ler.`).join(' ');
+  const book = [
+    'JOHN C. MAXWELL',
+    'AS 21 IRREFUTÁVEIS LEIS DA LIDERANÇA',
+    'TRADUÇÃO DE',
+    'VALÉRIA LAMIM DELGADO FERNANDES',
+    'CIP-BRASIL. CATALOGAÇÃO-NA-FONTE',
+    'ISBN 978-85-6030-312-0',
+    '07-1021. CDD: 658.4092',
+    '',
+    'SUMÁRIO',
+    'Introdução ......................... 9',
+    '1. A lei do limite ................ 15',
+    '2. A lei da influência ............ 27',
+    '3. A lei do processo                41',
+    '',
+    'INTRODUÇÃO',
+    para(30),
+    'AS 21 IRREFUTÁVEIS LEIS DA LIDERANÇA',
+    para(10),
+    'CAPÍTULO 1',
+    'A LEI DO LIMITE',
+    para(40),
+    'AS 21 IRREFUTÁVEIS LEIS DA LIDERANÇA',
+    'CAPÍTULO 2',
+    'A LEI DA INFLUÊNCIA',
+    para(40),
+    'AS 21 IRREFUTÁVEIS LEIS DA LIDERANÇA',
+    'CAPÍTULO 3',
+    'A LEI DO PROCESSO',
+    para(40),
+  ].join('\n');
+  const parts = splitIntoSections(book, 'Introdução');
+  assert(parts.map((p) => p.title).join('|') === 'Introdução|1. A lei do limite|2. A lei da influência|3. A lei do processo', parts.map((p) => p.title).join('|'));
+  assert(!parts.some((p) => /ISBN|CDD/.test(p.text)), 'ficha catalográfica fora');
+  assert(parts.every((p) => p.text.length > 100), 'cada capítulo com o seu texto');
+
+  // sem sumário: ficha catalográfica e cabeçalho repetido não viram capítulo
+  const noToc = book.replace(/SUMÁRIO[\s\S]*?\n\n/, '');
+  const p2 = splitIntoSections(noToc, 'Introdução');
+  assert(p2.length <= 6, `${p2.length} partes: ${p2.map((p) => p.title).join('|')}`);
+  assert(!p2.some((p) => /isbn|cdd|cip/i.test(p.title)), 'nada de ISBN como título');
+  assert(p2.some((p) => /Capítulo 1 — A LEI DO LIMITE/i.test(p.title)), p2.map((p) => p.title).join('|'));
+});
+
+await test('livro em seções (sem a palavra capítulo)', () => {
+  const t = (n: string) => `${n}\nTexto desta seção com várias palavras para ler e estudar com calma.`;
+  const parts = splitIntoSections([t('Seção 1 — O chamado'), t('Seção 2 — A missão'), 'SEÇÃO 3', 'O envio', 'Texto final da seção três.'].join('\n'), 'Introdução');
+  assert(parts.map((p) => p.title).join('|') === 'Seção 1 — O chamado|Seção 2 — A missão|SEÇÃO 3 — O envio', parts.map((p) => p.title).join('|'));
+});
+
+await test('livro já importado: reorganiza pelo sumário', async () => {
+  const para = 'Texto do capítulo com várias palavras para ler com calma. '.repeat(20);
+  // como a leitura antiga dividia: cada linha em maiúsculas virava uma parte
+  const old = await createMaterial({
+    title: 'Livro antigo',
+    kind: 'livro',
+    sections: [
+      { title: 'Maxwell', text: '' },
+      { title: 'Isbn 978-85-6030-312-0', text: '' },
+      { title: 'Sumário', text: 'Introdução 9\nA lei do limite 15\nA lei da influência 27' },
+      { title: 'Introdução', text: para },
+      { title: 'A lei do limite', text: para },
+      { title: 'A lei da influência', text: para },
+    ],
+  });
+  await setStepDone(old.id, old.sections[3].id, true);
+  const next = await resplitMaterial(old);
+  assert(next.sections.map((x) => x.title).join('|') === 'Introdução|A lei do limite|A lei da influência', next.sections.map((x) => x.title).join('|'));
+  assert(!next.sections.some((x) => /isbn/i.test(x.text)), 'ficha fora');
+  assert((await getProgress(old.id)).done.length === 0, 'andamento recomeça');
+  await deleteMaterial(old.id);
 });
 
 const material = await createMaterial({ title: 'Graça e Fé', kind: 'estudo', text: TEXT });
@@ -116,7 +193,7 @@ await test('plano de ação sugerido da seção de aplicação', () => {
   assert(!acts.some((a) => a.includes('Obras são fruto')), 'item de fora da aplicação');
 });
 
-await test('mapa mental: um assunto por parte, cada desdobramento com o texto inteiro', () => {
+await test('mapa mental: um assunto por parte, só os pontos principais, tirados do texto', () => {
   const map = buildMindMap(material, reading, [
     { id: 'a1', materialId: material.id, text: 'Orar pela família', owner: '', due: '2026-11-02', status: 'pendente', createdAt: '', updatedAt: '' } as never,
     { id: 'a2', materialId: material.id, text: 'Já feito', owner: '', due: '', status: 'feito', createdAt: '', updatedAt: '' } as never,
@@ -131,10 +208,10 @@ await test('mapa mental: um assunto por parte, cada desdobramento com o texto in
       const body = c.tip.body.replace(/\s+/g, ' ');
       assert(all.includes(body) || body === c.tip.title, `fora do texto: ${body}`);
     }
-  // cada parágrafo entra inteiro, sem corte
-  const paragraphs = reading.sections.flatMap((s) => s.paragraphs);
-  const bodies = new Set(map.modules.flatMap((m) => m.children.map((c) => c.tip.body)));
-  assert(paragraphs.every((p) => bodies.has(p) || reading.sections.some((s) => s.questions.includes(p))), 'parágrafo faltando');
+  // objetivo: no máximo MAX_POINTS por assunto, o destaque vem primeiro
+  assert(map.modules.every((m) => m.children.length <= MAX_POINTS), 'até 6 pontos por assunto');
+  const intro = map.modules[0];
+  assert(intro.children[0].type === 'conceito' && intro.children[0].tip.title === 'Destaque', 'destaque primeiro');
   assert(map.modules.some((m) => m.children.some((c) => c.type === 'biblica')), 'base bíblica');
   assert(map.legend[0].label === 'Centro / Assuntos', 'legenda');
   assert(JSON.stringify(map).length > 0, 'dados serializáveis (vão no .html)');
@@ -144,6 +221,18 @@ await test('rótulo do círculo: curto, sem cortar palavra no meio da linha', ()
   assert(circleLabel('Graça') === 'Graça', 'curto');
   assert(circleLabel('A graça é favor imerecido que transforma') === 'A graça é\nfavor…', JSON.stringify(circleLabel('A graça é favor imerecido que transforma')));
   assert(circleLabel('A graça é favor imerecido', 30, 2) === 'A graça é favor imerecido', 'cabe');
+});
+
+await test('plano de ação: frases do livro que pedem uma ação', async () => {
+  const book = await createMaterial({
+    title: 'Livro sem aplicação',
+    kind: 'livro',
+    sections: [{ title: 'A lei do limite', text: 'A liderança tem um teto. O líder precisa ouvir antes de falar com a equipe. Pratique a escuta atenta todos os dias da semana. A história continua no próximo capítulo. Você já pensou nisso?' }],
+  });
+  const acts = suggestActions(book).map((a) => a.text);
+  assert(acts.includes('O líder precisa ouvir antes de falar com a equipe.') && acts.includes('Pratique a escuta atenta todos os dias da semana.'), acts.join('|'));
+  assert(acts.length === 2, `${acts.length}: ${acts.join('|')}`);
+  await deleteMaterial(book.id);
 });
 
 await test('Word (.docx) importado: títulos e listas', async () => {
@@ -246,6 +335,80 @@ await test('quadros: todo texto sai do material', async () => {
   assert(b.parts.length === 5 && b.parts.every((p) => p.key), 'cada parte com ponto-chave');
   assert(b.centralLabel === 'Ideia central' && b.applicationsLabel === 'Aplicações' && b.applications.length >= 2, 'aplicações');
   assert(b.references.length >= 4 && b.cards.length >= 4, 'versículos e cartões');
+});
+
+await test('IA (Gemini): pedido, resposta, erros e onde fica guardado', async () => {
+  const ex = await createMaterial({ title: 'Estudo IA', kind: 'estudo', author: 'Pr. Teste', text: '# Parte um\nTexto da parte um.\n# Parte dois\nTexto da parte dois.' });
+  const whole = buildPrompt(ex, WHOLE);
+  assert(whole.prompt.includes('## Parte um') && whole.prompt.includes('## Parte dois') && whole.prompt.includes('Pr. Teste'), 'livro inteiro no pedido');
+  assert(/não invente/.test(whole.prompt) && /português do Brasil/.test(whole.prompt), 'regras de fidelidade');
+  const one = buildPrompt(ex, ex.sections[1].id);
+  assert(one.scopeTitle === 'Parte dois' && !one.prompt.includes('Texto da parte um'), 'só a parte pedida');
+
+  const answer = { resumo: 'Resumo da IA.', ideias: ['Ideia 1'], aplicacoes: ['Aplicar 1', 'Aplicar 2'], perguntas: ['Pergunta?'], conceitos: [{ termo: 'Graça', definicao: 'Favor.' }] };
+  assert(parseAiAnswer('```json\n' + JSON.stringify(answer) + '\n```').aplicacoes.length === 2, 'aceita bloco ```json');
+  let bad = '';
+  try { parseAiAnswer('não é json'); } catch (e) { bad = (e as Error).message; }
+  assert(/formato inesperado/.test(bad), bad);
+
+  const calls: Array<{ url: string; init: RequestInit }> = [];
+  const ok = (async (url: string, init: RequestInit) => {
+    calls.push({ url, init });
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(answer) }] } }] }), { status: 200 });
+  }) as unknown as typeof fetch;
+  const fail = (status: number, message: string) =>
+    (async () => new Response(JSON.stringify({ error: { message } }), { status })) as unknown as typeof fetch;
+  const cfg = { key: 'chave-teste', model: 'gemini-2.5-flash' };
+  const r = await askGemini('oi', cfg, { fetchImpl: ok });
+  assert(r.resumo === 'Resumo da IA.', 'resposta lida');
+  assert(calls[0].url.includes('gemini-2.5-flash:generateContent') && (calls[0].init.headers as Record<string, string>)['x-goog-api-key'] === 'chave-teste', 'chave no cabeçalho');
+  for (const [st, msg, expect] of [[400, 'API key not valid', /chave do Gemini não é válida/], [429, 'quota', /limite de uso/], [503, 'x', /instável/]] as const) {
+    let m = '';
+    try { await askGemini('oi', cfg, { fetchImpl: fail(st, msg) }); } catch (e) { m = (e as Error).message; }
+    assert(expect.test(m), `${st}: ${m}`);
+  }
+  let noKey = '';
+  try { await askGemini('oi', { key: '', model: 'x' }, { fetchImpl: ok }); } catch (e) { noKey = (e as Error).message; }
+  assert(/Cadastre a chave/.test(noKey), noKey);
+
+  // escolha automática do Flash: o mais novo e estável, sem lite/imagem/voz/experimental
+  const gen = ['generateContent'];
+  const list = [
+    { name: 'models/gemini-2.5-flash', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.8-flash', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.9-flash-preview', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.8-flash-lite', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.8-flash-image', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.8-pro', supportedGenerationMethods: gen },
+    { name: 'models/gemini-flash-latest', supportedGenerationMethods: gen },
+    { name: 'models/text-embedding-004', supportedGenerationMethods: ['embedContent'] },
+  ];
+  assert(pickFlashModel(list) === 'gemini-3.8-flash', String(pickFlashModel(list)));
+  // sem o 3.8 na conta: o Flash mais novo e estável
+  assert(pickFlashModel(list.filter((m) => m.name !== 'models/gemini-3.8-flash')) === 'gemini-3.9-flash-preview' || pickFlashModel(list.filter((m) => m.name !== 'models/gemini-3.8-flash')) === 'gemini-2.5-flash', String(pickFlashModel(list.filter((m) => m.name !== 'models/gemini-3.8-flash'))));
+  assert(pickFlashModel([{ name: 'models/gemini-flash-latest' }]) === 'gemini-flash-latest', 'apelido quando não há outro');
+  assert((await getGeminiConfig()).model === 'gemini-3.8-flash', 'padrão é o 3.8 Flash');
+  const listing = (async () => new Response(JSON.stringify({ models: list }), { status: 200 })) as unknown as typeof fetch;
+  assert((await testGeminiKey({ key: 'k' }, listing)) === 'gemini-3.8-flash', 'chave conferida acha o Flash');
+
+  await setSetting('geminiKey', 'chave-teste');
+  await setSetting('geminiModelAuto', 'gemini-2.5-flash');
+  // o modelo automático saiu de linha (404): acha o atual e tenta de novo
+  const retired = (async (url: string, init: RequestInit) => {
+    if (url.includes('gemini-2.5-flash:')) return new Response(JSON.stringify({ error: { message: 'not found' } }), { status: 404 });
+    if (url.includes('/models?')) return listing(url, init);
+    return ok(url, init);
+  }) as unknown as typeof fetch;
+  await summarizeWithAi(ex.id, ex.sections[1].id, { fetchImpl: retired });
+  assert((await getGeminiConfig()).model === 'gemini-3.8-flash', 'trocou para o Flash atual');
+  const saved = await summarizeWithAi(ex.id, ex.sections[0].id, { fetchImpl: ok });
+  const after = await db.materials.get(ex.id);
+  assert(saved.provider === 'gemini' && after?.ai?.[ex.sections[0].id]?.resumo === 'Resumo da IA.', 'guardado no material');
+  assert(after?.sections[0].text === 'Texto da parte um.', 'texto do autor intacto');
+  await removeAiSummary(ex.id, ex.sections[0].id);
+  assert(!(await db.materials.get(ex.id))?.ai?.[ex.sections[0].id], 'resumo apagado');
+  await setSetting('geminiKey', '');
+  await deleteMaterial(ex.id);
 });
 
 console.log(lines.join('\n'));

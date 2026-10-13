@@ -15,7 +15,7 @@ interface Props {
 const TOOLS: Array<{ tab: TabId; icon: IconName; title: string; text: string }> = [
   { tab: 'passos', icon: 'list', title: 'Passo a passo', text: 'Estudar parte por parte, marcando o que já foi feito.' },
   { tab: 'dna', icon: 'sparkle', title: 'DNA', text: 'Ideia central, texto-chave, palavras, versículos e estrutura.' },
-  { tab: 'mapa', icon: 'layers', title: 'Mapa mental', text: 'Cada assunto com todos os seus desdobramentos, interativo.' },
+  { tab: 'mapa', icon: 'layers', title: 'Mapa mental', text: 'Cada assunto com os seus pontos principais, interativo.' },
   { tab: 'quadros', icon: 'columns', title: 'Quadros', text: 'DNA, folha de consulta, conceitos, painel, fluxograma e cartões em imagem.' },
   { tab: 'cartoes', icon: 'copy', title: 'Cartões', text: 'Frente e verso, com revisão espaçada para lembrar.' },
   { tab: 'consulta', icon: 'note', title: 'Consulta rápida', text: 'Tudo o essencial numa folha, pronta para imprimir.' },

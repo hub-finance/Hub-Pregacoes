@@ -76,6 +76,23 @@ export async function duplicateMaterial(id: string): Promise<Material> {
   return copy;
 }
 
+/**
+ * Junta as partes de volta num texto só (cada título na sua linha, como
+ * estava no arquivo) e divide de novo pelo sumário/títulos. Serve para
+ * materiais importados antes da leitura pelo sumário. O andamento por parte
+ * recomeça, porque as partes mudam.
+ */
+export async function resplitMaterial(material: Material): Promise<Material> {
+  const text = material.sections.map((s, i) => (i === 0 && /^introdu[cç][aã]o$/i.test(s.title) ? s.text : `${s.title}\n${s.text}`)).join('\n');
+  const parts = splitIntoSections(text, 'Introdução');
+  const next = { ...material, sections: parts.map((p) => newSection(p.title, p.text)), updatedAt: now() };
+  await db.transaction('rw', [db.materials, db.progress], async () => {
+    await db.materials.put(next);
+    await db.progress.delete(material.id);
+  });
+  return next;
+}
+
 /** Exclui o material e tudo o que é dele: andamento, cartões e ações. */
 export async function deleteMaterial(id: string): Promise<void> {
   await db.transaction('rw', [db.materials, db.progress, db.cards, db.actions], async () => {

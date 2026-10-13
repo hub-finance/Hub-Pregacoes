@@ -7,6 +7,7 @@ import { SaveStatus } from '../../components/SaveStatus';
 import { EmptyState } from '../../components/ui';
 import { getProgress, PART_LABEL, progressRatio, setCurrentStep, setStepDone, setStepNote } from '../../core/materials';
 import type { Material } from '../../core/types';
+import { AiSummaryView } from './AiPanel';
 import { RichText } from './RichText';
 
 /**
@@ -126,6 +127,13 @@ export function StepsTab({ material }: { material: Material }) {
         <h2 className="xr-step-title">{section.title || `${part} ${index + 1}`}</h2>
         <RichText text={section.text} />
       </article>
+
+      {material.ai?.[section.id] && (
+        <details className="card xr-ai-card">
+          <summary className="xr-help-item-summary">Resumo da IA deste {part.toLowerCase()}</summary>
+          <AiSummaryView summary={material.ai[section.id]} compact />
+        </details>
+      )}
 
       <label className="field">
         <span>Minha anotação neste passo</span>

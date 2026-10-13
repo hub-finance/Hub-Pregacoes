@@ -60,6 +60,46 @@ export async function docxToText(data: ArrayBuffer): Promise<string> {
  * PDF: o texto de cada página, reconstruído em linhas pela posição. PDF
  * escaneado (só imagem) não tem texto — aí a mensagem diz isso.
  */
+const foldTitle = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+/** Itens dos marcadores que não são capítulo. */
+const NOT_CHAPTER = /^(capa|sum[aá]rio|[ií]ndice|cr[eé]ditos|copyright|ficha catalogr[aá]fica|folha de rosto|p[aá]gina de rosto|outras obras|sobre o autor)$/i;
+
+interface OutlineNode {
+  title: string;
+  dest: string | unknown[] | null;
+  items?: OutlineNode[];
+}
+
+/**
+ * Os marcadores do PDF, com a página de cada um. Quando o primeiro nível
+ * tem só o título do livro, usa os itens de dentro dele.
+ */
+async function outlineMarks(pdf: {
+  getOutline(): Promise<OutlineNode[] | null>;
+  getDestination(id: string): Promise<unknown[] | null>;
+  getPageIndex(ref: unknown): Promise<number>;
+}): Promise<Array<{ page: number; title: string }>> {
+  let items = (await pdf.getOutline()) ?? [];
+  if (items.length < 3 && items.length && (items[0].items?.length ?? 0) >= 3) items = items[0].items!;
+  const marks: Array<{ page: number; title: string }> = [];
+  for (const item of items) {
+    const title = item.title.replace(/\s+/g, ' ').trim();
+    if (!title || NOT_CHAPTER.test(title)) continue;
+    const dest = typeof item.dest === 'string' ? await pdf.getDestination(item.dest) : item.dest;
+    if (!Array.isArray(dest) || dest[0] == null) continue;
+    const page = typeof dest[0] === 'number' ? dest[0] : await pdf.getPageIndex(dest[0]);
+    if (!marks.length || page >= marks[marks.length - 1].page) marks.push({ page, title });
+  }
+  return marks;
+}
+
 export async function pdfToText(data: ArrayBuffer, onPage?: (page: number, total: number) => void): Promise<string> {
   const pdfjs = await import('pdfjs-dist');
   const workerUrl = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
@@ -88,6 +128,19 @@ export async function pdfToText(data: ArrayBuffer, onPage?: (page: number, total
           .replace(/-\n(?=\p{Ll})/gu, '')
           .replace(/([^\n.!?:;])\n(?=\p{Ll})/gu, '$1 '),
       );
+    }
+    // os marcadores do PDF (o índice clicável do livro) dizem onde cada capítulo começa
+    const marks = await outlineMarks(pdf).catch(() => []);
+    if (marks.length >= 3) {
+      for (const m of [...marks].reverse()) {
+        // tira o título repetido no alto da página, que já vira o título da parte
+        const body = pages[m.page].split('\n');
+        const k = body.findIndex((l) => l.trim());
+        if (k >= 0 && foldTitle(body[k]) === foldTitle(m.title)) body.splice(k, 1);
+        pages[m.page] = `# ${m.title}\n${body.join('\n')}`;
+      }
+      // capa, ficha catalográfica e sumário (antes do primeiro capítulo) ficam de fora
+      pages.splice(0, marks[0].page);
     }
   } finally {
     await pdf.destroy();

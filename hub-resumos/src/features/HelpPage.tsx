@@ -28,7 +28,7 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
   {
     id: 'mapa',
     title: 'Mapa mental',
-    what: 'No centro, o material; em volta, os assuntos (cada parte do texto); ao tocar num assunto, abrem os desdobramentos dele, numerados.',
+    what: 'No centro, o material; em volta, os assuntos (cada parte do texto); ao tocar num assunto, abrem os pontos principais dele (até 6), numerados e tirados do texto.',
     how: [
       'Toque num assunto (ou no nome dele, acima do mapa) para abrir só ele; os outros ficam apagados.',
       'Toque num círculo para ler o trecho inteiro. Toque de novo no assunto, ou no centro, para voltar ao mapa completo.',
@@ -65,14 +65,18 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
     id: 'acoes',
     title: 'Plano de ação',
     what: 'O que fazer com o que foi estudado: ação, responsável, prazo e situação.',
-    how: ['“Sugerir ações” lê partes com título como “Aplicação” ou “Desafio” e as linhas “- [ ] …”.', 'Mude a situação conforme avança.'],
+    how: ['“Sugerir ações do texto” traz as frases que pedem uma ação (“Pratique…”, “Devemos…”, “O líder precisa…”), as partes como “Aplicação” e as linhas “- [ ] …”.', 'Mude a situação conforme avança.'],
   },
   {
     id: 'resumo',
     title: 'Resumo',
-    what: 'As frases mais importantes do próprio texto, em três tamanhos. Nada é reescrito.',
-    how: ['Escolha curto, médio ou longo.', '“Salvar como novo resumo” cria um material do tipo resumo para você completar.'],
-    files: 'Texto (.md) e cópia.',
+    what: 'Dois resumos: o da IA (opcional, com as próprias palavras) e o feito só com as frases do próprio texto, sem IA.',
+    how: [
+      'Com IA: ligue o Gemini em Dados e ajustes (uma vez). Escolha o livro inteiro ou um capítulo e toque em “Resumir com IA”, ou resuma todos os capítulos de uma vez. Vem resumo, ideias principais, aplicações, perguntas e conceitos, marcado como “feito pela IA”.',
+      'As aplicações da IA podem ir para o plano de ação; o resumo de cada capítulo aparece também no Passo a passo.',
+      'Sem IA: escolha curto, médio ou longo; “Salvar como novo resumo” cria um material do tipo resumo para você completar.',
+    ],
+    files: 'Texto (.md) e cópia, dos dois resumos.',
   },
   {
     id: 'infografico',
@@ -95,7 +99,8 @@ const FAQ: Array<[string, string]> = [
   ['Posso baixar o que criei e usar de novo?', 'Sim. No cartão do material, o ícone de baixar gera um arquivo .json com o material, o andamento, os cartões e as ações. Para usar de novo (neste ou em outro aparelho), vá em Novo material › Importar arquivo e escolha esse arquivo. Cada visão também tem o seu arquivo: mapa (.html e PNG), quadros (PNG ou .zip), infográfico (PNG), consulta rápida (PDF), resumo (.md).'],
   ['Onde ficam os meus dados?', 'Só neste aparelho, no próprio navegador. Não há conta nem servidor. Para não perder nada, faça a cópia de segurança em Dados e ajustes.'],
   ['Funciona sem internet?', 'Sim, depois de aberto uma vez. Instale pelo menu do navegador (“Instalar app” ou “Adicionar à tela inicial”).'],
-  ['O app inventa conteúdo?', 'Não. Tudo o que aparece nas visões sai do texto que você trouxe. O que não está no texto (como a ideia central) é você quem escreve.'],
+  ['O app inventa conteúdo?', 'Sem IA, não: tudo o que aparece nas visões sai do texto que você trouxe. Com a IA ligada, o resumo da IA é escrito por ela a partir do texto, com a regra de não inventar; fica separado e marcado como “feito pela IA” para você revisar.'],
+  ['Como o app acha os capítulos de um livro?', 'Primeiro pelos marcadores do PDF (o índice clicável); depois pelo Sumário escrito no livro; só sem os dois, pelos títulos (Capítulo, Seção, Parte, Lição…). Capa, ficha catalográfica e sumário ficam de fora. Livro já importado: aba Editar › “Reorganizar as partes pelo sumário”.'],
   ['Como uso com o Hub Bible?', 'Para trazer: no Hub Bible, exporte os dados; aqui, Novo material › Do Hub Bible. Para levar: na aba Editar, “Enviar para o Hub Bible” gera um arquivo que o Hub Bible restaura como estudo do Rhema. Os versículos abrem no Hub Bible se o endereço estiver em Dados e ajustes.'],
 ];
 

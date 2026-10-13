@@ -170,35 +170,162 @@ export function sectionKeywords(section: Section, limit = 3): string[] {
 
 /* --------------------------- divisão em seções --------------------------- */
 
+type Part = { title: string; text: string };
+
+/** Comparação de títulos: sem acento, sem pontuação, sem "Capítulo 3"/"1." na frente. */
+function titleKey(s: string): string {
+  return fold(s)
+    .replace(/[^a-z0-9 ]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^(capitulo|cap|licao|modulo|parte|aula|unidade|secao|seccao|sessao|topico|livro)\s+[0-9ivxlc]+\s*/, '')
+    .replace(/^[0-9ivxlc]{1,4}\s+/, '')
+    .trim();
+}
+
+const TOC_HEAD = /^(sum[aá]rio|[ií]ndice|conte[uú]do|contents)$/i;
+/** "1. A lei do limite ........ 15" → "1. A lei do limite" (sem os pontos e o número da página). */
+const tocEntry = (line: string) => line.replace(/[\s.·…_–-]*\d{1,4}\s*$/, '').replace(/\s+/g, ' ').trim();
+const CHAPTER_NUMBER = /^(cap[ií]tulo|li[cç][aã]o|m[oó]dulo|parte|aula|unidade|se[cç][cç]?[aã]o|sess[aã]o|t[oó]pico|livro)?\s*[\divxlc]{1,4}\.?$/i;
+/** Ficha catalográfica, créditos e números soltos não são capítulos. */
+const FRONT_MATTER = /isbn|\bcdd\b|\bcdu\b|\bcip\b|cataloga[cç][aã]o|©|copyright|direitos reservados|editora|tradu[cç][aã]o|impress[aã]o|^\d[\d\s./:-]*$|\d{4,}/i;
+
 /**
- * Texto corrido (colado ou importado) dividido em seções pelos títulos:
- * linhas de Markdown (`# Título`), "Capítulo 3 — …", "Lição 2", "Módulo 1"
- * ou linhas curtas em MAIÚSCULAS. Sem nenhum título, vira uma seção só.
+ * Sumário do próprio livro: a linha "Sumário"/"Índice" e as entradas logo
+ * abaixo. Depois, cada entrada é procurada no corpo, na mesma ordem; o
+ * livro é dividido onde os capítulos realmente começam. O que vem antes do
+ * primeiro capítulo (capa, ficha catalográfica, o próprio sumário) fica de fora.
  */
-export function splitIntoSections(text: string, fallbackTitle = 'Conteúdo'): Array<{ title: string; text: string }> {
+function splitByToc(lines: string[]): Part[] | null {
+  const limit = Math.max(400, Math.floor(lines.length * 0.4));
+  const head = lines.findIndex((l, i) => i < limit && TOC_HEAD.test(l.trim()));
+  if (head < 0) return null;
+  const entries: string[] = [];
+  let misses = 0;
+  let end = head;
+  for (let j = head + 1; j < lines.length && j < head + 400 && misses < 4; j++) {
+    const raw = lines[j].trim();
+    if (!raw) continue;
+    // o texto corrido começou: o sumário acabou
+    if (raw.length > 160) break;
+    const e = tocEntry(raw);
+    // o primeiro título do sumário reaparece: é o começo do livro, não outra entrada
+    if (entries.length >= 3 && entries.some((x) => titleKey(x) === titleKey(e))) break;
+    const ok = raw.length <= 120 && e.length >= 3 && /\p{L}{2}/u.test(e) && !/[.!?]$/.test(e.replace(/\.{2,}$/, '')) && !TOC_HEAD.test(e);
+    if (ok) {
+      entries.push(e);
+      end = j;
+      misses = 0;
+    } else misses++;
+  }
+  if (entries.length < 3) return null;
+
+  // procura cada entrada no corpo, depois do sumário e na ordem
+  const starts: Array<{ line: number; body: number; title: string }> = [];
+  let cursor = end + 1;
+  for (const entry of entries) {
+    const key = titleKey(entry);
+    if (key.length < 3) continue;
+    for (let k = cursor; k < lines.length; k++) {
+      const t = lines[k].trim();
+      if (!t || t.length > key.length + 40) continue;
+      const lk = titleKey(t);
+      const two = k + 1 < lines.length ? titleKey(`${t} ${lines[k + 1].trim()}`) : '';
+      let body = -1;
+      if (lk === key) body = k + 1;
+      else if (two === key && lines[k + 1].trim().length <= key.length + 40) body = k + 2;
+      if (body < 0) continue;
+      // "CAPÍTULO 1" numa linha e o título na seguinte: o capítulo começa no número
+      let line = k;
+      for (let b = k - 1; b >= cursor && k - b <= 2; b--) {
+        const prev = lines[b].trim();
+        if (!prev) continue;
+        if (CHAPTER_NUMBER.test(prev)) line = b;
+        break;
+      }
+      starts.push({ line, body, title: entry });
+      cursor = body;
+      break;
+    }
+  }
+  if (starts.length < 3 || starts.length < entries.length * 0.5) return null;
+  return starts.map((s, i) => ({
+    title: s.title,
+    text: lines.slice(s.body, i + 1 < starts.length ? starts[i + 1].line : lines.length).join('\n'),
+  }));
+}
+
+/**
+ * Texto corrido (colado ou importado) dividido em partes:
+ * 1. pelo sumário do livro, quando há um (ver splitByToc);
+ * 2. por títulos claros — `# Título` (os marcadores do PDF entram assim) ou
+ *    "Capítulo 3 — …", "Seção 2", "Parte I", "Lição 2", "Módulo 1", "Tópico 4";
+ * 3. só sem nada disso, por linhas curtas em MAIÚSCULAS — ignorando ficha
+ *    catalográfica e cabeçalhos que se repetem em toda página, e juntando à
+ *    parte anterior os pedaços pequenos demais para serem capítulo.
+ * Sem nenhum título, vira uma parte só.
+ */
+export function splitIntoSections(text: string, fallbackTitle = 'Conteúdo'): Part[] {
   const lines = text.replace(/\r\n?/g, '\n').split('\n');
-  const out: Array<{ title: string; lines: string[] }> = [];
-  const isHeading = (line: string): string | null => {
-    const t = line.trim();
+  const clean = (parts: Part[]) =>
+    parts
+      .map((s) => ({ title: s.title.trim(), text: s.text.replace(/\n{3,}/g, '\n\n').trim() }))
+      .filter((s, _, all) => s.text || all.length === 1 || s.title !== fallbackTitle);
+
+  const toc = splitByToc(lines);
+  if (toc) return clean(toc);
+
+  const strong = (t: string): string | null => {
     const md = /^#{1,4}\s+(.+?)\s*#*$/.exec(t);
     if (md) return md[1];
-    if (/^(cap[ií]tulo|li[cç][aã]o|m[oó]dulo|parte|aula|unidade|semana|dia)\s+[\divxlc]+\b.{0,80}$/i.test(t)) return t;
-    if (t.length >= 4 && t.length <= 70 && t === t.toUpperCase() && /[A-ZÁÉÍÓÚ]{3}/.test(t) && !/[.!?:]$/.test(t)) {
-      return t.charAt(0) + t.slice(1).toLowerCase();
-    }
+    if (/^(cap[ií]tulo|li[cç][aã]o|m[oó]dulo|parte|aula|unidade|semana|dia|se[cç][cç]?[aã]o|sess[aã]o|t[oó]pico|livro)\s+[\divxlc]+\b.{0,80}$/i.test(t)) return t;
     return null;
   };
-  for (const line of lines) {
-    const heading = isHeading(line);
+  const counts = new Map<string, number>();
+  for (const l of lines) counts.set(l.trim(), (counts.get(l.trim()) ?? 0) + 1);
+  const caps = (t: string): string | null =>
+    t.length >= 4 &&
+    t.length <= 70 &&
+    t === t.toUpperCase() &&
+    /[A-ZÁÉÍÓÚ]{3}/.test(t) &&
+    !/[.!?:]$/.test(t) &&
+    !FRONT_MATTER.test(t) &&
+    (counts.get(t) ?? 0) < 3 // repete em toda página: é cabeçalho, não capítulo
+      ? t.charAt(0) + t.slice(1).toLowerCase()
+      : null;
+  const useStrong = lines.filter((l) => strong(l.trim())).length >= 2;
+
+  const out: Array<{ title: string; lines: string[] }> = [];
+  for (let i = 0; i < lines.length; i++) {
+    const t = lines[i].trim();
+    let heading = useStrong ? strong(t) : strong(t) ?? caps(t);
+    // "CAPÍTULO 1" sozinho: o título vem na linha seguinte
+    if (heading && CHAPTER_NUMBER.test(t)) {
+      const next = lines[i + 1]?.trim() ?? '';
+      if (next && next.length <= 80 && !/[.!?]$/.test(next)) {
+        heading = `${t} — ${next}`;
+        i++;
+      }
+    }
     if (heading) out.push({ title: heading, lines: [] });
     else {
       if (!out.length) out.push({ title: fallbackTitle, lines: [] });
-      out[out.length - 1].lines.push(line);
+      out[out.length - 1].lines.push(lines[i]);
     }
   }
-  return out
-    .map((s) => ({ title: s.title.trim(), text: s.lines.join('\n').replace(/\n{3,}/g, '\n\n').trim() }))
-    .filter((s, _, all) => s.text || all.length === 1 || s.title !== fallbackTitle);
+  let parts: Part[] = out.map((s) => ({ title: s.title, text: s.lines.join('\n') }));
+  // muitas partes minúsculas: eram títulos falsos — juntam-se à anterior
+  if (!useStrong && parts.length > 25) {
+    const merged: Part[] = [];
+    for (const p of parts) {
+      if (merged.length && countWords(p.text) < 80) {
+        const last = merged[merged.length - 1];
+        last.text = `${last.text}\n${p.title}\n${p.text}`;
+      } else merged.push({ ...p });
+    }
+    parts = merged;
+  }
+  return clean(parts);
 }
 
 /* ------------------------------ leitura geral ------------------------------ */

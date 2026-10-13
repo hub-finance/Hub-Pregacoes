@@ -8,6 +8,7 @@ import { createMaterial } from '../../core/materials';
 import { extractiveSummary, summaryAsSections, type SummaryLength } from '../../core/summary';
 import type { MaterialReading } from '../../core/text';
 import type { Material } from '../../core/types';
+import { AiPanel } from './AiPanel';
 import { WithRefs } from './RichText';
 
 const LENGTH_LABEL: Record<SummaryLength, string> = { curto: 'Curto', medio: 'Médio', longo: 'Longo' };
@@ -26,6 +27,11 @@ export function SummaryTab({ material, reading }: { material: Material; reading:
 
   return (
     <div className="stack">
+      <AiPanel material={material} />
+
+      <h2 className="xr-h2" style={{ marginTop: 'var(--sp-2)' }}>
+        Resumo com as frases do próprio texto (sem IA)
+      </h2>
       <div className="notice">
         <Icon name="info" size={18} />
         <span>
