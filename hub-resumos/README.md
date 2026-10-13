@@ -138,6 +138,8 @@ os editores mostram “Salvando…” / “Salvo às hh:mm”.
   escolher a que preferir. Hoje os quadros têm “Papel” e “Azul e dourado”.
 - Slides de treinamento.
 - Testar a IA com a chave real do Gemini (3.8 Flash) no aparelho do usuário.
+- Aviso “Nova versão disponível — toque para atualizar”, para não precisar
+  fechar e abrir o app depois de cada publicação.
 - Entender qual aba o usuário chamou de “artesanal” e por que não gerou nada.
 - Fase 4 do Hub Bible (sugestões da IA) e conferência no APK.
 
