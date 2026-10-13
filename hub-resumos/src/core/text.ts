@@ -48,12 +48,24 @@ export function readSection(section: Section): SectionReading {
     buffer = [];
   };
 
+  // cabeçalhos de página: o título da parte e linhas curtas que se repetem
+  // (nome do livro, do capítulo) não são conteúdo — viravam "definições" falsas
+  const titleK = titleKey(section.title);
+  const repeats = new Map<string, number>();
+  for (const raw of lines) {
+    const t = raw.trim();
+    if (t && t.length <= 80) repeats.set(t, (repeats.get(t) ?? 0) + 1);
+  }
+  const isRunningHeader = (line: string) =>
+    (titleK.length >= 3 && titleKey(line) === titleK) || (line.length <= 80 && (repeats.get(line) ?? 0) >= 3) || /^\d{1,4}$/.test(line);
+
   for (const raw of lines) {
     const line = raw.trim();
     if (!line) {
       flush();
       continue;
     }
+    if (isRunningHeader(line)) continue;
     const h = HIGHLIGHT.exec(line);
     if (h) {
       flush();

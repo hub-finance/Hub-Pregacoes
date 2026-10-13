@@ -172,6 +172,17 @@ await test('A Igreja Triunfante: sumário sem título, perguntas e títulos em d
   await setSetting('geminiKey', '');
 });
 
+await test('cabeçalho de página não vira definição nem ponto repetido no mapa', async () => {
+  const body = Array.from({ length: 3 }, (_, i) => `Origens: Satanás e Seu Reino\n${i * 2 + 7}\nSatanás foi criado como um querubim ungido e se rebelou contra Deus. O orgulho levou à sua queda (Ezequiel 28:14).\nA IGREJA TRIUNFANTE`).join('\n');
+  const m = await createMaterial({ title: 'Teste', kind: 'livro', sections: [{ title: '1. Origens: Satanás e Seu Reino', text: `Graça: favor imerecido de Deus.\n${body}` }] });
+  const r = readMaterial(m);
+  assert(r.definitions.length === 1 && r.definitions[0].term === 'Graça', r.definitions.map((d) => d.term).join('|'));
+  const map = buildMindMap(m, r);
+  const labels = map.modules[0].children.map((c) => c.label);
+  assert(new Set(labels).size === labels.length && !labels.some((l) => /^Origens$/.test(l)), labels.join('|'));
+  await deleteMaterial(m.id);
+});
+
 await test('livro em seções (sem a palavra capítulo)', () => {
   const t = (n: string) => `${n}\nTexto desta seção com várias palavras para ler e estudar com calma.`;
   const parts = splitIntoSections([t('Seção 1 — O chamado'), t('Seção 2 — A missão'), 'SEÇÃO 3', 'O envio', 'Texto final da seção três.'].join('\n'), 'Introdução');
