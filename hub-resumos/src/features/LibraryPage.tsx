@@ -139,7 +139,7 @@ export default function LibraryPage() {
               )}
             </GuideStep>
             <GuideStep done={guide.studied} n={2} title="Estude no passo a passo" text="Uma parte por vez, com anotação sua e o andamento salvo." />
-            <GuideStep done={guide.cards} n={3} title="Crie cartões e revise" text="Na aba Cartões, “Sugerir cartões do texto”; depois revise um pouco por dia." />
+            <GuideStep done={guide.cards} n={3} title="Crie cartões e revise" text="Em Ferramentas › Cartões de revisão, “Sugerir cartões do texto”; depois revise um pouco por dia." />
           </ol>
           <button className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => navigate('/ajuda')}>
             <Icon name="info" size={16} /> Como usar o Hub Resumos

@@ -66,7 +66,7 @@ text; without a key nothing changes.
 quantity.** Hub Resumos exists to help the reader understand and apply a book
 quickly. Every view (map, boards, summaries, cards, AI output) must select and
 condense what matters — never repeat the book back at length. Prefer few,
-well-chosen points (e.g. the mind map caps 6 per subject) over exhaustive
+well-chosen points (e.g. the mind map caps 5 items per branch) over exhaustive
 lists. Read `hub-resumos/README.md`; commands are run from `hub-resumos/`
 (`npm ci`, `npm run build`, `npm test`, `npx tsc --noEmit -p .`).
 

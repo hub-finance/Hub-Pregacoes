@@ -5,7 +5,8 @@ import { readMaterial, splitByChapterTitles, splitIntoSections } from '../../src
 import { suggestCards, addCards, answerCard, schedule } from '../../src/core/cards';
 import { suggestActions, addActions, listActions } from '../../src/core/actions';
 import { extractiveSummary } from '../../src/core/summary';
-import { buildMindMap, circleLabel, MAX_POINTS } from '../../src/core/mindmap';
+import { buildStudyMap } from '../../src/core/studyMap';
+import { directionalMapHtml } from '../../src/features/layers/mapHtml';
 import { docxToText, readHubBackup } from '../../src/core/importers';
 import { createMaterial, deleteMaterial, getProgress, progressRatio, resplitMaterial, setStepDone } from '../../src/core/materials';
 import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restoreBackup } from '../../src/core/backup';
@@ -179,8 +180,8 @@ await test('cabeçalho de página não vira definição nem ponto repetido no ma
   const m = await createMaterial({ title: 'Teste', kind: 'livro', sections: [{ title: '1. Origens: Satanás e Seu Reino', text: `Graça: favor imerecido de Deus.\n${body}` }] });
   const r = readMaterial(m);
   assert(r.definitions.length === 1 && r.definitions[0].term === 'Graça', r.definitions.map((d) => d.term).join('|'));
-  const map = buildMindMap(m, r);
-  const labels = map.modules[0].children.map((c) => c.label);
+  const map = buildStudyMap(m.title, buildBriefByRules(m, r));
+  const labels = map.branches[0].items.map((c) => c.label);
   assert(new Set(labels).size === labels.length && !labels.some((l) => /^Origens$/.test(l)), labels.join('|'));
   await deleteMaterial(m.id);
 });
@@ -266,39 +267,28 @@ await test('plano de ação sugerido da seção de aplicação', () => {
   assert(!acts.some((a) => a.includes('Obras são fruto')), 'item de fora da aplicação');
 });
 
-await test('mapa mental: um assunto por parte, só os pontos principais, tirados do texto', () => {
-  const map = buildMindMap(material, reading, [
-    { id: 'a1', materialId: material.id, text: 'Orar pela família', owner: '', due: '2026-11-02', status: 'pendente', createdAt: '', updatedAt: '' } as never,
-    { id: 'a2', materialId: material.id, text: 'Já feito', owner: '', due: '', status: 'feito', createdAt: '', updatedAt: '' } as never,
-  ]);
-  assert(map.modules.length === material.sections.length + 1, `${map.modules.length} assuntos`);
-  const plano = map.modules[map.modules.length - 1];
-  assert(plano.children.length === 1 && plano.children[0].tip.body.includes('Prazo: 02/11/2026'), 'só ações abertas, com prazo');
-  // nada inventado: todo texto de desdobramento sai do material
+await test('mapa mental do estudo: um ramo por parte, itens com tipo, tirados do texto', () => {
+  const brief = buildBriefByRules(material, reading);
+  const map = buildStudyMap(material.title, brief);
+  assert(map.branches.length === material.sections.length, `${map.branches.length} ramos`);
+  // cada ramo se lê fechado: rótulo e frase principal
+  assert(map.branches.every((b) => b.label && b.summary), 'rótulo e resumo em cada ramo');
+  // nada inventado: o detalhe dos itens sai do material (frase do texto, encurtada pela oração principal)
   const all = material.sections.map((s) => s.text).join('\n').replace(/\s+/g, ' ');
-  for (const m of map.modules.slice(0, -1))
-    for (const c of m.children) {
-      const body = c.tip.body.replace(/\s+/g, ' ');
-      assert(all.includes(body) || body === c.tip.title, `fora do texto: ${body}`);
-    }
-  // objetivo: no máximo MAX_POINTS por assunto; o ponto de inflexão vem primeiro, depois o destaque
-  assert(map.modules.every((m) => m.children.length <= MAX_POINTS), 'até 6 pontos por assunto');
-  const intro = map.modules[0];
-  const firstKinds = intro.children.slice(0, 2).map((c) => c.type);
-  assert(firstKinds[0] === 'virada' || (intro.children[0].type === 'conceito' && intro.children[0].tip.title === 'Destaque'), firstKinds.join(','));
-  // a virada não repete a mesma frase como outro ponto
-  const bodies = intro.children.map((c) => c.tip.body.replace(/[.!?]$/, ''));
-  assert(new Set(bodies).size === bodies.length, bodies.join(' | '));
-  assert(map.modules.some((m) => m.children.some((c) => c.type === 'biblica')), 'base bíblica');
-  assert(map.legend[0].label === 'Centro / Assuntos', 'legenda');
-  assert(JSON.stringify(map).length > 0, 'dados serializáveis (vão no .html)');
-});
-
-await test('rótulo do círculo: curto, sem cortar palavra no meio da linha', () => {
-  assert(circleLabel('Graça') === 'Graça', 'curto');
-  assert(circleLabel('A graça é favor imerecido que transforma', 12, 2) === 'A graça é\nfavor', JSON.stringify(circleLabel('A graça é favor imerecido que transforma', 12, 2)));
-  assert(circleLabel('Observando as ações de Deus na história do seu povo') === 'Observando\nas ações de\nDeus', JSON.stringify(circleLabel('Observando as ações de Deus na história do seu povo')));
-  assert(circleLabel('A graça é favor imerecido', 30, 2) === 'A graça é favor imerecido', 'cabe');
+  for (const b of map.branches)
+    for (const it of b.items) assert(all.includes(it.detail.replace(/[.]$/, '').slice(0, 30)), `fora do texto: ${it.detail}`);
+  // poucos e bem escolhidos, sem repetir a mesma frase no ramo
+  assert(map.branches.every((b) => b.items.length <= 6), 'até 6 itens por ramo');
+  for (const b of map.branches) assert(new Set(b.items.map((i) => i.detail)).size === b.items.length, b.items.map((i) => i.detail).join(' | '));
+  // os tipos aparecem e são contados (filtros)
+  const kinds = new Set(map.branches.flatMap((b) => b.items.map((i) => i.kind)));
+  assert(kinds.has('ideia') && kinds.has('versiculo'), [...kinds].join(','));
+  assert(Object.values(map.counts).reduce((a, b) => a + b, 0) === map.branches.reduce((n, b) => n + b.items.length, 0), 'contagem');
+  // a virada da parte vem primeiro no ramo
+  assert(map.branches.every((b) => b.items.findIndex((i) => i.kind === 'virada') <= 0), 'virada primeiro');
+  // arquivo .html: filtros, todos os ramos e versão em texto sem scripts
+  const html = directionalMapHtml(material.title, brief);
+  assert(html.includes('class="nojs"') && html.includes('data-f="versiculo"') && (html.match(/<li class="br( open)?"/g) ?? []).length === map.branches.length, 'html');
 });
 
 await test('plano de ação: frases do livro que pedem uma ação', async () => {
@@ -396,8 +386,8 @@ await test('exemplo: usa todas as marcações e alimenta todas as visões', asyn
   assert(ex.tags.includes('exemplo') && ex.sections.length === 5, `${ex.sections.length} partes`);
   assert(r.highlights.length >= 2 && r.definitions.length >= 3 && r.questions.length >= 2 && r.references.length >= 4, 'DNA');
   assert(suggestActions(ex).length >= 2, 'ações');
-  const map = buildMindMap(ex, r);
-  assert(map.modules.length === 5 && map.modules.every((m) => m.children.length > 0), 'mapa com desdobramentos');
+  const map = buildStudyMap(ex.title, buildBriefByRules(ex, r));
+  assert(map.branches.length === 5 && map.branches.every((b) => b.items.length > 0), 'mapa com desdobramentos');
 });
 
 await test('quadros: todo texto sai do material', async () => {
@@ -518,8 +508,8 @@ await test('estrutura do estudo: regras (sem IA) — poucos itens, do texto, sem
   assert((b.chapterTurns?.length ?? 0) >= 2 && b.chapterTurns!.every((t) => t.guess && t.turn && !t.turn.endsWith('?')), JSON.stringify(b.chapterTurns));
   const doc2 = briefWordHtml(ex.title, ex.author, b);
   assert(doc2.includes('Ponto de inflexão') && doc2.includes('As viradas de cada parte'), 'Word com o ponto de inflexão');
-  const mm = buildMindMap(ex);
-  assert(mm.modules.some((m) => m.children[0]?.type === 'virada'), 'mapa com o ponto de inflexão');
+  const mm = buildStudyMap(ex.title, b);
+  assert(mm.branches.some((x) => x.items[0]?.kind === 'virada') && mm.counts.virada > 0, 'mapa com o ponto de inflexão');
 });
 
 await test('estrutura sem IA: cobre o livro inteiro, não só os primeiros capítulos', async () => {

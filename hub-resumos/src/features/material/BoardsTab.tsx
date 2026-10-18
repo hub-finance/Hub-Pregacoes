@@ -76,7 +76,7 @@ export function BoardsTab({ material, reading }: { material: Material; reading: 
       </div>
       {!material.centralIdea.trim() && (kind === 'dna' || kind === 'consulta') && (
         <p className="small muted" style={{ margin: 0 }}>
-          Dica: escreva a ideia central na aba Análise do texto, em Mais ferramentas — ela entra em destaque no quadro. Sem ela, o quadro usa o primeiro destaque do texto.
+          Dica: escreva a ideia central na aba Editar — ela entra em destaque no quadro. Sem ela, o quadro usa o primeiro destaque do texto.
         </p>
       )}
       <div className="xr-board-frame">{url && <img src={url} alt={`${board.label} de ${material.title}`} className="xr-board" />}</div>

@@ -21,8 +21,11 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
   {
     id: 'compreender',
     title: 'Compreender',
-    what: 'A progressão do argumento (fluxograma: cada etapa responde a uma pergunta e prepara a seguinte) e o mapa mental da esquerda para a direita.',
-    how: ['No mapa, toque num ramo para abrir e num item para ler a explicação; “Abrir todos os ramos” mostra o conjunto.'],
+    what: 'A progressão do estudo (a introdução e cada capítulo, ou, com a IA, a linha de raciocínio), as viradas de cada parte e o mapa mental: o livro no centro, um ramo por parte e, em cada ramo, a virada, as ideias, os versículos e as perguntas.',
+    how: [
+      'No mapa, cada ramo já mostra a frase principal da parte. Toque no ramo para abrir os itens; toque num item para ler a explicação ali mesmo, com o versículo e o “ver no texto”.',
+      'Os filtros (Viradas, Ideias, Versículos, Perguntas) mostram só um tipo em todos os ramos. “Abrir todos” mostra o conjunto.',
+    ],
     files: 'Mapa interativo (.html, abre sem internet) e PDF.',
   },
   {
@@ -44,58 +47,26 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
     how: ['Ajuste a matriz em “Editar”, na faixa do alto.'],
   },
   {
-    id: 'painel',
-    title: 'Painel',
-    what: 'A visão geral do material: andamento, números, ideia central e atalhos para as outras visões.',
-    how: ['Use os atalhos para ir direto ao que precisa.', 'Os números mostram partes, versículos, cartões para hoje e ações abertas.'],
-  },
-  {
     id: 'passos',
     title: 'Passo a passo',
     what: 'O material dividido em partes, uma por vez, com anotação sua em cada passo.',
     how: ['Toque em “Começar” ou “Continuar”.', 'Escreva a sua anotação e marque “Concluir” ao terminar a parte.', 'O app lembra onde você parou.'],
   },
   {
-    id: 'analise',
-    title: 'Análise do texto',
-    what: 'O que o texto tem de essencial: ideia central (escrita por você), destaques, definições, perguntas, versículos e palavras-chave.',
-    how: ['Escreva a ideia central com as suas palavras.', 'O resto é lido do texto: “> ” marca destaque; “Termo: definição” entra no glossário; frases com “?” viram perguntas.'],
-  },
-  {
-    id: 'mapa',
-    title: 'Mapa em círculos',
-    what: 'No centro, o material; em volta, os assuntos (cada parte do texto); ao tocar num assunto, abrem os pontos principais dele (até 6), numerados e tirados do texto.',
+    id: 'imagens',
+    title: 'Imagens (quadros e infográfico)',
+    what: 'O estudo como imagem para compartilhar: seis modelos de quadro (DNA do livro, folha de consulta, mapa de conceitos, painel completo, fluxograma e cartões) e o infográfico.',
     how: [
-      'Toque num assunto (ou no nome dele, acima do mapa) para abrir só ele; os outros ficam apagados.',
-      'Toque num círculo para ler o trecho inteiro. Toque de novo no assunto, ou no centro, para voltar ao mapa completo.',
-      '“Expandir tudo” abre todos de uma vez. Arraste para mover; use a roda do mouse, os dedos ou os botões ＋ e － para o zoom.',
-      'As cores dizem o tipo: conceito, prática, base bíblica, pergunta ou desenvolvimento (veja a legenda).',
+      'Escolha o modelo e as cores; no infográfico, também o formato (retrato ou quadrado).',
+      'Tudo vem do próprio texto. Escrever a ideia central (aba Editar) e marcar destaques e definições deixa as imagens mais ricas.',
     ],
-    files: 'Mapa interativo (.html, abre em qualquer navegador, sem internet) e imagem (PNG) com tudo aberto.',
-  },
-  {
-    id: 'quadros',
-    title: 'Quadros',
-    what: 'O material em seis formatos de quadro, como imagem: DNA do livro, folha de consulta, mapa de conceitos, painel completo, fluxograma e cartões.',
-    how: [
-      'Escolha o modelo e as cores (papel ou azul e dourado).',
-      'Tudo vem do próprio texto: cada parte vira um bloco, e frases longas aparecem encurtadas no quadro.',
-      'Escrever a ideia central (aba Análise do texto, em Mais ferramentas) e marcar destaques e definições deixa os quadros mais ricos.',
-    ],
-    files: 'Imagem PNG de cada quadro, compartilhamento, ou os seis num arquivo .zip.',
+    files: 'Imagem PNG de cada quadro e do infográfico, compartilhamento, ou os seis quadros num arquivo .zip.',
   },
   {
     id: 'cartoes',
-    title: 'Cartões',
+    title: 'Cartões de revisão',
     what: 'Perguntas e respostas para memorizar, com revisão espaçada: o que você erra volta logo, o que acerta volta depois.',
     how: ['Toque em “Sugerir cartões do texto”, escolha os que quer e guarde.', 'Revise um pouco por dia em “Revisar agora” ou no menu Revisar.'],
-  },
-  {
-    id: 'consulta',
-    title: 'Consulta rápida',
-    what: 'Uma folha única com estrutura, glossário, versículos, perguntas e ações abertas — para ter à mão.',
-    how: ['Use “Imprimir / salvar em PDF” para guardar em PDF.', '“Copiar como texto” para colar em mensagem ou documento.'],
-    files: 'PDF (pelo “Imprimir”) e texto.',
   },
   {
     id: 'acoes',
@@ -105,7 +76,7 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
   },
   {
     id: 'resumo',
-    title: 'Resumo',
+    title: 'Resumo completo',
     what: 'Dois resumos: o da IA (opcional, com as próprias palavras) e o feito só com as frases do próprio texto, sem IA.',
     how: [
       'Com IA: ligue o Gemini em Dados e ajustes (uma vez). Escolha o livro inteiro ou um capítulo e toque em “Resumir com IA”, ou resuma todos os capítulos de uma vez. Vem resumo, ideias principais, aplicações, perguntas e conceitos, marcado como “feito pela IA”.',
@@ -115,17 +86,10 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
     files: 'Texto (.md) e cópia, dos dois resumos.',
   },
   {
-    id: 'infografico',
-    title: 'Infográfico',
-    what: 'Uma imagem com título, ideia central, números e os pontos de cada parte, para compartilhar.',
-    how: ['Escolha o formato (retrato ou quadrado) e as cores.'],
-    files: 'Imagem PNG e compartilhamento.',
-  },
-  {
     id: 'editar',
     title: 'Editar',
-    what: 'O texto do material, parte por parte, e as informações dele.',
-    how: ['Um título por parte; as marcações (“> ”, “- ”, “Termo: definição”) alimentam as outras visões.', 'Aqui também ficam Duplicar, Excluir e “Enviar para o Hub Bible”.'],
+    what: 'O texto do material, parte por parte, e as informações dele, como a ideia central.',
+    how: ['A ideia central, escrita com as suas palavras, vira a tese do estudo quando não há IA.', 'Um título por parte; as marcações (“> ”, “- ”, “Termo: definição”) alimentam as outras visões.', 'Aqui também ficam Duplicar, Excluir e “Enviar para o Hub Bible”.'],
     files: 'Arquivo para o Hub Bible (estudo do Rhema).',
   },
 ];
