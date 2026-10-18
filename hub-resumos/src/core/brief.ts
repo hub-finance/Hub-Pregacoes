@@ -3,7 +3,7 @@ import { callGemini, withModel } from './ai';
 import { findReferences, fold } from './bible';
 import { db, now } from './db';
 import { cleanTitle, readMaterial, referenceSentence, sectionSentences, STOPWORDS, sectionKeywords, sentences, type MaterialReading, type SectionReading } from './text';
-import type { ActionItem, BriefCard, BriefChapterTurn, BriefInflection, BriefOrigin, Material, StudyBrief } from './types';
+import type { ActionItem, BriefCard, BriefChapterTurn, BriefInflection, BriefLeafKind, BriefOrigin, Material, StudyBrief } from './types';
 
 /**
  * A estrutura única do estudo (pedido do usuário, docs/AJUSTES-RESUMOS.md):
@@ -18,7 +18,7 @@ import type { ActionItem, BriefCard, BriefChapterTurn, BriefInflection, BriefOri
  */
 
 /** Limites de quantidade: poucos itens, bem escolhidos (qualidade, não quantidade). */
-export const BRIEF_LIMITS = { truths: 5, steps: 6, branches: 5, leaves: 4, cardsPerKind: 3, dnaRows: 5, applications: 5, questions: 5 };
+export const BRIEF_LIMITS = { truths: 5, steps: 6, branches: 5, leaves: 5, cardsPerKind: 3, dnaRows: 5, applications: 5, questions: 5 };
 
 export { cleanTitle } from './text';
 
@@ -300,12 +300,21 @@ function groupName(group: SectionReading[], rep: SectionReading, r: MaterialRead
   return !title || GENERIC_TITLE.test(title) ? themeOf(group, r) || title || 'Parte' : shortLabel(title, 6);
 }
 
-/** Rótulo curto de uma frase: as palavras-chave do livro que ela contém. */
+/** Rótulo curto de uma frase: o sujeito dela ("Amar o próximo") ou as palavras-chave que ela contém. */
 function leafLabel(text: string, keys: Set<string>): string {
+  // o que vem antes do verbo principal costuma nomear a ideia
+  const head = text.split(/,|;|:| (?:é|são|foi|eram?|será|não|tem|têm|deve|devem|precisa|pode|podem|vê|faz|traz|leva|está|estão) /)[0].replace(/[“”"()]/g, '').trim();
+  const words = head.split(/\s+/);
+  while (words.length > 1 && /^(a|o|as|os|de|do|da|dos|das|que|e|em|no|na|um|uma|para|por|com|se)$/i.test(words[words.length - 1])) words.pop();
+  if (words.length >= 2 && words.length <= 5 && !DEPENDENT.test(head) && /^\p{Lu}/u.test(head)) return words.join(' ');
+  // senão, o começo da frase (até 5 palavras), sem terminar em palavra solta
+  const start = text.replace(/[“”"()]/g, '').split(/[,;:.!?]/)[0].split(/\s+/).slice(0, 5);
+  while (start.length > 1 && /^(a|o|as|os|de|do|da|dos|das|que|e|em|no|na|um|uma|para|por|com|se|não|é|são)$/i.test(start[start.length - 1])) start.pop();
+  if (start.length >= 3 && !DEPENDENT.test(text)) return start.join(' ');
   const found: string[] = [];
   for (const w of text.match(/[\p{L}]{4,}/gu) ?? []) {
     const k = fold(w.toLowerCase());
-    if (keys.has(k) && !found.some((f) => fold(f.toLowerCase()) === k)) found.push(w.toLowerCase());
+    if (keys.has(k) && !VERB_FORM.test(k) && !/(e|ia|ou)$/.test(k) && !found.some((f) => fold(f.toLowerCase()) === k)) found.push(w.toLowerCase());
     if (found.length === 2) break;
   }
   if (!found.length) return shortLabel(sectionKeywordsOf(text), 3);
@@ -386,7 +395,7 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
     };
   });
 
-  // o mapa: até 5 ramos cobrindo o livro todo; as folhas são o melhor de cada bloco
+  // o mapa: um ramo por parte (introdução e capítulos); as folhas são o melhor de cada uma
   const branches = groupsOf(sections, MAX_PARTS).map((g) => {
     const ranked = rankSentences(g, keys);
     const rep = representative(g, ranked);
@@ -394,24 +403,32 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
     const leaves: StudyBrief['branches'][number]['leaves'] = [];
     const seen = new Set<string>();
     const seenDetail = new Set<string>(summaryPick ? [fold(concise(summaryPick.text))] : []);
-    const push = (label: string, detail: string, ref?: string) => {
+    const push = (label: string, detail: string, kind: BriefLeafKind, ref?: string) => {
       const k = fold(label);
       const d = fold(detail);
       if (!label || !detail || seen.has(k) || seenDetail.has(d) || leaves.length >= L.leaves) return;
       seen.add(k);
       seenDetail.add(d);
-      leaves.push({ label, detail, ref });
+      leaves.push({ label, detail, ref, kind });
     };
-    // definições que falam do assunto do livro primeiro
-    const defScore = (d: { term: string; meaning: string }) => sentenceScore(`${d.term} é ${d.meaning}`, keys, false);
-    const defs = g.flatMap((s) => s.definitions).sort((a, b) => defScore(b) - defScore(a));
-    for (const d of defs.slice(0, 2)) push(shortLabel(d.term, 3), concise(d.meaning));
+    // de cada parte: os versículos mais citados (concretos, primeiro), as ideias mais fortes,
+    // um conceito e uma pergunta
     for (const label of topRefs(g, 2)) {
       const s = g.find((x) => x.references.some((ref) => ref.label === label))!;
       const ref = s.references.find((x) => x.label === label)!;
-      push(label, concise(contextOf(s, ref)) || label, label);
+      push(label, concise(contextOf(s, ref)) || label, 'versiculo', label);
     }
-    for (const p of ranked.slice(1, 8)) push(leafLabel(p.text, keys), concise(p.text));
+    for (const p of ranked.slice(1, 3)) push(leafLabel(p.text, keys), concise(p.text), 'ideia');
+    // definições que falam do assunto do livro primeiro
+    const defScore = (d: { term: string; meaning: string }) => sentenceScore(`${d.term} é ${d.meaning}`, keys, false);
+    const defs = g.flatMap((s) => s.definitions).sort((a, b) => defScore(b) - defScore(a));
+    for (const d of defs.slice(0, 1)) push(shortLabel(d.term, 3), concise(d.meaning), 'conceito');
+    const question = g.flatMap((s) => s.questions)[0];
+    if (question) push(shortLabel(question.replace(/\?$/, ''), 5) + '?', question, 'pergunta');
+    // sobrou lugar: mais uma ideia forte
+    for (const p of ranked.slice(3, 8)) push(leafLabel(p.text, keys), concise(p.text), 'ideia');
+    // parte curta: as frases que restam (sem perguntas), para o ramo não ficar vazio
+    if (leaves.length < 2) for (const x of g.flatMap(sectionSentences).filter((t) => !t.endsWith('?'))) push(leafLabel(x, keys), concise(x), 'ideia');
     return { label: groupName(g, rep, r), summary: summaryPick ? concise(summaryPick.text) : keyOf(rep), leaves, section: rep.section.title };
   });
 
@@ -544,7 +561,7 @@ const BRIEF_SCHEMA = {
           rotulo: { type: 'STRING' },
           resumo: { type: 'STRING' },
           secao: { type: 'STRING' },
-          folhas: { type: 'ARRAY', items: { type: 'OBJECT', properties: { rotulo: { type: 'STRING' }, detalhe: { type: 'STRING' }, referencia: { type: 'STRING' } }, required: ['rotulo', 'detalhe'] } },
+          folhas: { type: 'ARRAY', items: { type: 'OBJECT', properties: { rotulo: { type: 'STRING' }, detalhe: { type: 'STRING' }, referencia: { type: 'STRING' }, tipo: { type: 'STRING', enum: ['ideia', 'versiculo', 'conceito', 'pergunta'] } }, required: ['rotulo', 'detalhe', 'tipo'] } },
         },
         required: ['rotulo', 'resumo', 'secao', 'folhas'],
       },
@@ -600,7 +617,7 @@ export function buildBriefPrompt(material: Material): string {
     '- textoBase: as referências bíblicas principais do material;',
     `- verdades: as ${L.truths} principais verdades, no máximo, cada uma em uma frase de até 18 palavras;`,
     `- progressao: de 3 a ${L.steps} etapas que mostram a LINHA DE RACIOCÍNIO do material (causa e efeito, não um índice de capítulos). Cada etapa: "etapa" com 2 a 5 palavras, a "pergunta" que ela responde, a "explicacao" em uma frase de até 20 palavras (sem repetir a pergunta) e a "ligacao" com a próxima etapa (um verbo ou expressão curta, como "alimenta", "gera", "permite", "resulta em"; vazio na última);`,
-    `- ramos: de 3 a ${L.branches} ramos do mapa mental, do conflito ou problema à solução. "rotulo" com 1 a 3 palavras; "resumo" em uma frase de até 15 palavras; até ${L.leaves} "folhas" com rótulo de 1 a 3 palavras e "detalhe" em uma frase de até 20 palavras;`,
+    `- ramos: de 3 a ${L.branches} ramos do mapa mental, do conflito ou problema à solução. "rotulo" com 1 a 3 palavras; "resumo" em uma frase de até 15 palavras; até ${L.leaves} "folhas" com rótulo de 1 a 3 palavras, "detalhe" em uma frase de até 20 palavras e "tipo" (ideia, versiculo, conceito ou pergunta) — misture os tipos quando o texto permitir;`,
     `- cartoes: até ${L.cardsPerKind} de cada tipo, sem repetir o que já está nas etapas: "biblico" (frente = referência, verso = a verdade central do texto, extra = relação com a mensagem); "principio" (frente = o princípio, verso = explicação breve, extra = implicação); "conexao" (frente = "conceito ou texto A → conceito ou texto B", verso = a explicação da relação); "revisao" (frente = pergunta objetiva, verso = resposta curta, referencia quando houver);`,
     `- dna: tese, até 3 convicções, uma matriz de até ${L.dnaRows} linhas (principio = o quê; base = a referência bíblica, onde; aplicacao = como) e o resultado esperado;`,
     `- aplicacoes: até ${L.applications} aplicações práticas; perguntas: até ${L.questions} perguntas para reflexão ou grupo.`,
@@ -671,7 +688,12 @@ export function parseBriefAnswer(raw: string): Omit<StudyBrief, 'source' | 'crea
         section: str(b.secao),
         leaves: objs(b.folhas)
           .slice(0, L.leaves)
-          .map((f) => ({ label: str(f.rotulo), detail: str(f.detalhe), ref: str(f.referencia) || undefined }))
+          .map((f) => ({
+            label: str(f.rotulo),
+            detail: str(f.detalhe),
+            ref: str(f.referencia) || undefined,
+            kind: (['ideia', 'versiculo', 'conceito', 'pergunta'] as const).find((k) => k === f.tipo) ?? (str(f.referencia) ? 'versiculo' : 'ideia'),
+          }))
           .filter((f) => f.label),
       }))
       .filter((b) => b.label),

@@ -7,21 +7,24 @@ conversa quando você quiser, por arquivo e por link.
 
 ## O que faz
 
-Cada material (livro, estudo ou resumo) ganha onze visões:
+Cada material (livro, estudo ou resumo) se estuda em camadas, todas tiradas de
+uma **estrutura única do estudo** (com a IA ou só com o texto), e tem poucas
+ferramentas, cada uma com função própria (auditoria da etapa 1:
+`docs/AUDITORIA-ETAPA1.md`).
 
 | Aba | O que mostra |
 |---|---|
-| **Painel** | Andamento, partes, tempo de leitura, versículos, cartões do dia, ações abertas e o próximo passo |
-| **Passo a passo** | O material conduzido parte por parte, com anotação pessoal em cada passo; volta de onde parou |
-| **DNA** | Ideia central (escrita por você), identidade, texto-chave, estrutura, palavras-chave, versículos, destaques, glossário e perguntas |
-| **Mapa mental** | Mapa interativo (canvas, azul-noite e dourado): o material no centro, cada parte como assunto e, ao tocar, os **pontos principais** dela (até 6, do mais importante: destaque, definição, versículo com a frase, item, pergunta, frase principal do parágrafo), numerados e coloridos por tipo. Um assunto por vez, “Expandir tudo”, zoom, arrastar, tela cheia e a frase inteira de cada ponto. Baixa como **.html interativo** (abre sozinho, sem internet) e **PNG** |
-| **Quadros** | O material em seis formatos de quadro, como imagem (1080 px de largura): **DNA do livro**, **folha de consulta**, **mapa de conceitos**, **painel completo**, **fluxograma** e **cartões**. Papel claro ou azul e dourado; PNG, compartilhar ou os seis num .zip. Só trechos do texto |
-| **Cartões** | Frente e verso sugeridos do texto (definições, destaques com lacuna, perguntas, listas, referências) ou escritos à mão, com revisão espaçada |
-| **Consulta rápida** | Uma folha com o essencial, pronta para imprimir ou salvar em PDF, ou copiar como texto |
-| **Plano de ação** | Ações com responsável, prazo e situação; sugestões das partes de aplicação do texto |
-| **Resumo** | **Com IA (opcional, Gemini):** livro inteiro ou capítulo por capítulo — resumo, ideias, aplicações, perguntas e conceitos, marcado como “feito pela IA”, separado do texto; aplicações vão ao plano de ação; aparece também no Passo a passo. **Sem IA:**  Frases do próprio texto (curto, médio, longo); pode virar um novo material para você completar |
-| **Infográfico** | Imagem PNG (retrato ou quadrado, 4 paletas) para baixar ou compartilhar |
-| **Editar** | Título, tipo, autor, etiquetas, ideia central e as partes; enviar ao Hub Bible |
+| **Captar** | Síntese, tese, objetivo (da introdução), texto-base, o **ponto de inflexão** e as principais verdades |
+| **Compreender** | A progressão (a introdução e cada capítulo; com a IA, a linha de raciocínio), as viradas de cada parte e o **mapa mental**: o livro no centro, um ramo por parte com a frase principal e, em cada ramo, virada, ideias, versículos, conceito e pergunta; filtros por tipo e a explicação abrindo no próprio item. Baixa como **.html** (abre sem internet; sem scripts, mostra tudo em texto) |
+| **Aprofundar** | Cartões bíblicos, de princípio e de conexão |
+| **Aplicar** | Cartões de revisão, aplicações (vão ao plano de ação) e perguntas |
+| **DNA** | Tese, convicções, ponto de inflexão e a matriz Princípio · Base bíblica · Aplicação |
+| **Passo a passo** | O material parte por parte, com a virada de cada parte, anotação pessoal e “Revisar N cartões” |
+| **Editar** | Título, tipo, autor, etiquetas, **ideia central** e as partes; enviar ao Hub Bible |
+
+Em **Ferramentas**: **Cartões de revisão** (revisão espaçada), **Plano de ação**
+(responsável, prazo e situação), **Resumo completo** (com IA ou com as frases do
+texto, curto/médio/longo) e **Imagens** (os seis quadros e o infográfico, em PNG).
 
 **Temas:** os oito do Hub Bible (Claro, Sépia, Azul e branco, Azul safira,
 Verde e branco, Escuro, Noite azul, Ministerial) e o Verde do Hub Resumos. O
@@ -37,8 +40,8 @@ passos, **material de exemplo** e, em cada material, **baixar** (.json com
 andamento, cartões e ações — volta pelo “Novo material › Importar arquivo”, como
 material novo), **duplicar** e **excluir só aquele material**, com confirmação.
 
-**Tudo o que é criado sai em arquivo:** material (.json), mapa mental (.html e
-PNG), quadros (PNG ou .zip), infográfico (PNG), consulta rápida (PDF pela impressão), resumo (.md),
+**Tudo o que é criado sai em arquivo:** material (.json), estudo em Word (.doc)
+e PDF (pela impressão), mapa mental (.html), quadros (PNG ou .zip), infográfico (PNG), resumo (.md),
 envio ao Hub Bible (.json) e a cópia de segurança de tudo (.json).
 
 ### Princípio do sistema: qualidade e ganho de tempo
@@ -99,7 +102,7 @@ npm ci
 npm run dev       # desenvolvimento
 npm run build     # gera dist/ (PWA)
 npm run preview   # serve o build
-npm test          # testes do núcleo (texto, cartões, resumo, mapa mental, importação, banco, material em arquivo, exemplo)
+npm test          # testes do núcleo (texto, estrutura do estudo, mapa mental, cartões, resumo, importação, banco, material em arquivo, exemplo)
 node scripts/icons.mjs <caminho-do-playwright>   # regenera os PNG do ícone
 ```
 
@@ -127,8 +130,7 @@ src/
   core/        regras, sem tela: banco, leitura do texto, referências bíblicas,
                cartões, plano de ação, resumo, mapa, importação, cópia de segurança
   features/    telas: biblioteca, material (abas), revisão, ajustes, ajuda
-    mindmap/   motor do mapa mental (engine.js, JS puro: o mesmo código vai
-               dentro do .html baixado) e a tela dele
+    layers/    as camadas do estudo (Captar … DNA) e o mapa mental
   components/  primitivas visuais (as mesmas do Hub Bible)
   styles/      tokens e estilos do Hub Bible + resumos.css (cor verde própria)
 scripts/       testes e geração de ícones
@@ -148,18 +150,20 @@ os editores mostram “Salvando…” / “Salvo às hh:mm”.
 lógica, 4 tipos de cartão, DNA em matriz, sem reticências, PDF e Word.
 Já feito (ver a seção 4 do arquivo); falta testar a montagem com a IA real.
 
+**Prompt de aprimoramento (PDF do usuário, 4 etapas):** a etapa 1 (auditoria e
+simplificação) está feita — `docs/AUDITORIA-ETAPA1.md`. Faltam: 2) redundância
+semântica, seleção do recurso por conteúdo e cartões no padrão; 3) visual novo
+(azul-marinho, menos caixas); 4) validação automática e comparação antes/depois.
+Decisões pendentes do usuário: chave da IA no servidor (deixaria de ser 100%
+local) e limites que se ajustam ao tamanho do livro.
+
 Tudo o que falta fica nesta lista e em `hub-bible/docs/PENDENCIAS.md`, para
 continuar depois — sempre com o princípio acima: qualidade e ganho de tempo.
 
 - **Cores para escolher nas ferramentas** (pedido para depois, não agora): mais
-  opções de cor nos quadros, no mapa mental e no infográfico, para o usuário
+  opções de cor nos quadros e no infográfico, para o usuário
   escolher a que preferir. Hoje os quadros têm “Papel” e “Azul e dourado”.
 - Slides de treinamento.
-- **Primeiro, amanhã:** mapa mental com pontos repetidos (“Origens”, “Origens”,
-  “Origens” em “A Igreja Triunfante”). O título do capítulo e os cabeçalhos de
-  página viram falsa “definição” (“Origens: Satanás…”). Descartar título e
-  cabeçalhos repetidos como definição, não repetir pontos com o mesmo nome e
-  preferir frases que ensinam.
 - Testar a IA com a chave real do Gemini (3.8 Flash) no aparelho do usuário.
 - Aviso “Nova versão disponível — toque para atualizar”, para não precisar
   fechar e abrir o app depois de cada publicação.

@@ -6,6 +6,7 @@ import { useToast } from '../../components/Toast';
 import { SaveStatus } from '../../components/SaveStatus';
 import { EmptyState } from '../../components/ui';
 import { turnForSection } from '../../core/brief';
+import { isDue, listCards } from '../../core/cards';
 import { getProgress, PART_LABEL, progressRatio, setCurrentStep, setStepDone, setStepNote } from '../../core/materials';
 import type { Material } from '../../core/types';
 import { AiSummaryView } from './AiPanel';
@@ -20,6 +21,8 @@ export function StepsTab({ material }: { material: Material }) {
   const { notify } = useToast();
   const [params, setParams] = useSearchParams();
   const progress = useLiveQuery(() => getProgress(material.id), [material.id]);
+  // atalho que ficava no antigo Painel: revisar os cartões do dia sem procurar a aba
+  const dueCards = useLiveQuery(async () => (await listCards(material.id)).filter((c) => isDue(c)).length, [material.id], 0);
   const stepId = params.get('passo');
   const index = material.sections.findIndex((s) => s.id === stepId);
   const section = index >= 0 ? material.sections[index] : null;
@@ -73,6 +76,11 @@ export function StepsTab({ material }: { material: Material }) {
           {resume && (
             <button className="btn btn-primary" onClick={() => open(resume.id)}>
               {done.size ? 'Continuar' : 'Começar'} →
+            </button>
+          )}
+          {dueCards > 0 && (
+            <button className="btn" onClick={() => setParams({ aba: 'cartoes', revisar: '1' })}>
+              Revisar {dueCards} {dueCards === 1 ? 'cartão' : 'cartões'}
             </button>
           )}
         </div>

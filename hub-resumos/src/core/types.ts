@@ -156,8 +156,18 @@ export interface BriefBranch {
   /** 1 a 3 palavras. */
   label: string;
   summary: string;
-  leaves: Array<{ label: string; detail: string; ref?: string }>;
+  leaves: BriefLeaf[];
   section: string;
+}
+
+/** O tipo de cada item do mapa: o que ele faz no estudo (filtros e cores). */
+export type BriefLeafKind = 'ideia' | 'versiculo' | 'conceito' | 'pergunta';
+
+export interface BriefLeaf {
+  label: string;
+  detail: string;
+  ref?: string;
+  kind?: BriefLeafKind;
 }
 
 export type BriefCardKind = 'biblico' | 'principio' | 'conexao' | 'revisao';

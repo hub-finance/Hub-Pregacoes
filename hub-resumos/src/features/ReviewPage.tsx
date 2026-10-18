@@ -34,7 +34,7 @@ export default function ReviewPage() {
         <EmptyState
           icon="check"
           title="Tudo revisado por hoje"
-          description="Crie cartões na aba Cartões de qualquer material; eles aparecem aqui no dia de revisar."
+          description="Crie cartões em Ferramentas › Cartões de revisão, em qualquer material; eles aparecem aqui no dia de revisar."
           action={
             <button className="btn btn-sm" onClick={() => navigate('/')}>
               Ir para a biblioteca
