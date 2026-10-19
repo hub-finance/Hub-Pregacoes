@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import JSZip from 'jszip';
 import { findReferences, hubBibleLink } from '../../src/core/bible';
-import { readMaterial, splitByChapterTitles, splitIntoSections } from '../../src/core/text';
+import { readMaterial, sameIdea, splitByChapterTitles, splitIntoSections } from '../../src/core/text';
 import { suggestCards, addCards, answerCard, schedule } from '../../src/core/cards';
 import { suggestActions, addActions, listActions } from '../../src/core/actions';
 import { extractiveSummary } from '../../src/core/summary';
@@ -12,7 +12,7 @@ import { createMaterial, deleteMaterial, getProgress, progressRatio, resplitMate
 import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restoreBackup } from '../../src/core/backup';
 import { createExampleMaterial } from '../../src/core/example';
 import { boardContent } from '../../src/core/boards';
-import { buildBriefByRules, buildBriefWithAi, parseBriefAnswer, refsNotInText, sectionIdByTitle } from '../../src/core/brief';
+import { buildBriefByRules, buildBriefWithAi, parseBriefAnswer, refsNotInText, removeRepeats, sectionIdByTitle, turnsInSteps } from '../../src/core/brief';
 import { briefWordHtml } from '../../src/core/briefDoc';
 import { aiChapterTitles, askGemini, buildPrompt, getGeminiConfig, parseAiAnswer, pickFlashModel, removeAiSummary, summarizeWithAi, testGeminiKey, WHOLE } from '../../src/core/ai';
 import { setSetting } from '../../src/core/db';
@@ -272,11 +272,12 @@ await test('mapa mental do estudo: um ramo por parte, itens com tipo, tirados do
   const map = buildStudyMap(material.title, brief);
   assert(map.branches.length === material.sections.length, `${map.branches.length} ramos`);
   // cada ramo se lê fechado: rótulo e frase principal
-  assert(map.branches.every((b) => b.label && b.summary), 'rótulo e resumo em cada ramo');
+  // cada ramo tem rótulo; o resumo só quando a parte ainda tem uma frase que não apareceu em outra camada
+  assert(map.branches.every((b) => b.label) && map.branches.some((b) => b.summary), 'rótulo em cada ramo');
   // nada inventado: o detalhe dos itens sai do material (frase do texto, encurtada pela oração principal)
   const all = material.sections.map((s) => s.text).join('\n').replace(/\s+/g, ' ');
   for (const b of map.branches)
-    for (const it of b.items) assert(all.includes(it.detail.replace(/[.]$/, '').slice(0, 30)), `fora do texto: ${it.detail}`);
+    for (const it of b.items) assert(all.includes(it.detail.replace(/[.]$/, '').slice(0, 30)) || (it.kind === 'versiculo' && it.detail.includes(': versículo citado em')), `fora do texto: ${it.detail}`);
   // poucos e bem escolhidos, sem repetir a mesma frase no ramo
   assert(map.branches.every((b) => b.items.length <= 6), 'até 6 itens por ramo');
   for (const b of map.branches) assert(new Set(b.items.map((i) => i.detail)).size === b.items.length, b.items.map((i) => i.detail).join(' | '));
@@ -485,7 +486,7 @@ await test('estrutura do estudo: regras (sem IA) — poucos itens, do texto, sem
   assert(b.source === 'regras' && b.thesis === ex.centralIdea, 'tese = ideia central');
   assert(b.steps.length === 5 && b.steps.every((x) => x.title && !/…/.test(x.title)), b.steps.map((x) => x.title).join('|'));
   assert(b.steps[0].title === 'Introdução' && b.steps[1].question === 'Quem é o meu próximo?', `${b.steps[0].title} / ${b.steps[1].question}`);
-  assert(b.branches.every((x) => x.label.split(/\s+/).filter((w) => w !== '·').length <= 6 && !/ (de|do|da|que)$/.test(x.label) && x.leaves.length <= 4), b.branches.map((x) => x.label).join('|'));
+  assert(b.branches.every((x) => x.label.split(/\s+/).filter((w) => w !== '·').length <= 6 && !/ (de|do|da|que)$/.test(x.label) && x.leaves.length <= 5), b.branches.map((x) => x.label).join('|'));
   // enxuto: nada fora dos cartões passa do limite de leitura, e a explicação não repete a pergunta
   const words = (t: string) => t.split(/\s+/).filter(Boolean).length;
   assert(words(b.synthesis) <= 60, `síntese longa: ${words(b.synthesis)}`);
@@ -553,6 +554,45 @@ await test('estrutura sem IA: cobre o livro inteiro, não só os primeiros capí
   assert(/Neste livro quero ajudar/.test(bi.objective), `objetivo: ${bi.objective}`);
   assert(bi.thesis && withIntro.sections[0].text.includes(bi.thesis.replace(/\.$/, '').slice(0, 25)), `tese: ${bi.thesis}`);
   assert(bi.synthesis.length > 0, 'síntese');
+});
+
+await test('sem repetição: cada ideia aparece uma vez só no estudo', async () => {
+  const ex = await createExampleMaterial();
+  const b = buildBriefByRules(ex);
+  // tudo o que o leitor lê nas camadas, menos versículos (são referências) e a tese do DNA (é a mesma tese)
+  const texts = [
+    b.thesis,
+    ...b.steps.map((x) => x.explanation),
+    ...b.truths.map((x) => x.text),
+    ...b.dna.rows.map((x) => x.principle),
+    ...b.dna.convictions,
+    ...b.cards.filter((c) => c.kind === 'principio').map((c) => c.front),
+    ...b.branches.map((x) => x.summary),
+    ...b.branches.flatMap((x) => x.leaves.filter((l) => l.kind !== 'versiculo').map((l) => l.detail)),
+  ].filter(Boolean);
+  const pairs: string[] = [];
+  texts.forEach((a, i) => texts.slice(i + 1).forEach((c) => sameIdea(a, c) && pairs.push(`${a} ≈ ${c}`)));
+  assert(!pairs.length, pairs.join(' || '));
+  // ideia igual com outras palavras é reconhecida; frases do mesmo molde com assunto diferente, não
+  assert(sameIdea('A compaixão sempre termina em atitude concreta.', 'Termina sempre em atitude concreta a compaixão!'), 'mesma ideia, outra ordem');
+  const w = (x: string) => (['oracao', 'jejum'].includes(x) ? 3 : 0.5);
+  assert(!sameIdea('A oração transforma a vida de quem confia em Deus.', 'O jejum transforma a vida de quem confia em Deus.', w), 'assuntos diferentes');
+  // a virada de cada capítulo fica dentro da etapa; a lista à parte só tem o que sobrou
+  const t = turnsInSteps(b);
+  assert(t.inline.filter(Boolean).length >= 1 && t.rest.every((x) => !b.steps.some((st) => st.section === x.section)), 'viradas nas etapas');
+  await deleteMaterial(ex.id);
+});
+
+await test('IA: a revisão final tira a mesma ideia repetida em outra camada', () => {
+  const base = buildBriefByRules(material, reading);
+  const dup = 'A graça de Deus transforma o pecador em filho amado.';
+  const b = removeRepeats({
+    ...base,
+    thesis: dup,
+    truths: [{ text: 'Transforma o pecador em filho amado a graça de Deus.', section: '', origin: 'ia' as const }, { text: 'A fé vem pelo ouvir a Palavra de Cristo.', section: '', origin: 'ia' as const }],
+    dna: { ...base.dna, convictions: ['A fé vem pelo ouvir a Palavra de Cristo!'] },
+  });
+  assert(b.truths.length === 1 && b.truths[0].text.startsWith('A fé') && b.dna.convictions.length === 0, JSON.stringify([b.truths, b.dna.convictions]));
 });
 
 await test('estrutura do estudo: IA — pedido, leitura, limites e conferência dos versículos', async () => {

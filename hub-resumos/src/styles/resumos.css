@@ -1365,3 +1365,9 @@ button.xr-stat {
   flex-wrap: wrap;
   overflow: visible;
 }
+.xr-flow-virada {
+  color: #8a6418;
+}
+.xr-flow-vline .xr-origin {
+  margin-left: 6px;
+}

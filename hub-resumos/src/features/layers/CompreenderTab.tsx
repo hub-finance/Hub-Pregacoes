@@ -1,5 +1,6 @@
 import { useToast } from '../../components/Toast';
 import { downloadBlob, safeName } from '../../core/backup';
+import { turnsInSteps } from '../../core/brief';
 import type { MaterialReading } from '../../core/text';
 import type { Material } from '../../core/types';
 import { BriefBar } from './BriefBar';
@@ -14,6 +15,8 @@ export function CompreenderTab({ material, reading }: { material: Material; read
   const { notify } = useToast();
   // a etapa em que a mensagem vira (mesma parte do ponto de inflexão)
   const turnAt = brief.inflection ? brief.steps.findIndex((s) => s.section === brief.inflection?.section) : -1;
+  // a virada de cada capítulo fica dentro da etapa dele, sem uma lista repetindo os capítulos
+  const { inline, rest } = turnsInSteps(brief);
   return (
     <div className="stack xr-layer">
       <BriefBar material={material} brief={brief} />
@@ -22,7 +25,7 @@ export function CompreenderTab({ material, reading }: { material: Material; read
       <section className="xr-panel">
         <span className="xr-eyebrow">Progressão lógica do estudo</span>
         {brief.source === 'regras' && (
-          <span className="small dim">Sem a IA, as etapas são a introdução e cada capítulo, um por um, com a frase mais forte de cada um. Com a IA, mostram a linha de raciocínio (causa e efeito).</span>
+          <span className="small dim">Sem a IA, as etapas são a introdução e cada capítulo, um por um, com a frase mais forte de cada um e a virada (★) dele. Com a IA, mostram a linha de raciocínio (causa e efeito).</span>
         )}
         <ol className="xr-flow">
           {brief.steps.map((s, i) => (
@@ -33,7 +36,18 @@ export function CompreenderTab({ material, reading }: { material: Material; read
                   {i + 1}. {s.title}
                 </strong>
                 {s.question && <span className="xr-flow-q">{s.question}</span>}
-                {s.explanation && <span className="xr-flow-x">{s.explanation}</span>}
+                {s.explanation && (
+                  <span className="xr-flow-x">
+                    {inline[i]?.same && <b className="xr-flow-virada">★ virada: </b>}
+                    {s.explanation}
+                  </span>
+                )}
+                {inline[i] && !inline[i]!.same && (
+                  <span className="xr-flow-x xr-flow-vline">
+                    <b className="xr-flow-virada">★ Virada:</b> {inline[i]!.turn.turn}
+                    {inline[i]!.turn.guess && <span className="xr-origin is-guess">sugestão</span>}
+                  </span>
+                )}
                 <span className="xr-meta">
                   {s.refs.map((r) => (
                     <RefChip key={r} value={r} bad={badRefs} />
@@ -52,7 +66,7 @@ export function CompreenderTab({ material, reading }: { material: Material; read
         </ol>
       </section>
 
-      <ChapterTurns material={material} turns={brief.chapterTurns} bad={badRefs} />
+      <ChapterTurns material={material} turns={rest} bad={badRefs} />
 
       <section className="xr-panel">
         <div className="row row-wrap" style={{ justifyContent: 'space-between' }}>

@@ -1,4 +1,4 @@
-import { cleanTitle } from './text';
+import { cleanTitle, sameIdea } from './text';
 import type { BriefInflection, BriefLeafKind, BriefOrigin, StudyBrief } from './types';
 
 /**
@@ -57,7 +57,8 @@ export function buildStudyMap(title: string, brief: StudyBrief): StudyMap {
   const branches = brief.branches.map((b) => {
     const items: MapItem[] = [];
     const turn = brief.chapterTurns?.find((t) => t.section === b.section);
-    if (turn && turn.turn !== b.summary) items.push({ kind: 'virada', label: 'Ponto de inflexão', detail: turn.turn, ref: turn.ref, section: b.section, origin: turn.origin, guess: turn.guess });
+    // a virada só entra se não repetir o resumo nem um item do ramo
+    if (turn && !sameIdea(turn.turn, b.summary) && !b.leaves.some((l) => sameIdea(turn.turn, l.detail))) items.push({ kind: 'virada', label: 'Ponto de inflexão', detail: turn.turn, ref: turn.ref, section: b.section, origin: turn.origin, guess: turn.guess });
     for (const l of b.leaves) items.push({ kind: kindOf(l), label: l.label, detail: l.detail, ref: l.ref, section: b.section });
     items.sort((x, y) => ORDER.indexOf(x.kind) - ORDER.indexOf(y.kind));
     for (const i of items) counts[i.kind]++;

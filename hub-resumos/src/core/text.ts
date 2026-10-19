@@ -526,3 +526,49 @@ export function sectionsKey(sections: Material['sections']): string {
   }
   return `${sections.length}:${(h >>> 0).toString(36)}`;
 }
+
+/* ------------------------- ideias repetidas (redundância) ------------------------- */
+
+const IDEA_WORDS = new Map<string, Set<string>>();
+
+/** As palavras que carregam a ideia de uma frase (sem ligação, sem plural). */
+export function ideaWords(text: string): Set<string> {
+  let set = IDEA_WORDS.get(text);
+  if (!set) {
+    set = new Set(
+      (text.match(/[\p{L}]{4,}/gu) ?? [])
+        .map((w) => w.toLowerCase())
+        .filter((w) => !STOPWORDS.has(w))
+        .map((w) => fold(w).replace(/(oes|aes|s)$/, '')),
+    );
+    if (IDEA_WORDS.size > 20000) IDEA_WORDS.clear();
+    IDEA_WORDS.set(text, set);
+  }
+  return set;
+}
+
+/**
+ * Duas frases dizem a mesma coisa? Iguais, ou com quase as mesmas palavras
+ * principais (mesmo em outra ordem ou com outra pontuação) — o prompt de
+ * aprimoramento pede comparar ideias, não só frases idênticas.
+ */
+export function sameIdea(a: string, b: string, weight: (w: string) => number = () => 1): boolean {
+  if (!a || !b) return false;
+  if (fold(a).replace(/[^\p{L}\d]+/gu, ' ').trim() === fold(b).replace(/[^\p{L}\d]+/gu, ' ').trim()) return true;
+  const x = ideaWords(a);
+  const y = ideaWords(b);
+  if (Math.min(x.size, y.size) < 3) return false;
+  // palavras próprias de um capítulo pesam mais que as do livro inteiro: "a oração
+  // transforma a vida" e "o jejum transforma a vida" falam de coisas diferentes
+  let shared = 0;
+  let wx = 0;
+  let wy = 0;
+  for (const w of x) {
+    const k = weight(w);
+    wx += k;
+    if (y.has(w)) shared += k;
+  }
+  for (const w of y) wy += weight(w);
+  const small = Math.min(wx, wy);
+  return shared / small >= 0.8 || shared / (wx + wy - shared) >= 0.6;
+}

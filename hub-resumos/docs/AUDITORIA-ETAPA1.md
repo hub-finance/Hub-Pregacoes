@@ -66,3 +66,22 @@ Mexer **só na repetição**, sem mudar o que ele aprovou:
 
 Decisões ainda pendentes do usuário: limites que se ajustam ao tamanho do livro
 (antes da etapa 2) e a chave da IA no servidor (antes da etapa 4).
+
+## Etapa 2 — feita (sem repetição; todos os capítulos também com a IA)
+
+- **Ideias, não só frases:** `sameIdea` (core/text.ts) reconhece a mesma ideia
+  com outras palavras; palavras próprias de um capítulo pesam mais
+  (`ideaWeight`), para "a oração transforma…" e "o jejum transforma…" não
+  serem tratadas como iguais.
+- **Cada frase num lugar só (sem IA):** a ordem de prioridade é tese,
+  objetivo, síntese, progressão, verdades, cartões, DNA, convicções e, por
+  último, o mapa — que aprofunda com o que ainda não apareceu. Ramo sem frase
+  nova mostra os temas da parte; folhas só com frases que se sustentam
+  sozinhas (sem "E tu?", "Amém.", pedaços).
+- **Com a IA:** o pedido proíbe repetir a ideia em outro lugar e pede um ramo
+  por capítulo (até 40); `removeRepeats` revisa a resposta e tira o que ainda
+  se repetir.
+- **Compreender:** a virada de cada capítulo aparece dentro da etapa dele
+  (`turnsInSteps`); a lista "As viradas…" só mostra as partes que não viraram
+  etapa; a virada que é a própria tese não se repete.
+- Testes novos: nenhuma ideia repetida no exemplo; IA com repetição corrigida.

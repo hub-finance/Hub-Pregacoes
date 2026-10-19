@@ -21,7 +21,7 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
   {
     id: 'compreender',
     title: 'Compreender',
-    what: 'A progressão do estudo (a introdução e cada capítulo, ou, com a IA, a linha de raciocínio), as viradas de cada parte e o mapa mental: o livro no centro, um ramo por parte e, em cada ramo, a virada, as ideias, os versículos e as perguntas.',
+    what: 'A progressão do estudo (a introdução e cada capítulo, ou, com a IA, a linha de raciocínio), com a virada (★) de cada parte dentro da própria etapa, e o mapa mental: o livro no centro, um ramo por capítulo (também com a IA) e, em cada ramo, as ideias, os versículos, um conceito e uma pergunta. Cada frase aparece num lugar só: o mapa aprofunda o que as outras camadas ainda não mostraram.',
     how: [
       'No mapa, cada ramo já mostra a frase principal da parte. Toque no ramo para abrir os itens; toque num item para ler a explicação ali mesmo, com o versículo e o “ver no texto”.',
       'Os filtros (Viradas, Ideias, Versículos, Perguntas) mostram só um tipo em todos os ramos. “Abrir todos” mostra o conjunto.',
