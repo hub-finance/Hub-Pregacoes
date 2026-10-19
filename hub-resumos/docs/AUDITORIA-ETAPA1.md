@@ -45,3 +45,43 @@ e melhore o outro mapa mental." O sistema estava confuso: 5 abas novas e mais
 `npx tsc`, `npm test` (24), `npm run build`; Playwright em 390 px (Pixel 7) e
 1280 px: abas e ferramentas, links antigos, mapa (item, filtro, abrir todos),
 .html com e sem scripts — sem erros e sem rolagem horizontal.
+
+## Próximo: etapa 2 (combinada para o dia seguinte; uma etapa por dia)
+
+Retorno do usuário depois da etapa 1, com "A Lei da Semeadura": "a maioria está
+bom", mas achou repetitivo; elogiou as perguntas de reflexão (Aplicar) e o DNA.
+Mexer **só na repetição**, sem mudar o que ele aprovou:
+
+1. Cada frase do livro aparece num único lugar do estudo (hoje o resumo do
+   ramo do mapa e as ideias das folhas não passam pelo controle `used` de
+   `buildBriefByRules`; as viradas por capítulo vêm de `findTurnsByRules`,
+   separado, e podem repetir a explicação da etapa).
+2. Compreender: não mostrar a mesma frase três vezes por capítulo
+   (progressão, "As viradas do livro", resumo do ramo). Proposta: a virada
+   dentro da própria etapa; o mapa com temas, não a mesma frase.
+3. Juntar ideias quase iguais (mesmas palavras principais), não só frases
+   idênticas.
+4. Pedir ao usuário o arquivo da "Lei da Semeadura" (Biblioteca › baixar) para
+   testar antes e depois com um material real dele.
+
+Decisões ainda pendentes do usuário: limites que se ajustam ao tamanho do livro
+(antes da etapa 2) e a chave da IA no servidor (antes da etapa 4).
+
+## Etapa 2 — feita (sem repetição; todos os capítulos também com a IA)
+
+- **Ideias, não só frases:** `sameIdea` (core/text.ts) reconhece a mesma ideia
+  com outras palavras; palavras próprias de um capítulo pesam mais
+  (`ideaWeight`), para "a oração transforma…" e "o jejum transforma…" não
+  serem tratadas como iguais.
+- **Cada frase num lugar só (sem IA):** a ordem de prioridade é tese,
+  objetivo, síntese, progressão, verdades, cartões, DNA, convicções e, por
+  último, o mapa — que aprofunda com o que ainda não apareceu. Ramo sem frase
+  nova mostra os temas da parte; folhas só com frases que se sustentam
+  sozinhas (sem "E tu?", "Amém.", pedaços).
+- **Com a IA:** o pedido proíbe repetir a ideia em outro lugar e pede um ramo
+  por capítulo (até 40); `removeRepeats` revisa a resposta e tira o que ainda
+  se repetir.
+- **Compreender:** a virada de cada capítulo aparece dentro da etapa dele
+  (`turnsInSteps`); a lista "As viradas…" só mostra as partes que não viraram
+  etapa; a virada que é a própria tese não se repete.
+- Testes novos: nenhuma ideia repetida no exemplo; IA com repetição corrigida.

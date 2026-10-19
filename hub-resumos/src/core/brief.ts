@@ -2,7 +2,7 @@ import { suggestActions } from './actions';
 import { callGemini, withModel } from './ai';
 import { findReferences, fold } from './bible';
 import { db, now } from './db';
-import { cleanTitle, readMaterial, referenceSentence, sectionSentences, STOPWORDS, sectionKeywords, sentences, type MaterialReading, type SectionReading } from './text';
+import { cleanTitle, ideaWords, readMaterial, referenceSentence, sameIdea, sectionSentences, STOPWORDS, sectionKeywords, sentences, type MaterialReading, type SectionReading } from './text';
 import type { ActionItem, BriefCard, BriefChapterTurn, BriefInflection, BriefLeafKind, BriefOrigin, Material, StudyBrief } from './types';
 
 /**
@@ -66,10 +66,6 @@ export function concise(text: string, max = BRIEF_WORDS.sentence): string {
   }
   if (wordCount(out) < 6) return first;
   return out.replace(/[,;:—–\s]+$/, '') + '.';
-}
-
-function keyOf(s: SectionReading): string {
-  return concise(keyRaw(s));
 }
 
 function keyRaw(s: SectionReading): string {
@@ -175,7 +171,7 @@ export function groupsOf<T>(items: T[], n: number): T[][] {
 }
 
 /** Frases que dependem da anterior para fazer sentido ("Isso…", "Ele…") não servem sozinhas. */
-const DEPENDENT = /^(isso|isto|aquilo|esse|essa|esses|essas|este|esta|estes|estas|ele|ela|eles|elas|assim|também|além disso|por isso|portanto|então|e|mas|ou|aqui|ali|nesse|nessa|neste|nesta|dessa|desse|disso|porque|pois|porquanto|ora|porém|logo|daí|dessa forma|desta forma)\b/i;
+const DEPENDENT = /^(isso|isto|aquilo|esse|essa|esses|essas|este|esta|estes|estas|ele|ela|eles|elas|assim|também|além disso|por isso|portanto|então|e|mas|ou|aqui|ali|nesse|nessa|neste|nesta|dessa|desse|disso|porque|pois|porquanto|ora|porém|logo|daí|dessa forma|desta forma|de modo|de sorte|pelo que|o qual|a qual|os quais|como está escrito|como diz|e ainda|pergunto)\b/i;
 const GREETING = /\b(sa[uú]da[mi]?|sa[uú]dem|seja convosco|sejam convosco|com todos v[oó]s|am[eé]m\.?$|um abra[cç]o|obrigad[oa] pela|bem-vindos?)\b/i;
 
 /**
@@ -337,18 +333,35 @@ function keySetOf(r: MaterialReading): Set<string> {
   return k;
 }
 
+/** Peso de cada palavra: rara no livro (própria de uma parte) pesa mais. Calculado uma vez por leitura. */
+const IDEA_WEIGHT = new WeakMap<MaterialReading, (w: string) => number>();
+export function ideaWeight(r: MaterialReading): (w: string) => number {
+  let f = IDEA_WEIGHT.get(r);
+  if (!f) {
+    const df = new Map<string, number>();
+    for (const s of r.sections) for (const w of ideaWords(s.section.text)) df.set(w, (df.get(w) ?? 0) + 1);
+    const n = Math.max(1, r.sections.length);
+    f = (w: string) => Math.log(1 + n / (df.get(w) ?? 1));
+    IDEA_WEIGHT.set(r, f);
+  }
+  return f;
+}
+
 /** Estrutura montada só com o texto (sem IA), escolhendo do livro inteiro. */
 export function buildBriefByRules(material: Material, reading?: MaterialReading, actions: ActionItem[] = []): StudyBrief {
   const r = reading ?? readMaterial(material);
   const L = BRIEF_LIMITS;
   const sections = r.sections.filter((s) => s.section.text.trim());
   const keys = keySetOf(r);
-  const used = new Set<string>();
+  // cada ideia entra uma vez só no estudo: frase igual ou com as mesmas palavras principais
+  const usedTexts: string[] = [];
+  const weight = ideaWeight(r);
+  const used = { has: (t: string) => usedTexts.some((u) => sameIdea(u, t, weight)), add: (t: string) => void usedTexts.push(t) };
   const take = (p?: Picked) => {
-    if (p) used.add(fold(p.text));
+    if (p) used.add(p.text);
     return p;
   };
-  const fresh = (list: Picked[]) => list.find((p) => !used.has(fold(p.text)));
+  const fresh = (list: Picked[]) => list.find((p) => !used.has(p.text));
 
   // a introdução (ou prefácio, apresentação) é onde o autor diz o propósito do livro
   const intro = sections.slice(0, 3).find((s) => INTRO_TITLE.test(cleanTitle(s.section.title)));
@@ -361,10 +374,10 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
     ? undefined
     : take(introRanked.find((p) => p.score >= 1) ?? allRanked.find((p) => p.s.highlights.length && p.score >= 2) ?? allRanked[0]);
   const thesis = concise(material.centralIdea.trim() || thesisPick?.text || '', 30);
-  used.add(fold(thesis));
+  used.add(thesis);
 
   // o objetivo: a frase da introdução em que o autor diz para que escreveu
-  const objectivePick = intro ? take(sectionSentences(intro).filter((x) => PURPOSE.test(x) && !x.endsWith('?') && !used.has(fold(x))).map((text) => ({ text, s: intro, score: 0 }))[0]) : undefined;
+  const objectivePick = intro ? take(sectionSentences(intro).filter((x) => PURPOSE.test(x) && !x.endsWith('?') && !used.has(x)).map((text) => ({ text, s: intro, score: 0 }))[0]) : undefined;
   const objective = objectivePick ? concise(objectivePick.text) : '';
 
   // a síntese: a introdução, depois o meio e o fim do livro, uma frase de cada
@@ -393,43 +406,6 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
       section: (best?.s ?? rep).section.title,
       origin: 'texto' as BriefOrigin,
     };
-  });
-
-  // o mapa: um ramo por parte (introdução e capítulos); as folhas são o melhor de cada uma
-  const branches = groupsOf(sections, MAX_PARTS).map((g) => {
-    const ranked = rankSentences(g, keys);
-    const rep = representative(g, ranked);
-    const summaryPick = ranked[0];
-    const leaves: StudyBrief['branches'][number]['leaves'] = [];
-    const seen = new Set<string>();
-    const seenDetail = new Set<string>(summaryPick ? [fold(concise(summaryPick.text))] : []);
-    const push = (label: string, detail: string, kind: BriefLeafKind, ref?: string) => {
-      const k = fold(label);
-      const d = fold(detail);
-      if (!label || !detail || seen.has(k) || seenDetail.has(d) || leaves.length >= L.leaves) return;
-      seen.add(k);
-      seenDetail.add(d);
-      leaves.push({ label, detail, ref, kind });
-    };
-    // de cada parte: os versículos mais citados (concretos, primeiro), as ideias mais fortes,
-    // um conceito e uma pergunta
-    for (const label of topRefs(g, 2)) {
-      const s = g.find((x) => x.references.some((ref) => ref.label === label))!;
-      const ref = s.references.find((x) => x.label === label)!;
-      push(label, concise(contextOf(s, ref)) || label, 'versiculo', label);
-    }
-    for (const p of ranked.slice(1, 3)) push(leafLabel(p.text, keys), concise(p.text), 'ideia');
-    // definições que falam do assunto do livro primeiro
-    const defScore = (d: { term: string; meaning: string }) => sentenceScore(`${d.term} é ${d.meaning}`, keys, false);
-    const defs = g.flatMap((s) => s.definitions).sort((a, b) => defScore(b) - defScore(a));
-    for (const d of defs.slice(0, 1)) push(shortLabel(d.term, 3), concise(d.meaning), 'conceito');
-    const question = g.flatMap((s) => s.questions)[0];
-    if (question) push(shortLabel(question.replace(/\?$/, ''), 5) + '?', question, 'pergunta');
-    // sobrou lugar: mais uma ideia forte
-    for (const p of ranked.slice(3, 8)) push(leafLabel(p.text, keys), concise(p.text), 'ideia');
-    // parte curta: as frases que restam (sem perguntas), para o ramo não ficar vazio
-    if (leaves.length < 2) for (const x of g.flatMap(sectionSentences).filter((t) => !t.endsWith('?'))) push(leafLabel(x, keys), concise(x), 'ideia');
-    return { label: groupName(g, rep, r), summary: summaryPick ? concise(summaryPick.text) : keyOf(rep), leaves, section: rep.section.title };
   });
 
   // as verdades: a melhor de cada trecho do livro (do começo ao fim)
@@ -481,6 +457,7 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
       const d = g.flatMap((s) => s.definitions)[0];
       const principle = p ? concise(p.text) : d ? concise(`${d.term}: ${d.meaning}`) : '';
       if (p) take(p);
+      else if (principle) used.add(principle);
       return { principle, base: topRefs(g, 1)[0] ?? '', application: applications[i] ?? '', origin: 'texto' as BriefOrigin };
     })
     .filter((row) => row.principle);
@@ -490,6 +467,59 @@ export function buildBriefByRules(material: Material, reading?: MaterialReading,
     .map((g) => take(fresh(rankSentences(g, keys).filter((x) => x.score >= 0.6))))
     .filter((p): p is Picked => !!p)
     .map((p) => concise(p.text));
+
+  // o mapa por último: um ramo por parte, com o que ainda não apareceu nas outras camadas
+  // (Captar, DNA e os cartões têm prioridade; o mapa aprofunda, não repete)
+  const branches = groupsOf(sections, MAX_PARTS).map((g) => {
+    const ranked = rankSentences(g, keys);
+    const rep = representative(g, ranked);
+    // o resumo do ramo é outra frase da parte (a melhor já foi para a progressão)
+    const summaryPick = take(fresh(ranked));
+    const leaves: StudyBrief['branches'][number]['leaves'] = [];
+    const seen = new Set<string>();
+    const push = (label: string, detail: string, kind: BriefLeafKind, ref?: string) => {
+      const k = fold(label);
+      if (!label || !detail || seen.has(k) || leaves.length >= L.leaves) return false;
+      if (kind !== 'versiculo' && used.has(detail)) return false;
+      seen.add(k);
+      used.add(detail);
+      leaves.push({ label, detail, ref, kind });
+      return true;
+    };
+    // de cada parte: os versículos mais citados (concretos, primeiro), as ideias mais fortes,
+    // um conceito e uma pergunta
+    for (const label of topRefs(g, 2)) {
+      const s = g.find((x) => x.references.some((ref) => ref.label === label))!;
+      const ref = s.references.find((x) => x.label === label)!;
+      const ctx = concise(contextOf(s, ref));
+      // a frase do versículo já apareceu? o versículo fica, sem repetir a frase
+      push(label, ctx && !used.has(ctx) ? ctx : `${label}: versículo citado em “${cleanTitle(s.section.title)}”.`, 'versiculo', label);
+    }
+    // só frases que se sustentam sozinhas: melhor um ramo com menos itens do que com pedaços
+    const good = ranked.filter((p) => p.score >= 0.8 && /^\p{Lu}/u.test(p.text) && !DEPENDENT.test(p.text) && wordCount(p.text) >= 8);
+    let ideas = 0;
+    for (const p of good) {
+      if (ideas >= 2) break;
+      if (push(leafLabel(p.text, keys), concise(p.text), 'ideia')) ideas++;
+    }
+    // definições que falam do assunto do livro primeiro
+    const defScore = (d: { term: string; meaning: string }) => sentenceScore(`${d.term} é ${d.meaning}`, keys, false);
+    const defs = g.flatMap((s) => s.definitions).sort((a, b) => defScore(b) - defScore(a));
+    for (const d of defs.slice(0, 1)) push(shortLabel(d.term, 3), concise(d.meaning), 'conceito');
+    // perguntas retóricas curtas ("Que diremos?") não ajudam a refletir
+    const question = g.flatMap((s) => s.questions).find((q) => wordCount(q) >= 5);
+    if (question) push(wordCount(question) <= 8 ? question : `${shortLabel(question.replace(/\?$/, ''), 6)}?`, question, 'pergunta');
+    // sobrou lugar: mais uma ideia forte
+    for (const p of good) if (push(leafLabel(p.text, keys), concise(p.text), 'ideia') && leaves.length >= 4) break;
+    // parte curta: as frases que restam e se sustentam sozinhas, para o ramo não ficar vazio
+    if (leaves.length < 2)
+      for (const x of g.flatMap(sectionSentences).filter((t) => !t.endsWith('?') && /^\p{Lu}/u.test(t) && !DEPENDENT.test(t) && wordCount(t) >= 6)) push(leafLabel(x, keys), concise(x), 'ideia');
+    // sem frase nova para o resumo: os temas da parte, em vez de repetir uma frase já mostrada
+    const name = groupName(g, rep, r);
+    const theme = themeOf(g, r);
+    const summary = summaryPick ? concise(summaryPick.text) : theme && fold(theme) !== fold(name) ? `Temas: ${theme.charAt(0).toLowerCase()}${theme.slice(1)}.` : '';
+    return { label: name, summary, leaves, section: rep.section.title };
+  });
 
   // perguntas: uma de cada trecho do livro
   const questions = groupsOf(sections.filter((s) => s.questions.length), L.questions).map((g) => g.flatMap((s) => s.questions)[0]);
@@ -617,7 +647,7 @@ export function buildBriefPrompt(material: Material): string {
     '- textoBase: as referências bíblicas principais do material;',
     `- verdades: as ${L.truths} principais verdades, no máximo, cada uma em uma frase de até 18 palavras;`,
     `- progressao: de 3 a ${L.steps} etapas que mostram a LINHA DE RACIOCÍNIO do material (causa e efeito, não um índice de capítulos). Cada etapa: "etapa" com 2 a 5 palavras, a "pergunta" que ela responde, a "explicacao" em uma frase de até 20 palavras (sem repetir a pergunta) e a "ligacao" com a próxima etapa (um verbo ou expressão curta, como "alimenta", "gera", "permite", "resulta em"; vazio na última);`,
-    `- ramos: de 3 a ${L.branches} ramos do mapa mental, do conflito ou problema à solução. "rotulo" com 1 a 3 palavras; "resumo" em uma frase de até 15 palavras; até ${L.leaves} "folhas" com rótulo de 1 a 3 palavras, "detalhe" em uma frase de até 20 palavras e "tipo" (ideia, versiculo, conceito ou pergunta) — misture os tipos quando o texto permitir;`,
+    `- ramos: o mapa mental com UM ramo para CADA parte do material (cada "##"), na ordem (até ${MAX_TURNS}). "secao" com o título exato da parte; "rotulo" com o tema da parte em 2 a 5 palavras; "resumo" em uma frase de até 15 palavras, diferente da explicação da progressão; até ${L.leaves} "folhas" com rótulo de 1 a 3 palavras, "detalhe" em uma frase de até 20 palavras e "tipo" (ideia, versiculo, conceito ou pergunta) — misture os tipos quando o texto permitir;`,
     `- cartoes: até ${L.cardsPerKind} de cada tipo, sem repetir o que já está nas etapas: "biblico" (frente = referência, verso = a verdade central do texto, extra = relação com a mensagem); "principio" (frente = o princípio, verso = explicação breve, extra = implicação); "conexao" (frente = "conceito ou texto A → conceito ou texto B", verso = a explicação da relação); "revisao" (frente = pergunta objetiva, verso = resposta curta, referencia quando houver);`,
     `- dna: tese, até 3 convicções, uma matriz de até ${L.dnaRows} linhas (principio = o quê; base = a referência bíblica, onde; aplicacao = como) e o resultado esperado;`,
     `- aplicacoes: até ${L.applications} aplicações práticas; perguntas: até ${L.questions} perguntas para reflexão ou grupo.`,
@@ -627,7 +657,7 @@ export function buildBriefPrompt(material: Material): string {
     '- "origem": "texto" quando o item está dito no material; "ia" quando é uma inferência sua. Seja honesto nessa marcação.',
     '- "secao": o título exato da parte do material de onde o item vem (como aparece depois de "##").',
     '- Referências bíblicas: use SOMENTE as que aparecem no material, escritas como "Livro capítulo:versículo". Não invente citações, autores nem fontes.',
-    '- Enxuto: o leitor deve ler cada quadro de relance. Selecione o essencial; não resuma tudo. Frases completas, curtas e claras. Nunca use reticências nem corte frases. Não repita o mesmo conteúdo em lugares diferentes.',
+    '- Enxuto: o leitor deve ler cada quadro de relance. Selecione o essencial; não resuma tudo. Frases completas, curtas e claras. Nunca use reticências nem corte frases. Não repita a mesma ideia em lugares diferentes, nem com outras palavras: tese, verdades, etapas, ramos, folhas, cartões e DNA trazem cada um algo novo; se a ideia já apareceu, escolha outra ou deixe de fora.',
     '',
     'MATERIAL:',
     text,
@@ -681,7 +711,7 @@ export function parseBriefAnswer(raw: string): Omit<StudyBrief, 'source' | 'crea
       .map((p) => ({ title: str(p.etapa), question: str(p.pergunta), explanation: str(p.explicacao), link: str(p.ligacao), refs: arr(p.referencias), section: str(p.secao), origin: origin(p.origem) }))
       .filter((p) => p.title),
     branches: objs(d.ramos)
-      .slice(0, L.branches)
+      .slice(0, MAX_TURNS)
       .map((b) => ({
         label: str(b.rotulo),
         summary: str(b.resumo),
@@ -709,6 +739,32 @@ export function parseBriefAnswer(raw: string): Omit<StudyBrief, 'source' | 'crea
   };
 }
 
+/**
+ * Revisão final de repetições (item 4 do prompt de aprimoramento): a mesma
+ * ideia, mesmo com outras palavras, fica só no primeiro lugar em que aparece,
+ * na ordem de importância (tese, progressão, DNA, verdades, cartões, mapa).
+ * A IA às vezes repete apesar do pedido; as regras já evitam ao escolher.
+ */
+export function removeRepeats<T extends Omit<StudyBrief, 'source' | 'createdAt' | 'model'>>(b: T): T {
+  const seen: string[] = [b.thesis];
+  const fresh = (t: string) => {
+    if (!t || seen.some((x) => sameIdea(x, t))) return false;
+    seen.push(t);
+    return true;
+  };
+  const steps = b.steps.map((st) => ({ ...st, explanation: fresh(st.explanation) ? st.explanation : '' }));
+  const rows = b.dna.rows.filter((row) => fresh(row.principle));
+  const truths = b.truths.filter((t) => fresh(t.text));
+  const convictions = b.dna.convictions.filter((c) => fresh(c));
+  const cards = b.cards.filter((c) => (c.kind === 'principio' ? fresh(c.front) : c.kind === 'biblico' ? fresh(c.back) : true));
+  const branches = b.branches.map((br) => ({
+    ...br,
+    summary: fresh(br.summary) ? br.summary : '',
+    leaves: br.leaves.filter((l) => l.kind === 'versiculo' || l.ref || fresh(l.detail)),
+  }));
+  return { ...b, steps, truths, cards, branches, dna: { ...b.dna, rows, convictions } };
+}
+
 /** A IA monta a estrutura do material inteiro (uma chamada). */
 export async function buildBriefWithAi(material: Material, opts: { signal?: AbortSignal; fetchImpl?: typeof fetch } = {}): Promise<StudyBrief> {
   if (!material.sections.some((s) => s.text.trim())) throw new Error('Não há texto para estudar.');
@@ -716,7 +772,7 @@ export async function buildBriefWithAi(material: Material, opts: { signal?: Abor
   let model = '';
   const answer = await withModel(opts, (config) => {
     model = config.model;
-    return callGemini(prompt, config, BRIEF_SCHEMA, opts).then(parseBriefAnswer);
+    return callGemini(prompt, config, BRIEF_SCHEMA, opts).then((raw) => removeRepeats(parseBriefAnswer(raw)));
   });
   return { ...answer, source: 'ia', model, createdAt: now() };
 }
@@ -773,4 +829,22 @@ export function currentBrief(material: Material, reading?: MaterialReading, acti
   const brief = buildBriefByRules(material, reading, actions);
   RULES_CACHE.set(reading, { key, brief });
   return brief;
+}
+
+/**
+ * A virada de cada capítulo dentro da etapa dele (Compreender): sem uma lista
+ * à parte repetindo os mesmos capítulos. `same`: a virada é a própria frase da
+ * etapa — basta marcar a etapa, sem escrever de novo. `rest`: viradas de
+ * partes que não viraram etapa (com a IA, as etapas são a linha de raciocínio).
+ */
+export function turnsInSteps(brief: StudyBrief): { inline: Array<{ turn: BriefChapterTurn; same: boolean } | undefined>; rest: BriefChapterTurn[] } {
+  const turns = brief.chapterTurns ?? [];
+  const inline = brief.steps.map((st) => {
+    const turn = turns.find((t) => t.section === st.section);
+    // a virada que é a própria tese já está em Captar: não repete aqui
+    if (!turn || sameIdea(turn.turn, brief.thesis)) return undefined;
+    return { turn, same: sameIdea(turn.turn, st.explanation) };
+  });
+  const inSteps = new Set(brief.steps.map((st) => st.section));
+  return { inline, rest: turns.filter((t) => !inSteps.has(t.section) && !sameIdea(t.turn, brief.thesis)) };
 }
