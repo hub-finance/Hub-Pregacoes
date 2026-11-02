@@ -63,3 +63,19 @@ o usuário: **uma etapa por dia**, testada e publicada.
 8. **Qualidade e homologação** (era a etapa 4): nota por material, testes com
    livros de tamanhos e formatos diferentes.
 9. Opcional, por decisão: servidor para a chave, contas e OCR.
+
+## Andamento
+
+Decisões do usuário (02/11): sem questionários, sem chat com o livro; tudo
+continua no aparelho (sem servidor e sem contas).
+
+- **Feito — Modalidades de resumo** (`core/summaryModes.ts`, aba Resumo
+  completo): executivo, essencial, aprofundado, analítico e por capítulo;
+  profundidade breve/normal/completo; tipo de estudo (muda o método da IA).
+  Sem IA, frases do próprio texto e nenhuma ideia repetida entre os blocos;
+  com IA, um pedido próprio por modalidade, guardado em `material.summaries`.
+  Word, PDF, .md e "salvar como novo material".
+- Próximas (uma por dia): gerador de documentos (apostila, fichamento, roteiro
+  de aula, estudo bíblico, devocional; DOCX e PPTX) → motor de IA (prompts,
+  modelo por tarefa, registro de uso) → visual + painel → biblioteca (PPTX,
+  pesquisa no conteúdo, pastas, arquivar) → qualidade e homologação.

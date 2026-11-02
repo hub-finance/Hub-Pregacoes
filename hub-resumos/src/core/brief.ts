@@ -171,7 +171,7 @@ export function groupsOf<T>(items: T[], n: number): T[][] {
 }
 
 /** Frases que dependem da anterior para fazer sentido ("Isso…", "Ele…") não servem sozinhas. */
-const DEPENDENT = /^(isso|isto|aquilo|esse|essa|esses|essas|este|esta|estes|estas|ele|ela|eles|elas|assim|também|além disso|por isso|portanto|então|e|mas|ou|aqui|ali|nesse|nessa|neste|nesta|dessa|desse|disso|porque|pois|porquanto|ora|porém|logo|daí|dessa forma|desta forma|de modo|de sorte|pelo que|o qual|a qual|os quais|como está escrito|como diz|e ainda|pergunto)\b/i;
+export const DEPENDENT = /^(isso|isto|aquilo|esse|essa|esses|essas|este|esta|estes|estas|ele|ela|eles|elas|assim|também|além disso|por isso|portanto|então|e|mas|ou|aqui|ali|nesse|nessa|neste|nesta|dessa|desse|disso|porque|pois|porquanto|ora|porém|logo|daí|dessa forma|desta forma|de modo|de sorte|pelo que|o qual|a qual|os quais|como está escrito|como diz|e ainda|pergunto)\b/i;
 const GREETING = /\b(sa[uú]da[mi]?|sa[uú]dem|seja convosco|sejam convosco|com todos v[oó]s|am[eé]m\.?$|um abra[cç]o|obrigad[oa] pela|bem-vindos?)\b/i;
 
 /**
@@ -195,7 +195,7 @@ function sentenceScore(x: string, keys: Set<string>, highlight: boolean): number
   return score;
 }
 
-interface Picked {
+export interface Picked {
   text: string;
   s: SectionReading;
   score: number;
@@ -217,7 +217,7 @@ function rankSection(s: SectionReading, keys: Set<string>): Picked[] {
 }
 
 /** As melhores frases de um bloco de capítulos, da melhor para a pior. */
-function rankSentences(group: SectionReading[], keys: Set<string>): Picked[] {
+export function rankSentences(group: SectionReading[], keys: Set<string>): Picked[] {
   return group.flatMap((s) => rankSection(s, keys)).sort((a, b) => b.score - a.score);
 }
 
@@ -327,7 +327,7 @@ function rangeLabel(group: SectionReading[], all: SectionReading[]): string {
 }
 
 const KEYS = new WeakMap<MaterialReading, Set<string>>();
-function keySetOf(r: MaterialReading): Set<string> {
+export function keySetOf(r: MaterialReading): Set<string> {
   let k = KEYS.get(r);
   if (!k) KEYS.set(r, (k = new Set(r.keywords.map((x) => fold(x.word.toLowerCase())))));
   return k;

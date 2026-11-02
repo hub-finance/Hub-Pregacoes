@@ -58,6 +58,8 @@ export interface Material {
    * marcados como feitos pela IA.
    */
   ai?: Record<string, AiSummary>;
+  /** Resumos por modalidade feitos pela IA, guardados por "modalidade|tipo|profundidade". */
+  summaries?: Record<string, ModeSummary>;
   /** A estrutura única do estudo, da qual saem as 4 camadas e o DNA. */
   brief?: StudyBrief;
   createdAt: number;
@@ -77,6 +79,31 @@ export interface AiSummary {
   /** Qual IA e qual modelo escreveram, para ficar registrado. */
   provider: 'gemini';
   model: string;
+  createdAt: number;
+}
+
+/** As modalidades de resumo do Prompt Mestre (item 2). */
+export type SummaryMode = 'executivo' | 'essencial' | 'aprofundado' | 'analitico' | 'capitulos';
+/** A finalidade do estudo: muda linguagem e método da IA (item 4). */
+export type StudyKind = 'biblico' | 'didatico' | 'academico' | 'profissional' | 'treinamento' | 'pessoal' | 'tecnico';
+export type SummaryDepth = 'breve' | 'normal' | 'completo';
+
+/** Um bloco do resumo: título, texto e/ou lista; os capítulos têm partes dentro. */
+export interface ModeBlock {
+  heading: string;
+  text?: string;
+  items?: string[];
+  section?: string;
+  parts?: ModeBlock[];
+}
+
+export interface ModeSummary {
+  mode: SummaryMode;
+  kind: StudyKind;
+  depth: SummaryDepth;
+  blocks: ModeBlock[];
+  source: 'ia' | 'regras';
+  model?: string;
   createdAt: number;
 }
 
