@@ -77,13 +77,13 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
   {
     id: 'resumo',
     title: 'Resumo completo',
-    what: 'Dois resumos: o da IA (opcional, com as próprias palavras) e o feito só com as frases do próprio texto, sem IA.',
+    what: 'Cinco modalidades de resumo: Executivo (tema, objetivo, ideias, conclusão e aplicação), Essencial (só o indispensável), Aprofundado (cada parte explicada), Analítico (tese, estrutura do argumento, fundamentos, implicações, pontos fortes e limitações) e Por capítulo (respeita a ordem do livro).',
     how: [
-      'Com IA: ligue o Gemini em Dados e ajustes (uma vez). Escolha o livro inteiro ou um capítulo e toque em “Resumir com IA”, ou resuma todos os capítulos de uma vez. Vem resumo, ideias principais, aplicações, perguntas e conceitos, marcado como “feito pela IA”.',
-      'As aplicações da IA podem ir para o plano de ação; o resumo de cada capítulo aparece também no Passo a passo.',
-      'Sem IA: escolha curto, médio ou longo; “Salvar como novo resumo” cria um material do tipo resumo para você completar.',
+      'Escolha a modalidade, a profundidade (breve, normal ou completo) e o tipo de estudo (bíblico e teológico, didático, acadêmico…).',
+      'Sem IA, o resumo é feito com frases do próprio texto, sem repetir ideias. Com a IA, “Gerar com IA” escreve a modalidade com o método do tipo de estudo; fica guardado e marcado como feito pela IA.',
+      'No fim da página fica o resumo da IA por capítulo, que aparece também no Passo a passo.',
     ],
-    files: 'Texto (.md) e cópia, dos dois resumos.',
+    files: 'Word (.doc), PDF (pela impressão), texto (.md) e “Salvar como novo material”.',
   },
   {
     id: 'editar',

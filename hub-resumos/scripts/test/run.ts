@@ -6,6 +6,7 @@ import { suggestCards, addCards, answerCard, schedule } from '../../src/core/car
 import { suggestActions, addActions, listActions } from '../../src/core/actions';
 import { extractiveSummary } from '../../src/core/summary';
 import { buildStudyMap } from '../../src/core/studyMap';
+import { buildModeByRules, buildModePrompt, buildModeWithAi, modeMarkdown, modeWordHtml, parseModeAnswer, saveModeSummary, summaryKey } from '../../src/core/summaryModes';
 import { directionalMapHtml } from '../../src/features/layers/mapHtml';
 import { docxToText, readHubBackup } from '../../src/core/importers';
 import { createMaterial, deleteMaterial, getProgress, progressRatio, resplitMaterial, setStepDone } from '../../src/core/materials';
@@ -17,7 +18,7 @@ import { briefWordHtml } from '../../src/core/briefDoc';
 import { aiChapterTitles, askGemini, buildPrompt, getGeminiConfig, parseAiAnswer, pickFlashModel, removeAiSummary, summarizeWithAi, testGeminiKey, WHOLE } from '../../src/core/ai';
 import { setSetting } from '../../src/core/db';
 import { db } from '../../src/core/db';
-import type { Card } from '../../src/core/types';
+import type { Card, ModeBlock } from '../../src/core/types';
 
 let passed = 0;
 let failed = 0;
@@ -593,6 +594,53 @@ await test('IA: a revisão final tira a mesma ideia repetida em outra camada', (
     dna: { ...base.dna, convictions: ['A fé vem pelo ouvir a Palavra de Cristo!'] },
   });
   assert(b.truths.length === 1 && b.truths[0].text.startsWith('A fé') && b.dna.convictions.length === 0, JSON.stringify([b.truths, b.dna.convictions]));
+});
+
+await test('modalidades de resumo: executivo, essencial, aprofundado, analítico e por capítulo', async () => {
+  const ex = await createExampleMaterial();
+  const r = readMaterial(ex);
+  for (const mode of ['executivo', 'essencial', 'aprofundado', 'analitico', 'capitulos'] as const) {
+    const s = buildModeByRules(ex, mode, 'normal', r);
+    assert(s.blocks.length > 0 && s.source === 'regras', `${mode}: vazio`);
+    assert(!JSON.stringify(s).includes('…'), `${mode}: reticências`);
+  }
+  // executivo: os cinco blocos do prompt, na ordem
+  const exec = buildModeByRules(ex, 'executivo', 'normal', r);
+  assert(exec.blocks.map((b) => b.heading).join('|').startsWith('Tema central'), exec.blocks.map((b) => b.heading).join('|'));
+  assert(exec.blocks.some((b) => b.heading === 'Aplicação prática' && b.items?.length), 'aplicação');
+  // por capítulo: respeita a ordem e a quantidade de partes do material
+  const cap = buildModeByRules(ex, 'capitulos', 'completo', r);
+  assert(cap.blocks.map((b) => b.section).join('|') === ex.sections.map((x) => x.title).join('|'), cap.blocks.map((b) => b.section).join('|'));
+  assert(cap.blocks.every((b) => b.parts?.some((p) => p.heading === 'Ideia central')), 'ideia central em cada capítulo');
+  // profundidade: o breve tem menos que o completo
+  const count = (x: ReturnType<typeof buildModeByRules>) => JSON.stringify(x.blocks).length;
+  assert(count(buildModeByRules(ex, 'aprofundado', 'breve', r)) < count(buildModeByRules(ex, 'aprofundado', 'completo', r)), 'profundidade');
+  // nada repetido dentro de uma lista
+  for (const b of buildModeByRules(ex, 'aprofundado', 'completo', r).blocks)
+    for (const p of b.parts ?? []) assert(new Set(p.items ?? []).size === (p.items ?? []).length, `${b.heading}/${p.heading} repetido`);
+  // nenhuma ideia repetida entre os blocos de um mesmo resumo
+  for (const mode of ['executivo', 'capitulos', 'aprofundado'] as const) {
+    const flat = (b: ModeBlock): string[] => [b.text ?? '', ...(b.items ?? []), ...(b.parts ?? []).flatMap(flat)].filter(Boolean);
+    const all = buildModeByRules(ex, mode, 'completo', r).blocks.flatMap(flat);
+    const dup = all.filter((a, i) => all.slice(i + 1).some((c) => sameIdea(a, c)));
+    assert(!dup.length, `${mode}: ${dup.join(' | ')}`);
+  }
+  // exportação
+  assert(modeMarkdown(ex.title, exec).includes('## Tema central') && modeWordHtml(ex.title, ex.author, exec).includes('urn:schemas-microsoft-com:office:word'), 'exportação');
+  // IA: pedido próprio da modalidade e do tipo de estudo; resposta lida e guardada
+  const prompt = buildModePrompt(ex, 'analitico', 'didatico', 'breve');
+  assert(/RESUMO ANALÍTICO/.test(prompt) && /material didático/.test(prompt) && /BREVE/.test(prompt) && prompt.includes('## A compaixão que age'), 'pedido');
+  const answer = { blocos: [{ titulo: 'Tese principal', texto: 'Amar é agir…' }, { titulo: 'Pontos fortes', itens: ['Clareza', ''] }, { titulo: 'Vazio' }] };
+  const blocks = parseModeAnswer(JSON.stringify(answer));
+  assert(blocks.length === 2 && blocks[0].text === 'Amar é agir' && blocks[1].items?.length === 1, JSON.stringify(blocks));
+  await setSetting('geminiKey', 'chave-teste');
+  const fake = (async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(answer) }] } }] }), { status: 200 })) as unknown as typeof fetch;
+  const ai = await buildModeWithAi(ex, 'analitico', 'didatico', 'breve', { fetchImpl: fake });
+  await saveModeSummary(ex.id, ai, summaryKey('analitico', 'didatico', 'breve'));
+  const back = await db.materials.get(ex.id);
+  assert(back?.summaries?.['analitico|didatico|breve']?.source === 'ia' && back.sections.length === ex.sections.length, 'guardado sem mexer no texto');
+  await setSetting('geminiKey', '');
+  await deleteMaterial(ex.id);
 });
 
 await test('estrutura do estudo: IA — pedido, leitura, limites e conferência dos versículos', async () => {

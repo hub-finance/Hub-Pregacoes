@@ -1371,3 +1371,34 @@ button.xr-stat {
 .xr-flow-vline .xr-origin {
   margin-left: 6px;
 }
+
+/* ---------- resumo completo: modalidades ---------- */
+.chip-row.xr-wrap {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+.xr-mode {
+  gap: var(--sp-3);
+  max-width: 78ch;
+}
+.xr-mode-block {
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--border);
+}
+.xr-mode-block:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+.xr-mode-block.is-part {
+  border-top: 0;
+  padding: 0 0 0 var(--sp-3);
+  border-left: 3px solid var(--border-strong);
+}
+.xr-mode-h {
+  margin: 0;
+  font-size: 1.05rem;
+}
+h4.xr-mode-h {
+  font-size: 0.92rem;
+  color: var(--text-2);
+}
