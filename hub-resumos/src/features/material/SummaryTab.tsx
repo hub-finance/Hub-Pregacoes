@@ -22,16 +22,16 @@ import {
 } from '../../core/summaryModes';
 import type { MaterialReading } from '../../core/text';
 import type { ActionItem, Material, ModeBlock, StudyKind, SummaryDepth, SummaryMode } from '../../core/types';
-import { SeeInText } from '../layers/common';
+import { OriginBadge, SeeInText } from '../layers/common';
 import { AiPanel } from './AiPanel';
 import { WithRefs } from './RichText';
 
 const PREF = 'hub-resumos:resumo-preferencias';
 function loadPref(): { mode: SummaryMode; kind: StudyKind; depth: SummaryDepth } {
   try {
-    return { mode: 'executivo', kind: 'biblico', depth: 'normal', ...JSON.parse(localStorage.getItem(PREF) ?? '{}') };
+    return { mode: 'estudo', kind: 'biblico', depth: 'normal', ...JSON.parse(localStorage.getItem(PREF) ?? '{}') };
   } catch {
-    return { mode: 'executivo', kind: 'biblico', depth: 'normal' };
+    return { mode: 'estudo', kind: 'biblico', depth: 'normal' };
   }
 }
 
@@ -85,14 +85,14 @@ export function SummaryTab({ material, reading }: { material: Material; reading:
     try {
       const s = await buildModeWithAi(material, mode, kind, depth, { signal: abort.current.signal });
       await saveModeSummary(material.id, s, key);
-      notify(`A IA escreveu o resumo ${MODE_LABEL[mode].toLowerCase()}. Revise antes de usar.`);
+      notify(`A IA escreveu: ${modeTitle(mode).toLowerCase()}. Revise antes de usar.`);
     } catch (err) {
       if ((err as Error).name !== 'AbortError') notify((err as Error).message, 'error');
     } finally {
       setBusy(false);
     }
   };
-  const fileName = `${safeName(material.title)} - resumo ${MODE_LABEL[mode].toLowerCase()}`;
+  const fileName = `${safeName(material.title)} - ${modeTitle(mode).toLowerCase()}`;
 
   return (
     <div className="stack">
@@ -198,7 +198,7 @@ export function SummaryTab({ material, reading }: { material: Material; reading:
 
       <article className="card stack xr-mode">
         <h2 className="xr-h2" style={{ margin: 0 }}>
-          Resumo {MODE_LABEL[mode].toLowerCase()} · {DEPTH_LABEL[summary.depth].toLowerCase()}
+          {modeTitle(mode)} · {DEPTH_LABEL[summary.depth].toLowerCase()}
         </h2>
         {summary.blocks.map((b, i) => (
           <BlockView key={i} block={b} material={material} level={3} />
@@ -210,7 +210,7 @@ export function SummaryTab({ material, reading }: { material: Material; reading:
           className="btn"
           onClick={async () => {
             const m = await createMaterial({
-              title: `Resumo ${MODE_LABEL[mode].toLowerCase()} — ${material.title}`,
+              title: `${modeTitle(mode)} — ${material.title}`,
               kind: 'resumo',
               author: material.author,
               sections: summary.blocks.map((b) => ({ title: b.heading, text: blockText(b) })),
@@ -232,6 +232,9 @@ export function SummaryTab({ material, reading }: { material: Material; reading:
   );
 }
 
+/** "Estudo completo" já é o nome; as outras são "Resumo executivo", "Resumo por capítulo"… */
+const modeTitle = (m: SummaryMode) => (m === 'estudo' ? MODE_LABEL[m] : `Resumo ${MODE_LABEL[m].toLowerCase()}`);
+
 function blockText(b: ModeBlock): string {
   return [b.text ?? '', ...(b.items ?? []).map((x) => `- ${x}`), ...(b.parts ?? []).flatMap((p) => [`> ${p.heading}`, blockText(p)])].filter(Boolean).join('\n');
 }
@@ -240,7 +243,9 @@ function BlockView({ block, material, level }: { block: ModeBlock; material: Mat
   const H = `h${level}` as const;
   return (
     <section className={`stack xr-mode-block${level === 4 ? ' is-part' : ''}`} style={{ gap: 6 }}>
-      <H className="xr-mode-h">{block.heading}</H>
+      <H className="xr-mode-h">
+        {block.heading} {block.origin && <OriginBadge origin={block.origin} />}
+      </H>
       {block.text && (
         <p className="xr-p" style={{ margin: 0 }}>
           <WithRefs text={block.text} />

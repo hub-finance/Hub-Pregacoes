@@ -83,7 +83,7 @@ export interface AiSummary {
 }
 
 /** As modalidades de resumo do Prompt Mestre (item 2). */
-export type SummaryMode = 'executivo' | 'essencial' | 'aprofundado' | 'analitico' | 'capitulos';
+export type SummaryMode = 'estudo' | 'executivo' | 'essencial' | 'aprofundado' | 'analitico' | 'capitulos';
 /** A finalidade do estudo: muda linguagem e método da IA (item 4). */
 export type StudyKind = 'biblico' | 'didatico' | 'academico' | 'profissional' | 'treinamento' | 'pessoal' | 'tecnico';
 export type SummaryDepth = 'breve' | 'normal' | 'completo';
@@ -91,6 +91,8 @@ export type SummaryDepth = 'breve' | 'normal' | 'completo';
 /** Um bloco do resumo: título, texto e/ou lista; os capítulos têm partes dentro. */
 export interface ModeBlock {
   heading: string;
+  /** Com IA: do autor do material, análise da IA ou aplicação da fé. */
+  origin?: BriefOrigin;
   text?: string;
   items?: string[];
   section?: string;
@@ -162,7 +164,8 @@ export interface KeyValue<T = unknown> {
 /* ------------------------- estrutura única do estudo ------------------------ */
 
 /** De onde veio o item: dito no texto, ou inferência feita pela IA. */
-export type BriefOrigin = 'texto' | 'ia';
+/** De onde vem cada item: o autor do material, a análise da IA ou a aplicação pela Palavra da Fé. */
+export type BriefOrigin = 'texto' | 'ia' | 'fe';
 
 export interface BriefStep {
   /** 2 a 5 palavras: "A fonte da visão". */

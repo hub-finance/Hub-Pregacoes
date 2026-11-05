@@ -77,7 +77,7 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
   {
     id: 'resumo',
     title: 'Resumo completo',
-    what: 'Cinco modalidades de resumo: Executivo (tema, objetivo, ideias, conclusão e aplicação), Essencial (só o indispensável), Aprofundado (cada parte explicada), Analítico (tese, estrutura do argumento, fundamentos, implicações, pontos fortes e limitações) e Por capítulo (respeita a ordem do livro).',
+    what: 'Seis modalidades de resumo: Estudo completo (ideia central, contexto, desenvolvimento, princípios, conexões, aplicações e síntese final), Executivo (tema, objetivo, ideias, conclusão e aplicação), Essencial (só o indispensável), Aprofundado (cada parte explicada), Analítico (tese, estrutura do argumento, fundamentos, implicações, pontos fortes e limitações) e Por capítulo (respeita a ordem do livro).',
     how: [
       'Escolha a modalidade, a profundidade (breve, normal ou completo) e o tipo de estudo (bíblico e teológico, didático, acadêmico…).',
       'Sem IA, o resumo é feito com frases do próprio texto, sem repetir ideias. Com a IA, “Gerar com IA” escreve a modalidade com o método do tipo de estudo; fica guardado e marcado como feito pela IA.',
@@ -95,6 +95,7 @@ export const TAB_HELP: Array<{ id: string; title: string; what: string; how: str
 ];
 
 const FAQ: Array<[string, string]> = [
+  ['Como a IA escreve com a minha linguagem?', 'Em Dados e ajustes › Identidade de linguagem: deixe ligado, escreva o seu nome e marque as suas mensagens, estudos e apostilas como “Este é um escrito meu” (aba Editar de cada material). Com a IA ligada, “Aprender a minha linguagem com IA” lê os seus escritos (os mais recentes pesam mais) e descreve o seu estilo; o senhor revisa e corrige. A partir daí, tudo o que a IA escrever sai na sua voz, pela perspectiva da Palavra da Fé, fiel ao livro e com as três marcas: do texto (o autor escreveu), análise da IA e aplicação da fé. Expressões de texto automático (“É importante destacar que…”, “Em suma…”) são tiradas.'],
   ['O que é o Ponto de inflexão?', 'É a virada da mensagem, o insight supremo: o momento em que a direção muda (do problema para a resposta, da visão antiga para a nova). O geral aparece em Captar e no DNA, em três passos: Antes, A virada e Depois, com o versículo. Cada capítulo também tem a sua virada, em uma frase: em Compreender (“As viradas do livro”), no topo de cada parte do Passo a passo e como ★ no mapa em círculos. Com a IA, ela identifica as viradas lendo o material inteiro. Sem a IA, o app sugere a frase mais provável (com “mas”, “porém”, “até que”, “então”…) e marca como “sugestão”: confirme ou ajuste em Editar.'],
   ['Como excluo um material?', 'Na biblioteca, no cartão do material, toque no ícone de lixeira. Só aquele material sai (com o andamento, os cartões e as ações dele); a biblioteca e os outros materiais continuam. Também dá para excluir na aba Editar.'],
   ['Posso baixar o que criei e usar de novo?', 'Sim. No cartão do material, o ícone de baixar gera um arquivo .json com o material, o andamento, os cartões e as ações. Para usar de novo (neste ou em outro aparelho), vá em Novo material › Importar arquivo e escolha esse arquivo. Cada visão também tem o seu arquivo: mapa (.html e PNG), quadros (PNG ou .zip), infográfico (PNG), consulta rápida (PDF), resumo (.md).'],

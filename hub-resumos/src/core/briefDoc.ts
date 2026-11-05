@@ -3,7 +3,7 @@ import type { StudyBrief } from './types';
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const list = (items: string[]) => (items.length ? `<ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '');
-const iaMark = (origin: string) => (origin === 'ia' ? ' <span class="ia">(inferência da IA)</span>' : '');
+const iaMark = (origin: string) => (origin === 'ia' ? ' <span class="ia">(análise da IA)</span>' : origin === 'fe' ? ' <span class="ia">(aplicação da fé)</span>' : '');
 
 const CARD_TITLE = { biblico: 'Cartões bíblicos', principio: 'Cartões de princípio', conexao: 'Cartões de conexão', revisao: 'Cartões de revisão' } as const;
 
@@ -62,7 +62,7 @@ ${brief.baseText.length ? `<p><b>Texto-base:</b> <span class="ref">${esc(brief.b
 ${brief.synthesis ? `<p>${esc(brief.synthesis)}</p>` : ''}
 <p class="tese">${esc(brief.thesis)}</p>
 ${brief.objective ? `<p><b>Objetivo:</b> ${esc(brief.objective)}</p>` : ''}
-${brief.truths.length ? `<h3>Principais verdades</h3>${list(brief.truths.map((t) => t.text + (t.origin === 'ia' ? ' (inferência da IA)' : '')))}` : ''}
+${brief.truths.length ? `<h3>Principais verdades</h3>${list(brief.truths.map((t) => t.text + (t.origin === 'ia' ? ' (análise da IA)' : t.origin === 'fe' ? ' (aplicação da fé)' : '')))}` : ''}
 
 ${turnBlock}
 <h2>2. Compreender — progressão do estudo</h2>

@@ -2,6 +2,7 @@ import { suggestActions } from './actions';
 import { callGemini, withModel } from './ai';
 import { findReferences, fold } from './bible';
 import { db, now } from './db';
+import { humanize, voicePrompt } from './voice';
 import { cleanTitle, ideaWords, readMaterial, referenceSentence, sameIdea, sectionSentences, STOPWORDS, sectionKeywords, sentences, type MaterialReading, type SectionReading } from './text';
 import type { ActionItem, BriefCard, BriefChapterTurn, BriefInflection, BriefLeafKind, BriefOrigin, Material, StudyBrief } from './types';
 
@@ -549,7 +550,7 @@ function sectionKeywordsOf(text: string): string {
 
 /* ---------------------------------- IA ---------------------------------- */
 
-const ORIGIN = { type: 'STRING', enum: ['texto', 'ia'] };
+const ORIGIN = { type: 'STRING', enum: ['texto', 'ia', 'fe'] };
 const BRIEF_SCHEMA = {
   type: 'OBJECT',
   properties: {
@@ -632,7 +633,7 @@ const MAX_CHARS = 1_500_000;
 /** Viradas por capítulo: um livro grande tem dezenas de capítulos. */
 const MAX_TURNS = 40;
 
-export function buildBriefPrompt(material: Material): string {
+export function buildBriefPrompt(material: Material, voice = ''): string {
   const L = BRIEF_LIMITS;
   const text = material.sections.map((s) => `## ${s.title}\n${s.text}`).join('\n\n').slice(0, MAX_CHARS);
   return [
@@ -654,10 +655,11 @@ export function buildBriefPrompt(material: Material): string {
     '',
     'Regras:',
     '- Use o material inteiro como fonte; preserve a tese, os argumentos, os versículos e as conexões bíblicas.',
-    '- "origem": "texto" quando o item está dito no material; "ia" quando é uma inferência sua. Seja honesto nessa marcação.',
+    '- "origem": "texto" quando o item está dito no material; "ia" quando é análise ou inferência sua; "fe" quando é aplicação ou conexão pela perspectiva da Palavra da Fé. Seja honesto nessa marcação.',
     '- "secao": o título exato da parte do material de onde o item vem (como aparece depois de "##").',
     '- Referências bíblicas: use SOMENTE as que aparecem no material, escritas como "Livro capítulo:versículo". Não invente citações, autores nem fontes.',
     '- Enxuto: o leitor deve ler cada quadro de relance. Selecione o essencial; não resuma tudo. Frases completas, curtas e claras. Nunca use reticências nem corte frases. Não repita a mesma ideia em lugares diferentes, nem com outras palavras: tese, verdades, etapas, ramos, folhas, cartões e DNA trazem cada um algo novo; se a ideia já apareceu, escolha outra ou deixe de fora.',
+    ...(voice ? [voice] : []),
     '',
     'MATERIAL:',
     text,
@@ -666,7 +668,7 @@ export function buildBriefPrompt(material: Material): string {
 
 const str = (v: unknown) => String(v ?? '').replace(/…|\.{3,}/g, '').trim();
 const arr = (v: unknown): string[] => (Array.isArray(v) ? v.map(str).filter(Boolean) : []);
-const origin = (v: unknown): BriefOrigin => (v === 'texto' ? 'texto' : 'ia');
+const origin = (v: unknown): BriefOrigin => (v === 'texto' ? 'texto' : v === 'fe' ? 'fe' : 'ia');
 const objs = (v: unknown): Array<Record<string, unknown>> => (Array.isArray(v) ? v.filter((x) => x && typeof x === 'object') : []);
 
 /** Converte a resposta da IA (chaves em português) na estrutura do app, com os limites. */
@@ -765,14 +767,33 @@ export function removeRepeats<T extends Omit<StudyBrief, 'source' | 'createdAt' 
   return { ...b, steps, truths, cards, branches, dna: { ...b.dna, rows, convictions } };
 }
 
+/** Tira as muletas de texto automático das frases que a IA escreveu (nunca de títulos e seções). */
+export function humanizeBrief<T extends Omit<StudyBrief, 'source' | 'createdAt' | 'model'>>(b: T): T {
+  const h = humanize;
+  return {
+    ...b,
+    thesis: h(b.thesis),
+    synthesis: h(b.synthesis),
+    objective: h(b.objective),
+    truths: b.truths.map((t) => ({ ...t, text: h(t.text) })),
+    steps: b.steps.map((st) => ({ ...st, explanation: h(st.explanation) })),
+    branches: b.branches.map((br) => ({ ...br, summary: h(br.summary), leaves: br.leaves.map((l) => ({ ...l, detail: h(l.detail) })) })),
+    cards: b.cards.map((c) => ({ ...c, back: h(c.back), extra: c.extra && h(c.extra) })),
+    dna: { ...b.dna, thesis: h(b.dna.thesis), convictions: b.dna.convictions.map(h), rows: b.dna.rows.map((r) => ({ ...r, principle: h(r.principle), application: h(r.application) })), outcome: h(b.dna.outcome) },
+    applications: b.applications.map(h),
+    inflection: b.inflection && { ...b.inflection, before: h(b.inflection.before), turn: h(b.inflection.turn), after: h(b.inflection.after) },
+    chapterTurns: b.chapterTurns?.map((t) => ({ ...t, turn: h(t.turn) })),
+  };
+}
+
 /** A IA monta a estrutura do material inteiro (uma chamada). */
 export async function buildBriefWithAi(material: Material, opts: { signal?: AbortSignal; fetchImpl?: typeof fetch } = {}): Promise<StudyBrief> {
   if (!material.sections.some((s) => s.text.trim())) throw new Error('Não há texto para estudar.');
-  const prompt = buildBriefPrompt(material);
+  const prompt = buildBriefPrompt(material, await voicePrompt());
   let model = '';
   const answer = await withModel(opts, (config) => {
     model = config.model;
-    return callGemini(prompt, config, BRIEF_SCHEMA, opts).then((raw) => removeRepeats(parseBriefAnswer(raw)));
+    return callGemini(prompt, config, BRIEF_SCHEMA, opts).then((raw) => removeRepeats(humanizeBrief(parseBriefAnswer(raw))));
   });
   return { ...answer, source: 'ia', model, createdAt: now() };
 }
