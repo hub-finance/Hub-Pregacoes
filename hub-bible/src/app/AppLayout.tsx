@@ -18,6 +18,7 @@ const THEME_LABEL: Record<ResolvedTheme, string> = {
   celeste: 'azul e branco',
   safira: 'azul safira',
   jardim: 'verde e branco',
+  esmeralda: 'esmeralda',
 };
 
 /* A lua serve aos dois temas escuros: o que muda entre eles é a cor da tela,
@@ -48,7 +49,7 @@ function AppShell({ children }: { children: ReactNode }) {
 
   const cycleTheme = () => {
     // do papel ao mais escuro, na ordem em que a vista desce a luz
-    const order = ['light', 'sepia', 'celeste', 'safira', 'jardim', 'dark', 'azul', 'ministerial'] as const;
+    const order = ['light', 'sepia', 'celeste', 'safira', 'jardim', 'dark', 'azul', 'ministerial', 'esmeralda'] as const;
     const current = order.indexOf(resolvedTheme);
     update({ theme: order[(current + 1) % order.length] });
   };

@@ -1327,8 +1327,44 @@
   gap: var(--sp-3);
 }
 .crossref-verse-card {
-  padding-left: var(--sp-3);
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--sp-1) var(--sp-2) var(--sp-1) var(--sp-3);
+  border: 0;
   border-left: 2px solid var(--border);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.crossref-verse-card:hover,
+.crossref-verse-card:focus-visible {
+  background: var(--surface-hover);
+  border-left-color: var(--accent);
+}
+
+/* referência bíblica achada no texto de um comentário: toque abre a prévia */
+.ref-link {
+  display: inline;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: var(--accent-strong);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.ref-link:hover,
+.ref-link:focus-visible {
+  background: var(--accent-soft);
 }
 .crossref-verse-ref {
   display: inline-flex;

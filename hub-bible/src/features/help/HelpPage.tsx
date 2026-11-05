@@ -74,9 +74,11 @@ const TOPICS: Topic[] = [
       'Use "Aa" para ajustar tamanho da letra, espaçamento, largura da coluna, tema e alinhamento.',
       'Leitura imersiva: ao começar a rolar, o menu lateral e as barras somem de cena e a tela fica só com o texto. Um toque em qualquer espaço em branco traz tudo de volta; outro toque esconde. Rolar para cima também traz. Tocar no versículo continua sendo selecionar o versículo.',
       'Sem o menu lateral, o botão de três traços no alto abre o menu inteiro. Se preferir as barras sempre à vista, desligue em "Aa" › Leitura imersiva.',
-      'São quatro temas: Claro, Sépia, Escuro e Noite azul. O botão de tema, no alto, passa por eles em ordem — do papel ao mais escuro. O Escuro é cinza-noite, e não preto: contra texto claro, o preto puro cansa a vista numa leitura longa.',
+      'São nove temas: Claro, Sépia, Azul e branco, Azul safira, Verde e branco, Escuro, Noite azul, Ministerial e Esmeralda. O botão de tema, no alto, passa por eles em ordem — do papel ao mais escuro. A escolha completa fica em Configurações › Aparência e leitura. O Escuro é cinza-noite, e não preto: contra texto claro, o preto puro cansa a vista numa leitura longa.',
+      'A Esmeralda é verde-escuro com destaques em verde-menta, as mesmas cores do Hub Resumos.',
       'Toque em um versículo para selecioná-lo. Toque em outros para selecionar vários de uma vez.',
       'Com o versículo selecionado aparece a barra de ações: destacar, favoritar, anotar, compartilhar, copiar, ou criar um estudo e um sermão já a partir daquele texto.',
+      'Nas abas Comentários e Referências, toque num versículo para lê-lo ali mesmo, no painel (ou na folha, no celular): abre o capítulo com o trecho destacado, como na busca. "Voltar" retorna à lista no mesmo ponto; "Abrir no leitor" leva até ele. No comentário, as referências que dá para tocar aparecem sublinhadas.',
     ],
   },
   {

@@ -842,6 +842,7 @@ export default function BiblePage() {
             chapter={chapter}
             verse={selection[0]}
             reference={selectionReference}
+            translation={translation}
           />
           <AiSheet
             open={aiOpen}

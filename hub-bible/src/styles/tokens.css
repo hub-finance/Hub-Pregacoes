@@ -131,6 +131,36 @@
   --overlay: rgba(5, 10, 20, 0.7);
 }
 
+/* ------------------------------- esmeralda ------------------------------- */
+/* Verde-escuro com menta — as cores do Hub Resumos (o infográfico do estudo):
+   fundo verde-floresta, números e destaques em verde-menta, texto quase branco.
+   Os cartões sobem um tom do fundo, sem borda pesada. */
+:root[data-theme='esmeralda'] {
+  color-scheme: dark;
+  --bg: #123d33;
+  --bg-elevated: #1a4a3f;
+  --bg-sunken: #0e3129;
+  --surface: #1a4a3f;
+  --surface-2: #225347;
+  --surface-hover: #295e50;
+  --border: #2c5a4e;
+  --border-strong: #3f7363;
+  --text: #f2f7f5;
+  --text-2: #c9dbd4;
+  --text-3: #aac6bb;
+  --accent: #9fe0c8;
+  --accent-strong: #b9ecd9;
+  --accent-soft: #1f5547;
+  --accent-contrast: #0f3029;
+  --danger: #f2a59d;
+  --success: #9fe0c8;
+  --info: #a3cdee;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-3: 0 20px 56px rgba(0, 0, 0, 0.55);
+  --overlay: rgba(4, 20, 16, 0.7);
+}
+
 /* ------------------------------- noite azul ------------------------------ */
 /* Azul-marinho profundo com o realce num azul mais claro do mesmo tom: a
    mesma família de cor do fundo ao destaque, para a tela ter uma nota só. */
@@ -286,6 +316,14 @@
   --border-strong: #506888;
   --accent: #e6c46a;
 }
+:root[data-contrast='high'][data-theme='esmeralda'] {
+  --text: #ffffff;
+  --text-2: #e3eeea;
+  --text-3: #c2d8cf;
+  --border: #4a7c6d;
+  --border-strong: #66998a;
+  --accent: #c2f4e0;
+}
 :root[data-contrast='high'][data-theme='dark'],
 :root[data-contrast='high'][data-theme='azul'] {
   --text: #ffffff;
@@ -319,7 +357,10 @@
   --border-strong: #609a70;
   --accent: #1a6030;
 }
-:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']):not([data-theme='jardim']):not([data-theme='safira']) {
+/* Só os temas de papel (claro e sépia). Os escuros e os azuis/verdes têm a
+   regra própria acima — sem listá-los aqui, esta regra (mais específica por
+   causa dos :not) vencia e deixava o texto preto sobre fundo escuro. */
+:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']):not([data-theme='jardim']):not([data-theme='safira']):not([data-theme='ministerial']):not([data-theme='esmeralda']) {
   --text: #000000;
   --text-2: #2a2620;
   --text-3: #4a443b;

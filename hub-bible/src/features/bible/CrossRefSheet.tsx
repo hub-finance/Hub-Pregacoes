@@ -7,6 +7,7 @@ import { useAsync } from '../../hooks';
 import { getCrossReferences } from '../../core/bible/reference-data';
 import { getChapter } from '../../core/bible/repository';
 import { CANON_BY_OSIS } from '../../core/bible/canon';
+import { VersePreview, usePreview } from './VersePreview';
 
 function formatRef(key: string): string {
   const [b, c, v] = key.split('.');
@@ -25,7 +26,8 @@ interface CrossRefContentProps {
   onNavigate?: () => void;
 }
 
-export function CrossRefContent({ book, chapter, verse, translation }: CrossRefContentProps) {
+export function CrossRefContent({ book, chapter, verse, translation, onNavigate }: CrossRefContentProps) {
+  const preview = usePreview();
   const data = useAsync(
     () => getCrossReferences(book, chapter, verse),
     [book, chapter, verse],
@@ -87,14 +89,23 @@ export function CrossRefContent({ book, chapter, verse, translation }: CrossRefC
           const label = formatRef(r);
           const text = verseTexts.data?.get(r);
           return (
-            <div key={r} className="crossref-verse-card">
+            <button
+              key={r}
+              type="button"
+              className="crossref-verse-card"
+              aria-label={`Abrir ${label}`}
+              onClick={(e) => {
+                const [b, c, v] = r.split('.');
+                preview.open({ book: b, chapter: Number(c), verse: Number(v) }, e.currentTarget);
+              }}
+            >
               <span className="crossref-verse-ref">
                 <Icon name="link" size={13} />
                 {label}
               </span>
               {text && <p className="crossref-verse-text">{text}</p>}
               {!text && verseTexts.loading && <span className="dim small">…</span>}
-            </div>
+            </button>
           );
         })}
       </div>
@@ -103,6 +114,10 @@ export function CrossRefContent({ book, chapter, verse, translation }: CrossRefC
 
   return (
     <>
+      {preview.target && (
+        <VersePreview target={preview.target} translation={translation} onBack={preview.back} onNavigate={onNavigate} />
+      )}
+      <div hidden={!!preview.target}>
       {data.loading && <Spinner />}
 
       {empty && (
@@ -120,6 +135,7 @@ export function CrossRefContent({ book, chapter, verse, translation }: CrossRefC
           {grouped.nt.length > 0 && renderGroup('Novo Testamento', grouped.nt)}
         </div>
       )}
+      </div>
     </>
   );
 }

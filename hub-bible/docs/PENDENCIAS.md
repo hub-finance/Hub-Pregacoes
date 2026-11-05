@@ -1,7 +1,51 @@
 # Pendências — retomar daqui
 
-Estado em **12/10/2026**. Tudo o que está descrito abaixo foi levantado e
+Estado em **05/11/2026**. Tudo o que está descrito abaixo foi levantado e
 verificado; nada aqui é suposição. O que já foi entregue está no `README.md`.
+
+---
+
+## Entregues em 05/11/2026
+
+### 0p. ✅ Versículo tocável nas abas Comentários e Referências
+
+- `features/bible/VersePreview.tsx` — prévia do versículo no próprio painel
+  (ou na folha, no celular), como na busca: capítulo com o trecho destacado
+  (intervalos também), "Voltar" e "Abrir no leitor". `usePreview()` guarda a
+  rolagem da lista e a devolve ao voltar; a lista fica montada e escondida,
+  para não recarregar.
+- Referências: cada cartão virou botão (mínimo de 44px).
+- Comentários: `core/bible/linkify.ts` acha as referências no texto do módulo
+  (`findInlineReferences`) e as marca como botões `.ref-link`, montados por
+  DOM. O link interno do MyBible some na importação (`sanitizeHtml`), por isso
+  a referência é achada no texto. Referências relativas ("v. 16") não viram
+  toque.
+
+Testado em 1280 e 390px com um módulo de comentário de teste (Jo 3:16, com
+"Rm 5.8", "1Jo 4:9-10", "Ef 2:8", "Gn 22:2" no texto): as quatro viram toque,
+a prévia destaca o versículo (dois no intervalo), Voltar devolve a lista,
+Abrir no leitor navega e, no celular, fecha a folha. Sem erro de página.
+
+### 0q. ✅ Tema Esmeralda (verde-escuro e menta) e alto contraste
+
+- Tema `esmeralda`, com as cores do infográfico do Hub Resumos (#123d33 e
+  #9fe0c8). Contraste WCAG ≥ 4,5 em todos os pares de texto (só o fundo de
+  passar o dedo/mouse fica em 4,1). Entrou em Configurações, no "Aa" do leitor
+  e no fim da troca rápida de tema.
+- **Correção:** com alto contraste ligado, o tema Ministerial ficava com texto
+  preto sobre o azul-escuro — a regra dos temas de papel, mais específica por
+  causa dos `:not()`, vencia a do Ministerial. Agora a regra exclui os temas
+  escuros.
+
+### Retomar daqui (05/11)
+
+- **Piscada escura ao desbloquear o tablet** (relatada em novembro, ainda sem
+  correção): é a cor de fundo do app aparecendo enquanto o Android redesenha.
+  No navegador o `background_color` do manifesto é #0f1115 (escuro); no APK o
+  fundo segue o modo do sistema. Correção pensada: o fundo acompanhar o tema
+  de leitura. Falta o usuário confirmar onde acontece (APK ou navegador) e com
+  qual tema. Também: o `<meta name="theme-color">` sem `media` não existe no
+  `index.html`, então `THEME_COLOR` nunca é aplicado.
 
 ---
 
