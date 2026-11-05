@@ -15,13 +15,24 @@ export function useBrief(material: Material, reading: MaterialReading): { brief:
   return { brief, badRefs };
 }
 
-/** Selo de origem: dito no texto, ou inferência da IA (regra 3 da auditoria). */
+/**
+ * Selo de origem — as três camadas da Instrução Mestra: o que o autor do
+ * material escreveu, a análise da IA e a aplicação pela Palavra da Fé.
+ */
 export function OriginBadge({ origin }: { origin: BriefOrigin }) {
-  return origin === 'ia' ? (
-    <span className="xr-origin is-ia" title="Inferência feita pela IA a partir do texto">
-      <Icon name="sparkle" size={12} /> inferência da IA
-    </span>
-  ) : (
+  if (origin === 'ia')
+    return (
+      <span className="xr-origin is-ia" title="Análise ou explicação feita pela IA a partir do texto">
+        <Icon name="sparkle" size={12} /> análise da IA
+      </span>
+    );
+  if (origin === 'fe')
+    return (
+      <span className="xr-origin is-fe" title="Aplicação ou conexão pela perspectiva da Palavra da Fé">
+        ✝ aplicação da fé
+      </span>
+    );
+  return (
     <span className="xr-origin" title="Dito no próprio material">
       do texto
     </span>

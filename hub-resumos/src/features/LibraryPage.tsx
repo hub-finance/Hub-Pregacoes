@@ -205,6 +205,7 @@ export default function LibraryPage() {
                   <span className="badge">{KIND_LABEL[m.kind]}</span>
                   {m.source.type === 'hub-bible' && <span className="badge">Hub Bible</span>}
                   {m.tags.includes('exemplo') && <span className="badge">Exemplo</span>}
+                  {m.tags.includes('meus-escritos') && <span className="badge">Escrito meu</span>}
                   <span className="spacer" />
                   <span className="small dim">{new Date(m.updatedAt).toLocaleDateString('pt-BR')}</span>
                 </span>

@@ -79,3 +79,13 @@ continua no aparelho (sem servidor e sem contas).
   de aula, estudo bíblico, devocional; DOCX e PPTX) → motor de IA (prompts,
   modelo por tarefa, registro de uso) → visual + painel → biblioteca (PPTX,
   pesquisa no conteúdo, pastas, arquivar) → qualidade e homologação.
+
+- **Feito — Identidade de linguagem** (Instrução Mestra do usuário, antes do
+  gerador de documentos): `core/voice.ts` (regras da Palavra da Fé,
+  humanização, fidelidade, critérios bíblicos; traços medidos nos escritos
+  marcados como "Escrito meu"; `humanize` tira muletas de texto automático),
+  `core/voiceAi.ts` (a IA descreve o estilo do autor a partir dos escritos; o
+  autor revisa). Entra em todo pedido à IA (estrutura, resumo por capítulo,
+  modalidades). Terceira camada de origem `fe` (aplicação da fé) ao lado de
+  `texto` e `ia`. Nova modalidade "Estudo completo" com a estrutura
+  preferencial de 8 partes.

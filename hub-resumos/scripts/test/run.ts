@@ -6,6 +6,8 @@ import { suggestCards, addCards, answerCard, schedule } from '../../src/core/car
 import { suggestActions, addActions, listActions } from '../../src/core/actions';
 import { extractiveSummary } from '../../src/core/summary';
 import { buildStudyMap } from '../../src/core/studyMap';
+import { getVoiceSettings, humanize, MY_WRITINGS_TAG, saveVoiceSettings, voicePrompt } from '../../src/core/voice';
+import { generateVoiceProfile } from '../../src/core/voiceAi';
 import { buildModeByRules, buildModePrompt, buildModeWithAi, modeMarkdown, modeWordHtml, parseModeAnswer, saveModeSummary, summaryKey } from '../../src/core/summaryModes';
 import { directionalMapHtml } from '../../src/features/layers/mapHtml';
 import { docxToText, readHubBackup } from '../../src/core/importers';
@@ -13,7 +15,7 @@ import { createMaterial, deleteMaterial, getProgress, progressRatio, resplitMate
 import { createBackup, hubStudyBackup, importMaterialFile, materialFile, restoreBackup } from '../../src/core/backup';
 import { createExampleMaterial } from '../../src/core/example';
 import { boardContent } from '../../src/core/boards';
-import { buildBriefByRules, buildBriefWithAi, parseBriefAnswer, refsNotInText, removeRepeats, sectionIdByTitle, turnsInSteps } from '../../src/core/brief';
+import { buildBriefByRules, buildBriefPrompt, buildBriefWithAi, parseBriefAnswer, refsNotInText, removeRepeats, sectionIdByTitle, turnsInSteps } from '../../src/core/brief';
 import { briefWordHtml } from '../../src/core/briefDoc';
 import { aiChapterTitles, askGemini, buildPrompt, getGeminiConfig, parseAiAnswer, pickFlashModel, removeAiSummary, summarizeWithAi, testGeminiKey, WHOLE } from '../../src/core/ai';
 import { setSetting } from '../../src/core/db';
@@ -640,6 +642,53 @@ await test('modalidades de resumo: executivo, essencial, aprofundado, analítico
   const back = await db.materials.get(ex.id);
   assert(back?.summaries?.['analitico|didatico|breve']?.source === 'ia' && back.sections.length === ex.sections.length, 'guardado sem mexer no texto');
   await setSetting('geminiKey', '');
+  await deleteMaterial(ex.id);
+});
+
+await test('identidade de linguagem: Palavra da Fé, escritos do autor, três camadas e texto humanizado', async () => {
+  // sem escritos: as regras entram, e a IA não finge conhecer o estilo
+  await saveVoiceSettings({ enabled: true, authorName: 'Pr. Teste', profile: '' });
+  let vp = await voicePrompt();
+  assert(/IDENTIDADE DE LINGUAGEM/.test(vp) && /Palavra da Fé/.test(vp) && /Pr\. Teste/.test(vp) && /Ainda não há escritos/.test(vp), 'regras sem escritos');
+  // com um escrito marcado: vocabulário, versículos e trechos de estilo
+  const mine = await createMaterial({
+    title: 'Mensagem: a fé que fala',
+    kind: 'estudo',
+    sections: [{ title: 'A fé que fala', text: 'A fé verdadeira nasce da Palavra de Deus e se manifesta naquilo que confessamos todos os dias (Romanos 10:17).\n\nQuando a Palavra governa o coração, a nossa boca passa a declarar o que Deus já disse sobre nós em Cristo.\n\nO que você tem declarado sobre a sua vida nesta semana?' }],
+  });
+  await db.materials.put({ ...(await db.materials.get(mine.id))!, tags: [MY_WRITINGS_TAG] });
+  vp = await voicePrompt();
+  assert(/TRAÇOS MEDIDOS NOS ESCRITOS DO AUTOR \(1 escrito\)/.test(vp) && /Romanos 10:17/.test(vp) && /« A fé verdadeira nasce da Palavra/.test(vp), vp.slice(-600));
+  // desligado: nada entra
+  await saveVoiceSettings({ enabled: false });
+  assert((await voicePrompt()) === '', 'desligado');
+  await saveVoiceSettings({ enabled: true });
+  // humanizar: tira as muletas e ajeita a maiúscula
+  assert(humanize('É importante destacar que a fé vem pelo ouvir. Em suma, a Palavra governa.') === 'A fé vem pelo ouvir. A Palavra governa.', humanize('É importante destacar que a fé vem pelo ouvir. Em suma, a Palavra governa.'));
+  // os pedidos à IA levam a identidade e as três camadas
+  const ex = await createExampleMaterial();
+  assert(/IDENTIDADE DE LINGUAGEM/.test(buildBriefPrompt(ex, vp)) && /"fe" quando é aplicação/.test(buildBriefPrompt(ex, vp)), 'estrutura');
+  const mp = buildModePrompt(ex, 'estudo', 'biblico', 'normal', vp);
+  assert(/ESTUDO COMPLETO/.test(mp) && /IDENTIDADE DE LINGUAGEM/.test(mp) && /"fe" = aplicação/.test(mp), 'modalidade');
+  const blocks = parseModeAnswer(JSON.stringify({ blocos: [{ titulo: 'Aplicações práticas', itens: ['Vale ressaltar que devemos orar.'], origem: 'fe' }] }));
+  assert(blocks[0].origin === 'fe' && blocks[0].items?.[0] === 'Devemos orar.', JSON.stringify(blocks));
+  assert(parseBriefAnswer(JSON.stringify({ tese: 'A fé vem pelo ouvir.', verdades: [{ texto: 'Cristo em nós.', secao: '', origem: 'fe' }] })).truths[0].origin === 'fe', 'origem fe');
+  // o estudo completo sem IA segue a estrutura preferencial
+  const est = buildModeByRules(ex, 'estudo', 'normal');
+  assert(est.blocks[0].heading === 'Ideia central' && est.blocks.some((b) => b.heading === 'Aplicações práticas'), est.blocks.map((b) => b.heading).join('|'));
+  // a IA aprende o perfil a partir dos escritos e ele fica salvo
+  await setSetting('geminiKey', 'chave-teste');
+  let sent = '';
+  const fake = (async (_u: string, init: RequestInit) => {
+    sent = JSON.parse(String(init.body)).contents[0].parts[0].text;
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ perfil: '1. Vocabulário: fé, Palavra, Cristo.' }) }] } }] }), { status: 200 });
+  }) as unknown as typeof fetch;
+  const profile = await generateVoiceProfile('Pr. Teste', { fetchImpl: fake });
+  assert(profile.startsWith('1. Vocabulário') && /a fé que fala/i.test(sent) && (await getVoiceSettings()).profileFrom === 1, 'perfil');
+  assert(/PERFIL DE LINGUAGEM DO AUTOR/.test(await voicePrompt()), 'perfil entra no pedido');
+  await setSetting('geminiKey', '');
+  await saveVoiceSettings({ authorName: '', profile: '', profileAt: undefined, profileFrom: undefined, profileModel: undefined });
+  await deleteMaterial(mine.id);
   await deleteMaterial(ex.id);
 });
 

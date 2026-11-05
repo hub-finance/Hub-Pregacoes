@@ -4,12 +4,13 @@ import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
 import { SaveStatus } from '../../components/SaveStatus';
 import { Sheet } from '../../components/Sheet';
-import { ConfirmDialog, SelectInput, TextArea, TextInput } from '../../components/ui';
+import { ConfirmDialog, SelectInput, TextArea, TextInput, Toggle } from '../../components/ui';
 import { downloadJson, hubStudyBackup, safeName } from '../../core/backup';
 import { deleteMaterial, duplicateMaterial, joinedText, KIND_LABEL, newSection, PART_LABEL, resplitMaterial, saveMaterial } from '../../core/materials';
 import { aiChapterTitles, getGeminiConfig } from '../../core/ai';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Material, MaterialKind } from '../../core/types';
+import { isMyWriting, MY_WRITINGS_TAG } from '../../core/voice';
 
 /**
  * Edição do material: dados gerais e as partes. Grava sozinho pouco depois de
@@ -88,12 +89,18 @@ export function EditTab({ material }: { material: Material }) {
           />
           <TextInput label="Autor" value={draft.author} onChange={(author) => set({ author })} />
         </div>
+        <Toggle
+          label="Este é um escrito meu"
+          description="Mensagens, estudos e apostilas suas ensinam a sua linguagem à IA (Dados e ajustes › Identidade de linguagem)."
+          checked={isMyWriting(draft)}
+          onChange={(on) => set({ tags: on ? [...draft.tags.filter((t) => t !== MY_WRITINGS_TAG), MY_WRITINGS_TAG] : draft.tags.filter((t) => t !== MY_WRITINGS_TAG) })}
+        />
         <label className="field">
           <span>Etiquetas</span>
           <input
             className="input"
-            value={draft.tags.join(', ')}
-            onChange={(e) => set({ tags: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) })}
+            value={draft.tags.filter((t) => t !== MY_WRITINGS_TAG).join(', ')}
+            onChange={(e) => set({ tags: [...e.target.value.split(',').map((t) => t.trim()).filter(Boolean), ...(isMyWriting(draft) ? [MY_WRITINGS_TAG] : [])] })}
             placeholder="fé, liderança, discipulado"
           />
         </label>

@@ -23,8 +23,13 @@ ferramentas, cada uma com função própria (auditoria da etapa 1:
 | **Editar** | Título, tipo, autor, etiquetas, **ideia central** e as partes; enviar ao Hub Bible |
 
 Em **Ferramentas**: **Cartões de revisão** (revisão espaçada), **Plano de ação**
-(responsável, prazo e situação), **Resumo completo** (cinco modalidades — executivo,
+(responsável, prazo e situação), **Resumo completo** (seis modalidades — estudo completo, executivo,
 essencial, aprofundado, analítico e por capítulo — com profundidade e tipo de estudo; sem IA ou com IA) e **Imagens** (os seis quadros e o infográfico, em PNG).
+
+**Identidade de linguagem** (Dados e ajustes): a IA escreve na voz do autor,
+pela perspectiva da Palavra da Fé, aprendendo dos materiais marcados como
+“Escrito meu”; separa o que o autor do livro escreveu, a análise da IA e a
+aplicação da fé; tira expressões de texto automático. Tudo no aparelho.
 
 **Temas:** os oito do Hub Bible (Claro, Sépia, Azul e branco, Azul safira,
 Verde e branco, Escuro, Noite azul, Ministerial) e o Verde do Hub Resumos. O

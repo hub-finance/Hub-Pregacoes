@@ -1,3 +1,4 @@
+import { humanize, voicePrompt } from './voice';
 import { db, getSetting, now, setSetting } from './db';
 import type { AiSummary, Material } from './types';
 
@@ -77,7 +78,7 @@ export async function detectFlashModel(key: string, fetchImpl: typeof fetch = fe
 const KIND_NAME = { livro: 'do livro', estudo: 'do estudo', resumo: 'do resumo' } as const;
 
 /** O pedido à IA, em português, com as regras de fidelidade ao texto. */
-export function buildPrompt(material: Material, scope: string): { prompt: string; scopeTitle: string } {
+export function buildPrompt(material: Material, scope: string, voice = ''): { prompt: string; scopeTitle: string } {
   const whole = scope === WHOLE;
   const section = whole ? undefined : material.sections.find((s) => s.id === scope);
   if (!whole && !section) throw new Error('Parte não encontrada.');
@@ -94,6 +95,7 @@ export function buildPrompt(material: Material, scope: string): { prompt: string
     '- aplicacoes: de 3 a 4 aplicações práticas que o próprio texto ensina ou que decorrem diretamente dele, cada uma começando por um verbo;',
     '- perguntas: 3 perguntas para reflexão pessoal ou discussão em grupo;',
     '- conceitos: até 5 termos importantes, com a definição curta no sentido em que o texto os usa.',
+    ...(voice ? [voice, ''] : []),
     'Regras: baseie-se somente no texto abaixo; não invente fatos, histórias, citações nem referências bíblicas que não estejam nele (se citar a Bíblia, use só as referências que aparecem no texto); não copie trechos longos literalmente; não use reticências nem corte frases; se o texto não trouxer algum item, devolva a lista vazia.',
     '',
     'TEXTO:',
@@ -135,7 +137,9 @@ export function parseAiAnswer(raw: string): Pick<AiSummary, 'resumo' | 'ideias' 
         .map((c) => ({ termo: String(c?.termo ?? '').trim(), definicao: String(c?.definicao ?? '').trim() }))
         .filter((c) => c.termo && c.definicao)
     : [];
-  return { resumo, ideias: strings(data.ideias), aplicacoes: strings(data.aplicacoes), perguntas: strings(data.perguntas), conceitos };
+  // sem as muletas de texto automático ("É importante destacar que…")
+  const h = (xs: string[]) => xs.map(humanize);
+  return { resumo: humanize(resumo), ideias: h(strings(data.ideias)), aplicacoes: h(strings(data.aplicacoes)), perguntas: strings(data.perguntas), conceitos };
 }
 
 /** Mensagem clara para cada erro que a API do Gemini costuma devolver. */
@@ -247,7 +251,7 @@ export async function summarizeWithAi(
 ): Promise<AiSummary> {
   const material = await db.materials.get(materialId);
   if (!material) throw new Error('Material não encontrado.');
-  const { prompt, scopeTitle } = buildPrompt(material, scope);
+  const { prompt, scopeTitle } = buildPrompt(material, scope, await voicePrompt());
   let model = '';
   const answer = await withModel(opts, (config) => {
     model = config.model;

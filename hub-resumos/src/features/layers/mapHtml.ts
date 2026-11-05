@@ -20,7 +20,7 @@ export function directionalMapHtml(title: string, brief: StudyBrief): string {
       const items = b.items
         .map(
           (it) =>
-            `<li class="it" data-k="${it.kind}"><button class="item" style="--k:${KIND_COLOR[it.kind]}"><span class="ic">${ICON[it.kind]}</span>${esc(it.label)}</button><div class="det"><p>${esc(it.detail)}</p>${it.ref ? `<span class="ref">${esc(it.ref)}</span>` : ''}${it.guess ? ' <span class="tag">sugestão</span>' : it.origin === 'ia' ? ' <span class="tag">inferência da IA</span>' : ''}</div></li>`,
+            `<li class="it" data-k="${it.kind}"><button class="item" style="--k:${KIND_COLOR[it.kind]}"><span class="ic">${ICON[it.kind]}</span>${esc(it.label)}</button><div class="det"><p>${esc(it.detail)}</p>${it.ref ? `<span class="ref">${esc(it.ref)}</span>` : ''}${it.guess ? ' <span class="tag">sugestão</span>' : it.origin === 'ia' ? ' <span class="tag">análise da IA</span>' : it.origin === 'fe' ? ' <span class="tag">aplicação da fé</span>' : ''}</div></li>`,
         )
         .join('');
       return `<li class="br${i === 0 ? ' open' : ''}" style="--tone:${TONES[i % TONES.length]}"><button class="head" aria-expanded="${i === 0}"><span class="n">${i + 1}</span><span class="ht"><strong>${esc(b.label)}</strong>${b.summary ? `<span>${esc(b.summary)}</span>` : ''}</span><span class="cnt">${b.items.length}</span></button><ul class="items">${items}</ul></li>`;

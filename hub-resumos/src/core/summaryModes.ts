@@ -2,6 +2,7 @@ import { suggestActions } from './actions';
 import { callGemini, withModel } from './ai';
 import { concise, currentBrief, DEPENDENT, keySetOf, rankSentences } from './brief';
 import { db, now } from './db';
+import { humanize, ORIGIN_RULE, voicePrompt } from './voice';
 import { cleanTitle, readMaterial, sameIdea, sectionSentences, type MaterialReading, type SectionReading } from './text';
 import type { ActionItem, Material, ModeBlock, ModeSummary, StudyKind, SummaryDepth, SummaryMode } from './types';
 
@@ -13,6 +14,7 @@ import type { ActionItem, Material, ModeBlock, ModeSummary, StudyKind, SummaryDe
  * resultado fica guardado no material.
  */
 export const MODE_LABEL: Record<SummaryMode, string> = {
+  estudo: 'Estudo completo',
   executivo: 'Executivo',
   essencial: 'Essencial',
   aprofundado: 'Aprofundado',
@@ -21,6 +23,7 @@ export const MODE_LABEL: Record<SummaryMode, string> = {
 };
 
 export const MODE_HINT: Record<SummaryMode, string> = {
+  estudo: 'A estrutura preferida: ideia central, contexto, desenvolvimento, princípios, conexões, aplicações e síntese final.',
   executivo: 'Tema, objetivo do autor, ideias principais, conclusão e aplicação — para entender em 2 minutos.',
   essencial: 'Só o indispensável: a ideia central, os conceitos que não podem faltar e uma frase por parte.',
   aprofundado: 'Cada parte explicada: ideias, argumentos, exemplos, conceitos e como as ideias se ligam.',
@@ -42,6 +45,8 @@ export const DEPTH_LABEL: Record<SummaryDepth, string> = { breve: 'Breve', norma
 
 /** Quantos itens por lista em cada profundidade: poucos e bons no breve. */
 const N: Record<SummaryDepth, number> = { breve: 3, normal: 5, completo: 8 };
+
+export const ORIGIN_NAME = { texto: 'do autor', ia: 'análise da IA', fe: 'aplicação da fé' } as const;
 
 export const summaryKey = (mode: SummaryMode, kind: StudyKind, depth: SummaryDepth) => `${mode}|${kind}|${depth}`;
 
@@ -102,6 +107,20 @@ export function buildModeByRules(material: Material, mode: SummaryMode, depth: S
   const push = (b: ModeBlock) => {
     if (b.text || b.items?.length || b.parts?.length) blocks.push(b);
   };
+
+  if (mode === 'estudo') {
+    // a estrutura preferencial da Instrução Mestra (item 8)
+    push({ heading: 'Ideia central', text: brief.thesis });
+    push({ heading: 'Contextualização', text: brief.objective || brief.synthesis });
+    push({ heading: 'Desenvolvimento', items: brief.steps.filter((st) => st.explanation).map((st) => `${st.title}: ${st.explanation}`) });
+    push({ heading: 'Princípios fundamentais', items: distinct([...brief.dna.rows.map((x) => x.principle), ...brief.truths.map((t) => t.text)], n) });
+    push({
+      heading: 'Conexões e aprofundamentos',
+      items: distinct([...(brief.chapterTurns ?? []).map((t) => `${cleanTitle(t.section)}: ${t.turn}`), ...r.references.slice(0, 3).map((x) => `${x.label}, o texto mais citado do material`)], n),
+    });
+    push({ heading: 'Aplicações práticas', items: applications });
+    push({ heading: 'Síntese final', text: brief.dna.outcome && !applications.some((a) => sameIdea(a, brief.dna.outcome)) ? brief.dna.outcome : brief.synthesis });
+  }
 
   if (mode === 'executivo') {
     push({ heading: 'Tema central', text: brief.thesis });
@@ -208,6 +227,8 @@ const DEPTH_TEXT: Record<SummaryDepth, string> = {
 
 /** O pedido próprio de cada modalidade (item 11: nada de um prompt genérico para tudo). */
 const MODE_PROMPT: Record<SummaryMode, string> = {
+  estudo:
+    'ESTUDO COMPLETO, na estrutura preferida do autor. Blocos, nesta ordem: "Ideia central" (texto: a mensagem principal); "Contextualização" (texto: situe o leitor no assunto); "Desenvolvimento" (itens: os principais argumentos e conceitos, na sequência do material); "Princípios fundamentais" (itens: os ensinamentos essenciais); "Conexões e aprofundamentos" (itens: relações bíblicas e entre ideias); "Aplicações práticas" (itens começando por verbo); "Síntese final" (texto: consolide sem repetir todo o conteúdo). Omita o bloco que o material não sustentar.',
   executivo:
     'RESUMO EXECUTIVO. Blocos, nesta ordem: "Tema central" (texto, 1 frase); "Objetivo do autor" (texto, 1 frase); "Ideias principais" (itens); "Conclusão" (texto); "Aplicação prática" (itens começando por verbo).',
   essencial:
@@ -220,7 +241,8 @@ const MODE_PROMPT: Record<SummaryMode, string> = {
     'RESUMO POR CAPÍTULO. Respeite rigorosamente a organização do material: UM bloco para CADA parte (cada "##"), na ordem, com "titulo" = título da parte, "secao" = título exato, e "partes": "Objetivo" (texto), "Ideia central" (texto), "Conceitos" (itens), "Argumentos" (itens), "Exemplos" (itens, só os do material), "Aplicações" (itens), "Conclusão" (texto).',
 };
 
-const PART = { type: 'OBJECT', properties: { titulo: { type: 'STRING' }, texto: { type: 'STRING' }, itens: { type: 'ARRAY', items: { type: 'STRING' } } }, required: ['titulo'] };
+const ORIGEM = { type: 'STRING', enum: ['texto', 'ia', 'fe'] };
+const PART = { type: 'OBJECT', properties: { titulo: { type: 'STRING' }, texto: { type: 'STRING' }, itens: { type: 'ARRAY', items: { type: 'STRING' } }, origem: ORIGEM }, required: ['titulo'] };
 const MODE_SCHEMA = {
   type: 'OBJECT',
   properties: {
@@ -228,7 +250,7 @@ const MODE_SCHEMA = {
       type: 'ARRAY',
       items: {
         type: 'OBJECT',
-        properties: { titulo: { type: 'STRING' }, texto: { type: 'STRING' }, itens: { type: 'ARRAY', items: { type: 'STRING' } }, secao: { type: 'STRING' }, partes: { type: 'ARRAY', items: PART } },
+        properties: { titulo: { type: 'STRING' }, texto: { type: 'STRING' }, itens: { type: 'ARRAY', items: { type: 'STRING' } }, secao: { type: 'STRING' }, partes: { type: 'ARRAY', items: PART }, origem: ORIGEM },
         required: ['titulo'],
       },
     },
@@ -238,7 +260,7 @@ const MODE_SCHEMA = {
 
 const MAX_CHARS = 1_500_000;
 
-export function buildModePrompt(material: Material, mode: SummaryMode, kind: StudyKind, depth: SummaryDepth): string {
+export function buildModePrompt(material: Material, mode: SummaryMode, kind: StudyKind, depth: SummaryDepth, voice = ''): string {
   const text = material.sections.map((s) => `## ${s.title}\n${s.text}`).join('\n\n').slice(0, MAX_CHARS);
   return [
     `Você é um especialista em ${KIND_METHOD[kind]}. Leia o material “${material.title}”${material.author ? `, de ${material.author}` : ''} e escreva, em português do Brasil, o resumo pedido abaixo.`,
@@ -251,6 +273,8 @@ export function buildModePrompt(material: Material, mode: SummaryMode, kind: Stu
     '- Mantenha as distinções importantes do autor (condições, ressalvas, exceções). Resumir não é cortar o sentido.',
     '- Não repita a mesma ideia em blocos diferentes, nem com outras palavras.',
     '- Frases completas e claras. Nunca use reticências nem corte frases. Se o material não trouxer algo, deixe o bloco vazio em vez de inventar.',
+    `- "origem" de cada bloco e parte: ${ORIGIN_RULE}`,
+    ...(voice ? [voice] : []),
     '',
     'MATERIAL:',
     text,
@@ -269,8 +293,10 @@ export function parseModeAnswer(raw: string): ModeBlock[] {
   }
   const toBlock = (b: Record<string, unknown>): ModeBlock => ({
     heading: clean(b.titulo),
-    text: clean(b.texto) || undefined,
-    items: list(b.itens).length ? list(b.itens) : undefined,
+    origin: b.origem === 'texto' || b.origem === 'ia' || b.origem === 'fe' ? b.origem : undefined,
+    // sem as muletas de texto automático; títulos e seções ficam como vieram
+    text: humanize(clean(b.texto)) || undefined,
+    items: list(b.itens).length ? list(b.itens).map(humanize) : undefined,
     section: clean(b.secao) || undefined,
     parts: Array.isArray(b.partes) ? (b.partes as Array<Record<string, unknown>>).map(toBlock).filter((p) => p.heading && (p.text || p.items?.length)) : undefined,
   });
@@ -287,7 +313,7 @@ export async function buildModeWithAi(
   opts: { signal?: AbortSignal; fetchImpl?: typeof fetch } = {},
 ): Promise<ModeSummary> {
   if (!material.sections.some((s) => s.text.trim())) throw new Error('Não há texto para resumir.');
-  const prompt = buildModePrompt(material, mode, kind, depth);
+  const prompt = buildModePrompt(material, mode, kind, depth, await voicePrompt());
   let model = '';
   const blocks = await withModel(opts, (config) => {
     model = config.model;
@@ -308,10 +334,10 @@ export async function saveModeSummary(materialId: string, summary: ModeSummary |
 /* ------------------------------- exportação ------------------------------- */
 
 export function modeMarkdown(title: string, s: ModeSummary): string {
-  const out = [`# ${title} — Resumo ${MODE_LABEL[s.mode].toLowerCase()}`, ''];
+  const out = [`# ${title} — ${s.mode === 'estudo' ? MODE_LABEL.estudo : `Resumo ${MODE_LABEL[s.mode].toLowerCase()}`}`, ''];
   if (s.source === 'ia') out.push(`_Feito pela IA (${s.model ?? 'Gemini'}) · ${KIND_LABEL[s.kind]} · ${DEPTH_LABEL[s.depth]}. Revise antes de usar._`, '');
   const write = (b: ModeBlock, level: number) => {
-    out.push(`${'#'.repeat(level)} ${b.heading}`, '');
+    out.push(`${'#'.repeat(level)} ${b.heading}${b.origin ? ` _(${ORIGIN_NAME[b.origin]})_` : ''}`, '');
     if (b.text) out.push(b.text, '');
     if (b.items?.length) out.push(...b.items.map((x) => `- ${x}`), '');
     for (const p of b.parts ?? []) write(p, level + 1);
@@ -325,11 +351,11 @@ const esc = (x: string) => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 /** Documento do Word (HTML que o Word abre e salva como .docx), como o do estudo. */
 export function modeWordHtml(title: string, author: string, s: ModeSummary): string {
   const write = (b: ModeBlock, level: number): string =>
-    `<h${level}>${esc(b.heading)}</h${level}>${b.text ? `<p>${esc(b.text)}</p>` : ''}${b.items?.length ? `<ul>${b.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${(b.parts ?? []).map((p) => write(p, Math.min(level + 1, 4))).join('')}`;
+    `<h${level}>${esc(b.heading)}${b.origin ? ` <span class="sub">(${ORIGIN_NAME[b.origin]})</span>` : ''}</h${level}>${b.text ? `<p>${esc(b.text)}</p>` : ''}${b.items?.length ? `<ul>${b.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${(b.parts ?? []).map((p) => write(p, Math.min(level + 1, 4))).join('')}`;
   return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="utf-8"><title>${esc(title)}</title>
 <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1f2430;line-height:1.45}h1{font-size:20pt;margin:0}h2{font-size:14pt;color:#1f3a5f;border-bottom:1px solid #c9ced8;padding-bottom:3pt;margin-top:16pt}h3{font-size:12pt;margin:10pt 0 4pt}h4{font-size:11pt;margin:8pt 0 2pt}.sub{color:#5b6270}</style></head><body>
-<h1>${esc(title)}</h1><p class="sub">Resumo ${esc(MODE_LABEL[s.mode].toLowerCase())}${author ? ` · ${esc(author)}` : ''}${s.source === 'ia' ? ` · feito pela IA (${esc(s.model ?? 'Gemini')}), ${esc(KIND_LABEL[s.kind].toLowerCase())}` : ' · frases do próprio texto'}</p>
+<h1>${esc(title)}</h1><p class="sub">${s.mode === 'estudo' ? MODE_LABEL.estudo : `Resumo ${esc(MODE_LABEL[s.mode].toLowerCase())}`}${author ? ` · ${esc(author)}` : ''}${s.source === 'ia' ? ` · feito pela IA (${esc(s.model ?? 'Gemini')}), ${esc(KIND_LABEL[s.kind].toLowerCase())}` : ' · frases do próprio texto'}</p>
 ${s.blocks.map((b) => write(b, 2)).join('\n')}
 </body></html>`;
 }

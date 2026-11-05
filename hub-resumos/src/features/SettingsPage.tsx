@@ -7,6 +7,7 @@ import { applyTheme, currentTheme, THEME_LABEL, THEME_ORDER, type Theme } from '
 import { createBackup, downloadJson, markBackupDone, readJsonFile, restoreBackup } from '../core/backup';
 import { db, getSetting, setSetting } from '../core/db';
 import { AiSettings } from './AiSettings';
+import { VoiceSettingsCard } from './VoiceSettings';
 
 /** Dados e ajustes: cópia de segurança, IA (opcional), ligação com o Hub Bible e tema. */
 export default function SettingsPage() {
@@ -98,6 +99,8 @@ export default function SettingsPage() {
       </section>
 
       <AiSettings />
+
+      <VoiceSettingsCard />
 
       <section className="card stack" style={{ marginBottom: 'var(--sp-4)' }}>
         <strong>Ligação com o Hub Bible</strong>
