@@ -43,7 +43,7 @@ function RefBadges({ textos }: { textos: string[] }) {
 function StepNumber({ index }: { index: number }) {
   return (
     <span
-      className="badge"
+      className="badge step-num"
       style={{
         width: 28,
         height: 28,

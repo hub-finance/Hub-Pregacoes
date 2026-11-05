@@ -131,6 +131,37 @@
   --overlay: rgba(5, 10, 20, 0.7);
 }
 
+/* ------------------------------- esmeralda ------------------------------- */
+/* Creme por dentro e verde por fora — as cores do Hub Resumos. O conteúdo (a
+   leitura, os cartões, os painéis) fica no papel creme com destaques em verde;
+   a moldura do app (menu lateral, barra do alto, barra de baixo) é verde-escuro
+   com menta, definida em esmeralda.css. */
+:root[data-theme='esmeralda'] {
+  color-scheme: light;
+  --bg: #f5efe2;
+  --bg-elevated: #fbf7ee;
+  --bg-sunken: #ece4d2;
+  --surface: #fbf7ee;
+  --surface-2: #efe7d6;
+  --surface-hover: #e9e0cc;
+  --border: #e0d5bf;
+  --border-strong: #c9bb9f;
+  --text: #1c2b25;
+  --text-2: #3d4e46;
+  --text-3: #58675f;
+  --accent: #1d5c4d;
+  --accent-strong: #154438;
+  --accent-soft: #dcebe3;
+  --accent-contrast: #ffffff;
+  --danger: #a8332e;
+  --success: #1d5c4d;
+  --info: #2d5f8a;
+  --shadow-1: 0 1px 2px rgba(30, 40, 30, 0.06), 0 1px 3px rgba(30, 40, 30, 0.06);
+  --shadow-2: 0 6px 20px rgba(30, 40, 30, 0.1);
+  --shadow-3: 0 18px 48px rgba(30, 40, 30, 0.16);
+  --overlay: rgba(10, 30, 24, 0.45);
+}
+
 /* ------------------------------- noite azul ------------------------------ */
 /* Azul-marinho profundo com o realce num azul mais claro do mesmo tom: a
    mesma família de cor do fundo ao destaque, para a tela ter uma nota só. */
@@ -286,6 +317,14 @@
   --border-strong: #506888;
   --accent: #e6c46a;
 }
+:root[data-contrast='high'][data-theme='esmeralda'] {
+  --text: #000000;
+  --text-2: #1f2e27;
+  --text-3: #3b4a42;
+  --border: #a8997c;
+  --border-strong: #7d6f55;
+  --accent: #0f3f33;
+}
 :root[data-contrast='high'][data-theme='dark'],
 :root[data-contrast='high'][data-theme='azul'] {
   --text: #ffffff;
@@ -319,7 +358,10 @@
   --border-strong: #609a70;
   --accent: #1a6030;
 }
-:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']):not([data-theme='jardim']):not([data-theme='safira']) {
+/* Só os temas de papel (claro e sépia). Os escuros e os azuis/verdes têm a
+   regra própria acima — sem listá-los aqui, esta regra (mais específica por
+   causa dos :not) vencia e deixava o texto preto sobre fundo escuro. */
+:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']):not([data-theme='jardim']):not([data-theme='safira']):not([data-theme='ministerial']):not([data-theme='esmeralda']) {
   --text: #000000;
   --text-2: #2a2620;
   --text-3: #4a443b;

@@ -6,6 +6,8 @@ import { Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
 import { lookupCommentary } from '../../core/data/commentaries';
 import { OSIS_TO_MYBIBLE_NUMBER } from '../../core/bible/mybible';
+import { linkifyReferences } from '../../core/bible/linkify';
+import { VersePreview, usePreview } from './VersePreview';
 
 /* ─── conteúdo reutilizável (VersePanel e CommentarySheet) ─── */
 
@@ -13,11 +15,14 @@ interface CommentaryContentProps {
   book: string;
   chapter: number;
   verse: number;
+  translation: string;
+  onNavigate?: () => void;
 }
 
-export function CommentaryContent({ book, chapter, verse }: CommentaryContentProps) {
+export function CommentaryContent({ book, chapter, verse, translation, onNavigate }: CommentaryContentProps) {
   const bookNumber = OSIS_TO_MYBIBLE_NUMBER.get(book) ?? 0;
   const [picked, setPicked] = useState<string | null>(null);
+  const preview = usePreview();
 
   const data = useAsync(
     () => (bookNumber ? lookupCommentary(bookNumber, chapter, verse) : Promise.resolve([])),
@@ -33,10 +38,29 @@ export function CommentaryContent({ book, chapter, verse }: CommentaryContentPro
   }, [data.data]);
 
   const active = picked && names.includes(picked) ? picked : names[0] ?? null;
-  const filtered = data.data?.filter((m) => m.commentaryName === active) ?? [];
+  const filtered = useMemo(
+    () =>
+      (data.data?.filter((m) => m.commentaryName === active) ?? []).map((m) => ({
+        ...m,
+        html: linkifyReferences(m.text),
+      })),
+    [data.data, active],
+  );
+
+  const onRefTap = (e: React.MouseEvent) => {
+    const btn = (e.target as Element).closest<HTMLElement>('.ref-link');
+    if (!btn) return;
+    const { book: b, chapter: c, verse: v, verseEnd } = btn.dataset;
+    if (!b || !c || !v) return;
+    preview.open({ book: b, chapter: Number(c), verse: Number(v), verseEnd: verseEnd ? Number(verseEnd) : undefined }, btn);
+  };
 
   return (
     <>
+      {preview.target && (
+        <VersePreview target={preview.target} translation={translation} onBack={preview.back} onNavigate={onNavigate} />
+      )}
+      <div hidden={!!preview.target}>
       {data.loading && <Spinner />}
 
       {data.data && !data.data.length && !data.loading && (
@@ -76,12 +100,14 @@ export function CommentaryContent({ book, chapter, verse }: CommentaryContentPro
               )}
               <div
                 className="strong-definition"
-                dangerouslySetInnerHTML={{ __html: match.text }}
+                onClick={onRefTap}
+                dangerouslySetInnerHTML={{ __html: match.html }}
               />
             </div>
           ))}
         </div>
       )}
+      </div>
     </>
   );
 }
@@ -95,14 +121,15 @@ interface Props {
   chapter: number;
   verse: number;
   reference: string;
+  translation: string;
   inline?: boolean;
 }
 
-export function CommentarySheet({ open, onClose, book, chapter, verse, reference, inline }: Props) {
+export function CommentarySheet({ open, onClose, book, chapter, verse, reference, translation, inline }: Props) {
   const panelTitle = `${reference} — comentários`;
 
   const content = open ? (
-    <CommentaryContent book={book} chapter={chapter} verse={verse} />
+    <CommentaryContent book={book} chapter={chapter} verse={verse} translation={translation} onNavigate={onClose} />
   ) : null;
 
   if (inline) {

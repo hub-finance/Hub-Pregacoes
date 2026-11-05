@@ -88,6 +88,8 @@ export function VersePanel({
             book={book}
             chapter={chapter}
             verse={verse}
+            translation={translation}
+            onNavigate={onNavigate}
           />
         )}
         {activeTab === 'crossref' && (
