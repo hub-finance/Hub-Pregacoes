@@ -26,12 +26,19 @@ Testado em 1280 e 390px com um módulo de comentário de teste (Jo 3:16, com
 a prévia destaca o versículo (dois no intervalo), Voltar devolve a lista,
 Abrir no leitor navega e, no celular, fecha a folha. Sem erro de página.
 
-### 0q. ✅ Tema Esmeralda (verde-escuro e menta) e alto contraste
+### 0q. ✅ Tema Esmeralda (creme por dentro, verde por fora) e alto contraste
 
-- Tema `esmeralda`, com as cores do infográfico do Hub Resumos (#123d33 e
-  #9fe0c8). Contraste WCAG ≥ 4,5 em todos os pares de texto (só o fundo de
-  passar o dedo/mouse fica em 4,1). Entrou em Configurações, no "Aa" do leitor
-  e no fim da troca rápida de tema.
+- Tema `esmeralda`, pedido do usuário a partir do visual do Hub Resumos:
+  **conteúdo em creme** (papel #f5efe2, destaques em verde #1d5c4d) e
+  **moldura em verde-escuro com menta** (#123d33 e #9fe0c8): menu lateral,
+  barra do alto e barra de baixo. O usuário recusou a primeira versão, toda
+  verde ("dentro eu quero creme e as outras partes verdes").
+- `tokens.css` tem as cores do conteúdo; `styles/esmeralda.css` redefine os
+  tokens só dentro de `.topbar`, `.rail` e `.bottom-nav`, e traz os detalhes:
+  rótulos de seção em verde, número grande em verde nos indicadores, círculos
+  numerados verdes nos Guias (`.step-num`), pílula menta no item ativo da barra
+  de baixo e fio verde no versículo do dia. Nenhum outro tema muda (conferido).
+- Contraste WCAG ≥ 4,5 em todos os pares de texto, no creme e na moldura.
 - **Correção:** com alto contraste ligado, o tema Ministerial ficava com texto
   preto sobre o azul-escuro — a regra dos temas de papel, mais específica por
   causa dos `:not()`, vencia a do Ministerial. Agora a regra exclui os temas

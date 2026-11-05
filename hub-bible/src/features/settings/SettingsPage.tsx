@@ -82,7 +82,7 @@ export default function SettingsPage() {
               { value: 'celeste', label: 'Azul e branco' },
               { value: 'safira', label: 'Azul safira' },
               { value: 'jardim', label: 'Verde e branco' },
-              { value: 'esmeralda', label: 'Esmeralda (verde-escuro e menta)' },
+              { value: 'esmeralda', label: 'Esmeralda (creme e verde)' },
             ]}
           />
           <Toggle

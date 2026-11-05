@@ -1,0 +1,129 @@
+/* =========================================================================
+   Esmeralda — creme por dentro, verde por fora (as cores do Hub Resumos).
+
+   O conteúdo usa os tokens de tokens.css: papel creme, texto escuro e
+   destaques em verde. A moldura do app — menu lateral, barra do alto e barra
+   de baixo — redefine os tokens só dentro dela, em verde-escuro com menta,
+   e os componentes de dentro herdam sem saber.
+
+   Tudo preso a [data-theme='esmeralda']: nenhum outro tema muda.
+   ========================================================================= */
+
+:root[data-theme='esmeralda'] {
+  --r-lg: 16px;
+  --green-line: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* ------------------------- a moldura em verde ---------------------------- */
+[data-theme='esmeralda'] .topbar,
+[data-theme='esmeralda'] .rail,
+[data-theme='esmeralda'] .bottom-nav {
+  --bg: #123d33;
+  --bg-elevated: #123d33;
+  --surface: #1a4a3f;
+  --surface-2: #225347;
+  --surface-hover: #1f5547;
+  --border: #2c5a4e;
+  --text: #f2f7f5;
+  --text-2: #c9dbd4;
+  --text-3: #aac6bb;
+  --accent: #9fe0c8;
+  --accent-strong: #b9ecd9;
+  --accent-soft: #1f5547;
+  --accent-contrast: #0f3029;
+  color: var(--text);
+}
+[data-theme='esmeralda'] .topbar {
+  background: #123d33;
+  backdrop-filter: none;
+  border-bottom-color: #0e3129;
+}
+[data-theme='esmeralda'] .rail {
+  background: #123d33;
+  border-right-color: #0e3129;
+}
+[data-theme='esmeralda'] .rail-group-label {
+  color: var(--accent);
+}
+[data-theme='esmeralda'] .rail-item.active {
+  color: var(--text);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+[data-theme='esmeralda'] .rail-item.active .ico {
+  color: var(--accent);
+}
+[data-theme='esmeralda'] .bottom-nav {
+  background: #123d33;
+  backdrop-filter: none;
+  border-top-color: #0e3129;
+}
+/* o ícone ativo ganha a pílula de menta */
+[data-theme='esmeralda'] .bottom-nav-item.active .ico {
+  width: 52px;
+  border-radius: var(--r-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+[data-theme='esmeralda'] .brand-mark {
+  background: var(--accent);
+}
+
+/* --------------------------- dentro: o creme ----------------------------- */
+/* rótulo pequeno em maiúsculas, em verde ("ESTUDO" no Hub Resumos) */
+[data-theme='esmeralda'] .app-main .section-title {
+  color: var(--accent);
+  letter-spacing: 0.11em;
+}
+[data-theme='esmeralda'] .page-title {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+[data-theme='esmeralda'] .quick .ico {
+  border-radius: var(--r-full);
+  color: var(--accent);
+}
+
+/* número grande em verde, rótulo sem caixa-alta */
+[data-theme='esmeralda'] .stat-value {
+  color: var(--accent);
+  font-size: 2rem;
+  font-weight: 650;
+}
+[data-theme='esmeralda'] .stat-label {
+  color: var(--text-2);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.9rem;
+}
+
+/* círculos numerados: verde cheio com o número claro */
+[data-theme='esmeralda'] .badge.step-num {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--accent-contrast);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+[data-theme='esmeralda'] .badge {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent-strong);
+}
+
+/* versículo do dia: o fio verde separando a referência */
+[data-theme='esmeralda'] .verse-hero-ref {
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--green-line);
+  color: var(--accent);
+}
+[data-theme='esmeralda'] .chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+[data-theme='esmeralda'] .crossref-verse-card {
+  border-left-color: var(--green-line);
+}
+[data-theme='esmeralda'] .verse-preview-line.current {
+  box-shadow: inset 3px 0 0 var(--accent);
+}

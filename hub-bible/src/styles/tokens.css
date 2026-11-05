@@ -132,33 +132,34 @@
 }
 
 /* ------------------------------- esmeralda ------------------------------- */
-/* Verde-escuro com menta — as cores do Hub Resumos (o infográfico do estudo):
-   fundo verde-floresta, números e destaques em verde-menta, texto quase branco.
-   Os cartões sobem um tom do fundo, sem borda pesada. */
+/* Creme por dentro e verde por fora — as cores do Hub Resumos. O conteúdo (a
+   leitura, os cartões, os painéis) fica no papel creme com destaques em verde;
+   a moldura do app (menu lateral, barra do alto, barra de baixo) é verde-escuro
+   com menta, definida em esmeralda.css. */
 :root[data-theme='esmeralda'] {
-  color-scheme: dark;
-  --bg: #123d33;
-  --bg-elevated: #1a4a3f;
-  --bg-sunken: #0e3129;
-  --surface: #1a4a3f;
-  --surface-2: #225347;
-  --surface-hover: #295e50;
-  --border: #2c5a4e;
-  --border-strong: #3f7363;
-  --text: #f2f7f5;
-  --text-2: #c9dbd4;
-  --text-3: #aac6bb;
-  --accent: #9fe0c8;
-  --accent-strong: #b9ecd9;
-  --accent-soft: #1f5547;
-  --accent-contrast: #0f3029;
-  --danger: #f2a59d;
-  --success: #9fe0c8;
-  --info: #a3cdee;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-3: 0 20px 56px rgba(0, 0, 0, 0.55);
-  --overlay: rgba(4, 20, 16, 0.7);
+  color-scheme: light;
+  --bg: #f5efe2;
+  --bg-elevated: #fbf7ee;
+  --bg-sunken: #ece4d2;
+  --surface: #fbf7ee;
+  --surface-2: #efe7d6;
+  --surface-hover: #e9e0cc;
+  --border: #e0d5bf;
+  --border-strong: #c9bb9f;
+  --text: #1c2b25;
+  --text-2: #3d4e46;
+  --text-3: #58675f;
+  --accent: #1d5c4d;
+  --accent-strong: #154438;
+  --accent-soft: #dcebe3;
+  --accent-contrast: #ffffff;
+  --danger: #a8332e;
+  --success: #1d5c4d;
+  --info: #2d5f8a;
+  --shadow-1: 0 1px 2px rgba(30, 40, 30, 0.06), 0 1px 3px rgba(30, 40, 30, 0.06);
+  --shadow-2: 0 6px 20px rgba(30, 40, 30, 0.1);
+  --shadow-3: 0 18px 48px rgba(30, 40, 30, 0.16);
+  --overlay: rgba(10, 30, 24, 0.45);
 }
 
 /* ------------------------------- noite azul ------------------------------ */
@@ -317,12 +318,12 @@
   --accent: #e6c46a;
 }
 :root[data-contrast='high'][data-theme='esmeralda'] {
-  --text: #ffffff;
-  --text-2: #e3eeea;
-  --text-3: #c2d8cf;
-  --border: #4a7c6d;
-  --border-strong: #66998a;
-  --accent: #c2f4e0;
+  --text: #000000;
+  --text-2: #1f2e27;
+  --text-3: #3b4a42;
+  --border: #a8997c;
+  --border-strong: #7d6f55;
+  --accent: #0f3f33;
 }
 :root[data-contrast='high'][data-theme='dark'],
 :root[data-contrast='high'][data-theme='azul'] {
