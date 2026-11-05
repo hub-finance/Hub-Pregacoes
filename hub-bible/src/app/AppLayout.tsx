@@ -43,7 +43,8 @@ function AppShell({ children }: { children: ReactNode }) {
   const online = useOnline();
   const location = useLocation();
   const navigate = useNavigate();
-  const { update, resolvedTheme } = useSettings();
+  const { settings, update, resolvedTheme } = useSettings();
+  const collapsed = settings.railCollapsed;
   const searchHere = useScopedSearch();
   const immersive = useImmersive();
 
@@ -62,19 +63,28 @@ function AppShell({ children }: { children: ReactNode }) {
     <div
       className={`app-shell${immersive.active ? ' immersive' : ''}${
         immersive.active && immersive.chrome ? ' chrome' : ''
-      }`}
+      }${collapsed ? ' rail-collapsed' : ''}`}
     >
-      <nav className="rail" aria-label="Menu principal">
-        <div className="brand" style={{ padding: 'var(--sp-2) var(--sp-3) var(--sp-4)' }}>
+      <nav className={`rail${collapsed ? ' collapsed' : ''}`} aria-label="Menu principal">
+        <div className="brand rail-brand">
           <span className="brand-mark" aria-hidden="true">
             HB
           </span>
-          <span>
+          <span className="rail-brand-text">
             <span style={{ display: 'block', fontWeight: 660, letterSpacing: '-0.01em' }}>
               Hub Bible
             </span>
             <span className="small dim">Bíblia e ministério</span>
           </span>
+          <button
+            className="icon-btn rail-toggle"
+            onClick={() => update({ railCollapsed: !collapsed })}
+            aria-label={collapsed ? 'Abrir o menu' : 'Recolher o menu'}
+            aria-expanded={!collapsed}
+            title={collapsed ? 'Abrir o menu' : 'Recolher o menu'}
+          >
+            <Icon name={collapsed ? 'chevron-right' : 'chevron-left'} size={18} />
+          </button>
         </div>
 
         {groups.map((group) => (
@@ -86,6 +96,8 @@ function AppShell({ children }: { children: ReactNode }) {
                 to={item.to}
                 end={item.to === '/'}
                 className={({ isActive }) => `rail-item${isActive ? ' active' : ''}`}
+                aria-label={item.label}
+                title={collapsed ? item.label : undefined}
               >
                 <span className="ico">
                   <Icon name={item.icon} />
@@ -97,7 +109,12 @@ function AppShell({ children }: { children: ReactNode }) {
         ))}
 
         <div className="spacer" />
-        <button className="rail-item" onClick={cycleTheme}>
+        <button
+          className="rail-item"
+          onClick={cycleTheme}
+          aria-label={`Tema: ${THEME_LABEL[resolvedTheme]}`}
+          title={collapsed ? `Tema: ${THEME_LABEL[resolvedTheme]}` : undefined}
+        >
           <span className="ico">
             <Icon name={themeIcon(resolvedTheme)} />
           </span>

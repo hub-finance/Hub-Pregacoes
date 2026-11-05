@@ -44,6 +44,20 @@ Abrir no leitor navega e, no celular, fecha a folha. Sem erro de página.
   causa dos `:not()`, vencia a do Ministerial. Agora a regra exclui os temas
   escuros.
 
+### 0r. ✅ Menu lateral recolhível (só ícones)
+
+Pedido do usuário, a partir do programa contábil dele: uma setinha no alto do
+menu lateral recolhe o menu e deixa só os ícones. Preferência
+`railCollapsed` em `AppSettings` (guardada no aparelho); `AppLayout` marca a
+casca com `.rail-collapsed`, que muda `--rail-w` de 264 para 76px. Recolhido,
+os rótulos dos grupos viram um fio, cada item mantém `aria-label` e mostra o
+nome no `title`. Celular não muda (lá o menu lateral não aparece). Na leitura
+imersiva o menu continua saindo inteiro, como antes.
+
+Testado em 1280 e 960px, nos temas Claro e Esmeralda: 264 → 76px, 18/18 itens
+com o nome, escolha guardada depois de recarregar, a setinha abre de novo,
+tocar no ícone navega, sem rolagem horizontal e sem erro de página.
+
 ### Retomar daqui (05/11)
 
 - **Piscada escura ao desbloquear o tablet** (relatada em novembro, ainda sem
