@@ -130,6 +130,51 @@
   color: currentColor;
 }
 
+/* cabeçalho do menu: a marca, o nome e a setinha que recolhe */
+.rail-brand {
+  padding: var(--sp-2) 0 var(--sp-4) var(--sp-3);
+}
+.rail-brand-text {
+  flex: 1;
+  min-width: 0;
+}
+.rail-toggle {
+  flex: none;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-2);
+}
+
+/* Menu recolhido: só os ícones, como nos programas de escritório. O nome de
+   cada item continua no aria-label e aparece no title ao parar sobre ele. */
+.app-shell.rail-collapsed {
+  --rail-w: 76px;
+}
+.rail.collapsed {
+  padding-inline: var(--sp-2);
+}
+.rail.collapsed .rail-brand {
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-2) 0 var(--sp-3);
+}
+.rail.collapsed .rail-brand-text,
+.rail.collapsed .rail-item > span:not(.ico) {
+  display: none;
+}
+/* o rótulo do grupo vira um fio, para os grupos continuarem separados */
+.rail.collapsed .rail-group-label {
+  height: 1px;
+  margin: var(--sp-3) var(--sp-2);
+  padding: 0;
+  font-size: 0;
+  background: var(--border);
+}
+.rail.collapsed .rail-item {
+  justify-content: center;
+  padding-inline: 0;
+}
+
 /* ------------------------------ nav inferior ----------------------------- */
 .bottom-nav {
   position: fixed;

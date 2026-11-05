@@ -53,6 +53,8 @@ export interface AppSettings {
   dropCap: boolean;
   /** Leitura imersiva: as barras somem ao rolar e voltam a um toque. */
   immersiveReading: boolean;
+  /** Menu lateral recolhido: só os ícones, para sobrar largura ao conteúdo. */
+  railCollapsed: boolean;
   defaultTranslation: string;
   compareTranslation: string | null;
   /** Traduções extras para comparação (aceita mais de uma). */
@@ -104,6 +106,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   textAlign: 'left',
   dropCap: true,
   immersiveReading: true,
+  railCollapsed: false,
   defaultTranslation: 'pt_almeida',
   compareTranslation: null,
   compareTranslations: [],
