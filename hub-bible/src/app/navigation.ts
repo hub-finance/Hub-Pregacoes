@@ -25,7 +25,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/rhema', label: 'Rhema', icon: 'study', quick: true, group: 'ministerio' },
   { to: '/sermoes', label: 'Gerador', icon: 'sermon', quick: true, group: 'ministerio' },
   { to: '/guias', label: 'Guias Doutrinários', shortLabel: 'Guias', icon: 'layers', quick: true, group: 'ministerio' },
-  { to: '/assistente', label: 'Assistente bíblico', shortLabel: 'Assistente', icon: 'sparkle', quick: true, group: 'ministerio' },
+  { to: '/assistente', label: 'Assistente bíblico', shortLabel: 'Assistente', icon: 'bible-study', quick: true, group: 'ministerio' },
   { to: '/planos', label: 'Plano de leitura', icon: 'calendar', quick: true, group: 'ministerio' },
   { to: '/exportar', label: 'Gerar e Exportar', shortLabel: 'Exportar', icon: 'download', quick: true, group: 'ministerio' },
   { to: '/pregacao', label: 'Modo Pregação', icon: 'preach', quick: true, group: 'ministerio' },

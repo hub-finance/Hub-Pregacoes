@@ -15,7 +15,7 @@ export type IconName =
   | 'reset' | 'swap' | 'text' | 'offline' | 'lock' | 'filter' | 'duplicate'
   | 'flame' | 'folder' | 'split' | 'warning' | 'info'
   | 'list' | 'quote' | 'arrow-up' | 'arrow-down' | 'crop'
-  | 'link' | 'dictionary' | 'layers' | 'columns' | 'cross' | 'sparkle';
+  | 'link' | 'dictionary' | 'layers' | 'columns' | 'cross' | 'sparkle' | 'bible-study';
 
 const PATHS: Record<IconName, string> = {
   home: 'M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5M9.5 20v-6h5v6',
@@ -75,6 +75,8 @@ const PATHS: Record<IconName, string> = {
   layers: 'M12 2.5 2.5 8l9.5 5.5L21.5 8zM2.5 12l9.5 5.5L21.5 12M2.5 16l9.5 5.5L21.5 16',
   columns: 'M4 5h16v14H4zM9.3 5v14M14.7 5v14',
   cross: 'M12 4v16M4 12h16',
+  // Bíblia com lupa — o Assistente bíblico
+  'bible-study': 'M5 4.5h9.5v15H6.5A1.5 1.5 0 0 1 5 18zM5 17a1.5 1.5 0 0 1 1.5-1.5h8M9.75 7v4.5M8 8.75h3.5M17.5 13a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M19.3 17.8l1.7 1.7',
   sparkle: 'M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8zM17 14l1 2.8L20.8 18 18 19l-1 2.8L16 19l-2.8-1L16 17z',
 };
 
