@@ -5,6 +5,47 @@ verificado; nada aqui é suposição. O que já foi entregue está no `README.md
 
 ---
 
+### Retomar daqui (06/11) — próxima sessão
+
+Ordem combinada com o usuário. Ele quer o assistente "seguido à risca do
+Prompt" e funcionando "com ou sem IA, como o Hub Resumos".
+
+1. **Prompt Mestre integral.** Hoje `ASSISTANT_PROMPT` (`src/core/ai/assistant.ts`)
+   condensa as 21 seções. Trocar pelo texto literal do prompt (o usuário tem o
+   arquivo `Prompt_Mestre_Palavra_da_Fe.md`; pedir de novo se preciso). As
+   travas do app ficam acima dele: comentário nunca é Escritura, referências
+   conferidas, limites de sã doutrina.
+2. **Motor sem IA.** "Montar estudo" só com os dados do aparelho, na ordem do
+   prompt (texto → contexto → original → … → aplicação). As peças já existem
+   em `buildAssistantContext`: texto bíblico, referências cruzadas, dicionário
+   teológico, tipologia, léxico Strong, guias e base doutrinária. O que só a
+   IA ou o pregador fazem (gramática, interpretação, aplicação) fica como
+   espaço para preencher, sem inventar. Limite honesto: as Bíblias têm Strong
+   mas não morfologia (tempo, caso), então não há análise gramatical sem IA.
+   Hoje, sem IA, a conversa não anda e o documento só junta respostas.
+3. **Ligar com as pregações do usuário.** No assistente, mostrar "O que você
+   já pregou e anotou sobre isso": sermões (Gerador), estudos (Rhema) e
+   anotações que citam a passagem ou o tema. Com IA, mandar esse material como
+   "memória pessoal". Em "Conferir interpretação", escolher uma mensagem do
+   Gerador para a auditoria. Só ligar o que já existe, sem duplicar telas.
+4. **Testar com a IA real.** Todos os testes usaram IA simulada. Revisar com o
+   usuário uma resposta, uma auditoria e um documento gerados com a chave dele.
+5. **Conversas do assistente fora do backup** (`settings`,
+   `assistant:conversations`). O documento pode ser salvo como anotação,
+   Gerador ou Rhema, que entram. Avaliar se a conversa deve entrar também.
+
+Pendências anteriores que continuam abertas:
+
+- **Piscada escura ao desbloquear o tablet** — ver "Retomar daqui (05/11)":
+  falta o usuário dizer se é no APK ou no navegador e com qual tema.
+- Melhorar os guias embutidos com versículos.
+- Gerador: modelo de mensagem e design do texto conforme as mensagens do
+  usuário.
+- Leitor: `?v=N` não seleciona o versículo no primeiro toque.
+- Verificar no aparelho o compartilhar versículo/imagem no APK.
+
+---
+
 ## Entregues em 06/11/2026
 
 ### 0s. ✅ Assistente bíblico (aba nova, `#/assistente`)
