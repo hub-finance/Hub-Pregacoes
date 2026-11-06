@@ -82,7 +82,10 @@ node scripts/generate-icons.mjs   # regenera os ícones do PWA
   usuário) na linha da Palavra da Fé — explicação, estudo de palavra, exegese, doutrina,
   pregação ou auditoria de uma interpretação. Vai junto o que o aparelho já tem: texto
   bíblico, léxico Strong, dicionário teológico, tipologia e referências cruzadas. As
-  referências da resposta são conferidas na tradução antes de virar toque.
+  referências da resposta são conferidas na tradução antes de virar toque. Um estudo
+  sistemático, uma mensagem ou um resumo construído na conversa vira documento em texto
+  corrido, editável, que sai em PDF ou Word, ou segue para o Gerador, o Rhema e o Gerar e
+  Exportar.
 - **Modo Pregação**: tela cheia, texto grande, navegação por passos, tela sempre ligada.
 - **Painel “Minha vida ministerial”**: sermões, estudos, devocionais, capítulos lidos,
   dias consecutivos, favoritos, anotações e marcações por categoria.

@@ -2,60 +2,56 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
+import { useAsync } from '../../hooks';
 import { deliverFile, shareExportFile } from '../../core/export/deliver';
+import { getMeta } from '../../core/bible/repository';
 import type { AssistantMessage } from '../../core/ai/assistant';
 import {
-  appendNewAnswers,
   exportDocument,
   GOAL_TITLE_LABEL,
-  newAnswerCount,
   sendToExport,
   sendToSermon,
   sendToStudy,
   type AssistantDocument,
-  type DocSection,
 } from '../../core/ai/assistantDocument';
-import { uid } from '../../core/db/db';
-import { useAsync } from '../../hooks';
-import { getMeta } from '../../core/bible/repository';
+import type { PreviewTarget } from '../bible/VersePreview';
+import { Markdown } from './Markdown';
 
 interface Props {
   doc: AssistantDocument;
   messages: AssistantMessage[];
   translation: string;
   author: string;
+  aiEnabled: boolean;
+  /** A IA está redigindo ou revendo o texto. */
+  working: boolean;
   onChange: (doc: AssistantDocument) => void;
+  /** Pede à IA o documento inteiro revisto com o ajuste. */
+  onRevise: (request: string) => Promise<boolean>;
+  /** Redige de novo a partir da conversa. */
+  onRedraft: () => void;
+  onRef: (target: PreviewTarget, from: HTMLElement) => void;
 }
 
 type Busy = '' | 'pdf' | 'docx' | 'share' | 'sermon' | 'study' | 'export';
 
 /**
- * O documento montado da conversa: o pregador escolhe as partes, edita, põe
- * em ordem e leva para fora — PDF, Word, Gerador, Rhema ou Gerar e Exportar.
+ * O documento montado da conversa: um texto só, corrido, que o pregador lê,
+ * edita de cima a baixo, ajusta com a IA e leva para fora.
  */
-export function DocumentEditor({ doc, messages, translation, author, onChange }: Props) {
+export function DocumentEditor({
+  doc, messages, translation, author, aiEnabled, working, onChange, onRevise, onRedraft, onRef,
+}: Props) {
   const { notify } = useToast();
   const navigate = useNavigate();
   const [busy, setBusy] = useState<Busy>('');
+  const [tab, setTab] = useState<'ver' | 'editar'>('ver');
+  const [request, setRequest] = useState('');
   const meta = useAsync(() => getMeta(translation), [translation]);
   const translationLabel = meta.data?.shortName ?? meta.data?.name ?? translation;
 
   const update = (patch: Partial<AssistantDocument>) => onChange({ ...doc, ...patch, updatedAt: Date.now() });
-  const updateSection = (id: string, patch: Partial<DocSection>) =>
-    update({ sections: doc.sections.map((s) => (s.id === id ? { ...s, ...patch } : s)) });
-  const move = (index: number, delta: number) => {
-    const next = [...doc.sections];
-    const [item] = next.splice(index, 1);
-    next.splice(index + delta, 0, item);
-    update({ sections: next });
-  };
-  const remove = (id: string) => update({ sections: doc.sections.filter((s) => s.id !== id) });
-  const addSection = () =>
-    update({ sections: [...doc.sections, { id: uid('dsec_'), heading: 'Nova seção', text: '', include: true }] });
-
-  const fresh = newAnswerCount(doc, messages);
-  const included = doc.sections.filter((s) => s.include && s.text.trim()).length;
-  const canExport = included > 0 && !busy;
+  const canExport = doc.text.trim().length > 0 && !busy && !working;
 
   const run = async (kind: Busy, task: () => Promise<void>) => {
     setBusy(kind);
@@ -80,6 +76,16 @@ export function DocumentEditor({ doc, messages, translation, author, onChange }:
       notify(await shareExportFile(blob, filename));
     });
 
+  const revise = async () => {
+    if (!request.trim() || working) return;
+    if (await onRevise(request.trim())) setRequest('');
+  };
+
+  const undo = () => {
+    if (doc.previousText === undefined) return;
+    update({ text: doc.previousText, previousText: doc.text });
+  };
+
   return (
     <section className="assistant-doc" aria-label="Documento">
       <div className="card assistant-doc-head">
@@ -92,6 +98,87 @@ export function DocumentEditor({ doc, messages, translation, author, onChange }:
             onChange={(e) => update({ title: e.target.value })}
           />
         </div>
+        {doc.manual && (
+          <p className="small dim" style={{ margin: 0 }}>
+            {aiEnabled
+              ? 'Estas são as respostas da conversa juntas. Toque em "Redigir com a IA" para receber o texto corrido, ou costure você mesmo.'
+              : 'Sem IA configurada, o documento junta as respostas da conversa na ordem. Edite para costurar as partes.'}
+          </p>
+        )}
+      </div>
+
+      <div className="card assistant-doc-body">
+        <div className="row row-wrap" style={{ gap: 'var(--sp-2)', justifyContent: 'space-between' }}>
+          <div className="tabs" role="tablist" aria-label="Ver ou editar">
+            <button type="button" role="tab" aria-selected={tab === 'ver'} className={`tab${tab === 'ver' ? ' active' : ''}`} onClick={() => setTab('ver')}>
+              Ver como fica
+            </button>
+            <button type="button" role="tab" aria-selected={tab === 'editar'} className={`tab${tab === 'editar' ? ' active' : ''}`} onClick={() => setTab('editar')}>
+              Editar texto
+            </button>
+          </div>
+          <div className="row" style={{ gap: 'var(--sp-1)' }}>
+            {doc.previousText !== undefined && (
+              <button className="btn btn-ghost btn-sm" onClick={undo} disabled={working}>
+                <Icon name="reset" size={16} />
+                <span>Desfazer</span>
+              </button>
+            )}
+            {aiEnabled && (
+              <button className="btn btn-ghost btn-sm" onClick={onRedraft} disabled={working}>
+                <Icon name="sparkle" size={16} />
+                <span>{doc.manual ? 'Redigir com a IA' : 'Redigir de novo'}</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {working ? (
+          <div className="row" style={{ gap: 'var(--sp-2)', padding: 'var(--sp-5) 0' }}>
+            <span className="spinner" />
+            <span className="small dim">A IA está escrevendo o documento inteiro…</span>
+          </div>
+        ) : tab === 'editar' ? (
+          <textarea
+            className="textarea assistant-doc-text"
+            value={doc.text}
+            aria-label="Texto do documento"
+            onChange={(e) => update({ text: e.target.value })}
+          />
+        ) : (
+          <div className="assistant-doc-preview">
+            <Markdown text={doc.text} validRefs={new Set(doc.validRefs)} onRef={onRef} />
+          </div>
+        )}
+        {tab === 'editar' && !working && (
+          <p className="small dim" style={{ margin: 0 }}>
+            "## " no começo da linha abre uma parte; "- " faz lista; **negrito** entre dois asteriscos; "&gt; " destaca.
+          </p>
+        )}
+      </div>
+
+      {aiEnabled && (
+        <form className="card assistant-doc-revise" onSubmit={(e) => { e.preventDefault(); revise(); }}>
+          <label htmlFor="assistant-doc-request" className="small" style={{ fontWeight: 600 }}>Pedir um ajuste à IA</label>
+          <div className="row" style={{ gap: 'var(--sp-2)' }}>
+            <input
+              id="assistant-doc-request"
+              className="input"
+              value={request}
+              placeholder='Ex.: "deixe a introdução mais curta" ou "acrescente o hebraico de tsedaqah"'
+              onChange={(e) => setRequest(e.target.value)}
+            />
+            <button type="submit" className="btn" disabled={!request.trim() || working}>
+              <Icon name="sparkle" size={16} />
+              <span>Ajustar</span>
+            </button>
+          </div>
+          <span className="small dim">A IA devolve o documento inteiro revisto, sem desligar as partes. Dá para desfazer.</span>
+        </form>
+      )}
+
+      <div className="card assistant-doc-out">
+        <h2 className="section-title" style={{ margin: 0 }}>Levar para fora</h2>
         <label className="row assistant-doc-check">
           <input
             type="checkbox"
@@ -100,64 +187,6 @@ export function DocumentEditor({ doc, messages, translation, author, onChange }:
           />
           <span>Incluir no fim os versículos citados, com o texto da sua Bíblia ({translationLabel})</span>
         </label>
-        <p className="small dim" style={{ margin: 0 }}>
-          Marque as partes que entram, edite o texto e ponha na ordem. O arquivo abre com um aviso de que há
-          comentário gerado com apoio de IA.
-        </p>
-        {fresh > 0 && (
-          <button type="button" className="btn btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => onChange(appendNewAnswers(doc, messages))}>
-            <Icon name="plus" size={16} />
-            <span>Trazer {fresh === 1 ? 'a resposta nova' : `as ${fresh} respostas novas`} da conversa</span>
-          </button>
-        )}
-      </div>
-
-      <ol className="assistant-doc-sections">
-        {doc.sections.map((s, i) => (
-          <li key={s.id} className={`card assistant-doc-section${s.include ? '' : ' off'}`}>
-            <div className="row assistant-doc-section-head">
-              <input
-                type="checkbox"
-                checked={s.include}
-                aria-label={`Incluir a seção ${s.heading}`}
-                onChange={(e) => updateSection(s.id, { include: e.target.checked })}
-              />
-              <input
-                className="input"
-                value={s.heading}
-                aria-label="Título da seção"
-                onChange={(e) => updateSection(s.id, { heading: e.target.value })}
-              />
-            </div>
-            <textarea
-              className="textarea"
-              rows={Math.min(14, Math.max(4, Math.ceil(s.text.length / 70)))}
-              value={s.text}
-              aria-label={`Texto da seção ${s.heading}`}
-              onChange={(e) => updateSection(s.id, { text: e.target.value })}
-            />
-            <div className="row assistant-doc-section-actions">
-              <button className="icon-btn" aria-label="Subir a seção" disabled={i === 0} onClick={() => move(i, -1)}>
-                <Icon name="arrow-up" size={18} />
-              </button>
-              <button className="icon-btn" aria-label="Descer a seção" disabled={i === doc.sections.length - 1} onClick={() => move(i, 1)}>
-                <Icon name="arrow-down" size={18} />
-              </button>
-              <button className="icon-btn" aria-label={`Remover a seção ${s.heading}`} onClick={() => remove(s.id)}>
-                <Icon name="trash" size={18} />
-              </button>
-            </div>
-          </li>
-        ))}
-      </ol>
-
-      <button type="button" className="btn btn-sm" onClick={addSection} style={{ marginBottom: 'var(--sp-4)' }}>
-        <Icon name="plus" size={16} />
-        <span>Seção em branco</span>
-      </button>
-
-      <div className="card assistant-doc-out">
-        <h2 className="section-title" style={{ margin: 0 }}>Levar para fora</h2>
         <div className="row row-wrap" style={{ gap: 'var(--sp-2)' }}>
           <button className="btn btn-primary" disabled={!canExport} onClick={() => download('pdf')}>
             <Icon name="download" size={18} />
@@ -201,7 +230,9 @@ export function DocumentEditor({ doc, messages, translation, author, onChange }:
             <span>Personalizar no Gerar e Exportar</span>
           </button>
         </div>
-        {included === 0 && <p className="small dim" style={{ margin: 0 }}>Marque ao menos uma seção com texto.</p>}
+        <p className="small dim" style={{ margin: 0 }}>
+          O arquivo abre com um aviso de que há comentário gerado com apoio de IA.
+        </p>
       </div>
     </section>
   );

@@ -25,7 +25,7 @@ import {
   type TypologyPair,
 } from '../bible/reference-data';
 import { buildDoctrinalBlock, findGuidesForPassage, getDoctrinalPack } from '../bible/doctrinalPack';
-import { GOAL_HINT, type AssistantGoal } from './assistantDocument';
+import { GOAL_HINT, GOAL_LABEL, documentGoal, type AssistantGoal } from './assistantDocument';
 
 export type AssistantMode = 'livre' | 'auditoria';
 export type AssistantDepth = 'auto' | 'objetivo' | 'profundo';
@@ -407,4 +407,51 @@ export async function runAssistant(input: {
   if (!raw.trim()) throw new Error('A IA não devolveu resposta. Tente de novo.');
   const validRefs = await validateReferences(input.translation, extractReferences(raw)).catch(() => []);
   return { content: raw.trim(), validRefs, sources: ctx.sources };
+}
+
+/* ─────────────────────────── o documento final ─────────────────────────── */
+
+const DRAFT_SHAPE: Record<AssistantGoal, string> = {
+  livre: '',
+  estudo: 'Percorra do texto e do contexto às palavras no original, à doutrina, à relação com Cristo e a Nova Aliança, e à aplicação.',
+  mensagem: 'Texto principal, introdução que contextualiza e desperta interesse, pontos desenvolvidos com argumento bíblico, explicação e aplicação, conclusão e apelo quando couber. O pregador continua sendo o autor.',
+  resumo: 'Breve: poucos parágrafos ou pontos, só o essencial, com as referências que sustentam cada ponto.',
+};
+
+const CONNECTED = `Escreva um TEXTO CORRIDO E COESO, pronto para ser lido ou pregado.
+- Primeira linha: "# " seguido do título.
+- Use "## " para as partes, mas ligue cada parte à seguinte com frases de transição: as partes formam um único argumento, com começo, meio e fim. Nada de blocos soltos.
+- Não repita as perguntas do pregador, não comente o processo, não fale "nesta conversa".
+- Mantenha as referências bíblicas entre colchetes e respeite a hierarquia de interpretação e as regras de precisão.`;
+
+/**
+ * Redige o documento inteiro a partir da conversa — ou, com `current` e
+ * `request`, devolve o documento inteiro revisto conforme o ajuste pedido.
+ */
+export async function draftDocumentText(input: {
+  goal: AssistantGoal;
+  history: AssistantMessage[];
+  translation: string;
+  passage?: string;
+  current?: string;
+  request?: string;
+}): Promise<{ content: string; validRefs: string[] }> {
+  const goal = documentGoal(input.goal);
+  const label = GOAL_LABEL[goal].toUpperCase();
+  const revising = !!(input.current && input.request);
+  const seed = revising ? input.request! : input.history.find((m) => m.role === 'user')?.content ?? '';
+  const ctx = await buildAssistantContext(seed, input.passage ?? '', input.translation);
+
+  const order = revising
+    ? `REVISE O DOCUMENTO — ${label}.\nAJUSTE PEDIDO: ${input.request!.trim()}\n\nDevolva o documento INTEIRO já revisto, não só o trecho mudado, mantendo o que não foi pedido para mudar.\n${CONNECTED}\n\nDOCUMENTO ATUAL:\n${input.current}`
+    : `REDIJA AGORA O DOCUMENTO FINAL — ${label}, integrando tudo o que foi construído até aqui.\n${DRAFT_SHAPE[goal]}\n${CONNECTED}`;
+
+  const turns: ChatTurn[] = input.history.slice(-12).map((m) => ({ role: m.role, content: m.content }));
+  if (turns[0]?.role === 'assistant') turns.shift();
+  turns.push({ role: 'user', content: [GOAL_HINT[goal], order, ctx.block].filter(Boolean).join('\n\n') });
+
+  const raw = await chatComplete(`${SYSTEM_PROMPT}\n${ASSISTANT_PROMPT}`, turns, goal === 'resumo' ? 4096 : 12288);
+  if (!raw.trim()) throw new Error('A IA não devolveu o documento. Tente de novo.');
+  const validRefs = await validateReferences(input.translation, extractReferences(raw)).catch(() => []);
+  return { content: raw.trim(), validRefs };
 }

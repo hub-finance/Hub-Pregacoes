@@ -9,6 +9,7 @@ import { useIsWide } from '../../hooks';
 import { useSettings } from '../../core/settings/SettingsContext';
 import { AI_DISCLAIMER, isAiEnabled } from '../../core/ai/provider';
 import {
+  draftDocumentText,
   runAssistant,
   type AssistantDepth,
   type AssistantMessage,
@@ -27,7 +28,7 @@ import { formatReference, parseReference } from '../../core/bible/reference';
 import { VersePreview, previewLabel, type PreviewTarget } from '../bible/VersePreview';
 import { Markdown, markdownToPlain } from './Markdown';
 import { DocumentEditor } from './DocumentEditor';
-import { createDocument, GOAL_LABEL, type AssistantDocument, type AssistantGoal } from '../../core/ai/assistantDocument';
+import { documentFromAnswers, GOAL_LABEL, splitTitle, type AssistantDocument, type AssistantGoal } from '../../core/ai/assistantDocument';
 
 /** Comandos naturais do Prompt Mestre — um toque preenche o pedido. */
 const EXAMPLES = [
@@ -102,6 +103,10 @@ export default function AssistantPage() {
   const [view, setView] = useState<'conversa' | 'documento'>('conversa');
   const goal: AssistantGoal = conv.goal ?? 'livre';
   const saveTimer = useRef<number | undefined>(undefined);
+  const [docWorking, setDocWorking] = useState(false);
+  // a IA demora: quando ela volta, o documento é aplicado sobre a conversa atual
+  const convRef = useRef(conv);
+  convRef.current = conv;
 
   const lastAnswer = useRef<HTMLDivElement | null>(null);
   const enabled = isAiEnabled();
@@ -197,7 +202,7 @@ export default function AssistantPage() {
 
   /** Edições do documento: na tela na hora, gravadas logo depois de parar de digitar. */
   const updateDocument = (doc: AssistantDocument) => {
-    const next = { ...conv, document: doc };
+    const next = { ...convRef.current, document: doc };
     setConv(next);
     window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
@@ -206,15 +211,75 @@ export default function AssistantPage() {
   };
   useEffect(() => () => window.clearTimeout(saveTimer.current), []);
 
-  const openDocument = async () => {
-    if (!conv.document) {
-      const next = { ...conv, document: createDocument(conv.title, goal, conv.messages) };
-      setConv(next);
-      await saveConversation(next).catch(() => undefined);
-      refreshHistory();
+  /** Mudança vinda da IA: aplica e grava na hora, guardando a versão anterior. */
+  const commitDocument = async (doc: AssistantDocument) => {
+    window.clearTimeout(saveTimer.current);
+    const next = { ...convRef.current, document: doc };
+    setConv(next);
+    await saveConversation(next).catch(() => notify('Não foi possível salvar o documento.'));
+    refreshHistory();
+  };
+
+  const lastPassage = () => [...conv.messages].reverse().find((m) => m.role === 'user' && m.passage)?.passage;
+
+  /** A IA redige o documento inteiro, corrido, a partir da conversa. */
+  const draftWithAi = async (base: AssistantDocument) => {
+    setDocWorking(true);
+    try {
+      const out = await draftDocumentText({
+        goal: base.goal, history: convRef.current.messages, translation, passage: lastPassage(),
+      });
+      const { title, body } = splitTitle(out.content);
+      await commitDocument({
+        ...base,
+        title: base.manual && title ? title : base.title,
+        text: body,
+        previousText: base.text,
+        validRefs: out.validRefs,
+        manual: false,
+        updatedAt: Date.now(),
+      });
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'A IA não conseguiu redigir o documento.');
+    } finally {
+      setDocWorking(false);
     }
+  };
+
+  const reviseWithAi = async (request: string): Promise<boolean> => {
+    const doc = convRef.current.document;
+    if (!doc) return false;
+    setDocWorking(true);
+    try {
+      const out = await draftDocumentText({
+        goal: doc.goal, history: convRef.current.messages, translation, passage: lastPassage(),
+        current: `# ${doc.title}\n\n${doc.text}`, request,
+      });
+      const { body } = splitTitle(out.content);
+      await commitDocument({
+        ...doc,
+        text: body,
+        previousText: doc.text,
+        validRefs: [...new Set([...doc.validRefs, ...out.validRefs])],
+        updatedAt: Date.now(),
+      });
+      return true;
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'A IA não conseguiu ajustar o documento.');
+      return false;
+    } finally {
+      setDocWorking(false);
+    }
+  };
+
+  const openDocument = async () => {
     setPreview(null);
     setView('documento');
+    if (conv.document) return;
+    // primeiro as respostas juntas (funciona sem IA); com IA, o texto corrido
+    const base = documentFromAnswers(conv.title, goal, conv.messages);
+    await commitDocument(base);
+    if (enabled) await draftWithAi(base);
   };
 
   const hasAnswer = conv.messages.some((m) => m.role === 'assistant');
@@ -279,7 +344,12 @@ export default function AssistantPage() {
           messages={conv.messages}
           translation={translation}
           author={settings.userName}
+          aiEnabled={enabled}
+          working={docWorking}
           onChange={updateDocument}
+          onRevise={reviseWithAi}
+          onRedraft={() => conv.document && draftWithAi(conv.document)}
+          onRef={openRef}
         />
       ) : (<>
 

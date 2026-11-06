@@ -2,7 +2,7 @@
  * O trabalho que nasce de uma conversa do assistente bíblico: um estudo
  * sistemático, uma mensagem ou um resumo.
  *
- * As respostas viram seções que o pregador escolhe, reordena e edita. O
+ * A IA redige o texto inteiro, corrido, e o pregador edita num campo só. O
  * documento sai daqui em PDF ou Word pelo mesmo gerador do Gerar e Exportar,
  * ou segue para o Gerador (mensagem), para o Rhema (estudo) ou para o próprio
  * Gerar e Exportar, onde ganha capa, tema e sumário.
@@ -32,7 +32,6 @@ export const GOAL_LABEL: Record<AssistantGoal, string> = {
   resumo: 'Resumo',
 };
 
-/** O que o objetivo pede da IA, conforme o Prompt Mestre (seção 16). */
 /** "Título do estudo", "Título da mensagem". */
 export const GOAL_TITLE_LABEL: Record<AssistantGoal, string> = {
   livre: 'Título do estudo',
@@ -41,17 +40,18 @@ export const GOAL_TITLE_LABEL: Record<AssistantGoal, string> = {
   resumo: 'Título do resumo',
 };
 
+/** O que o objetivo pede da IA, conforme o Prompt Mestre (seção 16). */
 export const GOAL_HINT: Record<AssistantGoal, string> = {
   livre: '',
   estudo:
     'OBJETIVO DO TRABALHO: estudo sistemático. O pregador está construindo um estudo que será exportado. ' +
     'Construa a doutrina a partir de vários textos e da teologia bíblica, seguindo a hierarquia de interpretação. ' +
     'Organize em seções com títulos "## " claros (por exemplo: texto e contexto, palavras no original, desenvolvimento doutrinário, relação com Cristo e a Nova Aliança, aplicação), ' +
-    'para que cada parte possa entrar no documento. Quando ele pedir ajuste de uma parte, devolva só a parte ajustada, com o mesmo título.',
+    'com as partes ligadas umas às outras: o estudo é um argumento só.',
   mensagem:
     'OBJETIVO DO TRABALHO: mensagem (pregação). O pregador está construindo uma mensagem que será exportada; ele continua sendo o autor. ' +
     'Priorize estrutura homilética: texto principal, introdução, pontos com argumento bíblico, explicação e aplicação, transições, conclusão e apelo quando couber. ' +
-    'Use títulos "## " para cada parte. Quando ele pedir ajuste de uma parte, devolva só a parte ajustada, com o mesmo título.',
+    'Use títulos "## " para cada parte e transições que liguem uma parte à seguinte.',
   resumo:
     'OBJETIVO DO TRABALHO: resumo. Condense o essencial em poucos pontos bem escolhidos, com títulos "## " curtos e as referências que sustentam cada ponto. ' +
     'Qualidade, não quantidade.',
@@ -59,82 +59,47 @@ export const GOAL_HINT: Record<AssistantGoal, string> = {
 
 /* ───────────────────────────── documento ───────────────────────────── */
 
-export interface DocSection {
-  id: string;
-  heading: string;
-  /** Markdown simples, como veio da IA ou como o pregador editou. */
-  text: string;
-  include: boolean;
-  /** Mensagem de origem (`at` da resposta), para trazer só as novas. */
-  fromAt?: number;
-}
-
+/**
+ * Um texto só, corrido, em Markdown simples: o pregador pediu que as partes
+ * não fiquem soltas — introdução, pontos e conclusão formam um argumento.
+ */
 export interface AssistantDocument {
   title: string;
   goal: AssistantGoal;
-  sections: DocSection[];
+  text: string;
+  /** Versão anterior, para desfazer a última mudança da IA. */
+  previousText?: string;
+  /** Referências do texto conferidas na tradução em uso. */
+  validRefs: string[];
   /** Acrescenta ao fim os versículos citados, com o texto da tradução em uso. */
   includeVerses: boolean;
+  /** Feito sem IA: as respostas juntas, para o pregador costurar. */
+  manual?: boolean;
   updatedAt: number;
 }
 
-/** Divide uma resposta nas suas partes "## " — cada uma vira uma seção escolhível. */
-function splitAnswer(content: string, fallbackHeading: string, at: number): DocSection[] {
-  const out: DocSection[] = [];
-  let heading = '';
-  let lines: string[] = [];
-  const push = () => {
-    const text = lines.join('\n').trim();
-    if (text || heading) {
-      out.push({ id: uid('dsec_'), heading: heading || fallbackHeading, text, include: true, fromAt: at });
-    }
-    lines = [];
-  };
-  for (const line of content.replace(/\r\n?/g, '\n').split('\n')) {
-    const m = /^\s{0,3}#{1,2}\s+(.+?)\s*#*\s*$/.exec(line);
-    if (m) {
-      push();
-      heading = m[1].replace(/\*\*/g, '');
-    } else {
-      lines.push(line);
-    }
-  }
-  push();
-  return out.filter((s) => s.text);
+/** De uma pergunta livre, o que se leva para fora é um estudo. */
+export const documentGoal = (goal: AssistantGoal): AssistantGoal => (goal === 'livre' ? 'estudo' : goal);
+
+/** Tira a linha "# Título" do começo do texto da IA e devolve as duas partes. */
+export function splitTitle(text: string): { title: string; body: string } {
+  const m = /^\s*#\s+(.+?)\s*#*\s*\n/.exec(text);
+  if (!m) return { title: '', body: text.trim() };
+  return { title: m[1].replace(/\*\*/g, '').trim(), body: text.slice(m[0].length).trim() };
 }
 
-function answersAfter(messages: AssistantMessage[], after: number): DocSection[] {
-  const sections: DocSection[] = [];
-  messages.forEach((m, i) => {
-    if (m.role !== 'assistant' || m.at <= after) return;
-    const question = messages[i - 1]?.role === 'user' ? messages[i - 1].content : '';
-    const fallback = question.replace(/\s+/g, ' ').trim().slice(0, 60) || 'Seção';
-    sections.push(...splitAnswer(m.content, fallback, m.at));
-  });
-  return sections;
-}
-
-export function createDocument(title: string, goal: AssistantGoal, messages: AssistantMessage[]): AssistantDocument {
-  // de uma pergunta livre, o que se leva para fora é um estudo
-  const kind: AssistantGoal = goal === 'livre' ? 'estudo' : goal;
+/** Sem IA: as respostas da conversa, na ordem, num texto só. */
+export function documentFromAnswers(title: string, goal: AssistantGoal, messages: AssistantMessage[]): AssistantDocument {
+  const answers = messages.filter((m) => m.role === 'assistant');
   return {
-    title: title || GOAL_LABEL[kind],
-    goal: kind,
-    sections: answersAfter(messages, 0),
+    title: title || GOAL_LABEL[documentGoal(goal)],
+    goal: documentGoal(goal),
+    text: answers.map((m) => m.content.trim()).join('\n\n'),
+    validRefs: [...new Set(answers.flatMap((m) => m.validRefs ?? []))],
     includeVerses: true,
+    manual: true,
     updatedAt: now(),
   };
-}
-
-/** Respostas que chegaram depois que o documento foi montado. */
-export function newAnswerCount(doc: AssistantDocument, messages: AssistantMessage[]): number {
-  const last = Math.max(0, ...doc.sections.map((s) => s.fromAt ?? 0));
-  return messages.filter((m) => m.role === 'assistant' && m.at > last).length;
-}
-
-export function appendNewAnswers(doc: AssistantDocument, messages: AssistantMessage[]): AssistantDocument {
-  const last = Math.max(0, ...doc.sections.map((s) => s.fromAt ?? 0));
-  return { ...doc, sections: [...doc.sections, ...answersAfter(messages, last)], updatedAt: now() };
 }
 
 /* ─────────────────────── markdown → blocos do app ─────────────────────── */
@@ -172,10 +137,10 @@ function markdownToBlocks(text: string, subheadings: string[]): SermonBlock[] {
     const line = raw.trim();
     let m: RegExpExecArray | null;
     if (!line) { flushAll(); continue; }
-    if ((m = /^#{1,4}\s+(.+?)\s*#*$/.exec(line))) {
+    if ((m = /^(#{1,4})\s+(.+?)\s*#*$/.exec(line))) {
       flushAll();
-      const block = newBlock('section', escapeHtml(m[1].replace(/\*\*/g, '')));
-      subheadings.push(block.id);
+      const block = newBlock('section', escapeHtml(m[2].replace(/\*\*/g, '')));
+      if (m[1].length >= 3) subheadings.push(block.id);
       blocks.push(block);
     } else if (/^([-*_]\s*){3,}$/.test(line)) {
       flushAll();
@@ -199,18 +164,15 @@ function markdownToBlocks(text: string, subheadings: string[]): SermonBlock[] {
 const AI_NOTE =
   'Preparado com o Assistente bíblico do Hub Bible. Os trechos gerados com apoio de IA são comentário, não Escritura: confira sempre com a Bíblia.';
 
-/** Referências citadas nas seções incluídas, na ordem em que aparecem. */
-function citedReferences(doc: AssistantDocument, valid: Set<string>): string[] {
+/** Referências citadas no texto, na ordem em que aparecem. */
+function citedReferences(text: string, valid: Set<string>): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
-  for (const s of doc.sections) {
-    if (!s.include) continue;
-    for (const m of s.text.matchAll(/\[([^\]]+)\]/g)) {
-      const ref = m[1].trim();
-      if (!valid.has(ref) || seen.has(ref)) continue;
-      seen.add(ref);
-      out.push(ref);
-    }
+  for (const m of text.matchAll(/\[([^\]]+)\]/g)) {
+    const ref = m[1].trim();
+    if (!valid.has(ref) || seen.has(ref)) continue;
+    seen.add(ref);
+    out.push(ref);
   }
   return out;
 }
@@ -228,15 +190,11 @@ export async function documentContent(
 ): Promise<DocumentContent> {
   const subheadings: string[] = [];
   const blocks: SermonBlock[] = [newBlock('highlight', `<p>${escapeHtml(AI_NOTE)}</p>`)];
-  for (const s of doc.sections) {
-    if (!s.include) continue;
-    if (s.heading.trim()) blocks.push(newBlock('section', escapeHtml(s.heading.trim())));
-    blocks.push(...markdownToBlocks(s.text, subheadings));
-  }
+  blocks.push(...markdownToBlocks(splitTitle(doc.text).body || doc.text, subheadings));
 
   if (doc.includeVerses) {
-    const valid = new Set(messages.flatMap((m) => m.validRefs ?? []));
-    const refs = citedReferences(doc, valid).slice(0, 40);
+    const valid = new Set([...doc.validRefs, ...messages.flatMap((m) => m.validRefs ?? [])]);
+    const refs = citedReferences(doc.text, valid).slice(0, 40);
     const quotes: SermonBlock[] = [];
     const meta = await getMeta(translation).catch(() => null);
     const label = meta?.shortName ?? meta?.name ?? translation;
@@ -325,11 +283,21 @@ export async function sendToSermon(doc: AssistantDocument, messages: AssistantMe
   return sermon.id;
 }
 
-/** Vira um estudo no Rhema, uma seção livre por parte. Devolve o id. */
+/** Vira um estudo no Rhema: uma seção livre por parte "## ". Devolve o id. */
 export async function sendToStudy(doc: AssistantDocument): Promise<string> {
-  const sections: StudySection[] = doc.sections
-    .filter((s) => s.include && s.text.trim())
-    .map((s) => ({ id: uid('sec_'), kind: 'livre', title: s.heading, text: plainText(s.text) }));
+  const sections: StudySection[] = [];
+  let title = 'Introdução';
+  let lines: string[] = [];
+  const push = () => {
+    const text = plainText(lines.join('\n'));
+    if (text) sections.push({ id: uid('sec_'), kind: 'livre', title, text });
+    lines = [];
+  };
+  for (const line of (splitTitle(doc.text).body || doc.text).split('\n')) {
+    const m = /^\s{0,3}#{1,2}\s+(.+?)\s*#*\s*$/.exec(line);
+    if (m) { push(); title = m[1].replace(/\*\*/g, ''); } else lines.push(line);
+  }
+  push();
   const study = { ...newStudy(), title: doc.title, sections, tags: ['assistente'] };
   await saveDoc('study', study);
   return study.id;

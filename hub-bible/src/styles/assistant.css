@@ -242,44 +242,30 @@
   min-height: var(--tap);
   font-size: 0.92rem;
 }
-.assistant-doc-check input,
-.assistant-doc-section-head input[type='checkbox'] {
+.assistant-doc-check input {
   width: 22px;
   height: 22px;
   flex: none;
   margin-top: 2px;
   accent-color: var(--accent);
 }
-.assistant-doc-sections {
-  list-style: none;
-  margin: 0 0 var(--sp-3);
-  padding: 0;
+.assistant-doc-body,
+.assistant-doc-revise {
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
 }
-.assistant-doc-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-  border-left: 3px solid var(--accent);
+/* o documento inteiro num campo só, como uma folha */
+.assistant-doc-text {
+  min-height: 60vh;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical;
 }
-.assistant-doc-section.off {
-  opacity: 0.55;
-  border-left-color: var(--border-strong);
+.assistant-doc-preview {
+  padding: var(--sp-2) var(--sp-1);
 }
-.assistant-doc-section-head {
-  gap: var(--sp-2);
-  align-items: center;
-}
-.assistant-doc-section-head .input {
-  font-weight: 650;
-}
-.assistant-doc-section .textarea {
-  font-size: 0.92rem;
-  line-height: 1.55;
-}
-.assistant-doc-section-actions {
-  justify-content: flex-end;
-  gap: var(--sp-1);
+.assistant-doc-preview .md {
+  font-size: 1rem;
 }

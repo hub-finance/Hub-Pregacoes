@@ -39,11 +39,31 @@ aplicativo já tem.
   tablet, embaixo no celular), Copiar, Salvar como anotação, histórico de
   conversas em `settings` (`assistant:conversations`, até 40; não entra no
   backup — a anotação entra).
+- **Documento exportável** (`src/core/ai/assistantDocument.ts`,
+  `features/assistant/DocumentEditor.tsx`): no começo o pregador escolhe o
+  objetivo (estudo sistemático, mensagem, resumo), que vai à IA em cada
+  pedido. "Montar documento" junta as respostas e, com IA, pede o
+  **texto corrido** inteiro (`draftDocumentText` em `assistant.ts`). O
+  pregador pediu explicitamente que as partes não ficassem em cartões
+  soltos — a primeira versão em cartões foi descartada. Editor num campo só
+  (Ver como fica / Editar texto), "Pedir um ajuste à IA" devolve o documento
+  inteiro revisto, Desfazer guarda uma versão. Saídas: PDF e Word pelo
+  gerador do Gerar e Exportar (com aviso de IA e, opcional, "Textos bíblicos
+  citados" com o texto da tradução em uso), Gerador, Rhema e "Personalizar
+  no Gerar e Exportar". Sem IA o documento são as respostas juntas.
+  Ainda falta o **motor sem IA** completo (montar estudo só com os dados do
+  aparelho) e a ligação com as pregações do usuário — combinados com ele.
 - **Testes** (Playwright, IA simulada, 390 e 1280px): contexto enviado
   (texto, G4102, Justificação, referências cruzadas), refs inválidas não viram
   toque, prévia, histórico em 3 turnos, erro da API em português devolvendo o
   pedido, anotação salva, conversa reaberta após recarregar, Gemini com
   papéis user/model, exegese do leitor intacta, sem rolagem horizontal.
+  Documento: falha da IA cai nas respostas juntas, redação com título da
+  IA, ajuste e Desfazer, PDF e Word abertos e conferidos (texto editado,
+  partes em ordem, versículos, aviso), salvo após recarregar, Gerador,
+  Rhema e Gerar e Exportar recebem o texto; `npm run test:export` 20/20.
+  Nos testes de download, rodar com `LANG=C.UTF-8`: sem locale UTF-8 o
+  Chromium headless troca nomes com acento por "download".
 
 ---
 
