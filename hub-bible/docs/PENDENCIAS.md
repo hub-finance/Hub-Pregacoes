@@ -10,6 +10,11 @@ verificado; nada aqui é suposição. O que já foi entregue está no `README.md
 Ordem combinada com o usuário. Ele quer o assistente "seguido à risca do
 Prompt" e funcionando "com ou sem IA, como o Hub Resumos".
 
+**Prioridade reafirmada pelo usuário em 06/11 à noite:** amanhã terminar o
+assistente funcionando **sem IA, como o Hub Resumos** (item 2). Hoje, sem
+chave, o botão "Estudar" fica desativado — ele estranhou isso. Fazer o item 0
+(tela limpa) e em seguida o item 2, antes dos demais.
+
 0. **Primeiro: tirar "Experimente pedir" da tela do assistente.** O usuário
    testou no tablet e reprovou: as frases prontas parecem "algo premeditado";
    quem usa escreve sobre qualquer tema. Remover a lista `EXAMPLES` de
