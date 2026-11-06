@@ -28,23 +28,8 @@ import { formatReference, parseReference } from '../../core/bible/reference';
 import { VersePreview, previewLabel, type PreviewTarget } from '../bible/VersePreview';
 import { Markdown, markdownToPlain } from './Markdown';
 import { DocumentEditor } from './DocumentEditor';
+import { buildStudyWithoutAi } from '../../core/data/studyEngine';
 import { documentFromAnswers, GOAL_LABEL, splitTitle, type AssistantDocument, type AssistantGoal } from '../../core/ai/assistantDocument';
-
-/** Comandos naturais do Prompt Mestre — um toque preenche o pedido. */
-const EXAMPLES = [
-  'Analise Romanos 5:1.',
-  'Estude profundamente a justificação.',
-  'Qual o significado de pistis?',
-  'Faça o estudo de emunah.',
-  'Compare fé no AT e no NT.',
-  'O que significa "justificado pela fé"?',
-  'Mostre a relação entre Abraão e Romanos 4.',
-  'Faça uma exegese de Marcos 11:23-24.',
-  'Analise logos e rhema.',
-  'Estude cura na Bíblia.',
-  'Faça uma doutrina sobre autoridade do crente.',
-  'Prepare uma pregação sobre justiça pela fé.',
-];
 
 const MODES: { id: AssistantMode; label: string }[] = [
   { id: 'livre', label: 'Pedido livre' },
@@ -52,11 +37,13 @@ const MODES: { id: AssistantMode; label: string }[] = [
 ];
 
 const GOALS: { id: AssistantGoal; hint: string }[] = [
-  { id: 'livre', hint: 'Tirar uma dúvida, estudar uma palavra ou um versículo.' },
-  { id: 'estudo', hint: 'Doutrina construída a partir de vários textos, em seções.' },
-  { id: 'mensagem', hint: 'Pregação com pontos, textos, aplicações e conclusão.' },
-  { id: 'resumo', hint: 'O essencial em poucos pontos, com as referências.' },
+  { id: 'livre', hint: 'Tirar uma dúvida, estudar uma palavra, um versículo ou um tema.' },
+  { id: 'estudo', hint: 'Estudo em seções: texto, contexto, original, doutrina, Cristo e aplicação.' },
+  { id: 'mensagem', hint: 'Pregação: texto principal, introdução, pontos, aplicação e conclusão.' },
+  { id: 'resumo', hint: 'O essencial em poucos pontos, com os textos-chave.' },
 ];
+
+type Engine = 'ia' | 'aparelho';
 
 const DEPTHS: { id: AssistantDepth; label: string }[] = [
   { id: 'auto', label: 'Automática' },
@@ -110,6 +97,9 @@ export default function AssistantPage() {
 
   const lastAnswer = useRef<HTMLDivElement | null>(null);
   const enabled = isAiEnabled();
+  // como o Hub Resumos: com IA quando houver chave; sem ela, o motor do aparelho
+  const [enginePick, setEnginePick] = useState<Engine>('ia');
+  const engine: Engine = enabled ? enginePick : 'aparelho';
 
   const refreshHistory = useCallback(() => {
     listConversations().then(setHistory).catch(() => setHistory([]));
@@ -136,14 +126,14 @@ export default function AssistantPage() {
     setConv(pending);
     setText('');
     try {
-      const answer = await runAssistant({
-        text: request, mode, depth, passage, translation, history: conv.messages, goal,
-      });
+      const answer = engine === 'ia'
+        ? await runAssistant({ text: request, mode, depth, passage, translation, history: conv.messages, goal })
+        : await buildStudyWithoutAi({ text: request, mode, depth, passage, translation, goal });
       const done: AssistantConversation = {
         ...pending,
         title: conv.title || conversationTitle(request),
         messages: [...pending.messages, {
-          role: 'assistant', content: answer.content, validRefs: answer.validRefs, sources: answer.sources, at: Date.now(),
+          role: 'assistant', content: answer.content, validRefs: answer.validRefs, sources: answer.sources, engine, at: Date.now(),
         }],
       };
       setConv(done);
@@ -153,7 +143,7 @@ export default function AssistantPage() {
     } catch (err) {
       setConv(conv);
       setText(request);
-      setError(err instanceof Error ? err.message : 'Não foi possível falar com a IA.');
+      setError(err instanceof Error ? err.message : engine === 'ia' ? 'Não foi possível falar com a IA.' : 'Não foi possível montar o estudo.');
     } finally {
       setLoading(false);
     }
@@ -163,6 +153,8 @@ export default function AssistantPage() {
     setView('conversa');
     setConv(newConversation());
     setText('');
+    // conversa nova, foco novo: a passagem do pedido anterior não vale mais
+    setPassage('');
     setError('');
     setPreview(null);
   };
@@ -236,6 +228,8 @@ export default function AssistantPage() {
         text: body,
         previousText: base.text,
         validRefs: out.validRefs,
+        // o texto da IA cita os versículos só pela referência: eles entram no fim
+        includeVerses: base.manual ? true : base.includeVerses,
         manual: false,
         updatedAt: Date.now(),
       });
@@ -279,7 +273,7 @@ export default function AssistantPage() {
     // primeiro as respostas juntas (funciona sem IA); com IA, o texto corrido
     const base = documentFromAnswers(conv.title, goal, conv.messages);
     await commitDocument(base);
-    if (enabled) await draftWithAi(base);
+    if (enabled && engine === 'ia') await draftWithAi(base);
   };
 
   const hasAnswer = conv.messages.some((m) => m.role === 'assistant');
@@ -290,6 +284,140 @@ export default function AssistantPage() {
     for (let i = conv.messages.length - 1; i >= 0; i--) if (conv.messages[i].role === 'assistant') return i;
     return -1;
   }, [conv.messages]);
+
+  const composer = (
+    <form
+          className="card assistant-composer"
+          onSubmit={(e) => { e.preventDefault(); send(); }}
+        >
+          <div className="tabs" role="tablist" aria-label="Tipo de pedido">
+            {MODES.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                role="tab"
+                aria-selected={mode === m.id}
+                className={`tab${mode === m.id ? ' active' : ''}`}
+                onClick={() => setMode(m.id)}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+  
+          <div className="field">
+            <label htmlFor="assistant-text">
+              {mode === 'auditoria' ? 'Cole a interpretação ou o trecho da mensagem' : 'O que você quer estudar?'}
+            </label>
+            <textarea
+              id="assistant-text"
+              className="textarea"
+              rows={mode === 'auditoria' ? 7 : 3}
+              value={text}
+              placeholder={mode === 'auditoria'
+                ? 'Ex.: Em Marcos 11:23 a palavra falada tem poder por si mesma, por isso…'
+                : 'Ex.: Qual a diferença entre justificação e santificação?'}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); send(); }
+              }}
+            />
+          </div>
+  
+          <div className="assistant-options">
+            <div className="field" style={{ flex: '1 1 220px' }}>
+              <label htmlFor="assistant-passage">Passagem em foco (opcional)</label>
+              <div className="row" style={{ gap: 'var(--sp-2)' }}>
+                <input
+                  id="assistant-passage"
+                  className="input"
+                  value={passage}
+                  placeholder="Ex.: Romanos 5:1-5"
+                  aria-invalid={passageInvalid}
+                  onChange={(e) => setPassage(e.target.value)}
+                />
+                {position && (
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    onClick={() => setPassage(positionLabel)}
+                    title={`Usar ${positionLabel}`}
+                  >
+                    <Icon name="book" size={16} />
+                    <span>Onde parei</span>
+                  </button>
+                )}
+              </div>
+              {passageInvalid && <span className="small" style={{ color: 'var(--danger)' }}>Referência não reconhecida.</span>}
+            </div>
+  
+            <div className="field">
+              <label id="assistant-depth">Profundidade</label>
+              <div className="row row-wrap" role="radiogroup" aria-labelledby="assistant-depth" style={{ gap: 'var(--sp-2)' }}>
+                {DEPTHS.map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={depth === d.id}
+                    className={`chip${depth === d.id ? ' active' : ''}`}
+                    onClick={() => setDepth(d.id)}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+  
+          <div className="field">
+            <label id="assistant-engine">Como produzir</label>
+            <div className="row row-wrap" role="radiogroup" aria-labelledby="assistant-engine" style={{ gap: 'var(--sp-2)' }}>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={engine === 'ia'}
+                disabled={!enabled}
+                className={`chip${engine === 'ia' ? ' active' : ''}`}
+                onClick={() => setEnginePick('ia')}
+              >
+                Com IA
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={engine === 'aparelho'}
+                className={`chip${engine === 'aparelho' ? ' active' : ''}`}
+                onClick={() => setEnginePick('aparelho')}
+              >
+                Sem IA — dados do aparelho
+              </button>
+            </div>
+            {!enabled && (
+              <span className="small dim">
+                Sem chave de IA, o estudo é montado com a sua Bíblia, o léxico, o dicionário, a tipologia e os guias.{' '}
+                <Link to="/config">Configurar a IA</Link>
+              </span>
+            )}
+          </div>
+  
+          <div className="row row-wrap" style={{ gap: 'var(--sp-2)', justifyContent: 'space-between' }}>
+            <span className="small dim">
+              {engine === 'ia'
+                ? 'A IA recebe o texto da Bíblia, o léxico e o dicionário do aparelho. Confira sempre com a Escritura.'
+                : 'Nada é inventado: só o que está nas fontes do aparelho. A interpretação e a aplicação ficam para você.'}
+            </span>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading || !text.trim() || passageInvalid}
+            >
+              <Icon name={engine === 'ia' ? 'sparkle' : 'book'} size={18} />
+              <span>{loading ? 'Estudando…' : conv.messages.length ? 'Continuar' : 'Estudar'}</span>
+            </button>
+          </div>
+        </form>
+  );
 
   const previewBody = preview && (
     <VersePreview
@@ -353,58 +481,33 @@ export default function AssistantPage() {
         />
       ) : (<>
 
-      {!enabled && (
-        <div className="card assistant-off">
-          <p style={{ margin: 0 }}>
-            O assistente usa a IA que você configura com a sua própria chave. Nada sai do aparelho
-            a não ser o pedido, enviado direto ao serviço escolhido.
-          </p>
-          <Link className="btn btn-primary btn-sm" to="/config" style={{ alignSelf: 'flex-start' }}>
-            <Icon name="settings" size={16} />
-            <span>Configurar a IA</span>
-          </Link>
-        </div>
-      )}
-
       {conv.messages.length === 0 && (
-        <section className="section">
-          <h2 className="section-title">O que você vai construir?</h2>
-          <div className="assistant-goals" role="radiogroup" aria-label="O que você vai construir">
+        <section className="assistant-goal-pick">
+          <div className="row row-wrap" role="radiogroup" aria-label="O que você vai construir" style={{ gap: 'var(--sp-2)' }}>
             {GOALS.map((g) => (
               <button
                 key={g.id}
                 type="button"
                 role="radio"
                 aria-checked={goal === g.id}
-                className={`assistant-goal${goal === g.id ? ' active' : ''}`}
+                className={`chip${goal === g.id ? ' active' : ''}`}
                 onClick={() => setConv({ ...conv, goal: g.id })}
               >
-                <strong>{GOAL_LABEL[g.id]}</strong>
-                <span className="small dim">{g.hint}</span>
+                {GOAL_LABEL[g.id]}
               </button>
             ))}
           </div>
+          <p className="small dim" style={{ margin: 'var(--sp-2) 0 0' }}>{GOALS.find((g) => g.id === goal)?.hint}</p>
         </section>
       )}
+
+      {conv.messages.length === 0 && composer}
 
       {conv.messages.length > 0 && goal !== 'livre' && (
         <p className="small dim" style={{ marginTop: 0 }}>
           Construindo: <strong>{GOAL_LABEL[goal]}</strong>. Converse e refine; quando estiver bom, toque em
           "{conv.document ? 'Abrir documento' : 'Montar documento'}".
         </p>
-      )}
-
-      {conv.messages.length === 0 && (
-        <section className="section">
-          <h2 className="section-title">Experimente pedir</h2>
-          <div className="assistant-examples">
-            {EXAMPLES.map((ex) => (
-              <button key={ex} type="button" className="chip" onClick={() => setText(ex)}>
-                {ex}
-              </button>
-            ))}
-          </div>
-        </section>
       )}
 
       {conv.messages.length > 0 && (
@@ -422,9 +525,9 @@ export default function AssistantPage() {
             ) : (
               <div key={i} className="assistant-msg ai" ref={i === lastAssistantIndex ? lastAnswer : undefined}>
                 <div className="row assistant-msg-head">
-                  <span className="badge">Comentário da IA</span>
+                  <span className="badge">{m.engine === 'aparelho' ? 'Montado do aparelho, sem IA' : 'Comentário da IA'}</span>
                   {m.sources && m.sources.length > 0 && (
-                    <span className="small dim truncate">Com dados do aparelho: {m.sources.join(', ')}</span>
+                    <span className="small dim truncate">{m.engine === 'aparelho' ? 'Fontes' : 'Com dados do aparelho'}: {m.sources.join(', ')}</span>
                   )}
                 </div>
                 <Markdown text={m.content} validRefs={new Set(m.validRefs ?? [])} onRef={openRef} />
@@ -447,10 +550,12 @@ export default function AssistantPage() {
           {loading && (
             <div className="assistant-msg ai row" style={{ gap: 'var(--sp-2)' }}>
               <span className="spinner" />
-              <span className="small dim">Estudando o texto…</span>
+              <span className="small dim">{engine === 'ia' ? 'Estudando o texto…' : 'Montando com os dados do aparelho…'}</span>
             </div>
           )}
-          <p className="small dim assistant-disclaimer">{AI_DISCLAIMER}</p>
+          {conv.messages.some((m) => m.role === 'assistant' && m.engine !== 'aparelho') && (
+            <p className="small dim assistant-disclaimer">{AI_DISCLAIMER}</p>
+          )}
         </section>
       )}
 
@@ -460,104 +565,7 @@ export default function AssistantPage() {
         </div>
       )}
 
-      <form
-        className="card assistant-composer"
-        onSubmit={(e) => { e.preventDefault(); send(); }}
-      >
-        <div className="tabs" role="tablist" aria-label="Tipo de pedido">
-          {MODES.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              role="tab"
-              aria-selected={mode === m.id}
-              className={`tab${mode === m.id ? ' active' : ''}`}
-              onClick={() => setMode(m.id)}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="field">
-          <label htmlFor="assistant-text">
-            {mode === 'auditoria' ? 'Cole a interpretação ou o trecho da mensagem' : 'O que você quer estudar?'}
-          </label>
-          <textarea
-            id="assistant-text"
-            className="textarea"
-            rows={mode === 'auditoria' ? 7 : 3}
-            value={text}
-            placeholder={mode === 'auditoria'
-              ? 'Ex.: Em Marcos 11:23 a palavra falada tem poder por si mesma, por isso…'
-              : 'Ex.: Qual a diferença entre justificação e santificação?'}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); send(); }
-            }}
-          />
-        </div>
-
-        <div className="assistant-options">
-          <div className="field" style={{ flex: '1 1 220px' }}>
-            <label htmlFor="assistant-passage">Passagem em foco (opcional)</label>
-            <div className="row" style={{ gap: 'var(--sp-2)' }}>
-              <input
-                id="assistant-passage"
-                className="input"
-                value={passage}
-                placeholder="Ex.: Romanos 5:1-5"
-                aria-invalid={passageInvalid}
-                onChange={(e) => setPassage(e.target.value)}
-              />
-              {position && (
-                <button
-                  type="button"
-                  className="btn btn-sm"
-                  onClick={() => setPassage(positionLabel)}
-                  title={`Usar ${positionLabel}`}
-                >
-                  <Icon name="book" size={16} />
-                  <span>Onde parei</span>
-                </button>
-              )}
-            </div>
-            {passageInvalid && <span className="small" style={{ color: 'var(--danger)' }}>Referência não reconhecida.</span>}
-          </div>
-
-          <div className="field">
-            <label id="assistant-depth">Profundidade</label>
-            <div className="row row-wrap" role="radiogroup" aria-labelledby="assistant-depth" style={{ gap: 'var(--sp-2)' }}>
-              {DEPTHS.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={depth === d.id}
-                  className={`chip${depth === d.id ? ' active' : ''}`}
-                  onClick={() => setDepth(d.id)}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="row row-wrap" style={{ gap: 'var(--sp-2)', justifyContent: 'space-between' }}>
-          <span className="small dim">
-            A IA recebe o texto da Bíblia, o léxico e o dicionário do aparelho. Confira sempre com a Escritura.
-          </span>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={!enabled || loading || !text.trim() || passageInvalid}
-          >
-            <Icon name="sparkle" size={18} />
-            <span>{loading ? 'Estudando…' : conv.messages.length ? 'Continuar' : 'Estudar'}</span>
-          </button>
-        </div>
-      </form>
+      {conv.messages.length > 0 && composer}
       </>)}
 
       </div>

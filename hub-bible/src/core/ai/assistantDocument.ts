@@ -88,15 +88,25 @@ export function splitTitle(text: string): { title: string; body: string } {
   return { title: m[1].replace(/\*\*/g, '').trim(), body: text.slice(m[0].length).trim() };
 }
 
+/** Aviso que abre cada estudo montado sem IA — no documento, fica uma vez só. */
+const ENGINE_NOTE = /^\*Montado com os dados do seu aparelho[^\n]*\*\s*$/m;
+
 /** Sem IA: as respostas da conversa, na ordem, num texto só. */
 export function documentFromAnswers(title: string, goal: AssistantGoal, messages: AssistantMessage[]): AssistantDocument {
   const answers = messages.filter((m) => m.role === 'assistant');
+  const first = splitTitle(answers[0]?.content ?? '');
+  const parts = answers.map((m, i) => {
+    const { title: t, body } = splitTitle(m.content);
+    const clean = body.replace(ENGINE_NOTE, '').trim();
+    // a primeira resposta dá o título; as seguintes viram partes do mesmo texto
+    return i === 0 ? clean : `${t ? `## ${t}\n\n` : ''}${clean}`;
+  });
   return {
-    title: title || GOAL_LABEL[documentGoal(goal)],
+    title: first.title || title || GOAL_LABEL[documentGoal(goal)],
     goal: documentGoal(goal),
-    text: answers.map((m) => m.content.trim()).join('\n\n'),
+    text: parts.join('\n\n'),
     validRefs: [...new Set(answers.flatMap((m) => m.validRefs ?? []))],
-    includeVerses: true,
+    includeVerses: false,
     manual: true,
     updatedAt: now(),
   };
@@ -105,8 +115,16 @@ export function documentFromAnswers(title: string, goal: AssistantGoal, messages
 /* ─────────────────────── markdown → blocos do app ─────────────────────── */
 
 /** Negrito e itálico viram marcação; referências perdem os colchetes. */
+/**
+ * As fontes dos arquivos não têm letras hebraicas nem gregas (sairiam como
+ * quadradinhos): no arquivo fica a transliteração, que vem sempre junto.
+ */
+const ORIGINAL_SCRIPT = /[\u0590-\u05FF\uFB1D-\uFB4F\u0370-\u03FF\u1F00-\u1FFF]+[\u0590-\u05FF\u0370-\u03FF\u1F00-\u1FFF\s\u0300-\u036F]*/g;
+const withoutOriginalScript = (text: string) =>
+  text.replace(ORIGINAL_SCRIPT, '').replace(/\*\*\s*\*\*\s*/g, '').replace(/\(\s*\)/g, '').replace(/ {2,}/g, ' ');
+
 function inlineHtml(text: string): string {
-  return escapeHtml(text.replace(/\[([^\]]+)\]/g, '$1'))
+  return escapeHtml(withoutOriginalScript(text).replace(/\[([^\]]+)\]/g, '$1'))
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>');
 }
@@ -163,6 +181,8 @@ function markdownToBlocks(text: string, subheadings: string[]): SermonBlock[] {
 
 const AI_NOTE =
   'Preparado com o Assistente bíblico do Hub Bible. Os trechos gerados com apoio de IA são comentário, não Escritura: confira sempre com a Bíblia.';
+const DEVICE_NOTE =
+  'Preparado com o Assistente bíblico do Hub Bible, com os dados do aparelho, sem IA: textos bíblicos, léxico e dicionário como estão nas fontes.';
 
 /** Referências citadas no texto, na ordem em que aparecem. */
 function citedReferences(text: string, valid: Set<string>): string[] {
@@ -189,7 +209,9 @@ export async function documentContent(
   translation: string,
 ): Promise<DocumentContent> {
   const subheadings: string[] = [];
-  const blocks: SermonBlock[] = [newBlock('highlight', `<p>${escapeHtml(AI_NOTE)}</p>`)];
+  // documento feito só com o motor do aparelho não leva aviso de IA
+  const noAi = !!doc.manual && messages.every((m) => m.role !== 'assistant' || m.engine === 'aparelho');
+  const blocks: SermonBlock[] = [newBlock('highlight', `<p>${escapeHtml(noAi ? DEVICE_NOTE : AI_NOTE)}</p>`)];
   blocks.push(...markdownToBlocks(splitTitle(doc.text).body || doc.text, subheadings));
 
   if (doc.includeVerses) {

@@ -372,6 +372,8 @@ export interface AssistantMessage {
   /** Resposta: referências citadas que existem de fato na tradução. */
   validRefs?: string[];
   sources?: string[];
+  /** Quem produziu: a IA ou o motor do aparelho, sem IA. Ausente = IA. */
+  engine?: 'ia' | 'aparelho';
   at: number;
 }
 

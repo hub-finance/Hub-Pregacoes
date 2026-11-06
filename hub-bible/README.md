@@ -82,7 +82,9 @@ node scripts/generate-icons.mjs   # regenera os ícones do PWA
   usuário) na linha da Palavra da Fé — explicação, estudo de palavra, exegese, doutrina,
   pregação ou auditoria de uma interpretação. Vai junto o que o aparelho já tem: texto
   bíblico, léxico Strong, dicionário teológico, tipologia e referências cruzadas. As
-  referências da resposta são conferidas na tradução antes de virar toque. Um estudo
+  referências da resposta são conferidas na tradução antes de virar toque. **Sem IA**, como o
+  Hub Resumos, monta o estudo, a mensagem ou o resumo só com os dados do aparelho, sem inventar
+  nada (`src/core/data/studyEngine.ts`). Um estudo
   sistemático, uma mensagem ou um resumo construído na conversa vira documento em texto
   corrido, editável, que sai em PDF ou Word, ou segue para o Gerador, o Rhema e o Gerar e
   Exportar.
