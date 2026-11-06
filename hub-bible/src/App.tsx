@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect } from 'react';
+import { removeConcordanceLeftovers } from './core/legacyCleanup';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AppLayout } from './app/AppLayout';
 import { UpdatePrompt } from './app/UpdatePrompt';
@@ -36,7 +37,6 @@ const GuidesPage = lazy(() => import('./features/guides/GuidesPage'));
 const HelpPage = lazy(() => import('./features/help/HelpPage'));
 const PreachingPage = lazy(() => import('./features/preaching/PreachingPage'));
 const DictionaryPage = lazy(() => import('./features/dictionary/DictionaryPage'));
-const ConcordancePage = lazy(() => import('./features/concordance/ConcordancePage'));
 const ExportPage = lazy(() => import('./features/export/ExportPage'));
 const ExportEditorPage = lazy(() => import('./features/export/ExportEditorPage'));
 const AssistantPage = lazy(() => import('./features/assistant/AssistantPage'));
@@ -67,6 +67,9 @@ function useAutoBackup() {
        É barato, é silencioso, e é a diferença entre "o Android liberou espaço"
        e "sumiram os sermões". */
     ensurePersistenceQuietly();
+
+    // a Concordância saiu do app: liberar o espaço que ela ocupava no aparelho
+    void removeConcordanceLeftovers();
 
     /* No aplicativo empacotado, tirar do caminho qualquer service worker que
        tenha sobrado de uma versão anterior. Ele serviria telas antigas por cima
@@ -141,7 +144,8 @@ export default function App() {
                   <Route path="/devocionais" element={<Navigate to="/cursos" replace />} />
                   <Route path="/devocionais/:id" element={<LegacyDevotionalRedirect />} />
                   <Route path="/dicionario" element={<DictionaryPage />} />
-                  <Route path="/concordancia" element={<ConcordancePage />} />
+                  {/* a Concordância saiu do app: links antigos caem na Busca */}
+                  <Route path="/concordancia" element={<Navigate to="/busca" replace />} />
                   <Route path="/guias" element={<GuidesPage />} />
                   <Route path="/assistente" element={<AssistantPage />} />
                   <Route path="/biblioteca" element={<Navigate to="/rhema" replace />} />

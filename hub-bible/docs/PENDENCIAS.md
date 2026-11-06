@@ -1,6 +1,6 @@
 # Pendências — retomar daqui
 
-Estado em **06/11/2026**. Tudo o que está descrito abaixo foi levantado e
+Estado em **07/11/2026**. Tudo o que está descrito abaixo foi levantado e
 verificado; nada aqui é suposição. O que já foi entregue está no `README.md`.
 
 ---
@@ -15,7 +15,7 @@ assistente funcionando **sem IA, como o Hub Resumos** (item 2). Hoje, sem
 chave, o botão "Estudar" fica desativado — ele estranhou isso. Fazer o item 0
 (tela limpa) e em seguida o item 2, antes dos demais.
 
-0. **Primeiro: tirar "Experimente pedir" da tela do assistente.** O usuário
+0. ✅ **Feito em 07/11 (ver 0t).** ~~Tirar "Experimente pedir" da tela do assistente.~~ O usuário
    testou no tablet e reprovou: as frases prontas parecem "algo premeditado";
    quem usa escreve sobre qualquer tema. Remover a lista `EXAMPLES` de
    `features/assistant/AssistantPage.tsx`, levar a caixa de pedido para o
@@ -28,7 +28,7 @@ chave, o botão "Estudar" fica desativado — ele estranhou isso. Fazer o item 0
    arquivo `Prompt_Mestre_Palavra_da_Fe.md`; pedir de novo se preciso). As
    travas do app ficam acima dele: comentário nunca é Escritura, referências
    conferidas, limites de sã doutrina.
-2. **Motor sem IA.** "Montar estudo" só com os dados do aparelho, na ordem do
+2. ✅ **Feito em 07/11 (ver 0t).** **Motor sem IA.** "Montar estudo" só com os dados do aparelho, na ordem do
    prompt (texto → contexto → original → … → aplicação). As peças já existem
    em `buildAssistantContext`: texto bíblico, referências cruzadas, dicionário
    teológico, tipologia, léxico Strong, guias e base doutrinária. O que só a
@@ -56,6 +56,52 @@ Pendências anteriores que continuam abertas:
   usuário.
 - Leitor: `?v=N` não seleciona o versículo no primeiro toque.
 - Verificar no aparelho o compartilhar versículo/imagem no APK.
+
+---
+
+## Entregues em 07/11/2026
+
+### 0t. ✅ Assistente sem IA (como o Hub Resumos) e tela limpa
+
+- **"Experimente pedir" saiu.** O usuário achou as frases prontas
+  "premeditadas". A caixa de pedido fica no alto; "O que você vai construir?"
+  virou uma linha de botões com a explicação do escolhido embaixo.
+- **Motor sem IA** (`src/core/data/studyEngine.ts`, `buildStudyWithoutAi`).
+  Segue o princípio de autoria do Hub Resumos: nada é inventado, tudo vem
+  literal das fontes do aparelho, e a interpretação fica para o pregador
+  ("Para você escrever").
+  - Ordem do prompt: texto → contexto imediato e referências cruzadas →
+    original → dicionário → Cristo e Nova Aliança (tipologia) → guias e base
+    doutrinária → "O texto diz / A interpretação sugere / A doutrina conclui /
+    A aplicação propõe".
+  - Mensagem vira esboço; resumo traz o essencial; auditoria traz os textos
+    citados e um roteiro de conferência (seção 17 do prompt).
+  - Tema fora do dicionário vira busca na Bíblia (`searchScripture`, depois
+    de `ensureSearchable`), com prioridade ao que vem depois de "sobre" e às
+    palavras mais longas.
+  - Léxico: usa o importado (em português); do embutido entram só a palavra e
+    a transliteração, porque ele é em inglês.
+  - "Como produzir": Com IA / Sem IA. Sem chave, já começa sem IA. A resposta
+    leva o selo "Montado do aparelho, sem IA".
+- **Documento sem IA:** as respostas viram um texto só (título da primeira,
+  sem o aviso repetido). O PDF abre com um aviso próprio, sem falar em IA.
+- **PDF:** as letras hebraicas e gregas saem do arquivo (a fonte não as tem e
+  apareciam quadradinhos); fica a transliteração. Na tela continuam.
+- **Correção:** "Nova conversa" passou a limpar a passagem em foco.
+
+### 0u. ✅ Concordância removida
+
+A pedido do usuário ("nunca usei"). Saíram a tela, o item do menu, o atalho da
+tela inicial, a seção da Ajuda, os 28 MB de `public/concordance/`, o script
+`build-concordance.mjs`, o cache do service worker e o download junto com a
+tradução em Configurações › Traduções. `#/concordancia` leva à Busca. Na barra
+de baixo do celular, o lugar ficou para o Assistente. `core/legacyCleanup.ts`
+apaga, no aparelho, o cache `hub-bible-concordance` e os índices
+`concordance:*`.
+
+Testes (Playwright, 390 e 1280px): sem IA 47, documento 40, assistente 61,
+Gemini e leitor 10, concordância 11, todos passando, sem erro de página e sem
+nenhuma chamada a serviço de IA no modo sem IA; `npm run test:export` 20/20.
 
 ---
 

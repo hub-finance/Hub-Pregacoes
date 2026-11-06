@@ -22,7 +22,7 @@ const TOPICS: Topic[] = [
       'Abra o endereço do aplicativo no Chrome.',
       'Toque no menu do navegador (⋮) e escolha "Instalar aplicativo" ou "Adicionar à tela inicial".',
       'O Hub Bible passa a abrir em tela cheia, com ícone próprio, como um aplicativo comum.',
-      'Depois de instalado, vá em Configurações › Traduções › "Baixar para uso offline". A partir daí a Bíblia inteira e a concordância dela funcionam sem internet. Referências cruzadas, dicionário teológico e guias já ficam guardados na instalação.',
+      'Depois de instalado, vá em Configurações › Traduções › "Baixar para uso offline". A partir daí a Bíblia inteira funciona sem internet. Referências cruzadas, dicionário teológico e guias já ficam guardados na instalação.',
     ],
   },
   {
@@ -244,7 +244,10 @@ const TOPICS: Topic[] = [
       'O documento também segue para o Gerador (mensagem) ou para o Rhema (estudo), e "Personalizar no Gerar e Exportar" abre com capa, tema e sumário.',
       'Dá para continuar a conversa: cada nova pergunta leva as respostas anteriores. As conversas ficam salvas no aparelho, em "Conversas". Para guardar de vez, use "Salvar como anotação" — a anotação entra no backup.',
       'As referências da resposta só viram toque quando existem de fato na sua tradução; o toque abre o versículo ao lado (tablet) ou embaixo (celular). Referência que não existe aparece como texto comum.',
-      'Usa a mesma IA e a mesma chave do Estudo guiado, e vale a mesma regra: é comentário, nunca Escritura. Confira com o texto antes de levar ao púlpito.',
+      'Funciona com ou sem IA, como o Hub Resumos. Em "Como produzir", escolha "Com IA" (usa a mesma chave do Estudo guiado) ou "Sem IA — dados do aparelho". Sem chave configurada, o assistente já começa sem IA.',
+      'Sem IA, nada é inventado: o estudo é montado só com o que está no aparelho — o texto da sua Bíblia, o contexto ao redor, as referências cruzadas, o léxico, o dicionário teológico, a tipologia, os guias e a sua base doutrinária —, na ordem do prompt: texto, contexto, original, dicionário, Cristo e Nova Aliança, doutrina. A interpretação e a aplicação ficam em espaços marcados "Para você escrever".',
+      'Sem IA, a mensagem sai como esboço (texto principal, introdução, pontos com os textos, aplicação, conclusão e apelo) e o resumo traz o essencial com os textos-chave. Um tema que não está no dicionário vira busca na Bíblia ("ansiedade" traz os versículos com a palavra). "Conferir interpretação" sem IA traz os textos citados, o original, o dicionário e um roteiro de conferência para você concluir.',
+      'Com IA, vale a mesma regra do Estudo guiado: é comentário, nunca Escritura. Confira com o texto antes de levar ao púlpito.',
       { to: '/assistente', label: 'Abrir o assistente', text: 'O assistente está no menu, no grupo Ministério.' },
     ],
   },
@@ -271,17 +274,6 @@ const TOPICS: Topic[] = [
       'A busca funciona por código Strong (H430, G26) e também por palavra nas definições.',
       'Os filtros no alto da tela permitem ver só um dicionário por vez, ou todos de uma vez.',
       { to: '/dicionario', label: 'Abrir dicionário', text: 'Consulte o dicionário a qualquer momento pelo menu lateral.' },
-    ],
-  },
-  {
-    icon: 'list',
-    title: 'Concordância — onde cada palavra aparece na Bíblia',
-    steps: [
-      'A concordância lista cada palavra e todos os versículos em que ela aparece, com um trecho do texto e a palavra em destaque.',
-      'Navegue por letra ou busque diretamente. O filtro AT/NT mostra as ocorrências só no Antigo ou no Novo Testamento.',
-      'As cinco traduções embutidas já têm concordância pronta. Para uma tradução que você importou (ACF, NVI etc.), o app gera o índice localmente no primeiro acesso — leva alguns segundos e só é feito uma vez.',
-      'Para usar sem internet nas traduções embutidas, toque em "Baixar para uso offline" em Configurações › Traduções: a concordância vem junto com o texto. Nas importadas, ela funciona offline depois de gerada.',
-      { to: '/concordancia', label: 'Abrir concordância', text: 'A concordância está na barra inferior do aplicativo.' },
     ],
   },
   {

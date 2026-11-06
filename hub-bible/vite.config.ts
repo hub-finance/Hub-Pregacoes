@@ -62,9 +62,9 @@ export default defineConfig({
         // fonts/*.ttf: as fontes embutidas nos PDFs gerados (Gerar e Exportar);
         // sem elas no aparelho, o PDF não sai sem internet.
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}', 'reference/*.json', 'fonts/*.ttf'],
-        globIgnores: ['**/bible/**', '**/concordance/**', '**/lexicon/**'],
+        globIgnores: ['**/bible/**', '**/lexicon/**'],
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/\/concordance\//, /\/lexicon\//, /\/bible\//],
+        navigateFallbackDenylist: [/\/lexicon\//, /\/bible\//],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         runtimeCaching: [
@@ -74,15 +74,6 @@ export default defineConfig({
             options: {
               cacheName: 'hub-bible-scriptures',
               expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            urlPattern: ({ url }) => url.pathname.includes('/concordance/'),
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'hub-bible-concordance',
-              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
