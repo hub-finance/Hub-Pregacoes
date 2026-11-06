@@ -10,6 +10,7 @@ import './styles/tokens.css';
 import './styles/base.css';
 import './styles/app.css';
 import './styles/reader.css';
+import './styles/assistant.css';
 import './styles/esmeralda.css';
 
 applyPlatformCssVars();

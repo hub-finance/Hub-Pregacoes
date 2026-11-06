@@ -256,7 +256,7 @@ REGRAS METODOLÓGICAS:
 
 /* ──────────────────── system prompt completo ──────────────────── */
 
-const SYSTEM_PROMPT = `Você é o HUB BIBLE AI — Sistema de Inteligência Bíblica, Estudo, Pesquisa e Preparação do Pregador.
+export const SYSTEM_PROMPT = `Você é o HUB BIBLE AI — Sistema de Inteligência Bíblica, Estudo, Pesquisa e Preparação do Pregador.
 Respostas em português do Brasil, tom respeitoso, reverente e teologicamente sólido.
 
 ═══════════════════════════════════════════════
@@ -444,7 +444,7 @@ ORGANIZAR — identifique tema, ideia central, argumentos, textos relacionados, 
 DESENVOLVER — apoie o fluxo IDEIA → ESTUDO → ARGUMENTAÇÃO → ESBOÇO → SERMÃO
 RECUPERAR — resgate conexões entre o acervo pessoal do usuário e a passagem`;
 
-function extractReferences(text: string): string[] {
+export function extractReferences(text: string): string[] {
   const pattern = /\[([^\]]+)\]/g;
   const refs: string[] = [];
   let match: RegExpExecArray | null;
@@ -463,7 +463,13 @@ function cleanResponse(text: string): AiSegment[] {
   }));
 }
 
-async function callOpenAi(apiKey: string, model: string, system: string, prompt: string, maxTokens: number): Promise<string> {
+/** Um turno de conversa — o assistente bíblico manda o histórico inteiro. */
+export interface ChatTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+async function callOpenAi(apiKey: string, model: string, system: string, turns: ChatTurn[], maxTokens: number): Promise<string> {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -474,7 +480,7 @@ async function callOpenAi(apiKey: string, model: string, system: string, prompt:
       model,
       messages: [
         { role: 'system', content: system },
-        { role: 'user', content: prompt },
+        ...turns.map((t) => ({ role: t.role, content: t.content })),
       ],
       temperature: 0.4,
       max_tokens: maxTokens,
@@ -491,14 +497,18 @@ async function callOpenAi(apiKey: string, model: string, system: string, prompt:
   return data.choices?.[0]?.message?.content ?? '';
 }
 
-async function callGemini(apiKey: string, model: string, system: string, prompt: string, maxTokens: number): Promise<string> {
+async function callGemini(apiKey: string, model: string, system: string, turns: ChatTurn[], maxTokens: number): Promise<string> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       system_instruction: { parts: [{ text: system }] },
-      contents: [{ parts: [{ text: prompt }] }],
+      // o Gemini chama o lado da IA de "model", não de "assistant"
+      contents: turns.map((t) => ({
+        role: t.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: t.content }],
+      })),
       generationConfig: {
         temperature: 0.4,
         maxOutputTokens: maxTokens,
@@ -517,7 +527,7 @@ async function callGemini(apiKey: string, model: string, system: string, prompt:
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 }
 
-async function callAnthropic(apiKey: string, model: string, system: string, prompt: string, maxTokens: number): Promise<string> {
+async function callAnthropic(apiKey: string, model: string, system: string, turns: ChatTurn[], maxTokens: number): Promise<string> {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -529,7 +539,7 @@ async function callAnthropic(apiKey: string, model: string, system: string, prom
     body: JSON.stringify({
       model,
       system,
-      messages: [{ role: 'user', content: prompt }],
+      messages: turns.map((t) => ({ role: t.role, content: t.content })),
       temperature: 0.4,
       max_tokens: maxTokens,
     }),
@@ -557,7 +567,7 @@ const PROVIDER_DEFAULTS: Record<Exclude<AiProviderId, 'none'>, string> = {
   anthropic: 'claude-sonnet-5-5',
 };
 
-type ApiCaller = (apiKey: string, model: string, system: string, prompt: string, maxTokens: number) => Promise<string>;
+type ApiCaller = (apiKey: string, model: string, system: string, turns: ChatTurn[], maxTokens: number) => Promise<string>;
 
 function getApiCaller(providerId: Exclude<AiProviderId, 'none'>): ApiCaller {
   if (providerId === 'openai') return callOpenAi;
@@ -612,7 +622,7 @@ function createChatProvider(providerId: Exclude<AiProviderId, 'none'>): AiProvid
       const model = config.model || PROVIDER_DEFAULTS[providerId];
       const tokens = maxTokensForTask(request.task);
 
-      const raw = await callApi(config.apiKey, model, SYSTEM_PROMPT, userPrompt, tokens);
+      const raw = await callApi(config.apiKey, model, SYSTEM_PROMPT, [{ role: 'user', content: userPrompt }], tokens);
       const suggestedRefs = extractReferences(raw);
       const validRefs = await validateReferences(request.translation, suggestedRefs);
 
@@ -630,4 +640,17 @@ export function createProvider(): AiProvider | null {
   const config = loadAiConfig();
   if (config.provider === 'none' || !config.apiKey) return null;
   return createChatProvider(config.provider);
+}
+
+/**
+ * Conversa livre com a IA configurada — usada pelo assistente bíblico.
+ * Mesmas chaves, modelos e mensagens de erro das tarefas do leitor.
+ */
+export async function chatComplete(system: string, turns: ChatTurn[], maxTokens: number): Promise<string> {
+  const config = loadAiConfig();
+  if (config.provider === 'none' || !config.apiKey) {
+    throw new Error('Configure a chave de API nas Configurações.');
+  }
+  const model = config.model || PROVIDER_DEFAULTS[config.provider];
+  return getApiCaller(config.provider)(config.apiKey, model, system, turns, maxTokens);
 }

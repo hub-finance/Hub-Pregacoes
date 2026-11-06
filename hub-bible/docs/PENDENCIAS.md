@@ -1,7 +1,49 @@
 # Pendências — retomar daqui
 
-Estado em **05/11/2026**. Tudo o que está descrito abaixo foi levantado e
+Estado em **06/11/2026**. Tudo o que está descrito abaixo foi levantado e
 verificado; nada aqui é suposição. O que já foi entregue está no `README.md`.
+
+---
+
+## Entregues em 06/11/2026
+
+### 0s. ✅ Assistente bíblico (aba nova, `#/assistente`)
+
+Pedido do usuário: transformar o "Prompt Mestre — Assistente bíblico
+doutrinário da Palavra da Fé" numa aba do Hub Bible, produzindo com o que o
+aplicativo já tem.
+
+- **Prompt**: `src/core/ai/assistant.ts` (`ASSISTANT_PROMPT`) traz as 21 seções
+  do Prompt Mestre condensadas — identidade, profundidade adaptável,
+  hierarquia de interpretação, justificação/santificação/glorificação,
+  léxicos, LXX, palavra e confissão ("não é poder mágico"), cura, provisão,
+  autoridade, identidade em Cristo, auditoria exegética, divergências e regras
+  de precisão — somado ao `SYSTEM_PROMPT` de sempre (limites da sã doutrina
+  continuam valendo).
+- **Dados do aparelho** (`buildAssistantContext`): texto bíblico das
+  referências do pedido e da passagem em foco (até 8; capítulo até 60
+  versículos), referências cruzadas, verbetes do dicionário teológico (pelo
+  versículo e pelos termos citados, ex.: "justificação"), tipologia, léxico
+  Strong por código (G4102) ou por transliteração (pistis, emunah, rhema —
+  `findByTransliteration` em `lexicon.ts`, com lista de palavras comuns do
+  português para não confundir "para" com παρά) e a base doutrinária
+  importada, que fica só no aparelho do usuário.
+- **Conversa**: as chamadas de `chatProvider.ts` passaram a aceitar turnos
+  (`ChatTurn[]`; no Gemini o papel da IA é `model`). `chatComplete()` usa a
+  mesma configuração do Estudo guiado. O assistente manda as 8 últimas
+  mensagens. As tarefas do leitor continuam com um turno só (testado).
+- **Tela** (`features/assistant/`): pedido livre ou "Conferir interpretação",
+  profundidade automática/objetiva/profunda, passagem em foco com "Onde
+  parei", exemplos do Prompt Mestre, Markdown próprio sem innerHTML,
+  referências tocáveis só quando conferidas na tradução (prévia ao lado no
+  tablet, embaixo no celular), Copiar, Salvar como anotação, histórico de
+  conversas em `settings` (`assistant:conversations`, até 40; não entra no
+  backup — a anotação entra).
+- **Testes** (Playwright, IA simulada, 390 e 1280px): contexto enviado
+  (texto, G4102, Justificação, referências cruzadas), refs inválidas não viram
+  toque, prévia, histórico em 3 turnos, erro da API em português devolvendo o
+  pedido, anotação salva, conversa reaberta após recarregar, Gemini com
+  papéis user/model, exegese do leitor intacta, sem rolagem horizontal.
 
 ---
 

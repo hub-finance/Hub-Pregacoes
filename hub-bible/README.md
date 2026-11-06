@@ -78,6 +78,11 @@ node scripts/generate-icons.mjs   # regenera os ícones do PWA
   (Liderança, GC, Discipulado, Escola de Líderes, Ministério, Evangelismo, Família, Vida cristã).
 - **Planos de leitura**: Bíblia em 1 ano, NT em 90 dias, Evangelhos em 30 dias, Salmos e
   Provérbios, AT em 180 dias e plano personalizado (livros + duração), com progresso por dia.
+- **Assistente bíblico** (`#/assistente`): conversa de estudo com a IA (chave do próprio
+  usuário) na linha da Palavra da Fé — explicação, estudo de palavra, exegese, doutrina,
+  pregação ou auditoria de uma interpretação. Vai junto o que o aparelho já tem: texto
+  bíblico, léxico Strong, dicionário teológico, tipologia e referências cruzadas. As
+  referências da resposta são conferidas na tradução antes de virar toque.
 - **Modo Pregação**: tela cheia, texto grande, navegação por passos, tela sempre ligada.
 - **Painel “Minha vida ministerial”**: sermões, estudos, devocionais, capítulos lidos,
   dias consecutivos, favoritos, anotações e marcações por categoria.
