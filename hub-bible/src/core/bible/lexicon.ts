@@ -188,4 +188,58 @@ export async function searchBuiltinLexicon(
   return results;
 }
 
+/**
+ * Chave de comparação para transliterações: sem acentos, sem os sinais de
+ * aleph/ayin e com as grafias de Strong aproximadas às usuais
+ * ("ʼĕmûwnâh" → "emunah", "râphâʼ" → "rapha", "pístis" → "pistis").
+ */
+export function translitKey(word: string): string {
+  return word
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[ʼʻʾʿ'’`]/g, '')
+    .replace(/uw/g, 'u')
+    .replace(/ow/g, 'o')
+    .replace(/[^a-z]/g, '');
+}
+
+let translitIndex: Map<string, string[]> | null = null;
+
+async function loadTranslitIndex(): Promise<Map<string, string[]>> {
+  if (translitIndex) return translitIndex;
+  const [g, h] = await Promise.all([loadGreek(), loadHebrew()]);
+  const index = new Map<string, string[]>();
+  for (const data of [h, g]) {
+    for (const [code, raw] of Object.entries(data)) {
+      if (!raw.t) continue;
+      const key = translitKey(raw.t);
+      if (!key) continue;
+      const list = index.get(key);
+      if (list) list.push(code);
+      else index.set(key, [code]);
+    }
+  }
+  translitIndex = index;
+  return index;
+}
+
+/**
+ * Procura verbetes cuja transliteração coincide com a palavra digitada
+ * ("pistis", "emunah", "rhema"). Aceita também a forma sem o "h" final.
+ */
+export async function findByTransliteration(word: string, limit = 2): Promise<LexiconEntry[]> {
+  if (!await isLexiconAvailable()) return [];
+  const key = translitKey(word);
+  if (key.length < 4) return [];
+  const index = await loadTranslitIndex();
+  const codes = index.get(key) ?? index.get(`${key}h`) ?? (key.endsWith('h') ? index.get(key.slice(0, -1)) : undefined) ?? [];
+  const out: LexiconEntry[] = [];
+  for (const code of codes.slice(0, limit)) {
+    const entry = await lookupBuiltinStrong(code);
+    if (entry) out.push(entry);
+  }
+  return out;
+}
+
 export { formatDefinition };
