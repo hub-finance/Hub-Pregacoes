@@ -26,6 +26,8 @@ import { createNote } from '../../core/data/notes';
 import { formatReference, parseReference } from '../../core/bible/reference';
 import { VersePreview, previewLabel, type PreviewTarget } from '../bible/VersePreview';
 import { Markdown, markdownToPlain } from './Markdown';
+import { DocumentEditor } from './DocumentEditor';
+import { createDocument, GOAL_LABEL, type AssistantDocument, type AssistantGoal } from '../../core/ai/assistantDocument';
 
 /** Comandos naturais do Prompt Mestre — um toque preenche o pedido. */
 const EXAMPLES = [
@@ -46,6 +48,13 @@ const EXAMPLES = [
 const MODES: { id: AssistantMode; label: string }[] = [
   { id: 'livre', label: 'Pedido livre' },
   { id: 'auditoria', label: 'Conferir interpretação' },
+];
+
+const GOALS: { id: AssistantGoal; hint: string }[] = [
+  { id: 'livre', hint: 'Tirar uma dúvida, estudar uma palavra ou um versículo.' },
+  { id: 'estudo', hint: 'Doutrina construída a partir de vários textos, em seções.' },
+  { id: 'mensagem', hint: 'Pregação com pontos, textos, aplicações e conclusão.' },
+  { id: 'resumo', hint: 'O essencial em poucos pontos, com as referências.' },
 ];
 
 const DEPTHS: { id: AssistantDepth; label: string }[] = [
@@ -90,6 +99,9 @@ export default function AssistantPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<PreviewTarget | null>(null);
+  const [view, setView] = useState<'conversa' | 'documento'>('conversa');
+  const goal: AssistantGoal = conv.goal ?? 'livre';
+  const saveTimer = useRef<number | undefined>(undefined);
 
   const lastAnswer = useRef<HTMLDivElement | null>(null);
   const enabled = isAiEnabled();
@@ -120,7 +132,7 @@ export default function AssistantPage() {
     setText('');
     try {
       const answer = await runAssistant({
-        text: request, mode, depth, passage, translation, history: conv.messages,
+        text: request, mode, depth, passage, translation, history: conv.messages, goal,
       });
       const done: AssistantConversation = {
         ...pending,
@@ -143,6 +155,7 @@ export default function AssistantPage() {
   };
 
   const startNew = () => {
+    setView('conversa');
     setConv(newConversation());
     setText('');
     setError('');
@@ -150,6 +163,7 @@ export default function AssistantPage() {
   };
 
   const openConversation = (c: AssistantConversation) => {
+    setView('conversa');
     setConv(c);
     setHistoryOpen(false);
     setError('');
@@ -180,6 +194,30 @@ export default function AssistantPage() {
     const ok = await copyText(markdownToPlain(answer.content));
     notify(ok ? 'Resposta copiada.' : 'Não foi possível copiar neste aparelho.');
   };
+
+  /** Edições do documento: na tela na hora, gravadas logo depois de parar de digitar. */
+  const updateDocument = (doc: AssistantDocument) => {
+    const next = { ...conv, document: doc };
+    setConv(next);
+    window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => {
+      saveConversation(next).then(refreshHistory).catch(() => notify('Não foi possível salvar o documento.'));
+    }, 500);
+  };
+  useEffect(() => () => window.clearTimeout(saveTimer.current), []);
+
+  const openDocument = async () => {
+    if (!conv.document) {
+      const next = { ...conv, document: createDocument(conv.title, goal, conv.messages) };
+      setConv(next);
+      await saveConversation(next).catch(() => undefined);
+      refreshHistory();
+    }
+    setPreview(null);
+    setView('documento');
+  };
+
+  const hasAnswer = conv.messages.some((m) => m.role === 'assistant');
 
   const openRef = useCallback((target: PreviewTarget) => setPreview(target), []);
 
@@ -216,7 +254,34 @@ export default function AssistantPage() {
             <span>Nova conversa</span>
           </button>
         )}
+        {hasAnswer && view === 'conversa' && (
+          <button className="btn btn-sm btn-primary" onClick={openDocument}>
+            <Icon name="note" size={16} />
+            <span>{conv.document ? 'Abrir documento' : 'Montar documento'}</span>
+          </button>
+        )}
       </div>
+
+      {conv.document && (
+        <div className="tabs assistant-view-tabs" role="tablist" aria-label="Conversa ou documento">
+          <button type="button" role="tab" aria-selected={view === 'conversa'} className={`tab${view === 'conversa' ? ' active' : ''}`} onClick={() => setView('conversa')}>
+            Conversa
+          </button>
+          <button type="button" role="tab" aria-selected={view === 'documento'} className={`tab${view === 'documento' ? ' active' : ''}`} onClick={openDocument}>
+            Documento · {GOAL_LABEL[conv.document.goal]}
+          </button>
+        </div>
+      )}
+
+      {view === 'documento' && conv.document ? (
+        <DocumentEditor
+          doc={conv.document}
+          messages={conv.messages}
+          translation={translation}
+          author={settings.userName}
+          onChange={updateDocument}
+        />
+      ) : (<>
 
       {!enabled && (
         <div className="card assistant-off">
@@ -229,6 +294,34 @@ export default function AssistantPage() {
             <span>Configurar a IA</span>
           </Link>
         </div>
+      )}
+
+      {conv.messages.length === 0 && (
+        <section className="section">
+          <h2 className="section-title">O que você vai construir?</h2>
+          <div className="assistant-goals" role="radiogroup" aria-label="O que você vai construir">
+            {GOALS.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                role="radio"
+                aria-checked={goal === g.id}
+                className={`assistant-goal${goal === g.id ? ' active' : ''}`}
+                onClick={() => setConv({ ...conv, goal: g.id })}
+              >
+                <strong>{GOAL_LABEL[g.id]}</strong>
+                <span className="small dim">{g.hint}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {conv.messages.length > 0 && goal !== 'livre' && (
+        <p className="small dim" style={{ marginTop: 0 }}>
+          Construindo: <strong>{GOAL_LABEL[goal]}</strong>. Converse e refine; quando estiver bom, toque em
+          "{conv.document ? 'Abrir documento' : 'Montar documento'}".
+        </p>
       )}
 
       {conv.messages.length === 0 && (
@@ -395,6 +488,7 @@ export default function AssistantPage() {
           </button>
         </div>
       </form>
+      </>)}
 
       </div>
 

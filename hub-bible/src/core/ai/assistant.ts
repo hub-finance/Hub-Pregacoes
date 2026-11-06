@@ -25,6 +25,7 @@ import {
   type TypologyPair,
 } from '../bible/reference-data';
 import { buildDoctrinalBlock, findGuidesForPassage, getDoctrinalPack } from '../bible/doctrinalPack';
+import { GOAL_HINT, type AssistantGoal } from './assistantDocument';
 
 export type AssistantMode = 'livre' | 'auditoria';
 export type AssistantDepth = 'auto' | 'objetivo' | 'profundo';
@@ -384,9 +385,12 @@ export async function runAssistant(input: {
   passage: string;
   translation: string;
   history: AssistantMessage[];
+  /** O que está sendo construído: estudo, mensagem, resumo ou pergunta livre. */
+  goal?: AssistantGoal;
 }): Promise<{ content: string; validRefs: string[]; sources: string[] }> {
   const ctx = await buildAssistantContext(input.text, input.passage, input.translation);
   const header = [
+    GOAL_HINT[input.goal ?? 'livre'],
     MODE_HINT[input.mode],
     DEPTH_HINT[input.depth],
     input.passage.trim() ? `PASSAGEM EM FOCO: ${input.passage.trim()}` : '',

@@ -1,5 +1,6 @@
 import { db, now, uid } from '../db/db';
 import type { AssistantMessage } from '../ai/assistant';
+import type { AssistantDocument, AssistantGoal } from '../ai/assistantDocument';
 
 /**
  * Conversas do assistente bíblico, guardadas no aparelho.
@@ -13,6 +14,10 @@ export interface AssistantConversation {
   id: string;
   title: string;
   messages: AssistantMessage[];
+  /** Ausente nas conversas anteriores ao documento: valem como pergunta livre. */
+  goal?: AssistantGoal;
+  /** O estudo, a mensagem ou o resumo montado a partir da conversa. */
+  document?: AssistantDocument;
   createdAt: number;
   updatedAt: number;
 }
