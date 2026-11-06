@@ -10,6 +10,14 @@ verificado; nada aqui é suposição. O que já foi entregue está no `README.md
 Ordem combinada com o usuário. Ele quer o assistente "seguido à risca do
 Prompt" e funcionando "com ou sem IA, como o Hub Resumos".
 
+0. **Primeiro: tirar "Experimente pedir" da tela do assistente.** O usuário
+   testou no tablet e reprovou: as frases prontas parecem "algo premeditado";
+   quem usa escreve sobre qualquer tema. Remover a lista `EXAMPLES` de
+   `features/assistant/AssistantPage.tsx`, levar a caixa de pedido para o
+   topo (é o centro da tela) e deixar a escolha "O que você vai construir?"
+   mais compacta, sem empurrar a caixa para baixo. Dicas de uso ficam só na
+   Ajuda e no texto de exemplo dentro da caixa.
+
 1. **Prompt Mestre integral.** Hoje `ASSISTANT_PROMPT` (`src/core/ai/assistant.ts`)
    condensa as 21 seções. Trocar pelo texto literal do prompt (o usuário tem o
    arquivo `Prompt_Mestre_Palavra_da_Fe.md`; pedir de novo se preciso). As
