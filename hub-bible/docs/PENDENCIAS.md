@@ -84,6 +84,18 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0w. ✅ Documento limpo e relatório sem a seção 7
+
+Pedido do usuário depois de testar no tablet ("ficou excelente"):
+- **Sem a faixa "Preparado com o Assistente bíblico…"** no alto do PDF e do
+  Word (`documentContent` em `assistantDocument.ts`). O arquivo é dele e sai só
+  com o título e o texto. Dentro do app, cada resposta continua com o selo
+  "Comentário da IA" ou "Montado do aparelho, sem IA".
+- **Sem a seção "7. Interpretação e aplicação"** (os espaços "Para você
+  escrever") no estudo sem IA, nem a equivalente no estudo de material
+  (`studyEngine.ts`). Mensagem e auditoria mantêm os seus espaços para
+  escrever (aplicação, conclusão, "Sua conclusão").
+
 ### 0v. ✅ Assistente lê PDF e Word importados
 
 Pedido do usuário: importar material para o assistente, como o Hub Resumos,

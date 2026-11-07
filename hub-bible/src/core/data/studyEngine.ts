@@ -374,12 +374,6 @@ async function studyText(g: Gathered, input: EngineInput): Promise<string> {
     section('4. O que o dicionário diz', dictionarySection(g)),
     section('5. Cristo e a Nova Aliança', typologySection(g)),
     section('6. Doutrina — guias', guidesSection(g)),
-    section('7. Interpretação e aplicação', [
-      '**O texto diz:** ' + WRITE,
-      '**A interpretação sugere:** ' + WRITE,
-      '**A doutrina conclui:** ' + WRITE,
-      '**A aplicação propõe:** ' + WRITE,
-    ].join('\n\n')),
   ];
   return parts.filter(Boolean).join('\n\n');
 }
@@ -637,12 +631,6 @@ async function buildFromMaterial(input: EngineInput, material: AssistantMaterial
       section('As doutrinas do material', doctrineBlock(reading.terms, lim.entries)),
       section('No original', originalsBlock(reading)),
       section('Cristo e a Nova Aliança', await typologyFor(reading.refs)),
-      section('Interpretação e aplicação', [
-        '**O texto diz:** ' + WRITE,
-        '**O autor interpreta:** ' + WRITE,
-        '**A doutrina conclui:** ' + WRITE,
-        '**A aplicação propõe:** ' + WRITE,
-      ].join('\n\n')),
     ].filter(Boolean).join('\n\n');
   }
 

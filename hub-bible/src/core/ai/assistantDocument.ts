@@ -179,11 +179,6 @@ function markdownToBlocks(text: string, subheadings: string[]): SermonBlock[] {
   return blocks;
 }
 
-const AI_NOTE =
-  'Preparado com o Assistente bíblico do Hub Bible. Os trechos gerados com apoio de IA são comentário, não Escritura: confira sempre com a Bíblia.';
-const DEVICE_NOTE =
-  'Preparado com o Assistente bíblico do Hub Bible, com os dados do aparelho, sem IA: textos bíblicos, léxico e dicionário como estão nas fontes.';
-
 /** Referências citadas no texto, na ordem em que aparecem. */
 function citedReferences(text: string, valid: Set<string>): string[] {
   const seen = new Set<string>();
@@ -209,9 +204,9 @@ export async function documentContent(
   translation: string,
 ): Promise<DocumentContent> {
   const subheadings: string[] = [];
-  // documento feito só com o motor do aparelho não leva aviso de IA
-  const noAi = !!doc.manual && messages.every((m) => m.role !== 'assistant' || m.engine === 'aparelho');
-  const blocks: SermonBlock[] = [newBlock('highlight', `<p>${escapeHtml(noAi ? DEVICE_NOTE : AI_NOTE)}</p>`)];
+  // o arquivo é do pregador: sem faixa "Preparado com…" no alto (pedido dele).
+  // Dentro do app, cada resposta continua com o selo "Comentário da IA".
+  const blocks: SermonBlock[] = [];
   blocks.push(...markdownToBlocks(splitTitle(doc.text).body || doc.text, subheadings));
 
   if (doc.includeVerses) {
