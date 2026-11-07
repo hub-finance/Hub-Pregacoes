@@ -12,19 +12,23 @@
  * original → teologia bíblica → Cristo e Nova Aliança → doutrina → aplicação.
  */
 
-import { getChapter, getVerses } from '../bible/repository';
+import { findVersesWithStrong, getChapter, getVerses, loadAvailableTranslations } from '../bible/repository';
 import { formatReference, parseReference, type ParsedReference } from '../bible/reference';
-import { bookName, findBook, normalize } from '../bible/canon';
+import { bookName, CANON_BY_OSIS, findBook, normalize } from '../bible/canon';
+import { OSIS_TO_MYBIBLE_NUMBER } from '../bible/mybible';
+import { lookupCommentary } from './commentaries';
 import { findByTransliteration, lookupBuiltinStrong } from '../bible/lexicon';
 import { ensureSearchable, searchScripture } from '../bible/search';
-import { lookupStrong } from './dictionaries';
+import { lookupStrong, lookupTopic } from './dictionaries';
 import {
+  findGroupForStrong,
   findTypologyForVerse,
   getCrossReferences,
   getDoctrinalGuides,
   getTheologicalDict,
   getTypology,
   type DoctrinalGuide,
+  type SemanticGroup,
   type TheologicalEntry,
   type TypologyPair,
 } from '../bible/reference-data';
@@ -55,9 +59,9 @@ export interface EngineOutput {
 
 /** Poucos pontos, bem escolhidos — o princípio do Hub Resumos. */
 const LIMITS: Record<AssistantDepth, { texts: number; cross: number; terms: number; entries: number }> = {
-  objetivo: { texts: 3, cross: 3, terms: 2, entries: 1 },
-  auto: { texts: 5, cross: 5, terms: 3, entries: 2 },
-  profundo: { texts: 8, cross: 8, terms: 5, entries: 4 },
+  objetivo: { texts: 4, cross: 3, terms: 2, entries: 1 },
+  auto: { texts: 6, cross: 5, terms: 3, entries: 2 },
+  profundo: { texts: 10, cross: 8, terms: 5, entries: 4 },
 };
 
 const WRITE = '*Para você escrever.*';
@@ -119,7 +123,68 @@ interface Gathered {
   guides: Array<{ guide: DoctrinalGuide; steps: DoctrinalGuide['passos'] }>;
   pack: Array<{ titulo: string; conceito: string; resumo: string; explicacao: string; aplicacao?: string; textos: string[] }>;
   searchTerm: string;
+  /** Família de palavras do original (sentido em português). */
+  families: SemanticGroup[];
+  /** Onde a Bíblia usa cada palavra do original (por Strong). */
+  concord: Array<{ translit: string; code: string; total: number; refs: ParsedReference[] }>;
+  /** Verbetes do dicionário bíblico que o pregador importou. */
+  topics: Array<{ dictionary: string; topic: string; text: string }>;
+  /** Comentários importados sobre o versículo principal. */
+  comments: Array<{ name: string; ref: ParsedReference; text: string }>;
   sources: string[];
+}
+
+const testament = (r: ParsedReference) => CANON_BY_OSIS.get(r.book)?.testament ?? 'AT';
+
+/**
+ * Escolhe `n` versículos espalhados: os dois Testamentos (metade de cada, o que
+ * faltar num vem do outro) e, dentro de cada um, um livro de cada vez antes de
+ * repetir livro. A busca devolve na ordem da Bíblia — sem isso, um tema como
+ * "santidade" ficava só em Êxodo e Levítico.
+ */
+function balance(refs: ParsedReference[], n: number): ParsedReference[] {
+  const spread = (list: ParsedReference[]) => {
+    const byBook = new Map<string, ParsedReference[]>();
+    for (const r of list) byBook.set(r.book, [...(byBook.get(r.book) ?? []), r]);
+    const out: ParsedReference[] = [];
+    for (let round = 0; out.length < list.length; round++) {
+      let added = false;
+      for (const items of byBook.values()) if (items[round]) { out.push(items[round]); added = true; }
+      if (!added) break;
+    }
+    return out;
+  };
+  const at = spread(refs.filter((r) => testament(r) === 'AT'));
+  const nt = spread(refs.filter((r) => testament(r) === 'NT'));
+  let wantNt = Math.min(nt.length, Math.ceil(n / 2));
+  const wantAt = Math.min(at.length, n - wantNt);
+  wantNt = Math.min(nt.length, n - wantAt);
+  const chosen = [...at.slice(0, wantAt), ...nt.slice(0, wantNt)];
+  const order = (r: ParsedReference) => (CANON_BY_OSIS.get(r.book)?.order ?? 99) * 1e6 + r.chapter * 1e3 + (r.verse ?? 0);
+  return chosen.sort((a, b) => order(a) - order(b));
+}
+
+const variantsOf = (e: TheologicalEntry) => e.termo.split(/\s+[—–-]\s+|\s*\/\s*/).map(plain).filter((t) => t.length >= 2);
+
+/**
+ * Verbetes do dicionário ligados ao tema, do mais ao menos direto: o nome
+ * escrito no pedido; o verbete que começa pela palavra ("santidade" →
+ * "Santidade de Deus"); e a mesma raiz ("santidade" → "Santificação").
+ */
+function matchEntries(dict: TheologicalEntry[], text: string, words: string[]): TheologicalEntry[] {
+  const normText = ` ${plain(text)} `;
+  const keys = words.map(plain).filter((w) => w.length >= 4);
+  const exact: TheologicalEntry[] = [];
+  const starts: TheologicalEntry[] = [];
+  const root: TheologicalEntry[] = [];
+  for (const e of dict) {
+    const vs = variantsOf(e);
+    if (vs.some((v) => normText.includes(` ${v} `))) { exact.push(e); continue; }
+    const firsts = vs.map((v) => v.split(' ')[0]);
+    if (keys.some((k) => firsts.includes(k) || plain(e.id.replace(/-/g, ' ')) === k)) { starts.push(e); continue; }
+    if (keys.some((k) => k.length >= 6 && firsts.some((f) => f.length >= 6 && f.slice(0, 5) === k.slice(0, 5)))) root.push(e);
+  }
+  return [...exact, ...starts, ...root];
 }
 
 /**
@@ -152,12 +217,8 @@ async function gather(input: EngineInput): Promise<Gathered> {
 
   /* verbetes do dicionário: pelo tema escrito e pelo versículo */
   const dict = await getTheologicalDict();
-  const normText = ` ${plain(input.text)} `;
-  const entries: TheologicalEntry[] = [];
-  for (const e of dict) {
-    const variants = e.termo.split(/\s+[—–-]\s+|\s*\/\s*/).map(plain).filter((t) => t.length >= 2);
-    if (variants.some((t) => normText.includes(` ${t} `))) entries.push(e);
-  }
+  const words = themeWords(input.text);
+  const entries: TheologicalEntry[] = matchEntries(dict, input.text, words);
   if (anchor?.verse) {
     const key = `${anchor.book}.${anchor.chapter}.${anchor.verse}`;
     for (const e of dict) if (e.textos.includes(key) && !entries.includes(e)) entries.push(e);
@@ -168,29 +229,34 @@ async function gather(input: EngineInput): Promise<Gathered> {
   /* sem passagem citada: os textos vêm do verbete; sem verbete, da busca */
   let searchTerm = '';
   if (!keyTexts.length) {
+    const pool: ParsedReference[] = [];
     for (const e of chosen) {
       for (const k of e.textos) {
         const r = osisToRef(k);
-        if (r && !seenRef.has(refKey(r))) { seenRef.add(refKey(r)); keyTexts.push(r); }
+        if (r && !seenRef.has(refKey(r))) { seenRef.add(refKey(r)); pool.push(r); }
       }
     }
+    keyTexts.push(...balance(pool, lim.texts));
   }
   if (!keyTexts.length) {
     // a busca precisa da tradução inteira no aparelho (a Bíblia embutida já vem com o app)
     await ensureSearchable(input.translation).catch(() => undefined);
     // até duas palavras do tema; os versículos das duas entram juntos
     const found: string[] = [];
-    for (const word of themeWords(input.text).slice(0, 4)) {
-      if (found.length >= 2 || keyTexts.length >= lim.texts) break;
-      const res = await searchScripture(word, { translation: input.translation, wholeWord: true, limit: lim.texts })
+    const pool: ParsedReference[] = [];
+    for (const word of words.slice(0, 4)) {
+      if (found.length >= 2) break;
+      // a Bíblia inteira, para depois escolher espalhado pelos dois Testamentos
+      const res = await searchScripture(word, { translation: input.translation, wholeWord: true, limit: 400 })
         .catch(() => null);
       if (!res?.hits.length) continue;
       found.push(word);
       for (const h of res.hits) {
         const r = { book: h.book, chapter: h.chapter, verse: h.verse };
-        if (!seenRef.has(refKey(r))) { seenRef.add(refKey(r)); keyTexts.push(r); }
+        if (!seenRef.has(refKey(r))) { seenRef.add(refKey(r)); pool.push(r); }
       }
     }
+    keyTexts.push(...balance(pool, lim.texts));
     if (found.length) {
       searchTerm = found[0];
       sources.add(`busca na Bíblia por ${found.map((w) => `"${w}"`).join(' e ')}`);
@@ -203,10 +269,13 @@ async function gather(input: EngineInput): Promise<Gathered> {
   const codes: string[] = [];
   const addCode = (c?: string) => { if (c && !codes.includes(c.toUpperCase())) codes.push(c.toUpperCase()); };
   (input.text.match(/\b[HG]\d{1,5}\b/gi) ?? []).forEach(addCode);
-  for (const w of themeWords(input.text).slice(0, 12)) {
+  for (const w of words.slice(0, 12)) {
     for (const entry of await findByTransliteration(w, 1)) addCode(entry.code);
   }
-  for (const e of chosen) { addCode(e.hebraico?.strong); addCode(e.grego?.strong); }
+  // "G4151+G40" (Espírito Santo) vira dois códigos
+  for (const e of chosen) {
+    for (const c of [e.hebraico?.strong, e.grego?.strong]) c?.split('+').forEach((x) => addCode(x.trim()));
+  }
   const lexicon: Gathered['lexicon'] = [];
   for (const code of codes.slice(0, lim.terms)) {
     const defs = await lookupStrong(code).catch(() => []);
@@ -217,6 +286,9 @@ async function gather(input: EngineInput): Promise<Gathered> {
       lexicon.push({ code, source: imported.dictionary, text: stripTags(imported.definition).slice(0, 700) });
       continue;
     }
+    // a palavra já aparece pelo dicionário teológico: a linha em inglês só repetiria
+    const covered = chosen.some((e) => [e.hebraico?.strong, e.grego?.strong].some((x) => x?.split('+').includes(code)));
+    if (covered) continue;
     const builtin = await lookupBuiltinStrong(code).catch(() => null);
     if (builtin) {
       lexicon.push({
@@ -227,6 +299,58 @@ async function gather(input: EngineInput): Promise<Gathered> {
     }
   }
   if (lexicon.length) sources.add(`léxico (${lexicon.map((l) => l.code).join(', ')})`);
+
+  /* família de palavras e concordância no original */
+  const families: SemanticGroup[] = [];
+  for (const code of codes.slice(0, 4)) {
+    const f = await findGroupForStrong(code).catch(() => null);
+    if (f && !families.some((x) => x.id === f.id)) families.push(f);
+  }
+  const concord: Gathered['concord'] = [];
+  const strongBible = await (async () => {
+    const list = await loadAvailableTranslations().catch(() => []);
+    return list.find((x) => x.id === input.translation && x.hasStrong) ?? list.find((x) => x.hasStrong) ?? null;
+  })();
+  if (strongBible) {
+    // uma palavra do hebraico e uma do grego: as dos verbetes escolhidos
+    const pick = [codes.find((c) => c.startsWith('H')), codes.find((c) => c.startsWith('G'))].filter(Boolean) as string[];
+    for (const code of pick) {
+      const hits = await findVersesWithStrong(strongBible.id, code, 300).catch(() => []);
+      if (!hits.length) continue;
+      const refsOf = hits.map((h) => ({ book: h.book, chapter: h.chapter, verse: h.verse }));
+      const entry = chosen.find((e) => [e.hebraico?.strong, e.grego?.strong].some((x) => x?.split('+').includes(code)));
+      const o = code.startsWith('H') ? entry?.hebraico : entry?.grego;
+      concord.push({ translit: o?.translit ?? code, code, total: hits.length, refs: balance(refsOf, lim.cross + 3) });
+    }
+    if (concord.length) sources.add(`concordância no original (${strongBible.shortName ?? strongBible.id})`);
+  }
+  if (families.length) sources.add('famílias de palavras');
+
+  /* o dicionário bíblico do pregador (importado) */
+  const topics: Gathered['topics'] = [];
+  const topicWords = [...new Set([...chosen.map((e) => plain(e.termo).split(' ')[0]), ...words.slice(0, 2).map((w) => w.toLowerCase())])];
+  for (const w of topicWords) {
+    if (topics.length >= 2) break;
+    const defs = await lookupTopic(w).catch(() => []);
+    for (const d of defs) {
+      if (topics.length >= 2 || d.dictionary === 'Léxico Strong (embutido)' || /^[HG]\d+$/i.test(d.topic)) continue;
+      if (topics.some((x) => x.dictionary === d.dictionary && x.topic === d.topic)) continue;
+      topics.push({ dictionary: d.dictionary, topic: d.topic, text: stripTags(d.definition).slice(0, 900) });
+    }
+  }
+  if (topics.length) sources.add('seu dicionário bíblico');
+
+  /* comentários importados, no versículo principal */
+  const comments: Gathered['comments'] = [];
+  const commentRef = anchor ?? keyTexts.find((r) => r.verse) ?? null;
+  const bookNumber = commentRef ? OSIS_TO_MYBIBLE_NUMBER.get(commentRef.book) : undefined;
+  if (commentRef?.verse && bookNumber) {
+    for (const c of (await lookupCommentary(bookNumber, commentRef.chapter, commentRef.verse).catch(() => [])).slice(0, 2)) {
+      const text = stripTags(c.text);
+      if (text) comments.push({ name: c.commentaryName, ref: commentRef, text: text.length > 700 ? `${text.slice(0, 697)}…` : text });
+    }
+    if (comments.length) sources.add('seus comentários');
+  }
 
   /* contexto canônico: referências cruzadas e tipologia */
   const cross: ParsedReference[] = [];
@@ -292,6 +416,10 @@ async function gather(input: EngineInput): Promise<Gathered> {
     guides,
     pack,
     searchTerm,
+    families,
+    concord,
+    topics,
+    comments,
     sources: [...sources],
   };
 }
@@ -316,6 +444,26 @@ async function immediateContext(translation: string, ref: ParsedReference): Prom
   return `${bookName(ref.book)} ${ref.chapter}:${from}-${to}:\n${lines.join('\n')}`;
 }
 
+/** Os textos separados por Testamento, quando há dos dois. */
+async function quotesByTestament(translation: string, refs: ParsedReference[]): Promise<string> {
+  const at = refs.filter((r) => testament(r) === 'AT');
+  const nt = refs.filter((r) => testament(r) === 'NT');
+  if (!at.length || !nt.length) return quotes(translation, refs);
+  return `### No Antigo Testamento\n${await quotes(translation, at)}\n\n### No Novo Testamento\n${await quotes(translation, nt)}`;
+}
+
+function familySection(g: Gathered): string {
+  const out: string[] = [];
+  for (const f of g.families.slice(0, 2)) {
+    out.push(`**${f.nome}** — ${f.descricao}`);
+    for (const t of f.termos.slice(0, 6)) out.push(`- **${t.translit}** ${t.lemma} (${t.strong}): ${t.sentido}`);
+  }
+  for (const c of g.concord) {
+    out.push(`**Onde a Bíblia usa ${c.translit} (${c.code})** — ${c.total} ${c.total === 1 ? 'versículo' : 'versículos'}; alguns: ${c.refs.map((r) => `[${formatReference(r)}]`).join(', ')}.`);
+  }
+  return out.join('\n');
+}
+
 function originalSection(g: Gathered): string {
   const lines: string[] = [];
   for (const e of g.entries) {
@@ -327,11 +475,17 @@ function originalSection(g: Gathered): string {
 }
 
 function dictionarySection(g: Gathered): string {
-  return g.entries.map((e) => [
+  const own = g.entries.map((e) => [
     `**${e.termo}.** ${e.definicao}`,
     e.distincao ? `\n**Distinção:** ${e.distincao}` : '',
     e.relacionados.length ? `\nVerbetes relacionados: ${e.relacionados.join(', ')}.` : '',
-  ].join('')).join('\n\n');
+  ].join(''));
+  const imported = (g.topics ?? []).map((t) => `**${t.topic}** (${t.dictionary}): ${t.text}`);
+  return [...own, ...imported].join('\n\n');
+}
+
+function commentsSection(g: Gathered): string {
+  return (g.comments ?? []).map((c) => `**${c.name}**, sobre [${formatReference(c.ref)}]: ${c.text}`).join('\n\n');
 }
 
 function typologySection(g: Gathered): string {
@@ -363,19 +517,21 @@ const section = (title: string, body: string) => (body.trim() ? `## ${title}\n${
 
 async function studyText(g: Gathered, input: EngineInput): Promise<string> {
   const t = input.translation;
-  const anchor = g.keyTexts.find((r) => r.verse);
-  const parts = [
-    section('1. O texto', await quotes(t, g.keyTexts)),
-    section('2. Contexto', [
+  const anchor = g.main?.verse ? g.main : g.keyTexts.find((r) => r.verse);
+  const blocks: Array<[string, string]> = [
+    ['O texto', await quotesByTestament(t, g.keyTexts)],
+    ['Contexto', [
       anchor ? await immediateContext(t, anchor) : '',
       g.cross.length ? `Referências cruzadas: ${g.cross.map((r) => `[${formatReference(r)}]`).join(', ')}.` : '',
-    ].filter(Boolean).join('\n\n')),
-    section('3. Língua original', originalSection(g)),
-    section('4. O que o dicionário diz', dictionarySection(g)),
-    section('5. Cristo e a Nova Aliança', typologySection(g)),
-    section('6. Doutrina — guias', guidesSection(g)),
+    ].filter(Boolean).join('\n\n')],
+    ['Língua original', [originalSection(g), familySection(g)].filter(Boolean).join('\n\n')],
+    ['O que o dicionário diz', dictionarySection(g)],
+    ['Comentários', commentsSection(g)],
+    ['Cristo e a Nova Aliança', typologySection(g)],
+    ['Doutrina — guias', guidesSection(g)],
   ];
-  return parts.filter(Boolean).join('\n\n');
+  // numeradas só as que existem: sem comentários importados, não fica um buraco
+  return blocks.filter(([, body]) => body.trim()).map(([title, body], i) => section(`${i + 1}. ${title}`, body)).join('\n\n');
 }
 
 async function messageText(g: Gathered, input: EngineInput): Promise<string> {
@@ -389,7 +545,7 @@ async function messageText(g: Gathered, input: EngineInput): Promise<string> {
       points.push(`### Ponto ${i + 1} — ${s.conceito}\n${s.resumo}\n\n${await quotes(t, refs)}\n\n**Explicação e aplicação:** ${WRITE}`);
     }
   } else {
-    const rest = g.keyTexts.filter((r) => !main || refKey(r) !== refKey(main)).slice(0, 3);
+    const rest = balance(g.keyTexts.filter((r) => !main || refKey(r) !== refKey(main)), 3);
     for (const [i, r] of rest.entries()) {
       points.push(`### Ponto ${i + 1} — ${formatReference(r)}\n${await quote(t, r)}\n\n**Explicação e aplicação:** ${WRITE}`);
     }
@@ -414,7 +570,7 @@ async function summaryText(g: Gathered, input: EngineInput): Promise<string> {
   const first = g.entries[0];
   const parts = [
     section('Em poucas palavras', first ? first.definicao : ''),
-    section('Textos-chave', await quotes(t, g.keyTexts.slice(0, 4))),
+    section('Textos-chave', await quotes(t, balance(g.keyTexts, 4))),
     section('No original', originalSection({ ...g, lexicon: g.lexicon.slice(0, 2) })),
     section('Distinção', first?.distincao ?? ''),
   ];

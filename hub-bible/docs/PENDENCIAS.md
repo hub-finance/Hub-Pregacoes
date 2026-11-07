@@ -84,6 +84,33 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0x. ✅ Motor sem IA mais rico, com o que o Hub já tem
+
+O usuário pediu "santidade" e veio só Antigo Testamento. Duas causas: o
+verbete se chama "Santidade de Deus" (o motor exigia o nome exato) e a busca
+devolve na ordem da Bíblia, com limite de 5 (só Êxodo e Levítico).
+
+- **Verbetes pela raiz** (`matchEntries` em `studyEngine.ts`): o nome
+  escrito, o verbete que começa pela palavra e a mesma raiz ("santidade" →
+  Santidade de Deus e Santificação).
+- **Dois Testamentos** (`balance`): metade de cada, um livro por vez antes de
+  repetir; o texto sai em "No Antigo Testamento" / "No Novo Testamento". Vale
+  para estudo, mensagem e resumo. A busca agora varre até 400 resultados
+  antes de escolher.
+- **Família de palavras** (`semantic-groups.json`): hagios, hagiazō,
+  hagiasmos… com o sentido em português.
+- **Concordância no original** (`findVersesWithStrong`): se houver Bíblia com
+  Strong no aparelho (as embutidas não têm; só importadas), "Onde a Bíblia usa
+  qadosh (H6918)": total e alguns versículos espalhados.
+- **Dicionário bíblico importado** (`lookupTopic`) e **comentários
+  importados** (`lookupCommentary`, no versículo principal) entram no estudo.
+- Seções numeradas só as que existem; linha do léxico em inglês sai quando a
+  palavra já veio pelo dicionário teológico.
+- **Correção na tela:** citações seguidas viravam um bloco só (Markdown.tsx);
+  agora uma por versículo. O PDF já separava.
+- Testes: santidade 11 (com Bíblia Strong, dicionário e comentários de teste
+  importados), mais as baterias anteriores, todas passando.
+
 ### 0w. ✅ Documento limpo e relatório sem a seção 7
 
 Pedido do usuário depois de testar no tablet ("ficou excelente"):
