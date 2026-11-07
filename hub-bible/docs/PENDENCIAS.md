@@ -5,47 +5,39 @@ verificado; nada aqui é suposição. O que já foi entregue está no `README.md
 
 ---
 
-### Retomar daqui (06/11) — próxima sessão
+### Retomar daqui (07/11) — próxima sessão
 
-Ordem combinada com o usuário. Ele quer o assistente "seguido à risca do
-Prompt" e funcionando "com ou sem IA, como o Hub Resumos".
+**No ar em 07/11:** site e APK #70 (PRs #99 e #100). O usuário testou o
+assistente sem IA no tablet e aprovou ("está muito top"); a importação de PDF
+e Word foi publicada logo depois, e ele ainda vai testá-la no aparelho.
+Tamanho: com a saída da Concordância, o download do APK caiu de 26,6 MB (#68)
+para 17,8 MB (#69/#70), e `public/` de 53,6 MB para 26,3 MB.
 
-**Prioridade reafirmada pelo usuário em 06/11 à noite:** amanhã terminar o
-assistente funcionando **sem IA, como o Hub Resumos** (item 2). Hoje, sem
-chave, o botão "Estudar" fica desativado — ele estranhou isso. Fazer o item 0
-(tela limpa) e em seguida o item 2, antes dos demais.
-
-0. ✅ **Feito em 07/11 (ver 0t).** ~~Tirar "Experimente pedir" da tela do assistente.~~ O usuário
-   testou no tablet e reprovou: as frases prontas parecem "algo premeditado";
-   quem usa escreve sobre qualquer tema. Remover a lista `EXAMPLES` de
-   `features/assistant/AssistantPage.tsx`, levar a caixa de pedido para o
-   topo (é o centro da tela) e deixar a escolha "O que você vai construir?"
-   mais compacta, sem empurrar a caixa para baixo. Dicas de uso ficam só na
-   Ajuda e no texto de exemplo dentro da caixa.
+O que falta, na ordem combinada:
 
 1. **Prompt Mestre integral.** Hoje `ASSISTANT_PROMPT` (`src/core/ai/assistant.ts`)
-   condensa as 21 seções. Trocar pelo texto literal do prompt (o usuário tem o
-   arquivo `Prompt_Mestre_Palavra_da_Fe.md`; pedir de novo se preciso). As
-   travas do app ficam acima dele: comentário nunca é Escritura, referências
-   conferidas, limites de sã doutrina.
-2. ✅ **Feito em 07/11 (ver 0t).** **Motor sem IA.** "Montar estudo" só com os dados do aparelho, na ordem do
-   prompt (texto → contexto → original → … → aplicação). As peças já existem
-   em `buildAssistantContext`: texto bíblico, referências cruzadas, dicionário
-   teológico, tipologia, léxico Strong, guias e base doutrinária. O que só a
-   IA ou o pregador fazem (gramática, interpretação, aplicação) fica como
-   espaço para preencher, sem inventar. Limite honesto: as Bíblias têm Strong
-   mas não morfologia (tempo, caso), então não há análise gramatical sem IA.
-   Hoje, sem IA, a conversa não anda e o documento só junta respostas.
-3. **Ligar com as pregações do usuário.** No assistente, mostrar "O que você
+   condensa as 21 seções. Trocar pelo texto literal (o usuário tem o arquivo
+   `Prompt_Mestre_Palavra_da_Fe.md`; pedir de novo se preciso). As travas do
+   app ficam acima dele: comentário nunca é Escritura, referências conferidas,
+   limites de sã doutrina.
+2. **Ligar com as pregações do usuário.** No assistente, mostrar "O que você
    já pregou e anotou sobre isso": sermões (Gerador), estudos (Rhema) e
    anotações que citam a passagem ou o tema. Com IA, mandar esse material como
    "memória pessoal". Em "Conferir interpretação", escolher uma mensagem do
    Gerador para a auditoria. Só ligar o que já existe, sem duplicar telas.
-4. **Testar com a IA real.** Todos os testes usaram IA simulada. Revisar com o
-   usuário uma resposta, uma auditoria e um documento gerados com a chave dele.
-5. **Conversas do assistente fora do backup** (`settings`,
-   `assistant:conversations`). O documento pode ser salvo como anotação,
-   Gerador ou Rhema, que entram. Avaliar se a conversa deve entrar também.
+3. **Testar com a IA real.** Todos os testes com IA usaram IA simulada.
+   Revisar com o usuário uma resposta, uma auditoria, um documento e um
+   material importado, gerados com a chave dele.
+4. **Retorno do teste de PDF e Word no tablet.** Se algum arquivo dele não for
+   lido direito (partes erradas, títulos quebrados), ajustar `materialImport.ts`
+   com o arquivo real.
+5. **Hub Resumos:** levar a correção do título em MAIÚSCULAS quebrado em duas
+   linhas no PDF (feita em `hub-bible/src/core/data/materialImport.ts`) para
+   `splitIntoSections` em `hub-resumos/src/core/text.ts`.
+6. **Backup:** conversas (`assistant:conversations`) e materiais importados
+   (`assistant:material:*`) ficam fora do backup. O documento pode ir para
+   anotação, Gerador ou Rhema, que entram. Avaliar com o usuário se conversas
+   e materiais devem entrar (materiais podem ser grandes).
 
 Pendências anteriores que continuam abertas:
 
@@ -56,6 +48,9 @@ Pendências anteriores que continuam abertas:
   usuário.
 - Leitor: `?v=N` não seleciona o versículo no primeiro toque.
 - Verificar no aparelho o compartilhar versículo/imagem no APK.
+
+Já resolvidos da lista de 06/11: "Experimente pedir" fora da tela e o motor
+sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
 
 ---
 
