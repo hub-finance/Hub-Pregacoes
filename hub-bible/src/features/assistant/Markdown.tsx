@@ -28,13 +28,15 @@ function parseBlocks(src: string): Block[] {
   const blocks: Block[] = [];
   const lines = src.replace(/\r\n?/g, '\n').split('\n');
   let para: string[] = [];
+  // linha em branco entre duas citações: são duas citações, não uma
+  let gap = false;
   const flush = () => {
     if (para.length) blocks.push({ kind: 'p', text: para.join(' ') });
     para = [];
   };
   for (const raw of lines) {
     const line = raw.trim();
-    if (!line) { flush(); continue; }
+    if (!line) { flush(); gap = true; continue; }
     let m: RegExpMatchArray | null;
     if ((m = line.match(/^(#{1,4})\s+(.*)$/))) {
       flush();
@@ -55,11 +57,12 @@ function parseBlocks(src: string): Block[] {
     } else if ((m = line.match(/^>\s?(.*)$/))) {
       flush();
       const last = blocks[blocks.length - 1];
-      if (last?.kind === 'quote') last.text += ` ${m[1]}`;
+      if (last?.kind === 'quote' && !gap) last.text += ` ${m[1]}`;
       else blocks.push({ kind: 'quote', text: m[1] });
     } else {
       para.push(line);
     }
+    gap = false;
   }
   flush();
   return blocks;
