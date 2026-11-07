@@ -89,6 +89,38 @@ Pendências anteriores que continuam abertas:
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0v. ✅ Assistente lê PDF e Word importados
+
+Pedido do usuário: importar material para o assistente, como o Hub Resumos,
+com a qualidade teológica do motor.
+
+- **Leitura** (`src/core/data/materialImport.ts`): cópia da leitura do Hub
+  Resumos (`hub-resumos/src/core/importers.ts` e `text.ts`). PDF pelos
+  marcadores, pelo sumário ou pelos títulos; Word pelos estilos. A parte sem
+  texto do começo (o "Título" do Word, a capa) dá o nome ao material.
+  Melhoria só aqui: título em MAIÚSCULAS quebrado em duas linhas no PDF é
+  juntado. **Levar a mesma correção ao Hub Resumos** (`splitIntoSections`).
+- **Guarda** (`src/core/data/assistantMaterials.ts`): uma chave por material
+  em `settings` (`assistant:material:<id>`) e o índice em
+  `assistant:materials`. Fica só no aparelho, fora do backup.
+- **Leitura teológica sem IA** (`readMaterialTheology`): versículos citados e
+  contados, doutrinas do dicionário (incluindo "fé"), termos do original pelo
+  vocabulário do dicionário teológico (pistis, dikaioō, homologeō…, sem
+  confundir com palavras do português), números de Strong e frases centrais
+  do autor (pontuadas por referência, doutrina e marcas de tese).
+- **Motor** (`buildFromMaterial` em `studyEngine.ts`): estudo (caminho, parte
+  a parte, versículos mais citados, doutrinas, original, tipologia, espaços
+  para escrever), mensagem, resumo e auditoria do material. "estude a parte
+  3" foca uma parte. O título vem da doutrina principal, **nunca do nome do
+  material** (as apostilas do Rhema não podem aparecer como fonte).
+- **Com IA**: o sumário e o texto das partes mais ligadas ao pedido (até
+  ~40 mil caracteres) com `MATERIAL_RULES`: separar o que o autor escreveu,
+  a análise e a aplicação; não escrever o nome do material nem do autor.
+- **Tela**: campo "Material" no pedido, "Importar PDF ou Word", "Materiais"
+  para renomear e apagar; dá para estudar sem escrever com material escolhido.
+- **Testes**: material 42 (Word e PDF de exemplo, sem IA e com IA simulada),
+  mais as baterias anteriores, todas passando; `npm run test:export` 20/20.
+
 ### 0u. ✅ Concordância removida
 
 A pedido do usuário ("nunca usei"). Saíram a tela, o item do menu, o atalho da

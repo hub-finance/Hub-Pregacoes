@@ -228,3 +228,9 @@
 .assistant-doc-preview .md {
   font-size: 1rem;
 }
+
+.assistant-material-select {
+  flex: 1 1 220px;
+  min-width: 0;
+  width: auto;
+}

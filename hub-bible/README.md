@@ -84,7 +84,9 @@ node scripts/generate-icons.mjs   # regenera os ícones do PWA
   bíblico, léxico Strong, dicionário teológico, tipologia e referências cruzadas. As
   referências da resposta são conferidas na tradução antes de virar toque. **Sem IA**, como o
   Hub Resumos, monta o estudo, a mensagem ou o resumo só com os dados do aparelho, sem inventar
-  nada (`src/core/data/studyEngine.ts`). Um estudo
+  nada (`src/core/data/studyEngine.ts`). Também lê **livros, apostilas, estudos e mensagens em
+  PDF ou Word** importados (só no aparelho): partes, versículos citados, doutrinas, termos do
+  original e frases centrais do autor (`src/core/data/assistantMaterials.ts`). Um estudo
   sistemático, uma mensagem ou um resumo construído na conversa vira documento em texto
   corrido, editável, que sai em PDF ou Word, ou segue para o Gerador, o Rhema e o Gerar e
   Exportar.

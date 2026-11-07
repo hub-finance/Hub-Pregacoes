@@ -26,6 +26,20 @@ import {
 } from '../bible/reference-data';
 import { buildDoctrinalBlock, findGuidesForPassage, getDoctrinalPack } from '../bible/doctrinalPack';
 import { GOAL_HINT, GOAL_LABEL, documentGoal, type AssistantGoal } from './assistantDocument';
+import { materialForAi, type AssistantMaterial } from '../data/assistantMaterials';
+
+/**
+ * Regras para um material importado (livro, apostila, estudo, mensagem). O
+ * mesmo princípio do Hub Resumos: separar o que o autor escreveu, a análise e
+ * a aplicação. E o nome do material não vai para o texto — o pregador pode
+ * não querer mostrar de onde veio.
+ */
+const MATERIAL_RULES = `MATERIAL IMPORTADO PELO PREGADOR (texto de outro autor; não é Escritura).
+- Trabalhe a partir do material, mas com a régua do prompt: a Escritura julga o material, nunca o contrário.
+- Separe com clareza: O QUE O AUTOR ESCREVEU (cite entre aspas, literal), A ANÁLISE e A APLICAÇÃO.
+- Ao conferir, aponte onde o autor está bem sustentado pelo texto e onde força uma palavra, tira do contexto ou conclui além do texto.
+- Não escreva o nome do material, da instituição nem do autor no texto final, a não ser que o pregador peça; diga "o material" ou "o autor".
+- Se o pedido falar de uma parte que não veio abaixo, diga que ela ficou de fora e peça para escolher a parte.`;
 
 export type AssistantMode = 'livre' | 'auditoria';
 export type AssistantDepth = 'auto' | 'objetivo' | 'profundo';
@@ -369,6 +383,8 @@ export interface AssistantMessage {
   mode?: AssistantMode;
   depth?: AssistantDepth;
   passage?: string;
+  /** Pedido feito sobre um material importado: o título dele, para mostrar. */
+  material?: string;
   /** Resposta: referências citadas que existem de fato na tradução. */
   validRefs?: string[];
   sources?: string[];
@@ -389,8 +405,11 @@ export async function runAssistant(input: {
   history: AssistantMessage[];
   /** O que está sendo construído: estudo, mensagem, resumo ou pergunta livre. */
   goal?: AssistantGoal;
+  /** Livro, apostila, estudo ou mensagem importado para estudar. */
+  material?: AssistantMaterial | null;
 }): Promise<{ content: string; validRefs: string[]; sources: string[] }> {
   const ctx = await buildAssistantContext(input.text, input.passage, input.translation);
+  const material = input.material ? `${MATERIAL_RULES}\n\n${materialForAi(input.material, input.text)}` : '';
   const header = [
     GOAL_HINT[input.goal ?? 'livre'],
     MODE_HINT[input.mode],
@@ -401,14 +420,14 @@ export async function runAssistant(input: {
   const turns: ChatTurn[] = input.history.slice(-HISTORY_TURNS).map((m) => ({ role: m.role, content: m.content }));
   turns.push({
     role: 'user',
-    content: [header, `PEDIDO:\n${input.text.trim()}`, ctx.block].filter(Boolean).join('\n\n'),
+    content: [header, `PEDIDO:\n${input.text.trim()}`, material, ctx.block].filter(Boolean).join('\n\n'),
   });
 
   const maxTokens = input.depth === 'profundo' || input.mode === 'auditoria' ? 12288 : 8192;
   const raw = await chatComplete(`${SYSTEM_PROMPT}\n${ASSISTANT_PROMPT}`, turns, maxTokens);
   if (!raw.trim()) throw new Error('A IA não devolveu resposta. Tente de novo.');
   const validRefs = await validateReferences(input.translation, extractReferences(raw)).catch(() => []);
-  return { content: raw.trim(), validRefs, sources: ctx.sources };
+  return { content: raw.trim(), validRefs, sources: input.material ? ['material importado', ...ctx.sources] : ctx.sources };
 }
 
 /* ─────────────────────────── o documento final ─────────────────────────── */

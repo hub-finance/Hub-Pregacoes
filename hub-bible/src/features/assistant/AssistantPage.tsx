@@ -29,6 +29,14 @@ import { VersePreview, previewLabel, type PreviewTarget } from '../bible/VersePr
 import { Markdown, markdownToPlain } from './Markdown';
 import { DocumentEditor } from './DocumentEditor';
 import { buildStudyWithoutAi } from '../../core/data/studyEngine';
+import {
+  getMaterial,
+  importMaterial,
+  listMaterials,
+  removeMaterial,
+  renameMaterial,
+  type MaterialSummary,
+} from '../../core/data/assistantMaterials';
 import { documentFromAnswers, GOAL_LABEL, splitTitle, type AssistantDocument, type AssistantGoal } from '../../core/ai/assistantDocument';
 
 const MODES: { id: AssistantMode; label: string }[] = [
@@ -44,6 +52,15 @@ const GOALS: { id: AssistantGoal; hint: string }[] = [
 ];
 
 type Engine = 'ia' | 'aparelho';
+
+/** Pedido padrão quando há material e a caixa ficou vazia. */
+const MATERIAL_REQUEST: Record<AssistantGoal | 'auditoria', string> = {
+  livre: 'Estude este material.',
+  estudo: 'Faça um estudo sistemático deste material.',
+  mensagem: 'Monte uma mensagem a partir deste material.',
+  resumo: 'Resuma este material.',
+  auditoria: 'Confira este material: onde o autor está bem sustentado pelo texto e onde não está.',
+};
 
 const DEPTHS: { id: AssistantDepth; label: string }[] = [
   { id: 'auto', label: 'Automática' },
@@ -99,6 +116,17 @@ export default function AssistantPage() {
   const enabled = isAiEnabled();
   // como o Hub Resumos: com IA quando houver chave; sem ela, o motor do aparelho
   const [enginePick, setEnginePick] = useState<Engine>('ia');
+  const [materials, setMaterials] = useState<MaterialSummary[]>([]);
+  const [materialId, setMaterialId] = useState('');
+  const [materialBusy, setMaterialBusy] = useState('');
+  const [materialsOpen, setMaterialsOpen] = useState(false);
+  const [materialToRemove, setMaterialToRemove] = useState<MaterialSummary | null>(null);
+  const fileInput = useRef<HTMLInputElement | null>(null);
+  const selectedMaterial = materials.find((m) => m.id === materialId) ?? null;
+  const refreshMaterials = useCallback(() => {
+    listMaterials().then(setMaterials).catch(() => setMaterials([]));
+  }, []);
+  useEffect(refreshMaterials, [refreshMaterials]);
   const engine: Engine = enabled ? enginePick : 'aparelho';
 
   const refreshHistory = useCallback(() => {
@@ -114,21 +142,26 @@ export default function AssistantPage() {
   const passageInvalid = passage.trim() !== '' && !parseReference(passage);
 
   const send = async (override?: string) => {
-    const request = (override ?? text).trim();
+    const typed = (override ?? text).trim();
+    // com um material escolhido, dá para pedir sem escrever: o pedido padrão vale
+    const request = typed || (selectedMaterial ? MATERIAL_REQUEST[mode === 'auditoria' ? 'auditoria' : goal] : '');
     if (!request || loading || passageInvalid) return;
     setLoading(true);
     setError('');
     const userMsg: AssistantMessage = {
-      role: 'user', content: request, mode, depth, passage: passage.trim() || undefined, at: Date.now(),
+      role: 'user', content: request, mode, depth, passage: passage.trim() || undefined,
+      material: selectedMaterial?.title, at: Date.now(),
     };
     // a pergunta aparece na hora; só entra na conversa salva com a resposta
     const pending = { ...conv, messages: [...conv.messages, userMsg] };
     setConv(pending);
     setText('');
     try {
+      const material = materialId ? await getMaterial(materialId) : null;
+      if (materialId && !material) throw new Error('O material escolhido não está mais no aparelho.');
       const answer = engine === 'ia'
-        ? await runAssistant({ text: request, mode, depth, passage, translation, history: conv.messages, goal })
-        : await buildStudyWithoutAi({ text: request, mode, depth, passage, translation, goal });
+        ? await runAssistant({ text: request, mode, depth, passage, translation, history: conv.messages, goal, material })
+        : await buildStudyWithoutAi({ text: request, mode, depth, passage, translation, goal, material });
       const done: AssistantConversation = {
         ...pending,
         title: conv.title || conversationTitle(request),
@@ -278,6 +311,30 @@ export default function AssistantPage() {
 
   const hasAnswer = conv.messages.some((m) => m.role === 'assistant');
 
+  const onPickFile = async (file: File | undefined) => {
+    if (!file) return;
+    setMaterialBusy('Lendo o arquivo…');
+    try {
+      const m = await importMaterial(file, (msg) => setMaterialBusy(msg));
+      refreshMaterials();
+      setMaterialId(m.id);
+      notify(`${m.title}: ${m.parts.length} ${m.parts.length === 1 ? 'parte' : 'partes'} lidas. Fica só neste aparelho.`);
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'Não foi possível ler o arquivo.');
+    } finally {
+      setMaterialBusy('');
+      if (fileInput.current) fileInput.current.value = '';
+    }
+  };
+
+  const confirmRemoveMaterial = async () => {
+    if (!materialToRemove) return;
+    await removeMaterial(materialToRemove.id);
+    if (materialToRemove.id === materialId) setMaterialId('');
+    setMaterialToRemove(null);
+    refreshMaterials();
+  };
+
   const openRef = useCallback((target: PreviewTarget) => setPreview(target), []);
 
   const lastAssistantIndex = useMemo(() => {
@@ -324,6 +381,41 @@ export default function AssistantPage() {
             />
           </div>
   
+          <div className="field">
+            <label htmlFor="assistant-material">Material (opcional) — livro, apostila, estudo ou mensagem</label>
+            <div className="row row-wrap" style={{ gap: 'var(--sp-2)' }}>
+              <select
+                id="assistant-material"
+                className="select assistant-material-select"
+                value={materialId}
+                onChange={(e) => setMaterialId(e.target.value)}
+              >
+                <option value="">Nenhum</option>
+                {materials.map((m) => (
+                  <option key={m.id} value={m.id}>{m.title}</option>
+                ))}
+              </select>
+              <button type="button" className="btn btn-sm" disabled={!!materialBusy} onClick={() => fileInput.current?.click()}>
+                <Icon name="upload" size={16} />
+                <span>{materialBusy ? 'Lendo…' : 'Importar PDF ou Word'}</span>
+              </button>
+              <input
+                ref={fileInput}
+                type="file"
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                hidden
+                onChange={(e) => onPickFile(e.target.files?.[0])}
+              />
+            </div>
+            {materialBusy && <span className="small dim">{materialBusy}</span>}
+            {selectedMaterial && !materialBusy && (
+              <span className="small dim">
+                {selectedMaterial.parts} {selectedMaterial.parts === 1 ? 'parte' : 'partes'} · {selectedMaterial.words.toLocaleString('pt-BR')} palavras.
+                {' '}Pode tocar em Estudar sem escrever nada, ou pedir uma parte ("estude a parte 3").
+              </span>
+            )}
+          </div>
+
           <div className="assistant-options">
             <div className="field" style={{ flex: '1 1 220px' }}>
               <label htmlFor="assistant-passage">Passagem em foco (opcional)</label>
@@ -410,7 +502,7 @@ export default function AssistantPage() {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={loading || !text.trim() || passageInvalid}
+              disabled={loading || (!text.trim() && !selectedMaterial) || passageInvalid}
             >
               <Icon name={engine === 'ia' ? 'sparkle' : 'book'} size={18} />
               <span>{loading ? 'Estudando…' : conv.messages.length ? 'Continuar' : 'Estudar'}</span>
@@ -441,6 +533,12 @@ export default function AssistantPage() {
           <Icon name="list" size={16} />
           <span>Conversas{history.length ? ` (${history.length})` : ''}</span>
         </button>
+        {materials.length > 0 && (
+          <button className="btn btn-sm" onClick={() => setMaterialsOpen(true)}>
+            <Icon name="folder" size={16} />
+            <span>Materiais ({materials.length})</span>
+          </button>
+        )}
         {conv.messages.length > 0 && (
           <button className="btn btn-sm" onClick={startNew}>
             <Icon name="plus" size={16} />
@@ -518,6 +616,7 @@ export default function AssistantPage() {
                 <div className="assistant-msg-meta small dim">
                   {m.mode === 'auditoria' ? 'Conferir interpretação' : 'Pedido'}
                   {m.passage ? ` · ${m.passage}` : ''}
+                  {m.material ? ` · Material: ${m.material}` : ''}
                   {m.depth && m.depth !== 'auto' ? ` · ${DEPTHS.find((d) => d.id === m.depth)?.label}` : ''}
                 </div>
                 <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{m.content}</p>
@@ -579,6 +678,46 @@ export default function AssistantPage() {
           {previewBody}
         </Sheet>
       )}
+
+      <Sheet open={materialsOpen} title="Materiais importados" onClose={() => setMaterialsOpen(false)}>
+        <p className="small dim" style={{ margin: '0 0 var(--sp-3)' }}>
+          Ficam só neste aparelho. O nome do material não aparece no que o assistente escreve.
+        </p>
+        <ul className="assistant-history">
+          {materials.map((m) => (
+            <li key={m.id} className="row">
+              <div className="assistant-history-item" style={{ cursor: 'default' }}>
+                <input
+                  className="input"
+                  defaultValue={m.title}
+                  aria-label={`Nome do material ${m.title}`}
+                  onBlur={async (e) => {
+                    if (e.target.value.trim() && e.target.value.trim() !== m.title) {
+                      await renameMaterial(m.id, e.target.value);
+                      refreshMaterials();
+                    }
+                  }}
+                />
+                <span className="small dim">
+                  {m.format === 'pdf' ? 'PDF' : 'Word'} · {m.parts} {m.parts === 1 ? 'parte' : 'partes'} · {m.words.toLocaleString('pt-BR')} palavras
+                </span>
+              </div>
+              <button className="icon-btn" aria-label={`Apagar o material ${m.title}`} onClick={() => setMaterialToRemove(m)}>
+                <Icon name="trash" size={18} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Sheet>
+
+      <ConfirmDialog
+        open={!!materialToRemove}
+        title="Apagar material?"
+        message="O material sai deste aparelho. O seu arquivo original continua onde estava, e as conversas já feitas não mudam."
+        confirmLabel="Apagar"
+        onConfirm={confirmRemoveMaterial}
+        onCancel={() => setMaterialToRemove(null)}
+      />
 
       <Sheet open={historyOpen} title="Conversas" onClose={() => setHistoryOpen(false)}>
         {history.length === 0 ? (

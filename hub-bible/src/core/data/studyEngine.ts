@@ -32,6 +32,7 @@ import { findGuidesForPassage, getDoctrinalPack } from '../bible/doctrinalPack';
 import { validateReferences } from '../ai/provider';
 import { findRequestReferences, type AssistantDepth, type AssistantMode } from '../ai/assistant';
 import type { AssistantGoal } from '../ai/assistantDocument';
+import { readMaterialTheology, type AssistantMaterial, type MaterialReading, type PartReading } from './assistantMaterials';
 
 export interface EngineInput {
   text: string;
@@ -40,6 +41,8 @@ export interface EngineInput {
   goal: AssistantGoal;
   mode: AssistantMode;
   depth: AssistantDepth;
+  /** Livro, apostila, estudo ou mensagem importado: o estudo parte dele. */
+  material?: AssistantMaterial | null;
 }
 
 export interface EngineOutput {
@@ -467,6 +470,7 @@ const NOTHING =
   '(ex.: pistis, emunah) ou um tema do dicionário (ex.: justificação, graça, cura) e eu monto de novo.';
 
 export async function buildStudyWithoutAi(input: EngineInput): Promise<EngineOutput> {
+  if (input.material) return buildFromMaterial(input, input.material);
   const g = await gather(input);
   const empty = !g.keyTexts.length && !g.entries.length && !g.lexicon.length;
   if (empty) return { content: NOTHING, validRefs: [], sources: [] };
@@ -485,4 +489,169 @@ export async function buildStudyWithoutAi(input: EngineInput): Promise<EngineOut
   const cited = [...content.matchAll(/\[([^\]]+)\]/g)].map((m) => m[1]);
   const validRefs = await validateReferences(input.translation, [...new Set(cited)]).catch(() => []);
   return { content, validRefs, sources: g.sources };
+}
+
+/* ─────────────────────── estudo a partir de um material ─────────────────────── */
+
+const PARTS_LIMIT: Record<AssistantDepth, number> = { objetivo: 4, auto: 8, profundo: 20 };
+
+/** "parte 3", "capítulo 2", "lição 4" — ou as palavras do título de uma parte. */
+function focusPart(text: string, reading: MaterialReading): number | null {
+  const n = /\b(?:parte|cap[ií]tulo|li[cç][aã]o|m[oó]dulo|aula|se[cç][aã]o)\s+(\d{1,3})\b/i.exec(text);
+  if (n) {
+    const i = Number(n[1]) - 1;
+    if (i >= 0 && i < reading.parts.length) return i;
+  }
+  const words = plain(text).split(' ').filter((w) => w.length >= 4 && !STOP.has(w));
+  let best: { i: number; hits: number } | null = null;
+  reading.parts.forEach((p, i) => {
+    const title = ` ${plain(p.title)} `;
+    const hits = words.filter((w) => title.includes(` ${w} `)).length;
+    if (hits >= 2 && (!best || hits > best.hits)) best = { i, hits };
+  });
+  return (best as { i: number } | null)?.i ?? null;
+}
+
+const authorQuote = (s: string) => `- “${s.replace(/\[|\]/g, '')}”`;
+
+function partBlock(p: PartReading, n: number): string {
+  const lines = [`### ${n}. ${p.title}`];
+  lines.push(...p.central.map(authorQuote));
+  if (p.refs.length) lines.push(`Versículos citados: ${p.refs.slice(0, 6).map((r) => `[${r.label}]`).join(', ')}.`);
+  if (p.terms.length) lines.push(`Doutrinas: ${p.terms.slice(0, 4).map((t) => t.entry.termo).join(', ')}.`);
+  return lines.length > 1 ? lines.join('\n') : '';
+}
+
+async function topQuotes(translation: string, refs: MaterialReading['refs'], limit: number): Promise<string> {
+  const out: string[] = [];
+  for (const r of refs.slice(0, limit)) {
+    const q = await quote(translation, r.ref);
+    if (q) out.push(r.count > 1 ? `${q} (citado ${r.count} vezes)` : q);
+  }
+  return out.join('\n\n');
+}
+
+function doctrineBlock(terms: MaterialReading['terms'], limit: number): string {
+  return terms.slice(0, limit).map(({ entry: e, count }) => [
+    `**${e.termo}** (aparece ${count} ${count === 1 ? 'vez' : 'vezes'}). ${e.definicao}`,
+    e.distincao ? `\n**Distinção:** ${e.distincao}` : '',
+  ].join('')).join('\n\n');
+}
+
+function originalsBlock(r: MaterialReading): string {
+  const lines = r.originals.map((o) => `- **${o.translit}** ${o.word}${o.strong ? ` (${o.strong})` : ''} — "${o.term}"`);
+  if (r.strongCodes.length) lines.push(`- Números de Strong citados: ${r.strongCodes.join(', ')}.`);
+  return lines.join('\n');
+}
+
+async function typologyFor(refs: MaterialReading['refs']): Promise<string> {
+  const found = new Map<string, TypologyPair>();
+  for (const r of refs.slice(0, 12)) {
+    if (!r.ref.verse) continue;
+    for (const t of await findTypologyForVerse(r.ref.book, r.ref.chapter, r.ref.verse)) found.set(t.id, t);
+    if (found.size >= 2) break;
+  }
+  return typologySection({ types: [...found.values()] } as Gathered);
+}
+
+async function buildFromMaterial(input: EngineInput, material: AssistantMaterial): Promise<EngineOutput> {
+  const t = input.translation;
+  const lim = LIMITS[input.depth];
+  const full = await readMaterialTheology(material, input.depth === 'objetivo' ? 1 : input.depth === 'profundo' ? 4 : 2);
+  const focus = focusPart(input.text, full);
+  // foco numa parte: a leitura inteira passa a ser só dela
+  const reading: MaterialReading = focus === null ? full : (() => {
+    const p = full.parts[focus];
+    return { ...full, parts: [p], refs: p.refs, terms: p.terms };
+  })();
+  const parts = reading.parts.slice(0, PARTS_LIMIT[input.depth]);
+  const firstNumber = focus === null ? 1 : focus + 1;
+  const partBlocks = parts.map((p, i) => partBlock(p, firstNumber + i)).filter(Boolean).join('\n\n');
+
+  if (!reading.refs.length && !reading.terms.length && !partBlocks) {
+    return {
+      content: 'Li o material, mas não encontrei versículos citados, doutrinas do dicionário nem frases centrais para montar o estudo. Confira se o arquivo tem texto (PDF escaneado como imagem não tem).',
+      validRefs: [], sources: [],
+    };
+  }
+
+  const theme = reading.terms[0]?.entry.termo ?? (reading.refs[0] ? reading.refs[0].label : '');
+  const label = focus === null ? 'estudo do material' : `parte ${focus + 1} do material`;
+  let title = theme ? `${theme} — ${label}` : label[0].toUpperCase() + label.slice(1);
+  const outline = focus === null && reading.parts.length > 1
+    ? reading.parts.slice(0, 30).map((p, i) => `${i + 1}. ${p.title}`).join('\n')
+    : '';
+
+  let body: string;
+  if (input.mode === 'auditoria') {
+    title = focus === null ? 'Material para conferir' : `Material para conferir — parte ${focus + 1}`;
+    const claims: string[] = [];
+    for (const [i, p] of parts.entries()) {
+      if (!p.central.length && !p.refs.length) continue;
+      const qs = await quotes(t, p.refs.slice(0, 2).map((r) => r.ref));
+      claims.push([`### ${firstNumber + i}. ${p.title}`, ...p.central.map(authorQuote), qs ? `Os textos que o autor usa, na sua Bíblia:\n\n${qs}` : ''].filter(Boolean).join('\n'));
+    }
+    body = [
+      section('O que o autor afirma, e os textos que usa', claims.join('\n\n')),
+      section('Doutrinas em jogo', doctrineBlock(reading.terms, lim.entries)),
+      section('Roteiro de conferência', AUDIT_CHECKS.map((c) => `- ${c}`).join('\n')),
+      section('Sua conclusão', [
+        '**O que está correto:** ' + WRITE,
+        '**O que precisa ser ajustado:** ' + WRITE,
+        '**Por quê:** ' + WRITE,
+        '**A leitura mais bem sustentada pelo texto:** ' + WRITE,
+      ].join('\n\n')),
+    ].filter(Boolean).join('\n\n');
+  } else if (input.goal === 'mensagem') {
+    const ranked = [...parts].map((p, i) => ({ p, i })).sort((a, b) => (b.p.refs.length + b.p.terms.length) - (a.p.refs.length + a.p.terms.length)).slice(0, 4).sort((a, b) => a.i - b.i);
+    const points: string[] = [];
+    for (const [n, { p }] of ranked.entries()) {
+      points.push([
+        `### Ponto ${n + 1} — ${p.title}`,
+        p.central[0] ? authorQuote(p.central[0]) : '',
+        await quotes(t, p.refs.slice(0, 2).map((r) => r.ref)),
+        `**Explicação e aplicação:** ${WRITE}`,
+      ].filter(Boolean).join('\n\n'));
+    }
+    const first = parts.find((p) => p.central.length)?.central[0];
+    body = [
+      section('Texto principal', reading.refs[0] ? await quote(t, reading.refs[0].ref) : ''),
+      section('Introdução', [first ? `O material parte daqui:\n${authorQuote(first)}` : '', WRITE].filter(Boolean).join('\n\n')),
+      section('Desenvolvimento', points.join('\n\n')),
+      section('Aplicação', WRITE),
+      section('Conclusão e apelo', WRITE),
+      section('Material de apoio', [doctrineBlock(reading.terms, lim.entries), originalsBlock(reading)].filter(Boolean).join('\n\n')),
+    ].filter(Boolean).join('\n\n');
+  } else if (input.goal === 'resumo') {
+    const essentials = parts.filter((p) => p.central.length).map((p) => `- **${firstNumber + reading.parts.indexOf(p)}. ${p.title}:** “${p.central[0].replace(/\[|\]/g, '')}”`);
+    body = [
+      section('O essencial, nas palavras do autor', essentials.join('\n')),
+      section('Textos-chave', await topQuotes(t, reading.refs, Math.min(4, lim.texts))),
+      section('Doutrinas', reading.terms.slice(0, 5).map((x) => x.entry.termo).join(', ')),
+    ].filter(Boolean).join('\n\n');
+  } else {
+    body = [
+      section('O caminho do material', outline),
+      section('Parte a parte', partBlocks),
+      section('Os versículos mais citados', await topQuotes(t, reading.refs, lim.texts)),
+      section('As doutrinas do material', doctrineBlock(reading.terms, lim.entries)),
+      section('No original', originalsBlock(reading)),
+      section('Cristo e a Nova Aliança', await typologyFor(reading.refs)),
+      section('Interpretação e aplicação', [
+        '**O texto diz:** ' + WRITE,
+        '**O autor interpreta:** ' + WRITE,
+        '**A doutrina conclui:** ' + WRITE,
+        '**A aplicação propõe:** ' + WRITE,
+      ].join('\n\n')),
+    ].filter(Boolean).join('\n\n');
+  }
+
+  const note = '*Montado com o material que você importou e os dados do aparelho, sem IA: as frases entre aspas são do autor, os versículos são da sua Bíblia. A interpretação e a aplicação são suas.*';
+  const content = `# ${title}\n\n${note}\n\n${body}`;
+  const cited = [...content.matchAll(/\[([^\]]+)\]/g)].map((m) => m[1]);
+  const validRefs = await validateReferences(t, [...new Set(cited)]).catch(() => []);
+  const sources = ['material importado', 'texto da Bíblia em uso'];
+  if (reading.terms.length) sources.push('dicionário teológico');
+  if (reading.originals.length) sources.push('termos do original');
+  return { content, validRefs, sources };
 }
