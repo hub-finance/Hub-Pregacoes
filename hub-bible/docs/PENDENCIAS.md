@@ -84,6 +84,24 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0y. ✅ Uma chave para cada IA: ChatGPT, Claude e Gemini
+
+Pedido do usuário: lugar nas Configurações para as chaves do ChatGPT e do
+Claude. Antes havia uma chave só, apagada ao trocar de provedor.
+- `core/ai/config.ts`: `AiSettings` guarda `keys` e `models` por provedor e
+  qual está em uso; `loadAiConfig()` continua devolvendo a configuração em uso
+  (o resto do app não mudou). O formato antigo `{ provider, apiKey, model }` é
+  convertido ao ler, sem perder a chave.
+- `AiConfigPanel.tsx`: "IA em uso" e uma caixa por provedor (chave, modelo,
+  Testar, Usar esta, Apagar chave). A primeira chave cadastrada já entra em
+  uso; apagar a chave em uso passa para outra que tenha chave.
+  `testAiKey()` (em `chatProvider.ts`) testa sem precisar pôr em uso.
+- A seção das Configurações virou "IA — chaves de API (ChatGPT, Claude,
+  Gemini)"; Ajuda e o aviso da Análise do leitor apontam para ela.
+- Testes: chaves 26 (migração, três chaves juntas, testar cada uma,
+  assistente pelo Claude e depois pelo ChatGPT sem redigitar), mais as
+  baterias anteriores; todas passando.
+
 ### 0x. ✅ Motor sem IA mais rico, com o que o Hub já tem
 
 O usuário pediu "santidade" e veio só Antigo Testamento. Duas causas: o

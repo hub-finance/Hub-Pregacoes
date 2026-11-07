@@ -47,20 +47,62 @@ export const MODEL_OPTIONS: Record<Exclude<AiProviderId, 'none'>, Array<{ value:
   ],
 };
 
-export function loadAiConfig(): AiConfig {
+/**
+ * O que fica guardado: uma chave e um modelo para cada provedor (o pregador
+ * pode ter ChatGPT, Claude e Gemini ao mesmo tempo) e qual está em uso.
+ * Antes era uma chave só, apagada ao trocar de provedor; o formato antigo
+ * (`{ provider, apiKey, model }`) é lido e convertido sem perder a chave.
+ */
+export type ProviderKey = Exclude<AiProviderId, 'none'>;
+export const PROVIDER_IDS: ProviderKey[] = ['openai', 'anthropic', 'gemini'];
+
+export interface AiSettings {
+  provider: AiProviderId;
+  keys: Partial<Record<ProviderKey, string>>;
+  models: Partial<Record<ProviderKey, string>>;
+}
+
+export function loadAiSettings(): AiSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULTS;
-    return { ...DEFAULTS, ...JSON.parse(raw) };
+    if (!raw) return { provider: 'none', keys: {}, models: {} };
+    const data = JSON.parse(raw) as Partial<AiSettings> & Partial<AiConfig>;
+    const keys = { ...(data.keys ?? {}) };
+    const models = { ...(data.models ?? {}) };
+    const provider = (data.provider ?? 'none') as AiProviderId;
+    // formato antigo: a chave única pertence ao provedor que estava escolhido
+    if (provider !== 'none' && data.apiKey && !keys[provider]) keys[provider] = data.apiKey;
+    if (provider !== 'none' && data.model && !models[provider]) models[provider] = data.model;
+    return { provider, keys, models };
   } catch {
-    return DEFAULTS;
+    return { provider: 'none', keys: {}, models: {} };
   }
 }
 
-export function saveAiConfig(config: AiConfig): void {
+export function saveAiSettings(settings: AiSettings): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch { /* modo privado */ }
+}
+
+/** A configuração em uso: o provedor escolhido, com a chave e o modelo dele. */
+export function loadAiConfig(): AiConfig {
+  const s = loadAiSettings();
+  if (s.provider === 'none') return DEFAULTS;
+  return {
+    provider: s.provider,
+    apiKey: s.keys[s.provider] ?? '',
+    model: s.models[s.provider] || DEFAULT_MODELS[s.provider],
+  };
+}
+
+export function saveAiConfig(config: AiConfig): void {
+  const s = loadAiSettings();
+  if (config.provider !== 'none') {
+    s.keys[config.provider] = config.apiKey;
+    if (config.model) s.models[config.provider] = config.model;
+  }
+  saveAiSettings({ ...s, provider: config.provider });
 }
 
 export function clearAiConfig(): void {
