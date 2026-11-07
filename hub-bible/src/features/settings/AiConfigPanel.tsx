@@ -2,121 +2,132 @@ import { useCallback, useState } from 'react';
 import { SelectInput, TextInput } from '../../components/ui';
 import { useToast } from '../../components/Toast';
 import {
-  loadAiConfig,
-  saveAiConfig,
+  loadAiSettings,
+  saveAiSettings,
   DEFAULT_MODELS,
   MODEL_OPTIONS,
-  type AiConfig,
+  PROVIDER_IDS,
   type AiProviderId,
+  type AiSettings,
+  type ProviderKey,
 } from '../../core/ai/config';
 import { registerAiProvider } from '../../core/ai/provider';
-import { createProvider } from '../../core/ai/chatProvider';
+import { createProvider, testAiKey } from '../../core/ai/chatProvider';
 
-const PROVIDER_OPTIONS = [
-  { value: 'none', label: 'Desativado' },
-  { value: 'gemini', label: 'Google Gemini' },
-  { value: 'anthropic', label: 'Anthropic Claude' },
-  { value: 'openai', label: 'OpenAI' },
-];
+const NAMES: Record<ProviderKey, string> = {
+  openai: 'ChatGPT (OpenAI)',
+  anthropic: 'Claude (Anthropic)',
+  gemini: 'Gemini (Google)',
+};
+
+const PLACEHOLDER: Record<ProviderKey, string> = {
+  openai: 'sk-...',
+  anthropic: 'sk-ant-...',
+  gemini: 'AIza...',
+};
+
+const WHERE: Record<ProviderKey, string> = {
+  openai: 'Crie a chave em platform.openai.com (API keys). A API é cobrada à parte da assinatura do ChatGPT: precisa de créditos na conta.',
+  anthropic: 'Crie a chave em console.anthropic.com (API keys). A API é cobrada à parte da assinatura do Claude: precisa de créditos na conta.',
+  gemini: 'Crie a chave em aistudio.google.com (Get API key). O Gemini Flash tem plano gratuito.',
+};
+
+const hasKey = (s: AiSettings, id: ProviderKey) => (s.keys[id] ?? '').trim().length > 8;
 
 export function AiConfigPanel() {
-  const [config, setConfig] = useState<AiConfig>(loadAiConfig);
-  const [testing, setTesting] = useState(false);
+  const [settings, setSettings] = useState<AiSettings>(loadAiSettings);
+  const [testing, setTesting] = useState<ProviderKey | null>(null);
   const { notify } = useToast();
 
-  const save = useCallback((next: AiConfig) => {
-    setConfig(next);
-    saveAiConfig(next);
+  const save = useCallback((next: AiSettings) => {
+    setSettings(next);
+    saveAiSettings(next);
     registerAiProvider(createProvider());
   }, []);
 
-  const handleProviderChange = (id: string) => {
-    const provider = id as AiProviderId;
-    const model = provider !== 'none' ? DEFAULT_MODELS[provider] : '';
-    save({ ...config, provider, model, apiKey: provider === config.provider ? config.apiKey : '' });
+  const setKey = (id: ProviderKey, key: string) => {
+    const next = { ...settings, keys: { ...settings.keys, [id]: key.trim() } };
+    // a primeira chave cadastrada já entra em uso, sem um passo a mais
+    if (next.provider === 'none' && key.trim().length > 8) next.provider = id;
+    save(next);
   };
 
-  const handleKeyChange = (apiKey: string) => {
-    save({ ...config, apiKey });
+  const setModel = (id: ProviderKey, model: string) =>
+    save({ ...settings, models: { ...settings.models, [id]: model } });
+
+  const use = (provider: AiProviderId) => save({ ...settings, provider });
+
+  const removeKey = (id: ProviderKey) => {
+    const keys = { ...settings.keys };
+    delete keys[id];
+    const fallback = PROVIDER_IDS.find((p) => p !== id && hasKey({ ...settings, keys }, p)) ?? 'none';
+    save({ ...settings, keys, provider: settings.provider === id ? fallback : settings.provider });
+    notify(`Chave do ${NAMES[id]} apagada deste aparelho.`);
   };
 
-  const handleModelChange = (model: string) => {
-    save({ ...config, model });
-  };
-
-  const testConnection = async () => {
-    if (!config.apiKey || config.provider === 'none') return;
-    setTesting(true);
+  const test = async (id: ProviderKey) => {
+    setTesting(id);
     try {
-      const provider = createProvider();
-      if (!provider) {
-        notify('Configure a chave de API primeiro.', 'error');
-        return;
-      }
-      await provider.run({
-        task: 'contexto-historico',
-        translation: 'pt_almeida',
-        reference: 'João 3:16',
-        passage: 'Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito',
-      });
-      notify('Conexão funcionando!');
+      await testAiKey(id, settings.keys[id] ?? '', settings.models[id]);
+      notify(`${NAMES[id]}: conexão funcionando!`);
     } catch (err) {
-      notify(err instanceof Error ? err.message : 'Erro ao testar a conexão.', 'error');
+      notify(`${NAMES[id]}: ${err instanceof Error ? err.message : 'erro ao testar.'}`, 'error');
     } finally {
-      setTesting(false);
+      setTesting(null);
     }
   };
 
-  const active = config.provider !== 'none' && config.apiKey.length > 8;
+  const inUse = settings.provider;
+  const options = [
+    { value: 'none', label: 'Desativada (o assistente funciona sem IA)' },
+    ...PROVIDER_IDS.map((id) => ({ value: id, label: `${NAMES[id]}${hasKey(settings, id) ? '' : ' — sem chave'}` })),
+  ];
 
   return (
     <div className="stack">
-      <SelectInput
-        label="Provedor"
-        value={config.provider}
-        onChange={handleProviderChange}
-        options={PROVIDER_OPTIONS}
-      />
-
-      {config.provider !== 'none' && (
-        <>
-          <TextInput
-            label="Chave de API"
-            value={config.apiKey}
-            onChange={handleKeyChange}
-            placeholder={config.provider === 'openai' ? 'sk-...' : config.provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
-            type="password"
-          />
-
-          <SelectInput
-            label="Modelo"
-            value={config.model}
-            onChange={handleModelChange}
-            options={MODEL_OPTIONS[config.provider]}
-          />
-
-          <div className="row">
-            <span style={{ flex: 1 }}>
-              Status: <strong>{active ? 'Ativa' : 'Aguardando chave'}</strong>
-            </span>
-            <button
-              className="btn btn-sm"
-              onClick={testConnection}
-              disabled={!active || testing}
-            >
-              {testing ? 'Testando…' : 'Testar conexão'}
-            </button>
-          </div>
-
-          <p className="small dim">
-            {config.provider === 'gemini'
-              ? 'O Gemini Flash tem plano gratuito. Crie sua chave em ai.google.dev.'
-              : config.provider === 'anthropic'
-                ? 'Crie sua chave em console.anthropic.com. Requer créditos na conta.'
-                : 'Crie sua chave em platform.openai.com. Requer créditos na conta.'}
-          </p>
-        </>
+      <SelectInput label="IA em uso" value={inUse} onChange={(v) => use(v as AiProviderId)} options={options} />
+      {inUse !== 'none' && !hasKey(settings, inUse) && (
+        <p className="small" style={{ color: 'var(--danger)', margin: 0 }}>
+          Cole a chave do {NAMES[inUse]} abaixo para ela funcionar.
+        </p>
       )}
+
+      {PROVIDER_IDS.map((id) => {
+        const saved = hasKey(settings, id);
+        return (
+          <section key={id} className={`card stack ai-key-card${inUse === id ? ' in-use' : ''}`} aria-label={NAMES[id]}>
+            <div className="row" style={{ gap: 'var(--sp-2)' }}>
+              <strong style={{ flex: 1 }}>{NAMES[id]}</strong>
+              <span className="badge">{inUse === id && saved ? 'Em uso' : saved ? 'Chave salva' : 'Sem chave'}</span>
+            </div>
+            <TextInput
+              label={`Chave de API do ${NAMES[id]}`}
+              value={settings.keys[id] ?? ''}
+              onChange={(v) => setKey(id, v)}
+              placeholder={PLACEHOLDER[id]}
+              type="password"
+            />
+            <SelectInput
+              label="Modelo"
+              value={settings.models[id] || DEFAULT_MODELS[id]}
+              onChange={(v) => setModel(id, v)}
+              options={MODEL_OPTIONS[id]}
+            />
+            <div className="row row-wrap" style={{ gap: 'var(--sp-2)' }}>
+              <button className="btn btn-sm" disabled={!saved || testing !== null} onClick={() => test(id)}>
+                {testing === id ? 'Testando…' : 'Testar'}
+              </button>
+              {saved && inUse !== id && (
+                <button className="btn btn-sm btn-primary" onClick={() => use(id)}>Usar esta</button>
+              )}
+              {saved && (
+                <button className="btn btn-sm btn-ghost" onClick={() => removeKey(id)}>Apagar chave</button>
+              )}
+            </div>
+            <p className="small dim" style={{ margin: 0 }}>{WHERE[id]}</p>
+          </section>
+        );
+      })}
 
       <div className="card" style={{ background: 'var(--bg-2)', padding: 'var(--sp-3)', borderLeft: '3px solid var(--accent)' }}>
         <p className="small" style={{ margin: 0, lineHeight: 1.6 }}>
@@ -135,8 +146,8 @@ export function AiConfigPanel() {
           separado do texto sagrado.
         </p>
         <p className="small dim" style={{ margin: 'var(--sp-2) 0 0', lineHeight: 1.6 }}>
-          A chave de API fica apenas neste dispositivo. Nenhum dado pessoal é
-          enviado — só a passagem selecionada vai ao provedor para gerar o comentário.
+          As chaves ficam apenas neste dispositivo. Nenhum dado pessoal é
+          enviado — só o pedido vai direto ao provedor em uso para gerar o comentário.
         </p>
       </div>
     </div>

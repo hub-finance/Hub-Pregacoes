@@ -250,7 +250,7 @@ export default function SettingsPage() {
       {/* --------------------------- estudo guiado ----------------------------- */}
       <section className="section">
         <div className="section-head">
-          <h2 className="section-title">Estudo guiado</h2>
+          <h2 className="section-title">IA — chaves de API (ChatGPT, Claude, Gemini)</h2>
         </div>
         <div className="card stack">
           <AiConfigPanel />

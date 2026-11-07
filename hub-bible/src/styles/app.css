@@ -1780,3 +1780,11 @@ input.study-section-title:focus {
     padding-top: var(--sp-4);
   }
 }
+
+/* configuração da IA: uma caixa por provedor; a que está em uso ganha o filete */
+.ai-key-card {
+  gap: var(--sp-3);
+}
+.ai-key-card.in-use {
+  border-left: 3px solid var(--accent);
+}

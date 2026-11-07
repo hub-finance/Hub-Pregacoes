@@ -167,7 +167,7 @@ export function AiContent({
           O estudo guiado não está configurado.
         </p>
         <p className="small dim" style={{ textAlign: 'center' }}>
-          Ative nas <strong>Configurações → Estudo guiado</strong> com sua chave de API do Google Gemini ou OpenAI.
+          Ative em <strong>Configurações › IA — chaves de API</strong> com a sua chave do ChatGPT, do Claude ou do Gemini.
         </p>
       </div>
     );

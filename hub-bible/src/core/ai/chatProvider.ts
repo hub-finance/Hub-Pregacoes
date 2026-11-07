@@ -654,3 +654,18 @@ export async function chatComplete(system: string, turns: ChatTurn[], maxTokens:
   const model = config.model || PROVIDER_DEFAULTS[config.provider];
   return getApiCaller(config.provider)(config.apiKey, model, system, turns, maxTokens);
 }
+
+/**
+ * Testa uma chave sem precisar colocá-la em uso: um pedido curtíssimo ao
+ * provedor. Erros voltam com as mesmas mensagens em português de sempre.
+ */
+export async function testAiKey(providerId: Exclude<AiProviderId, 'none'>, apiKey: string, model?: string): Promise<void> {
+  const reply = await getApiCaller(providerId)(
+    apiKey,
+    model || PROVIDER_DEFAULTS[providerId],
+    'Responda apenas com a palavra: ok',
+    [{ role: 'user', content: 'Teste de conexão do Hub Bible.' }],
+    16,
+  );
+  if (!reply.trim()) throw new Error('O provedor respondeu vazio. Confira o modelo escolhido.');
+}
