@@ -231,7 +231,7 @@ export function DocumentEditor({
           </button>
         </div>
         <p className="small dim" style={{ margin: 0 }}>
-          O arquivo abre com um aviso de que há comentário gerado com apoio de IA.
+          O arquivo sai só com o seu título e o seu texto.
         </p>
       </div>
     </section>
