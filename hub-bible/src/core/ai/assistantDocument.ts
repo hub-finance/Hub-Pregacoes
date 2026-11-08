@@ -106,7 +106,8 @@ export function documentFromAnswers(title: string, goal: AssistantGoal, messages
     goal: documentGoal(goal),
     text: parts.join('\n\n'),
     validRefs: [...new Set(answers.flatMap((m) => m.validRefs ?? []))],
-    includeVerses: false,
+    // o estudo sem IA já traz os versículos no corpo; o da IA só cita a referência
+    includeVerses: answers.some((m) => m.engine !== 'aparelho'),
     manual: true,
     updatedAt: now(),
   };

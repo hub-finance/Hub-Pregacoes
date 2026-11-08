@@ -101,8 +101,8 @@ export function DocumentEditor({
         {doc.manual && (
           <p className="small dim" style={{ margin: 0 }}>
             {aiEnabled
-              ? 'Estas são as respostas da conversa juntas. Toque em "Redigir com a IA" para receber o texto corrido, ou costure você mesmo.'
-              : 'Sem IA configurada, o documento junta as respostas da conversa na ordem. Edite para costurar as partes.'}
+              ? 'O documento usa o texto da conversa, como está. Se quiser juntar várias respostas num texto só, toque em "Redigir com a IA" — dá para desfazer.'
+              : 'O documento usa o texto da conversa, como está. Edite à vontade antes de baixar.'}
           </p>
         )}
       </div>

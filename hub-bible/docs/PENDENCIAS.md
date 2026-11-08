@@ -84,6 +84,16 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0z. ✅ "Montar documento" usa o texto da conversa, como está
+
+O usuário notou que "Montar documento" mandava a IA reescrever tudo — e o que
+já tinha vindo na conversa estava "muito bem montado e o suficiente"; o texto
+novo podia perder o que ficou bom (e custava outra chamada). Agora
+`openDocument` (AssistantPage.tsx) só junta as respostas
+(`documentFromAnswers`), sem IA. "Redigir com a IA" continua no documento,
+como escolha, com Desfazer. Versículos no fim vêm ligados quando a conversa
+teve resposta da IA (ela só cita a referência). Teste do documento: 44.
+
 ### 0y. ✅ Uma chave para cada IA: ChatGPT, Claude e Gemini
 
 Pedido do usuário: lugar nas Configurações para as chaves do ChatGPT e do
