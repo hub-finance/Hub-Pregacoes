@@ -243,6 +243,7 @@ const TOPICS: Topic[] = [
       'No documento você vê como fica, edita o texto de cima a baixo num campo só e pode pedir um ajuste à IA ("deixe a introdução mais curta"). Se quiser juntar várias respostas num texto corrido, toque em "Redigir com a IA". "Desfazer" volta a versão anterior.',
       'Para levar para fora: Baixar PDF, Compartilhar PDF (WhatsApp, e-mail, Drive) ou Word. No APK o arquivo fica em Documentos. Os versículos citados podem entrar no fim com o texto da sua Bíblia. O arquivo sai limpo, só com o seu título e o seu texto.',
       'O documento também segue para o Gerador (mensagem) ou para o Rhema (estudo), e "Personalizar no Gerar e Exportar" abre com capa, tema e sumário.',
+      'A letra das respostas e do documento se escolhe em "Letra", no alto da tela do assistente (ou em Configurações): as mesmas quatro opções da leitura, separadas dela.',
       'Dá para continuar a conversa: cada nova pergunta leva as respostas anteriores. As conversas ficam salvas no aparelho, em "Conversas". Para guardar de vez, use "Salvar como anotação" — a anotação entra no backup.',
       'As referências da resposta só viram toque quando existem de fato na sua tradução; o toque abre o versículo ao lado (tablet) ou embaixo (celular). Referência que não existe aparece como texto comum.',
       'Funciona com ou sem IA, como o Hub Resumos. Em "Como produzir", escolha "Com IA" (usa a IA escolhida em Configurações › IA — chaves de API) ou "Sem IA — dados do aparelho". Sem chave configurada, o assistente já começa sem IA.',
