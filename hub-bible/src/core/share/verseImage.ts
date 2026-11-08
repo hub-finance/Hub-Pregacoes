@@ -127,7 +127,7 @@ export async function renderVerseImage(options: VerseImageOptions): Promise<Blob
   ctx.font = `600 ${Math.round(width * 0.023)}px system-ui, sans-serif`;
   ctx.fillStyle = palette.dim;
   ctx.textAlign = 'center';
-  ctx.fillText('HUB BIBLE', width / 2, height - margin * 0.72);
+  ctx.fillText('FAROL DA PALAVRA', width / 2, height - margin * 0.72);
 
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(

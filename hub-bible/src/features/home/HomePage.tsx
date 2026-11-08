@@ -35,7 +35,7 @@ export default function HomePage() {
   return (
     <div className="page">
       <section>
-        <h1 className="page-title">Hub Bible</h1>
+        <h1 className="page-title">O Farol da Palavra</h1>
         <p className="page-lead">{greeting}</p>
       </section>
 

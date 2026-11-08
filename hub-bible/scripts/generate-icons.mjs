@@ -214,7 +214,7 @@ for (const target of targets) {
   console.log(`✔ ${target.file} (${target.size}px, ${(png.length / 1024).toFixed(1)} kB)`);
 }
 
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Hub Bible">
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Farol da Palavra">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0.3" y2="1">
       <stop offset="0" stop-color="#1e4082"/><stop offset="1" stop-color="#10244c"/>

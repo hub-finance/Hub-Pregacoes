@@ -268,7 +268,7 @@ export function TranslationManager() {
               borderRadius: 'var(--r-sm)',
               fontSize: '0.78rem',
             }}
-          >{`// 1) Hub Bible
+          >{`// 1) Farol da Palavra (formato do próprio app)
 { "books": { "GEN": [["No princípio…", "…"]], "JHN": [[…]] } }
 
 // 2) Lista na ordem canônica (66 livros)

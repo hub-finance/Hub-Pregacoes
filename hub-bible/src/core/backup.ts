@@ -212,7 +212,7 @@ export function exportAsPdf(title: string, html: string): void {
   .s-list ul, .s-list ol { margin: 0; padding-left: 18pt; }
   .s-list li { margin-bottom: 3pt; }
   footer { margin-top: 24pt; font-size: 9pt; color: #8a837a; font-family: system-ui, sans-serif; }
-</style></head><body>${html}<footer>Gerado pelo Hub Bible</footer></body></html>`);
+</style></head><body>${html}<footer>Gerado pelo Farol da Palavra</footer></body></html>`);
   win.document.close();
   win.focus();
   setTimeout(() => win.print(), 350);

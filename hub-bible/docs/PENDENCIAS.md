@@ -84,6 +84,27 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ab. ✅ O app passa a se chamar "O Farol da Palavra"
+
+Pedido do usuário: "Hub Bible" era quase o inverso de *Bible Hub*. Nome
+escolhido por ele: **"Farol da Palavra"** no ícone e **"O Farol da Palavra"**
+no título (Sl 119:105). O ícone já era um farol desde o começo — não mudou;
+o monograma do menu passou de "HB" para "FP".
+- Mudou o nome **visível**: menu, tela inicial, título da janela, manifesto
+  do PWA (`name`/`short_name`), `capacitor.config.ts` e `strings.xml` do
+  Android, Ajuda, manual, "Sobre" (com "Antes se chamava Hub Bible"), imagem
+  do versículo, metadados do PDF/Word, rodapé do backup em HTML e o prompt
+  da IA.
+- **Não mudou, de propósito:** pasta `hub-bible/`, `applicationId`/`appId`
+  `app.hubbible.leitor`, o banco Dexie, as chaves `hub-bible:*` e o formato do
+  backup. Mudar apagaria os dados ou faria o Android instalar como outro app.
+- **Pendente:** o Hub Resumos ainda escreve "Hub Bible" nos textos dele
+  (envio ao Hub Bible, endereço do Hub Bible). O usuário pediu "somente ele
+  agora".
+- Também pendente, pedido para depois: o livro em PDF "As doutrinas da
+  Bíblia" — ler e montar uma base doutrinária só para o aparelho dele, ou
+  enriquecer o app se for domínio público ou ele tiver autorização.
+
 ### 0aa. ✅ Mais duas opções de letra na leitura: Lora e Source Sans
 
 Pedido do usuário. As fontes já vinham no app para os PDFs (`public/fonts`,

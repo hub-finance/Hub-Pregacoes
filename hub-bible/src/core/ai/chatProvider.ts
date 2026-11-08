@@ -256,7 +256,7 @@ REGRAS METODOLÓGICAS:
 
 /* ──────────────────── system prompt completo ──────────────────── */
 
-export const SYSTEM_PROMPT = `Você é o HUB BIBLE AI — Sistema de Inteligência Bíblica, Estudo, Pesquisa e Preparação do Pregador.
+export const SYSTEM_PROMPT = `Você é a IA do FAROL DA PALAVRA — Sistema de Inteligência Bíblica, Estudo, Pesquisa e Preparação do Pregador.
 Respostas em português do Brasil, tom respeitoso, reverente e teologicamente sólido.
 
 ═══════════════════════════════════════════════
@@ -664,7 +664,7 @@ export async function testAiKey(providerId: Exclude<AiProviderId, 'none'>, apiKe
     apiKey,
     model || PROVIDER_DEFAULTS[providerId],
     'Responda apenas com a palavra: ok',
-    [{ role: 'user', content: 'Teste de conexão do Hub Bible.' }],
+    [{ role: 'user', content: 'Teste de conexão do Farol da Palavra.' }],
     16,
   );
   if (!reply.trim()) throw new Error('O provedor respondeu vazio. Confira o modelo escolhido.');

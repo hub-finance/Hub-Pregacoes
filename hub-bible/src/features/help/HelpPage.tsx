@@ -21,7 +21,7 @@ const TOPICS: Topic[] = [
     steps: [
       'Abra o endereço do aplicativo no Chrome.',
       'Toque no menu do navegador (⋮) e escolha "Instalar aplicativo" ou "Adicionar à tela inicial".',
-      'O Hub Bible passa a abrir em tela cheia, com ícone próprio, como um aplicativo comum.',
+      'O Farol da Palavra passa a abrir em tela cheia, com ícone próprio, como um aplicativo comum.',
       'Depois de instalado, vá em Configurações › Traduções › "Baixar para uso offline". A partir daí a Bíblia inteira funciona sem internet. Referências cruzadas, dicionário teológico e guias já ficam guardados na instalação.',
     ],
   },
@@ -31,7 +31,7 @@ const TOPICS: Topic[] = [
     steps: [
       'Abra o endereço do aplicativo no Safari. No iPhone e no iPad é o Safari que instala aplicativos na tela de início.',
       'Toque no botão Compartilhar (o quadrado com a seta para cima) e escolha "Adicionar à Tela de Início". Confirme em Adicionar.',
-      'Abra pelo ícone que apareceu na tela de início — e não mais pelo Safari. É essa a diferença que faz o iPhone tratar o Hub Bible como aplicativo: tela cheia, e os seus dados protegidos da limpeza que o Safari faz em sites sem uso.',
+      'Abra pelo ícone que apareceu na tela de início — e não mais pelo Safari. É essa a diferença que faz o iPhone tratar o Farol da Palavra como aplicativo: tela cheia, e os seus dados protegidos da limpeza que o Safari faz em sites sem uso.',
       'Logo depois de instalar, vá em Configurações › Traduções › "Baixar para uso offline". Sem isso a Bíblia precisa de internet.',
       'Faça o backup de vez em quando: Configurações › "Exportar meus dados". O arquivo vai para o app Arquivos. É a garantia contra perder sermões e anotações.',
       'Para importar apostilas e sermões, tenha os arquivos no app Arquivos ou no iCloud Drive; o botão Importar abre direto neles.',
@@ -75,7 +75,7 @@ const TOPICS: Topic[] = [
       'Em "Aa" (ou em Configurações) há quatro tipos de letra: Serifada clássica, Lora (serifada elegante), Sem serifa moderna e Source Sans (sem serifa, bem legível). Todas funcionam sem internet.',
       'Leitura imersiva: ao começar a rolar, o menu lateral e as barras somem de cena e a tela fica só com o texto. Um toque em qualquer espaço em branco traz tudo de volta; outro toque esconde. Rolar para cima também traz. Tocar no versículo continua sendo selecionar o versículo.',
       'Sem o menu lateral, o botão de três traços no alto abre o menu inteiro. Se preferir as barras sempre à vista, desligue em "Aa" › Leitura imersiva.',
-      'No tablet e no computador, a setinha ao lado do nome "Hub Bible", no alto do menu lateral, recolhe o menu e deixa só os ícones — sobra mais largura para o texto e para o painel de comentários. Pare o dedo ou o mouse sobre um ícone para ver o nome. A outra setinha abre o menu de novo, e o app lembra a sua escolha.',
+      'No tablet e no computador, a setinha ao lado do nome "Farol da Palavra", no alto do menu lateral, recolhe o menu e deixa só os ícones — sobra mais largura para o texto e para o painel de comentários. Pare o dedo ou o mouse sobre um ícone para ver o nome. A outra setinha abre o menu de novo, e o app lembra a sua escolha.',
       'São nove temas: Claro, Sépia, Esmeralda, Azul e branco, Azul safira, Verde e branco, Escuro, Noite azul e Ministerial. O botão de tema, no alto, passa por eles em ordem — do papel ao mais escuro. A escolha completa fica em Configurações › Aparência e leitura. O Escuro é cinza-noite, e não preto: contra texto claro, o preto puro cansa a vista numa leitura longa.',
       'A Esmeralda é creme por dentro e verde por fora: a leitura e os cartões ficam no papel creme com destaques em verde, e a moldura do aplicativo (menu, barra do alto e barra de baixo) fica verde-escuro com menta — as cores do Hub Resumos.',
       'Toque em um versículo para selecioná-lo. Toque em outros para selecionar vários de uma vez.',
@@ -312,7 +312,7 @@ export default function HelpPage() {
     <div className="page">
       <PageHeader
         title="Ajuda"
-        lead="Como usar o Hub Bible no dia a dia e na hora de pregar."
+        lead="Como usar o Farol da Palavra no dia a dia e na hora de pregar."
       />
 
       {/* O mesmo conteúdo em uma página só, para imprimir ou enviar a quem vai
@@ -329,7 +329,7 @@ export default function HelpPage() {
           <span className="list-title">Manual completo</span>
           <span className="list-meta">
             {isNativeApp()
-              ? 'Para imprimir ou enviar a alguém, abra o Hub Bible no navegador e use a Ajuda de lá. Aqui, tudo está nos tópicos abaixo.'
+              ? 'Para imprimir ou enviar a alguém, abra o Farol da Palavra no navegador e use a Ajuda de lá. Aqui, tudo está nos tópicos abaixo.'
               : 'Tudo em uma página só — para imprimir, salvar em PDF ou enviar a quem for usar com você.'}
           </span>
         </span>

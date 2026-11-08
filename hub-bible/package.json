@@ -2,7 +2,7 @@
   "name": "hub-bible",
   "version": "1.0.0",
   "private": true,
-  "description": "Hub Bible — Biblia, estudo, devocional e organizador ministerial (PWA)",
+  "description": "O Farol da Palavra — Bíblia, estudo, devocional e organizador ministerial (PWA)",
   "type": "module",
   "engines": {
     "node": ">=18"

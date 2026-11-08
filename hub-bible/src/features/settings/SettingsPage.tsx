@@ -277,11 +277,11 @@ export default function SettingsPage() {
         </div>
         <div className="card stack">
           <div className="row">
-            <span style={{ flex: 1 }}>Hub Bible</span>
+            <span style={{ flex: 1 }}>O Farol da Palavra</span>
             <span className="badge">v{APP_VERSION}</span>
           </div>
           <p className="small muted">
-            Bíblia, estudo, devocional, sermões e concordância em um só lugar. Funciona offline
+            Bíblia, estudo, devocional e sermões em um só lugar. Antes se chamava Hub Bible. Funciona offline
             e pode ser instalado na tela inicial do seu tablet ou celular.
           </p>
           <div>
