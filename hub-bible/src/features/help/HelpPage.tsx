@@ -72,6 +72,7 @@ const TOPICS: Topic[] = [
       'Quem já sabe o endereço pula os três passos: escreva a referência inteira no campo de filtrar — "Jo 3:16", "Sl 23:1", "1co 13:4" — e toque no atalho "Ir para".',
       'O botão ao lado troca a tradução; ali também se liga a comparação lado a lado com uma segunda versão.',
       'Use "Aa" para ajustar tamanho da letra, espaçamento, largura da coluna, tema e alinhamento.',
+      'Em "Aa" (ou em Configurações) há quatro tipos de letra: Serifada clássica, Lora (serifada elegante), Sem serifa moderna e Source Sans (sem serifa, bem legível). Todas funcionam sem internet.',
       'Leitura imersiva: ao começar a rolar, o menu lateral e as barras somem de cena e a tela fica só com o texto. Um toque em qualquer espaço em branco traz tudo de volta; outro toque esconde. Rolar para cima também traz. Tocar no versículo continua sendo selecionar o versículo.',
       'Sem o menu lateral, o botão de três traços no alto abre o menu inteiro. Se preferir as barras sempre à vista, desligue em "Aa" › Leitura imersiva.',
       'No tablet e no computador, a setinha ao lado do nome "Hub Bible", no alto do menu lateral, recolhe o menu e deixa só os ícones — sobra mais largura para o texto e para o painel de comentários. Pare o dedo ou o mouse sobre um ícone para ver o nome. A outra setinha abre o menu de novo, e o app lembra a sua escolha.',

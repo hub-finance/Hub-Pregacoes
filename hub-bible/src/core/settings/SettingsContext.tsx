@@ -28,6 +28,26 @@ const THEME_COLOR: Record<ResolvedTheme, string> = {
   esmeralda: '#123d33',
 };
 
+/**
+ * Tipos de letra da leitura. Lora e Source Sans são as mesmas fontes dos PDFs
+ * (public/fonts, licença OFL): já vêm no app e funcionam sem internet.
+ */
+export type ReaderFont = 'serif' | 'lora' | 'sans' | 'source';
+
+export const READER_FONT_STACK: Record<ReaderFont, string> = {
+  serif: 'var(--font-serif)',
+  lora: "'Lora', var(--font-serif)",
+  sans: 'var(--font-ui)',
+  source: "'Source Sans 3', var(--font-ui)",
+};
+
+export const READER_FONT_OPTIONS: Array<{ value: ReaderFont; label: string }> = [
+  { value: 'serif', label: 'Serifada (leitura clássica)' },
+  { value: 'lora', label: 'Lora — serifada elegante' },
+  { value: 'sans', label: 'Sem serifa (moderna)' },
+  { value: 'source', label: 'Source Sans — sem serifa, bem legível' },
+];
+
 export interface ReadingPosition {
   translation: string;
   book: string;
@@ -45,7 +65,7 @@ export interface AppSettings {
   fontScale: number;
   leading: number;
   measure: number;
-  readerFont: 'serif' | 'sans';
+  readerFont: ReaderFont;
   verseLayout: 'paragraph' | 'lines';
   /** Alinhamento do texto bíblico. */
   textAlign: 'left' | 'justify';
@@ -193,7 +213,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     root.style.setProperty('--reader-measure', `min(${settings.measure}rem, 94vw)`);
     root.style.setProperty(
       '--font-reader',
-      settings.readerFont === 'serif' ? 'var(--font-serif)' : 'var(--font-ui)',
+      READER_FONT_STACK[settings.readerFont] ?? READER_FONT_STACK.serif,
     );
     const meta = document.querySelector('meta[name="theme-color"]:not([media])');
     if (meta) meta.setAttribute('content', THEME_COLOR[resolvedTheme]);

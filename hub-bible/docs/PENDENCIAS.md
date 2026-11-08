@@ -84,6 +84,16 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0aa. ✅ Mais duas opções de letra na leitura: Lora e Source Sans
+
+Pedido do usuário. As fontes já vinham no app para os PDFs (`public/fonts`,
+licença OFL, no precache do service worker), então não há download nem
+aumento de tamanho. `ReaderFont` e `READER_FONT_OPTIONS` em
+`SettingsContext.tsx` (o seletor de "Aa" e o de Configurações usam a mesma
+lista); `src/styles/fonts.ts` registra o `@font-face` a partir de
+`import.meta.env.BASE_URL` (base './' do Vite). As duas opções antigas não
+mudaram. Teste: as quatro opções, as duas novas carregando de verdade.
+
 ### 0z. ✅ "Montar documento" usa o texto da conversa, como está
 
 O usuário notou que "Montar documento" mandava a IA reescrever tudo — e o que

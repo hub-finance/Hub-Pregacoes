@@ -12,7 +12,7 @@ import {
 } from '../../components/ui';
 import { useToast } from '../../components/Toast';
 import { useAsync } from '../../hooks';
-import { DEFAULT_SETTINGS, useSettings, type ThemeChoice } from '../../core/settings/SettingsContext';
+import { DEFAULT_SETTINGS, READER_FONT_OPTIONS, useSettings, type ReaderFont, type ThemeChoice } from '../../core/settings/SettingsContext';
 import { BackupPanel } from './BackupPanel';
 import { clearScriptureCache, clearUserData } from '../../core/db/db';
 import { loadAvailableTranslations } from '../../core/bible/repository';
@@ -120,11 +120,8 @@ export default function SettingsPage() {
           <SelectInput
             label="Tipo de letra na leitura"
             value={settings.readerFont}
-            onChange={(v) => update({ readerFont: v as 'serif' | 'sans' })}
-            options={[
-              { value: 'serif', label: 'Serifada' },
-              { value: 'sans', label: 'Sem serifa' },
-            ]}
+            onChange={(v) => update({ readerFont: v as ReaderFont })}
+            options={READER_FONT_OPTIONS}
           />
           <SelectInput
             label="Disposição dos versículos"

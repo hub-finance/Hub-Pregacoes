@@ -1,7 +1,7 @@
 import { Sheet } from '../../components/Sheet';
 import { Icon, type IconName } from '../../components/Icon';
 import { RangeInput, SelectInput } from '../../components/ui';
-import { MEASURE_PRESETS, useSettings, type ThemeChoice } from '../../core/settings/SettingsContext';
+import { MEASURE_PRESETS, READER_FONT_OPTIONS, useSettings, type ReaderFont, type ThemeChoice } from '../../core/settings/SettingsContext';
 
 /** Ajustes de leitura (seção 6): fonte, espaçamento, largura, tema e layout. */
 export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -91,11 +91,8 @@ export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose:
       <SelectInput
         label="Tipo de letra"
         value={settings.readerFont}
-        onChange={(v) => update({ readerFont: v as 'serif' | 'sans' })}
-        options={[
-          { value: 'serif', label: 'Serifada (leitura clássica)' },
-          { value: 'sans', label: 'Sem serifa (moderna)' },
-        ]}
+        onChange={(v) => update({ readerFont: v as ReaderFont })}
+        options={READER_FONT_OPTIONS}
       />
       <SelectInput
         label="Disposição dos versículos"
