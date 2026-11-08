@@ -84,11 +84,11 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
-### 0ab. ✅ O app passa a se chamar "O Farol da Palavra"
+### 0ab. ✅ O app passa a se chamar "Farol da Palavra"
 
 Pedido do usuário: "Hub Bible" era quase o inverso de *Bible Hub*. Nome
-escolhido por ele: **"Farol da Palavra"** no ícone e **"O Farol da Palavra"**
-no título (Sl 119:105). O ícone já era um farol desde o começo — não mudou;
+escolhido por ele: **"Farol da Palavra"** — no ícone, no título e em todo lugar,
+sem o "O" (ele pediu para tirar) (Sl 119:105). O ícone já era um farol desde o começo — não mudou;
 o monograma do menu passou de "HB" para "FP".
 - Mudou o nome **visível**: menu, tela inicial, título da janela, manifesto
   do PWA (`name`/`short_name`), `capacitor.config.ts` e `strings.xml` do

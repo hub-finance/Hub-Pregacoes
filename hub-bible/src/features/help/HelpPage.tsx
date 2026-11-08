@@ -21,7 +21,7 @@ const TOPICS: Topic[] = [
     steps: [
       'Abra o endereço do aplicativo no Chrome.',
       'Toque no menu do navegador (⋮) e escolha "Instalar aplicativo" ou "Adicionar à tela inicial".',
-      'O Farol da Palavra passa a abrir em tela cheia, com ícone próprio, como um aplicativo comum.',
+      'Assim, o Farol da Palavra passa a abrir em tela cheia, com ícone próprio, como um aplicativo comum.',
       'Depois de instalado, vá em Configurações › Traduções › "Baixar para uso offline". A partir daí a Bíblia inteira funciona sem internet. Referências cruzadas, dicionário teológico e guias já ficam guardados na instalação.',
     ],
   },

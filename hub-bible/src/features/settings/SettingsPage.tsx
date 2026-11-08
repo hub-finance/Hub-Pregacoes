@@ -277,7 +277,7 @@ export default function SettingsPage() {
         </div>
         <div className="card stack">
           <div className="row">
-            <span style={{ flex: 1 }}>O Farol da Palavra</span>
+            <span style={{ flex: 1 }}>Farol da Palavra</span>
             <span className="badge">v{APP_VERSION}</span>
           </div>
           <p className="small muted">
