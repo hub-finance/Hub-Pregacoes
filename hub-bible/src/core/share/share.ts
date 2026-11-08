@@ -9,7 +9,7 @@
 import { isNativeApp } from '../platform';
 import { shareFileNatively } from '../nativeFiles';
 
-export const APP_NAME = 'Hub Bible';
+export const APP_NAME = 'Farol da Palavra';
 
 export interface SharePayload {
   title?: string;

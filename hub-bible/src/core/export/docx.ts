@@ -378,7 +378,7 @@ export async function buildDocx(doc: RenderDoc): Promise<Blob> {
   });
 
   const document = new d.Document({
-    creator: layout.author.trim() || 'Hub Bible',
+    creator: layout.author.trim() || 'Farol da Palavra',
     title: doc.title,
     description: layout.subtitle.trim() || undefined,
     // o Word recalcula os números de página do sumário ao abrir

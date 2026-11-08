@@ -68,11 +68,11 @@ function AppShell({ children }: { children: ReactNode }) {
       <nav className={`rail${collapsed ? ' collapsed' : ''}`} aria-label="Menu principal">
         <div className="brand rail-brand">
           <span className="brand-mark" aria-hidden="true">
-            HB
+            FP
           </span>
           <span className="rail-brand-text">
             <span style={{ display: 'block', fontWeight: 660, letterSpacing: '-0.01em' }}>
-              Hub Bible
+              Farol da Palavra
             </span>
             <span className="small dim">Bíblia e ministério</span>
           </span>
@@ -143,7 +143,7 @@ function AppShell({ children }: { children: ReactNode }) {
             <span className="topbar-title truncate">
               {NAV_ITEMS.find((i) =>
                 i.to === '/' ? location.pathname === '/' : location.pathname.startsWith(i.to),
-              )?.label ?? 'Hub Bible'}
+              )?.label ?? 'Farol da Palavra'}
             </span>
           </div>
           {/* Em Cursos, Rhema e Sermões a lupa procura naquilo que está aberto.

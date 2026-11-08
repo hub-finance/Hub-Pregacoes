@@ -303,10 +303,10 @@ export default function AssistantPage() {
     setPreview(null);
     setView('documento');
     if (conv.document) return;
-    // primeiro as respostas juntas (funciona sem IA); com IA, o texto corrido
-    const base = documentFromAnswers(conv.title, goal, conv.messages);
-    await commitDocument(base);
-    if (enabled && engine === 'ia') await draftWithAi(base);
+    // o texto da conversa, como está: o pregador achou o que já veio bom e não
+    // quer a IA reescrevendo (e gastando) só para montar o arquivo. Redigir de
+    // novo fica como escolha dele, no documento, com Desfazer.
+    await commitDocument(documentFromAnswers(conv.title, goal, conv.messages));
   };
 
   const hasAnswer = conv.messages.some((m) => m.role === 'assistant');

@@ -18,7 +18,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  */
 const config: CapacitorConfig = {
   appId: 'app.hubbible.leitor',
-  appName: 'Hub Bible',
+  appName: 'Farol da Palavra',
   webDir: 'dist',
 
   android: {

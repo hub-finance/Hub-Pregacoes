@@ -29,8 +29,8 @@ export default defineConfig({
       includeAssets: ['icons/*.svg', 'icons/*.png'],
       manifest: {
         id: 'hub-bible',
-        name: 'Hub Bible — Bíblia e Ministério',
-        short_name: 'Hub Bible',
+        name: 'Farol da Palavra — Bíblia e Ministério',
+        short_name: 'Farol da Palavra',
         description:
           'Bíblia, estudo, devocional, sermões e biblioteca ministerial em um só lugar.',
         lang: 'pt-BR',

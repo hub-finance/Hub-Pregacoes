@@ -12,7 +12,7 @@ import {
 } from '../../components/ui';
 import { useToast } from '../../components/Toast';
 import { useAsync } from '../../hooks';
-import { DEFAULT_SETTINGS, useSettings, type ThemeChoice } from '../../core/settings/SettingsContext';
+import { DEFAULT_SETTINGS, READER_FONT_OPTIONS, useSettings, type ReaderFont, type ThemeChoice } from '../../core/settings/SettingsContext';
 import { BackupPanel } from './BackupPanel';
 import { clearScriptureCache, clearUserData } from '../../core/db/db';
 import { loadAvailableTranslations } from '../../core/bible/repository';
@@ -120,11 +120,8 @@ export default function SettingsPage() {
           <SelectInput
             label="Tipo de letra na leitura"
             value={settings.readerFont}
-            onChange={(v) => update({ readerFont: v as 'serif' | 'sans' })}
-            options={[
-              { value: 'serif', label: 'Serifada' },
-              { value: 'sans', label: 'Sem serifa' },
-            ]}
+            onChange={(v) => update({ readerFont: v as ReaderFont })}
+            options={READER_FONT_OPTIONS}
           />
           <SelectInput
             label="Disposição dos versículos"
@@ -280,11 +277,11 @@ export default function SettingsPage() {
         </div>
         <div className="card stack">
           <div className="row">
-            <span style={{ flex: 1 }}>Hub Bible</span>
+            <span style={{ flex: 1 }}>Farol da Palavra</span>
             <span className="badge">v{APP_VERSION}</span>
           </div>
           <p className="small muted">
-            Bíblia, estudo, devocional, sermões e concordância em um só lugar. Funciona offline
+            Bíblia, estudo, devocional e sermões em um só lugar. Antes se chamava Hub Bible. Funciona offline
             e pode ser instalado na tela inicial do seu tablet ou celular.
           </p>
           <div>

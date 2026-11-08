@@ -1,5 +1,10 @@
 # Hub Bible
 
+> **Nome do app: Farol da Palavra.** Antes se chamava Hub Bible; a pasta,
+> o identificador do APK (`app.hubbible.leitor`), o banco do aparelho e as chaves salvas continuam
+> com o nome antigo de propósito — mudá-los apagaria os dados de quem já usa.
+
+
 **Bíblia + Estudo + Devocional + Biblioteca Ministerial + Organizador de Sermões**, em um único
 aplicativo. PWA instalável, responsivo e com funcionamento offline — pensado para tablets Android,
 mas igualmente confortável no celular e no computador.

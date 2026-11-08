@@ -37,7 +37,7 @@ useful if it stays true.
 
 ## Project overview
 
-**Hub Bible** — a Bible app that doubles as a ministry workspace: reading,
+**Hub Bible** — shown to users as **Farol da Palavra** (renamed in November 2026 because "Hub Bible" was too close to the existing *Bible Hub*). Folder names, the APK id `app.hubbible.leitor`, the Dexie database and localStorage keys keep the old name on purpose: renaming them would wipe users' data. It is a Bible app that doubles as a ministry workspace: reading,
 search, highlights, notes, devotionals, studies, sermons, a ministry library,
 reading plans and a full-screen preaching mode.
 

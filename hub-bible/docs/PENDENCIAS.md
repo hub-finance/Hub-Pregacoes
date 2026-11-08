@@ -84,6 +84,47 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ab. ✅ O app passa a se chamar "Farol da Palavra"
+
+Pedido do usuário: "Hub Bible" era quase o inverso de *Bible Hub*. Nome
+escolhido por ele: **"Farol da Palavra"** — no ícone, no título e em todo lugar,
+sem o "O" (ele pediu para tirar) (Sl 119:105). O ícone já era um farol desde o começo — não mudou;
+o monograma do menu passou de "HB" para "FP".
+- Mudou o nome **visível**: menu, tela inicial, título da janela, manifesto
+  do PWA (`name`/`short_name`), `capacitor.config.ts` e `strings.xml` do
+  Android, Ajuda, manual, "Sobre" (com "Antes se chamava Hub Bible"), imagem
+  do versículo, metadados do PDF/Word, rodapé do backup em HTML e o prompt
+  da IA.
+- **Não mudou, de propósito:** pasta `hub-bible/`, `applicationId`/`appId`
+  `app.hubbible.leitor`, o banco Dexie, as chaves `hub-bible:*` e o formato do
+  backup. Mudar apagaria os dados ou faria o Android instalar como outro app.
+- **Pendente:** o Hub Resumos ainda escreve "Hub Bible" nos textos dele
+  (envio ao Hub Bible, endereço do Hub Bible). O usuário pediu "somente ele
+  agora".
+- Também pendente, pedido para depois: o livro em PDF "As doutrinas da
+  Bíblia" — ler e montar uma base doutrinária só para o aparelho dele, ou
+  enriquecer o app se for domínio público ou ele tiver autorização.
+
+### 0aa. ✅ Mais duas opções de letra na leitura: Lora e Source Sans
+
+Pedido do usuário. As fontes já vinham no app para os PDFs (`public/fonts`,
+licença OFL, no precache do service worker), então não há download nem
+aumento de tamanho. `ReaderFont` e `READER_FONT_OPTIONS` em
+`SettingsContext.tsx` (o seletor de "Aa" e o de Configurações usam a mesma
+lista); `src/styles/fonts.ts` registra o `@font-face` a partir de
+`import.meta.env.BASE_URL` (base './' do Vite). As duas opções antigas não
+mudaram. Teste: as quatro opções, as duas novas carregando de verdade.
+
+### 0z. ✅ "Montar documento" usa o texto da conversa, como está
+
+O usuário notou que "Montar documento" mandava a IA reescrever tudo — e o que
+já tinha vindo na conversa estava "muito bem montado e o suficiente"; o texto
+novo podia perder o que ficou bom (e custava outra chamada). Agora
+`openDocument` (AssistantPage.tsx) só junta as respostas
+(`documentFromAnswers`), sem IA. "Redigir com a IA" continua no documento,
+como escolha, com Desfazer. Versículos no fim vêm ligados quando a conversa
+teve resposta da IA (ela só cita a referência). Teste do documento: 44.
+
 ### 0y. ✅ Uma chave para cada IA: ChatGPT, Claude e Gemini
 
 Pedido do usuário: lugar nas Configurações para as chaves do ChatGPT e do

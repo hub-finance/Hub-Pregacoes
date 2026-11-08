@@ -256,8 +256,8 @@ export function pdfDefinition(doc: RenderDoc): TDocumentDefinitions {
       title: doc.title,
       author: layout.author.trim() || undefined,
       subject: layout.subtitle.trim() || undefined,
-      creator: 'Hub Bible',
-      producer: 'Hub Bible',
+      creator: 'Farol da Palavra',
+      producer: 'Farol da Palavra',
     },
     content,
     header: (page: number) => {
