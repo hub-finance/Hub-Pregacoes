@@ -84,6 +84,16 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ac. ✅ Letra própria para o Assistente bíblico
+
+Pedido do usuário ("onde escolho a letra dos resumos?" — do assistente). A
+letra da leitura não valia para o assistente. Novo `assistantFont` em
+`SettingsContext.tsx` (padrão `sans`, a letra que ele sempre teve), variável
+`--font-assistant` aplicada às respostas, à prévia e ao texto do documento
+(`assistant.css`). Seletor "Letra" no alto da tela do assistente e em
+Configurações, com as mesmas quatro opções (`READER_FONT_OPTIONS`). O PDF
+continua com as fontes do tema de exportação. Teste: 14.
+
 ### 0ab. ✅ O app passa a se chamar "Farol da Palavra"
 
 Pedido do usuário: "Hub Bible" era quase o inverso de *Bible Hub*. Nome

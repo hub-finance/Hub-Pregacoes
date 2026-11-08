@@ -6,7 +6,7 @@ import { Sheet } from '../../components/Sheet';
 import { SidePanel } from '../../components/SidePanel';
 import { useToast } from '../../components/Toast';
 import { useIsWide } from '../../hooks';
-import { useSettings } from '../../core/settings/SettingsContext';
+import { READER_FONT_OPTIONS, useSettings, type ReaderFont } from '../../core/settings/SettingsContext';
 import { AI_DISCLAIMER, isAiEnabled } from '../../core/ai/provider';
 import {
   draftDocumentText,
@@ -87,7 +87,7 @@ async function copyText(text: string): Promise<boolean> {
 }
 
 export default function AssistantPage() {
-  const { settings } = useSettings();
+  const { settings, update } = useSettings();
   const { notify } = useToast();
   const isWide = useIsWide();
   const translation = settings.defaultTranslation;
@@ -529,6 +529,17 @@ export default function AssistantPage() {
       />
       {/* os botões ficam numa linha própria: ao lado do título, no celular, espremiam o texto */}
       <div className="row row-wrap assistant-toolbar">
+        <label className="assistant-font">
+          <span>Letra</span>
+          <select
+            className="select"
+            value={settings.assistantFont}
+            onChange={(e) => update({ assistantFont: e.target.value as ReaderFont })}
+            aria-label="Letra das respostas e do documento"
+          >
+            {READER_FONT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </label>
         <button className="btn btn-sm" onClick={() => setHistoryOpen(true)}>
           <Icon name="list" size={16} />
           <span>Conversas{history.length ? ` (${history.length})` : ''}</span>

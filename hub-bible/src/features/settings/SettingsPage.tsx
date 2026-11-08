@@ -124,6 +124,12 @@ export default function SettingsPage() {
             options={READER_FONT_OPTIONS}
           />
           <SelectInput
+            label="Tipo de letra no Assistente bíblico"
+            value={settings.assistantFont}
+            onChange={(v) => update({ assistantFont: v as ReaderFont })}
+            options={READER_FONT_OPTIONS}
+          />
+          <SelectInput
             label="Disposição dos versículos"
             value={settings.verseLayout}
             onChange={(v) => update({ verseLayout: v as 'paragraph' | 'lines' })}
