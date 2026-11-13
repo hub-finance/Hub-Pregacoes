@@ -78,11 +78,12 @@ export default function SettingsPage() {
               { value: 'dark', label: 'Escuro' },
               { value: 'sepia', label: 'Sépia' },
               { value: 'azul', label: 'Noite azul' },
-              { value: 'ministerial', label: 'Ministerial' },
+              { value: 'ministerial', label: 'Ministerial (azul-marinho)' },
               { value: 'celeste', label: 'Azul e branco' },
               { value: 'safira', label: 'Azul safira' },
               { value: 'jardim', label: 'Verde e branco' },
               { value: 'esmeralda', label: 'Esmeralda (creme e verde)' },
+              { value: 'institucional', label: 'Institucional (claro com menu azul)' },
             ]}
           />
           <Toggle

@@ -106,29 +106,60 @@
    Inspirado no padrão de apps ministeriais: fundo azul-noite, acentos
    em dourado quente, texto branco puro. */
 :root[data-theme='ministerial'] {
+  /* Azul-marinho profundo com destaque azul-claro (o visual que o pregador
+     trouxe do "Centro de Gestão Integrada"); antes era marinho com dourado. */
   color-scheme: dark;
-  --bg: #141e2e;
-  --bg-elevated: #1a2740;
-  --bg-sunken: #0f1824;
-  --surface: #1a2740;
-  --surface-2: #1f2f4a;
-  --surface-hover: #263856;
-  --border: #2a3d5c;
-  --border-strong: #3a5070;
-  --text: #f5f5f5;
-  --text-2: #c8cdd6;
-  --text-3: #8a95a6;
-  --accent: #c9a44a;
-  --accent-strong: #ddb85c;
-  --accent-soft: #2a2616;
-  --accent-contrast: #0e1118;
-  --danger: #e88b83;
-  --success: #74c9a2;
+  --bg: #0f172a;
+  --bg-elevated: #152036;
+  --bg-sunken: #0b1222;
+  --surface: #162236;
+  --surface-2: #1b2a42;
+  --surface-hover: #22344f;
+  --border: #26354d;
+  --border-strong: #354864;
+  --text: #f1f5f9;
+  --text-2: #b4c0d2;
+  --text-3: #8492a8;
+  --accent: #6aa5ec;
+  --accent-strong: #8dbbf2;
+  --accent-soft: #1c2d48;
+  --accent-contrast: #0b1426;
+  --danger: #f08c86;
+  --success: #6fcf9f;
   --info: #8fc3ef;
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.5);
   --shadow-3: 0 20px 56px rgba(0, 0, 0, 0.65);
-  --overlay: rgba(5, 10, 20, 0.7);
+  --overlay: rgba(4, 9, 20, 0.72);
+}
+
+/* ------------------------------ institucional ---------------------------- */
+/* Conteúdo claro, cinza-azulado, com cartões brancos e títulos em marinho; o
+   menu lateral e a barra de baixo são azul sólido (institucional.css). */
+:root[data-theme='institucional'] {
+  color-scheme: light;
+  --bg: #f2f5f9;
+  --bg-elevated: #ffffff;
+  --bg-sunken: #e9eef5;
+  --surface: #ffffff;
+  --surface-2: #eef2f8;
+  --surface-hover: #e5ecf5;
+  --border: #dbe3ee;
+  --border-strong: #c2cedd;
+  --text: #17263d;
+  --text-2: #3a4a60;
+  --text-3: #5f6f86;
+  --accent: #2361a6;
+  --accent-strong: #1b4e88;
+  --accent-soft: #e5eefa;
+  --accent-contrast: #ffffff;
+  --danger: #b4392f;
+  --success: #2f7d55;
+  --info: #2a5f9e;
+  --shadow-1: 0 1px 2px rgba(23, 38, 61, 0.06);
+  --shadow-2: 0 6px 20px rgba(23, 38, 61, 0.08);
+  --shadow-3: 0 18px 48px rgba(23, 38, 61, 0.16);
+  --overlay: rgba(15, 30, 55, 0.42);
 }
 
 /* ------------------------------- esmeralda ------------------------------- */
@@ -311,11 +342,19 @@
 /* ------------------------------ alto contraste --------------------------- */
 :root[data-contrast='high'][data-theme='ministerial'] {
   --text: #ffffff;
-  --text-2: #e0e4ec;
-  --text-3: #bcc2cc;
+  --text-2: #e2e8f0;
+  --text-3: #c0cad8;
   --border: #3a4d6a;
   --border-strong: #506888;
-  --accent: #e6c46a;
+  --accent: #9cc8f6;
+}
+:root[data-contrast='high'][data-theme='institucional'] {
+  --text: #000000;
+  --text-2: #15233a;
+  --text-3: #33445c;
+  --border: #9fb0c6;
+  --border-strong: #6d82a0;
+  --accent: #123f75;
 }
 :root[data-contrast='high'][data-theme='esmeralda'] {
   --text: #000000;
@@ -361,7 +400,7 @@
 /* Só os temas de papel (claro e sépia). Os escuros e os azuis/verdes têm a
    regra própria acima — sem listá-los aqui, esta regra (mais específica por
    causa dos :not) vencia e deixava o texto preto sobre fundo escuro. */
-:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']):not([data-theme='jardim']):not([data-theme='safira']):not([data-theme='ministerial']):not([data-theme='esmeralda']) {
+:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']):not([data-theme='jardim']):not([data-theme='safira']):not([data-theme='ministerial']):not([data-theme='esmeralda']):not([data-theme='institucional']) {
   --text: #000000;
   --text-2: #2a2620;
   --text-3: #4a443b;

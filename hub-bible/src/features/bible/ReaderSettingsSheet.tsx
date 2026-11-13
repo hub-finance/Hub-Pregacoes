@@ -12,9 +12,12 @@ export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose:
     { id: 'sepia', label: 'Sépia', icon: 'sepia' as const },
     { id: 'dark', label: 'Escuro', icon: 'moon' as const },
     { id: 'azul', label: 'Noite azul', icon: 'moon' as const },
+    { id: 'ministerial', label: 'Ministerial', icon: 'moon' as const },
     { id: 'celeste', label: 'Celeste', icon: 'sun' as const },
+    { id: 'safira', label: 'Safira', icon: 'sun' as const },
     { id: 'jardim', label: 'Jardim', icon: 'sun' as const },
     { id: 'esmeralda', label: 'Esmeralda', icon: 'sun' as const },
+    { id: 'institucional', label: 'Institucional', icon: 'sun' as const },
     { id: 'system', label: 'Sistema', icon: 'settings' as const },
   ];
 

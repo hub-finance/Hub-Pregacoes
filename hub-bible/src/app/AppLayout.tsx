@@ -19,12 +19,13 @@ const THEME_LABEL: Record<ResolvedTheme, string> = {
   safira: 'azul safira',
   jardim: 'verde e branco',
   esmeralda: 'esmeralda',
+  institucional: 'institucional',
 };
 
 /* A lua serve aos dois temas escuros: o que muda entre eles é a cor da tela,
    e o ícone já vem tingido por ela. */
 const themeIcon = (theme: ResolvedTheme): IconName =>
-  theme === 'light' || theme === 'celeste' || theme === 'safira' || theme === 'jardim' || theme === 'esmeralda' ? 'sun' : theme === 'sepia' ? 'sepia' : 'moon';
+  theme === 'light' || theme === 'celeste' || theme === 'safira' || theme === 'jardim' || theme === 'esmeralda' || theme === 'institucional' ? 'sun' : theme === 'sepia' ? 'sepia' : 'moon';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   /* O provider precisa envolver `children` para que as telas registrem a busca
@@ -50,7 +51,7 @@ function AppShell({ children }: { children: ReactNode }) {
 
   const cycleTheme = () => {
     // do papel ao mais escuro, na ordem em que a vista desce a luz
-    const order = ['light', 'sepia', 'esmeralda', 'celeste', 'safira', 'jardim', 'dark', 'azul', 'ministerial'] as const;
+    const order = ['light', 'sepia', 'esmeralda', 'institucional', 'celeste', 'safira', 'jardim', 'dark', 'azul', 'ministerial'] as const;
     const current = order.indexOf(resolvedTheme);
     update({ theme: order[(current + 1) % order.length] });
   };

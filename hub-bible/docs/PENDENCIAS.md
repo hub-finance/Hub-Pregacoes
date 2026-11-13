@@ -84,6 +84,22 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ad. ✅ Ministerial com visual novo e tema Institucional
+
+Pedido do usuário, com imagens de referência de outro sistema dele ("Centro
+de Gestão Integrada"), uma escura e uma clara.
+- **Ministerial** deixa o marinho com dourado e vira azul-marinho profundo com
+  destaque azul-claro; item ativo do menu em pílula azul cheia (`#3a78c8`,
+  para o branco ter contraste), monograma azul. Tokens em `tokens.css`,
+  detalhes em `styles/institucional.css`.
+- **Institucional** (tema novo, `institucional`): conteúdo claro cinza-azulado
+  com cartões brancos e títulos em marinho; menu lateral e barra de baixo em
+  azul sólido `#1f4373` (tokens redefinidos só dentro deles, como no
+  Esmeralda); topo branco. Entra no ciclo do botão de tema, em
+  Configurações e no "Aa".
+- O "Aa" passou a listar também Ministerial e Azul safira, que só existiam em
+  Configurações.
+
 ### 0ac. ✅ Letra própria para o Assistente bíblico
 
 Pedido do usuário ("onde escolho a letra dos resumos?" — do assistente). A
