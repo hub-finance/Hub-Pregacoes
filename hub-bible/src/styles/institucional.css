@@ -1,0 +1,85 @@
+/* =========================================================================
+   Ministerial e Institucional — os dois visuais do "Centro de Gestão
+   Integrada" que o pregador trouxe como referência.
+
+   Ministerial: tudo em azul-marinho; o item ativo do menu vira uma pílula
+   azul cheia. Institucional: conteúdo claro e o menu lateral (e a barra de
+   baixo, no celular) em azul sólido, redefinindo os tokens só dentro dele.
+   ========================================================================= */
+
+/* ------------------------------ ministerial ------------------------------ */
+[data-theme='ministerial'] .rail {
+  background: #0c1426;
+}
+[data-theme='ministerial'] .rail-item.active,
+[data-theme='ministerial'] .rail-item.active:hover {
+  /* azul um pouco mais fechado que o destaque: o branco precisa de contraste */
+  background: #3a78c8;
+  color: #ffffff;
+}
+[data-theme='ministerial'] .brand-mark {
+  background: #3a78c8;
+  color: #ffffff;
+}
+[data-theme='ministerial'] .quick .ico {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* ------------------------------ institucional ---------------------------- */
+[data-theme='institucional'] .rail,
+[data-theme='institucional'] .bottom-nav {
+  --bg: #1f4373;
+  --bg-elevated: #1f4373;
+  --surface: #26508a;
+  --surface-2: #2a5791;
+  --surface-hover: #2a5791;
+  --border: #2f5a91;
+  --text: #ffffff;
+  --text-2: #dbe6f4;
+  --text-3: #b5c8e2;
+  --accent: #ffffff;
+  --accent-strong: #ffffff;
+  --accent-soft: #2d68b0;
+  --accent-contrast: #1f4373;
+  color: var(--text);
+}
+[data-theme='institucional'] .rail {
+  background: #1f4373;
+  border-right-color: #1a3961;
+}
+[data-theme='institucional'] .rail-group-label {
+  color: #a9c1e0;
+}
+[data-theme='institucional'] .rail-item.active,
+[data-theme='institucional'] .rail-item.active:hover {
+  background: #2d68b0;
+  color: #ffffff;
+}
+[data-theme='institucional'] .brand-mark {
+  background: #ffffff;
+  color: #1f4373;
+}
+[data-theme='institucional'] .bottom-nav {
+  background: #1f4373;
+  backdrop-filter: none;
+  border-top-color: #1a3961;
+}
+[data-theme='institucional'] .bottom-nav-item.active .ico {
+  width: 52px;
+  border-radius: var(--r-full);
+  background: #2d68b0;
+  color: #ffffff;
+}
+/* topo claro, como o conteúdo */
+[data-theme='institucional'] .topbar {
+  background: #ffffff;
+  backdrop-filter: none;
+}
+[data-theme='institucional'] .page-title {
+  color: #1d3a63;
+}
+[data-theme='institucional'] .quick .ico {
+  background: var(--accent-soft);
+  color: var(--accent);
+}

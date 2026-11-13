@@ -12,6 +12,7 @@ import './styles/app.css';
 import './styles/reader.css';
 import './styles/assistant.css';
 import './styles/esmeralda.css';
+import './styles/institucional.css';
 import { registerReaderFonts } from './styles/fonts';
 
 registerReaderFonts();
