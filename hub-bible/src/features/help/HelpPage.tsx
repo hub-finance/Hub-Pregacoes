@@ -45,7 +45,7 @@ const TOPICS: Topic[] = [
     title: 'Aplicativo Android (APK) — independente do navegador',
     steps: [
       'Além da instalação pelo navegador, existe o APK: o mesmo aplicativo, mas com armazenamento próprio. Limpar os dados do Chrome não afeta nada dentro dele.',
-      'O APK é gerado no GitHub, na aba Actions: abra a execução mais recente de "APK Android" e baixe o arquivo em Artifacts › hub-bible-apk.',
+      'O APK é gerado no GitHub e sai como versão (Release) do projeto, em arquivo .apk direto, sem zip: abra a versão mais recente em "Releases" e toque em farol-da-palavra.apk para baixar e instalar.',
       'Baixe no tablet e toque no arquivo para instalar. O Android vai pedir permissão para instalar de fora da loja — é normal, porque não passa pela Play Store.',
       'Atenção: as duas instalações NÃO compartilham dados. Um sermão escrito no aplicativo não aparece na versão do navegador, e vice-versa. Para levar de uma para a outra, exporte a cópia de um lado e restaure do outro.',
       'Em Configurações › Backup o app diz em qual das duas você está.',
