@@ -84,6 +84,14 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0af. ✅ APK direto, sem zip
+
+O zip do Artifacts (v77) deu "Não foi possível extrair" no tablet do usuário,
+embora estivesse completo (17,83 MB, o mesmo tamanho do GitHub). O
+`android.yml` agora publica também uma versão (Release) `apk-vN` com o arquivo
+`farol-da-palavra.apk` — baixa sem login e instala com um toque. Link fixo da
+última: `releases/latest/download/farol-da-palavra.apk`. O Artifacts continua.
+
 ### 0ae. ✅ Assistente: dois materiais lidos juntos
 
 Pedido do usuário: trabalhar dois arquivos correlacionados num estudo só.

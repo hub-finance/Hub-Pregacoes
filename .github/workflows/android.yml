@@ -6,8 +6,10 @@
 # próprios do aplicativo.
 #
 # A compilação acontece aqui, e não na máquina de ninguém, porque o runner do
-# GitHub já vem com o SDK do Android instalado. Ao terminar, o APK fica anexado
-# à execução: Actions › a execução › Artifacts › hub-bible-apk.
+# GitHub já vem com o SDK do Android instalado. Ao terminar, o APK sai como
+# versão (Release) do repositório, em arquivo .apk direto, sem zip:
+# https://github.com/hub-finance/Hub-Pregacoes/releases/latest/download/farol-da-palavra.apk
+# Também fica anexado à execução (Actions › a execução › Artifacts), em zip.
 name: APK Android
 
 on:
@@ -18,6 +20,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # publicar a versão (Release) com o APK
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -89,3 +94,20 @@ jobs:
           path: hub-bible/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 90
+
+      # O zip do Artifacts não abria no extrator de alguns tablets, e baixar dali
+      # exige estar logado no GitHub. A versão (Release) entrega o .apk direto:
+      # toca e instala. O nome do arquivo é sempre o mesmo, para o link de
+      # "última versão" nunca mudar; o número fica no título da versão.
+      - name: Publicar o APK como versão (Release)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          N: ${{ github.run_number }}
+        run: |
+          cp hub-bible/android/app/build/outputs/apk/debug/app-debug.apk farol-da-palavra.apk
+          gh release create "apk-v$N" farol-da-palavra.apk \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Farol da Palavra — APK $N" \
+            --notes "Toque em farol-da-palavra.apk para baixar e instalar. Versão $N (aparece em Configurações › Sobre)." \
+            --latest
