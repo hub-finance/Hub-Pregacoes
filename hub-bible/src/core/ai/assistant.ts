@@ -41,6 +41,13 @@ const MATERIAL_RULES = `MATERIAL IMPORTADO PELO PREGADOR (texto de outro autor; 
 - Não escreva o nome do material, da instituição nem do autor no texto final, a não ser que o pregador peça; diga "o material" ou "o autor".
 - Se o pedido falar de uma parte que não veio abaixo, diga que ela ficou de fora e peça para escolher a parte.`;
 
+/** Com dois materiais: comparar e integrar, e a Escritura decide onde divergem. */
+const TWO_MATERIALS_RULES = `SÃO DOIS MATERIAIS, lidos juntos para um só estudo (chame-os de "Material 1" e "Material 2").
+- Comece pelo que os dois sustentam com os mesmos textos bíblicos: é a base mais firme.
+- Mostre onde um confirma o outro e onde um acrescenta o que o outro não traz.
+- Onde divergirem, apresente as duas leituras com os textos de cada uma e diga qual é a mais sustentada pela Escritura — o texto decide, não o autor.
+- Integre tudo num texto só, coeso; ao citar, indique de qual material veio a frase.`;
+
 export type AssistantMode = 'livre' | 'auditoria';
 export type AssistantDepth = 'auto' | 'objetivo' | 'profundo';
 
@@ -407,9 +414,19 @@ export async function runAssistant(input: {
   goal?: AssistantGoal;
   /** Livro, apostila, estudo ou mensagem importado para estudar. */
   material?: AssistantMaterial | null;
+  /** Segundo material, lido junto com o primeiro. */
+  material2?: AssistantMaterial | null;
 }): Promise<{ content: string; validRefs: string[]; sources: string[] }> {
   const ctx = await buildAssistantContext(input.text, input.passage, input.translation);
-  const material = input.material ? `${MATERIAL_RULES}\n\n${materialForAi(input.material, input.text)}` : '';
+  // dois materiais dividem o espaço: metade para cada um
+  const material = input.material && input.material2
+    ? [
+        MATERIAL_RULES,
+        TWO_MATERIALS_RULES,
+        `=== MATERIAL 1 ===\n${materialForAi(input.material, input.text, 20000)}`,
+        `=== MATERIAL 2 ===\n${materialForAi(input.material2, input.text, 20000)}`,
+      ].join('\n\n')
+    : input.material ? `${MATERIAL_RULES}\n\n${materialForAi(input.material, input.text)}` : '';
   const header = [
     GOAL_HINT[input.goal ?? 'livre'],
     MODE_HINT[input.mode],
@@ -427,7 +444,8 @@ export async function runAssistant(input: {
   const raw = await chatComplete(`${SYSTEM_PROMPT}\n${ASSISTANT_PROMPT}`, turns, maxTokens);
   if (!raw.trim()) throw new Error('A IA não devolveu resposta. Tente de novo.');
   const validRefs = await validateReferences(input.translation, extractReferences(raw)).catch(() => []);
-  return { content: raw.trim(), validRefs, sources: input.material ? ['material importado', ...ctx.sources] : ctx.sources };
+  const from = input.material && input.material2 ? ['dois materiais importados'] : input.material ? ['material importado'] : [];
+  return { content: raw.trim(), validRefs, sources: [...from, ...ctx.sources] };
 }
 
 /* ─────────────────────────── o documento final ─────────────────────────── */

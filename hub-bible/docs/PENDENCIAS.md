@@ -84,6 +84,37 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ae. ✅ Assistente: dois materiais lidos juntos
+
+Pedido do usuário: trabalhar dois arquivos correlacionados num estudo só.
+Com um material escolhido e mais de um importado, aparece "Segundo material
+(opcional)". Sem IA, `buildFromTwoMaterials` (`studyEngine.ts`) cruza os dois:
+primeiro os versículos que ambos citam (com o texto da Bíblia e uma frase de
+cada um — `sentencesCiting` em `assistantMaterials.ts`), depois as doutrinas
+em comum (`sentencesAbout`), e por fim o que cada um acrescenta. Funciona em
+estudo, mensagem, resumo e conferir. Nos textos aparecem só "Material 1" e
+"Material 2", nunca o nome do arquivo. Com IA, os dois vão separados
+(`=== MATERIAL 1/2 ===`, até 20 mil caracteres cada) com `TWO_MATERIALS_RULES`:
+comparar e integrar, e quando divergem o texto bíblico decide. Teste: 30 (390 e
+1280 px), regressões do assistente sem falhas.
+
+Conferido com dois PDFs reais do usuário sobre o Salmo 23 (que não ficam no
+repositório). O que isso corrigiu:
+- **Títulos grudados nas frases:** no PDF, uma linha curta e sem pontuação,
+  entre uma frase terminada e uma maiúscula, é título e fica fora
+  (`paragraphsOf`). Número de lista que o PDF solta no fim da linha
+  ("alimento,1.") e hífen com espaço ("Leva- me") são limpos.
+- **Frase que não é do autor:** sai a que é só referência e citação bíblica,
+  o pedaço final de uma citação, a introdução de lista terminada em ":" e o
+  trecho em que o material transcreve a Bíblia com número de versículo
+  (`authorWords`).
+- **Repetição:** cada frase aparece uma vez no estudo inteiro.
+- **Versículos em comum** contam por sobreposição (Sl 23:1-4 e Sl 23:3 são o
+  mesmo trecho) e são agrupados por passagem: o salmo sai citado uma vez, não
+  Sl 23:1, 23:4, 23:1-4… em sequência.
+- **Título:** quando os dois giram em torno da mesma passagem, o estudo leva o
+  nome dela ("Salmos 23 — dois materiais").
+
 ### 0ad. ✅ Ministerial com visual novo e tema Institucional
 
 Pedido do usuário, com imagens de referência de outro sistema dele ("Centro
