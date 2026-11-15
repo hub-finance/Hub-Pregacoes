@@ -118,11 +118,16 @@ export default function AssistantPage() {
   const [enginePick, setEnginePick] = useState<Engine>('ia');
   const [materials, setMaterials] = useState<MaterialSummary[]>([]);
   const [materialId, setMaterialId] = useState('');
+  const [materialId2, setMaterialId2] = useState('');
   const [materialBusy, setMaterialBusy] = useState('');
   const [materialsOpen, setMaterialsOpen] = useState(false);
   const [materialToRemove, setMaterialToRemove] = useState<MaterialSummary | null>(null);
   const fileInput = useRef<HTMLInputElement | null>(null);
   const selectedMaterial = materials.find((m) => m.id === materialId) ?? null;
+  // o segundo só vale junto com o primeiro, e nunca o mesmo arquivo duas vezes
+  const selectedMaterial2 = selectedMaterial && materialId2 !== materialId
+    ? materials.find((m) => m.id === materialId2) ?? null
+    : null;
   const refreshMaterials = useCallback(() => {
     listMaterials().then(setMaterials).catch(() => setMaterials([]));
   }, []);
@@ -150,7 +155,8 @@ export default function AssistantPage() {
     setError('');
     const userMsg: AssistantMessage = {
       role: 'user', content: request, mode, depth, passage: passage.trim() || undefined,
-      material: selectedMaterial?.title, at: Date.now(),
+      material: selectedMaterial2 ? `${selectedMaterial?.title} + ${selectedMaterial2.title}` : selectedMaterial?.title,
+      at: Date.now(),
     };
     // a pergunta aparece na hora; só entra na conversa salva com a resposta
     const pending = { ...conv, messages: [...conv.messages, userMsg] };
@@ -159,9 +165,11 @@ export default function AssistantPage() {
     try {
       const material = materialId ? await getMaterial(materialId) : null;
       if (materialId && !material) throw new Error('O material escolhido não está mais no aparelho.');
+      const material2 = selectedMaterial2 ? await getMaterial(selectedMaterial2.id) : null;
+      if (selectedMaterial2 && !material2) throw new Error('O segundo material não está mais no aparelho.');
       const answer = engine === 'ia'
-        ? await runAssistant({ text: request, mode, depth, passage, translation, history: conv.messages, goal, material })
-        : await buildStudyWithoutAi({ text: request, mode, depth, passage, translation, goal, material });
+        ? await runAssistant({ text: request, mode, depth, passage, translation, history: conv.messages, goal, material, material2 })
+        : await buildStudyWithoutAi({ text: request, mode, depth, passage, translation, goal, material, material2 });
       const done: AssistantConversation = {
         ...pending,
         title: conv.title || conversationTitle(request),
@@ -331,6 +339,7 @@ export default function AssistantPage() {
     if (!materialToRemove) return;
     await removeMaterial(materialToRemove.id);
     if (materialToRemove.id === materialId) setMaterialId('');
+    if (materialToRemove.id === materialId2) setMaterialId2('');
     setMaterialToRemove(null);
     refreshMaterials();
   };
@@ -415,6 +424,28 @@ export default function AssistantPage() {
               </span>
             )}
           </div>
+
+          {selectedMaterial && materials.length > 1 && (
+            <div className="field">
+              <label htmlFor="assistant-material-2">Segundo material (opcional) — os dois lidos juntos</label>
+              <select
+                id="assistant-material-2"
+                className="select assistant-material-select"
+                value={selectedMaterial2 ? materialId2 : ''}
+                onChange={(e) => setMaterialId2(e.target.value)}
+              >
+                <option value="">Nenhum</option>
+                {materials.filter((m) => m.id !== materialId).map((m) => (
+                  <option key={m.id} value={m.id}>{m.title}</option>
+                ))}
+              </select>
+              {selectedMaterial2 && (
+                <span className="small dim">
+                  O estudo cruza os dois: primeiro os textos que ambos citam, depois o que cada um acrescenta.
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="assistant-options">
             <div className="field" style={{ flex: '1 1 220px' }}>

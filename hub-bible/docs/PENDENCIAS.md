@@ -84,6 +84,20 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ae. ✅ Assistente: dois materiais lidos juntos
+
+Pedido do usuário: trabalhar dois arquivos correlacionados num estudo só.
+Com um material escolhido e mais de um importado, aparece "Segundo material
+(opcional)". Sem IA, `buildFromTwoMaterials` (`studyEngine.ts`) cruza os dois:
+primeiro os versículos que ambos citam (com o texto da Bíblia e uma frase de
+cada um — `sentencesCiting` em `assistantMaterials.ts`), depois as doutrinas
+em comum (`sentencesAbout`), e por fim o que cada um acrescenta. Funciona em
+estudo, mensagem, resumo e conferir. Nos textos aparecem só "Material 1" e
+"Material 2", nunca o nome do arquivo. Com IA, os dois vão separados
+(`=== MATERIAL 1/2 ===`, até 20 mil caracteres cada) com `TWO_MATERIALS_RULES`:
+comparar e integrar, e quando divergem o texto bíblico decide. Teste: 34 (390 e
+1280 px), regressões do assistente sem falhas.
+
 ### 0ad. ✅ Ministerial com visual novo e tema Institucional
 
 Pedido do usuário, com imagens de referência de outro sistema dele ("Centro

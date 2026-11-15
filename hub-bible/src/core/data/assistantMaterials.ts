@@ -270,3 +270,36 @@ export function materialForAi(material: AssistantMaterial, request: string, maxC
   const cut = chosen.length < material.parts.length ? '\n(Outras partes do material ficaram de fora por tamanho; peça uma parte específica para estudá-la.)' : '';
   return `PARTES DO MATERIAL:\n${outline}\n\nTEXTO DAS PARTES MAIS LIGADAS AO PEDIDO:\n${chosen.map((c) => c.text).join('\n\n')}${cut}`;
 }
+
+/* ─────────────────── dois materiais lado a lado ─────────────────── */
+
+function allSentences(material: AssistantMaterial): string[] {
+  const out: string[] = [];
+  for (const p of material.parts) {
+    for (const paragraph of p.text.split(/\n{2,}|\n(?=[-•])/)) {
+      for (const s of sentences(paragraph)) if (s.length >= 40 && s.length <= 320) out.push(s);
+    }
+  }
+  return out;
+}
+
+/** Ordena pondo na frente as frases de tese ("portanto", "isto significa"…). */
+const byThesis = (list: string[]) => [...list].sort((a, b) => Number(THESIS.test(b)) - Number(THESIS.test(a)));
+
+/** Frases do próprio autor que citam aquele versículo. */
+export function sentencesCiting(material: AssistantMaterial, ref: { book: string; chapter: number; verse?: number }, limit = 1): string[] {
+  const hits = allSentences(material).filter((s) => findInlineReferences(s).some((m) =>
+    m.ref.book === ref.book && m.ref.chapter === ref.chapter &&
+    (!ref.verse || !m.ref.verse || (ref.verse >= m.ref.verse && ref.verse <= (m.ref.verseEnd ?? m.ref.verse)))));
+  return byThesis(hits).slice(0, limit);
+}
+
+/** Frases do próprio autor sobre uma doutrina do dicionário. */
+export function sentencesAbout(material: AssistantMaterial, entry: TheologicalEntry, limit = 1): string[] {
+  const variants = termVariants(entry);
+  const hits = allSentences(material).filter((s) => {
+    const p = ` ${plain(s)} `;
+    return variants.some((v) => p.includes(` ${v} `));
+  });
+  return byThesis(hits).slice(0, limit);
+}
