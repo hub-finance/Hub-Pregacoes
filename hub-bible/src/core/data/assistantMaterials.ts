@@ -273,33 +273,140 @@ export function materialForAi(material: AssistantMaterial, request: string, maxC
 
 /* ─────────────────── dois materiais lado a lado ─────────────────── */
 
+const ENDS_SENTENCE = /[.!?…:;"”)\]]$/;
+
+/**
+ * Parágrafos do texto vindo de PDF: a quebra simples é só fim de linha, mas
+ * uma linha curta, sem pontuação, depois de uma frase terminada e antes de
+ * maiúscula é título ("Introdução", "Relação com Cristo") — fica de fora, para
+ * não grudar na frase seguinte.
+ */
+function paragraphsOf(text: string): string[] {
+  const src = text
+    .replace(/\r\n?/g, '\n')
+    // número de lista que o PDF deixou no fim da linha: "alimento,1.\nrepouso"
+    .replace(/(\S)\d{1,2}\.\n(?=\p{Ll})/gu, '$1 ')
+    .replace(/([,:;])\d{1,2}\.(?=\n|$)/g, '$1')
+    // hífen seguido de espaço: "Leva- me", "bem- estar"
+    .replace(/(\p{L})- (?=\p{Ll})/gu, '$1-');
+  const lines = src.split('\n').map((l) => l.trim());
+  const out: string[] = [];
+  let cur: string[] = [];
+  const flush = () => { if (cur.length) out.push(cur.join(' ')); cur = []; };
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line || /^[-—–_═─=•*\s]{3,}$/.test(line)) { flush(); continue; }
+    if (/^[-•]\s/.test(line)) flush();
+    const prev = cur.length ? cur[cur.length - 1] : '';
+    const next = lines[i + 1] ?? '';
+    const heading = line.length <= 60 && !ENDS_SENTENCE.test(line) && !/[,—–]$/.test(line) &&
+      (!prev || ENDS_SENTENCE.test(prev)) && (!next || /^[\p{Lu}"“•-]/u.test(next));
+    if (heading) { flush(); continue; }
+    cur.push(line);
+  }
+  flush();
+  return out;
+}
+
+/**
+ * Quanto do texto é do autor: tira as referências e o que está entre aspas
+ * (em geral o versículo citado). "Sl 23:1 — “O SENHOR é o meu pastor”" não é
+ * uma frase do autor; "Davi fala de Deus na terceira pessoa" é.
+ */
+function withoutRefs(s: string): string {
+  let rest = s;
+  for (const m of findInlineReferences(s).sort((x, y) => y.index - x.index)) {
+    rest = rest.slice(0, m.index) + ' ' + rest.slice(m.index + m.length);
+  }
+  return rest;
+}
+
+function authorWords(s: string): number {
+  const rest = withoutRefs(s).replace(/[“"][^”"]*[”"]?/g, ' ');
+  return plain(rest).split(' ').filter((w) => w.length >= 3).length;
+}
+
+const sentenceCache = new WeakMap<AssistantMaterial, string[]>();
+
+/** As frases do autor no material inteiro, já limpas. */
 function allSentences(material: AssistantMaterial): string[] {
+  const cached = sentenceCache.get(material);
+  if (cached) return cached;
   const out: string[] = [];
   for (const p of material.parts) {
-    for (const paragraph of p.text.split(/\n{2,}|\n(?=[-•])/)) {
-      for (const s of sentences(paragraph)) if (s.length >= 40 && s.length <= 320) out.push(s);
+    for (const paragraph of paragraphsOf(p.text)) {
+      // também corta depois de ponto seguido de aspas: …para sempre." Dos versículos…
+      for (const raw of sentences(paragraph).flatMap((x) => x.split(/(?<=[.!?…]["”])\s+(?=[\p{Lu}“"])/u))) {
+        const s = raw.replace(/^[•*-]\s*/, '').trim();
+        if (s.length < 40 || s.length > 320) continue;
+        // fim de uma citação, sem o começo dela
+        const quoteMarks = (s.match(/["“”]/g) ?? []).length;
+        if (quoteMarks % 2 === 1 && /["”]$/.test(s)) continue;
+        // introdução de lista ("…em pontos práticos:")
+        if (/:$/.test(s)) continue;
+        // o próprio material transcrevendo a Bíblia: "(ARA) 5 Preparas-me…"
+        if (/\((?:ARA|ARC|ACF|NVI|NAA|NTLH|KJA|AA|ARIB|NVT|A21)\+?\)/.test(s)) continue;
+        if ((withoutRefs(s).match(/(?:^|\s)\d{1,3}\s+\p{Lu}/gu) ?? []).length >= 2) continue;
+        if (authorWords(s) >= 6) out.push(s);
+      }
     }
   }
+  sentenceCache.set(material, out);
   return out;
 }
 
 /** Ordena pondo na frente as frases de tese ("portanto", "isto significa"…). */
 const byThesis = (list: string[]) => [...list].sort((a, b) => Number(THESIS.test(b)) - Number(THESIS.test(a)));
 
+/** Escolhe frases ainda não usadas e marca as escolhidas como usadas. */
+function pick(hits: string[], limit: number, used?: Set<string>): string[] {
+  const out = byThesis(hits).filter((s) => !used?.has(s)).slice(0, limit);
+  for (const s of out) used?.add(s);
+  return out;
+}
+
 /** Frases do próprio autor que citam aquele versículo. */
-export function sentencesCiting(material: AssistantMaterial, ref: { book: string; chapter: number; verse?: number }, limit = 1): string[] {
+export function sentencesCiting(
+  material: AssistantMaterial,
+  ref: { book: string; chapter: number; verse?: number },
+  limit = 1,
+  used?: Set<string>,
+): string[] {
   const hits = allSentences(material).filter((s) => findInlineReferences(s).some((m) =>
     m.ref.book === ref.book && m.ref.chapter === ref.chapter &&
     (!ref.verse || !m.ref.verse || (ref.verse >= m.ref.verse && ref.verse <= (m.ref.verseEnd ?? m.ref.verse)))));
-  return byThesis(hits).slice(0, limit);
+  return pick(hits, limit, used);
 }
 
 /** Frases do próprio autor sobre uma doutrina do dicionário. */
-export function sentencesAbout(material: AssistantMaterial, entry: TheologicalEntry, limit = 1): string[] {
+export function sentencesAbout(material: AssistantMaterial, entry: TheologicalEntry, limit = 1, used?: Set<string>): string[] {
   const variants = termVariants(entry);
   const hits = allSentences(material).filter((s) => {
     const p = ` ${plain(s)} `;
     return variants.some((v) => p.includes(` ${v} `));
   });
-  return byThesis(hits).slice(0, limit);
+  return pick(hits, limit, used);
+}
+
+/**
+ * As frases centrais do material, limpas, para "o que acrescenta" e "em uma
+ * frase": tese primeiro, depois as que citam texto ou doutrina.
+ */
+export function keySentences(material: AssistantMaterial, limit: number, used?: Set<string>): string[] {
+  const all = allSentences(material);
+  const scored = all.map((s, at) => {
+    let score = 0;
+    if (THESIS.test(s)) score += 3;
+    if (findInlineReferences(s).length) score += 1;
+    if (s.length >= 70 && s.length <= 240) score += 1;
+    return { s, at, score };
+  });
+  const out = scored
+    .filter((x) => !used?.has(x.s))
+    .sort((a, b) => b.score - a.score || a.at - b.at)
+    .slice(0, limit)
+    .sort((a, b) => a.at - b.at)
+    .map((x) => x.s);
+  for (const s of out) used?.add(s);
+  return out;
 }

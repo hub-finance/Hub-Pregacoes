@@ -36,7 +36,7 @@ import { findGuidesForPassage, getDoctrinalPack } from '../bible/doctrinalPack';
 import { validateReferences } from '../ai/provider';
 import { findRequestReferences, type AssistantDepth, type AssistantMode } from '../ai/assistant';
 import type { AssistantGoal } from '../ai/assistantDocument';
-import { readMaterialTheology, sentencesAbout, sentencesCiting, type AssistantMaterial, type CitedRef, type MaterialReading, type PartReading } from './assistantMaterials';
+import { keySentences, readMaterialTheology, sentencesAbout, sentencesCiting, type AssistantMaterial, type CitedRef, type MaterialReading, type PartReading } from './assistantMaterials';
 
 export interface EngineInput {
   text: string;
@@ -820,15 +820,38 @@ async function buildFromTwoMaterials(input: EngineInput, a: AssistantMaterial, b
   const lim = LIMITS[input.depth];
   const per = input.depth === 'objetivo' ? 1 : input.depth === 'profundo' ? 3 : 2;
   const [ra, rb] = await Promise.all([readMaterialTheology(a, per), readMaterialTheology(b, per)]);
+  // cada frase do autor aparece uma vez só no estudo inteiro
+  const used = new Set<string>();
 
-  const bKeys = new Map(rb.refs.map((r) => [keyOf(r.ref), r]));
-  const commonRefs: Array<CitedRef & { other: number }> = ra.refs
-    .filter((r) => bKeys.has(keyOf(r.ref)))
-    .map((r) => ({ ...r, other: bKeys.get(keyOf(r.ref))!.count }))
-    .sort((x, y) => (y.count + y.other) - (x.count + x.other));
-  const commonKeys = new Set(commonRefs.map((r) => keyOf(r.ref)));
-  const onlyA = ra.refs.filter((r) => !commonKeys.has(keyOf(r.ref)));
-  const onlyB = rb.refs.filter((r) => !commonKeys.has(keyOf(r.ref)));
+  // "o mesmo texto": quem cita Sl 23:1-4 e quem cita Sl 23:3 falam do mesmo trecho
+  const span = (r: ParsedReference) => [r.verse ?? 1, r.verse ? (r.verseEnd ?? r.verse) : 999] as const;
+  const overlaps = (x: ParsedReference, y: ParsedReference) => {
+    if (x.book !== y.book || x.chapter !== y.chapter) return false;
+    const [x1, x2] = span(x); const [y1, y2] = span(y);
+    return x1 <= y2 && y1 <= x2;
+  };
+  const commonA = ra.refs.filter((r) => rb.refs.some((o) => overlaps(r.ref, o.ref)));
+  const commonB = rb.refs.filter((r) => ra.refs.some((o) => overlaps(r.ref, o.ref)));
+  const onlyA = ra.refs.filter((r) => !commonA.includes(r));
+  const onlyB = rb.refs.filter((r) => !commonB.includes(r));
+
+  // as passagens em comum, por capítulo, com o peso das citações dos dois
+  const passages = new Map<string, { book: string; chapter: number; from: number; to: number; weight: number; refs: CitedRef[] }>();
+  for (const r of [...commonA, ...commonB]) {
+    const k = `${r.ref.book}.${r.ref.chapter}`;
+    const [v1, v2] = span(r.ref);
+    const p = passages.get(k) ?? { book: r.ref.book, chapter: r.ref.chapter, from: v1, to: v2, weight: 0, refs: [] };
+    p.from = Math.min(p.from, v1); p.to = Math.max(p.to, v2); p.weight += r.count; p.refs.push(r);
+    passages.set(k, p);
+  }
+  const passageList = [...passages.values()].sort((x, y) => y.weight - x.weight);
+  const totalWeight = passageList.reduce((n, p) => n + p.weight, 0);
+
+  // os versículos em comum, um por vez, sem repetir (Sl 23:1 citado pelos dois conta uma vez)
+  const commonRefs: CitedRef[] = [];
+  for (const r of [...commonA, ...commonB].sort((x, y) => y.count - x.count)) {
+    if (!commonRefs.some((c) => keyOf(c.ref) === keyOf(r.ref) && c.ref.verseEnd === r.ref.verseEnd)) commonRefs.push(r);
+  }
 
   const bTerms = new Map(rb.terms.map((x) => [x.entry.id, x.count]));
   const commonTerms = ra.terms.filter((x) => bTerms.has(x.entry.id))
@@ -845,26 +868,47 @@ async function buildFromTwoMaterials(input: EngineInput, a: AssistantMaterial, b
     };
   }
 
-  /* o mesmo texto, lido por cada um */
+  /** O texto em comum, citado uma vez: a passagem inteira se for curta; senão, os versículos mais citados. */
+  const passageRefs = (p: (typeof passageList)[number]): ParsedReference[] => {
+    if (p.to !== 999 && p.to - p.from <= 5) return [{ book: p.book, chapter: p.chapter, verse: p.from, verseEnd: p.to > p.from ? p.to : undefined }];
+    return [...p.refs].sort((x, y) => y.count - x.count)
+      .filter((r, i, all) => all.findIndex((o) => keyOf(o.ref) === keyOf(r.ref)) === i)
+      .slice(0, 2).map((r) => r.ref);
+  };
+  const commonQuotes = async (n: number) => {
+    const out: string[] = [];
+    for (const p of passageList) {
+      for (const ref of passageRefs(p)) {
+        if (out.length >= n) break;
+        const q = await quote(t, ref);
+        if (q) out.push(`${q} (citado nos dois materiais)`);
+      }
+    }
+    return out.join('\n\n');
+  };
+
+  /* o mesmo texto, lido por cada um: só entra quando os dois dizem algo sobre ele */
   const pairs: string[] = [];
-  for (const r of commonRefs.slice(0, input.depth === 'objetivo' ? 2 : 4)) {
-    const sa = sentencesCiting(a, r.ref)[0];
-    const sb = sentencesCiting(b, r.ref)[0];
-    if (!sa && !sb) continue;
-    pairs.push([`### [${r.label}]`, await quote(t, r.ref), sa ? quoteFrom(M1, sa) : '', sb ? quoteFrom(M2, sb) : ''].filter(Boolean).join('\n\n'));
+  const pairLimit = input.depth === 'objetivo' ? 2 : 4;
+  for (const r of commonRefs) {
+    if (pairs.length >= pairLimit) break;
+    const sa = sentencesCiting(a, r.ref, 1, new Set(used))[0];
+    const sb = sentencesCiting(b, r.ref, 1, new Set(used))[0];
+    if (!sa || !sb) continue;
+    used.add(sa); used.add(sb);
+    pairs.push([`### [${r.label}]`, await quote(t, r.ref), quoteFrom(M1, sa), quoteFrom(M2, sb)].filter(Boolean).join('\n\n'));
   }
 
   /* cada doutrina em comum, com uma frase de cada material */
   const doctrinePairs = commonTerms.slice(0, lim.entries + 1).map(({ entry }) => {
-    const sa = sentencesAbout(a, entry)[0];
-    const sb = sentencesAbout(b, entry)[0];
+    const sa = sentencesAbout(a, entry, 1, used)[0];
+    const sb = sentencesAbout(b, entry, 1, used)[0];
     return [`**${entry.termo}.** ${entry.definicao}`, sa ? quoteFrom(M1, sa) : '', sb ? quoteFrom(M2, sb) : ''].filter(Boolean).join('\n');
   });
 
-  const adds = (label: string, r: MaterialReading, only: CitedRef[], terms: MaterialReading['terms']) => {
+  const adds = (label: string, m: AssistantMaterial, only: CitedRef[], terms: MaterialReading['terms']) => {
     const lines: string[] = [];
-    const central = r.parts.flatMap((p) => p.central).slice(0, input.depth === 'profundo' ? 4 : 2);
-    lines.push(...central.map((s) => quoteFrom(label, s)));
+    lines.push(...keySentences(m, input.depth === 'profundo' ? 4 : 2, used).map((s) => quoteFrom(label, s)));
     if (only.length) lines.push(`Textos que só o ${label} usa: ${only.slice(0, lim.cross).map((x) => `[${x.label}]`).join(', ')}.`);
     if (terms.length) lines.push(`Doutrinas que só o ${label} trata: ${terms.slice(0, 4).map((x) => x.entry.termo).join(', ')}.`);
     return lines.join('\n');
@@ -872,16 +916,12 @@ async function buildFromTwoMaterials(input: EngineInput, a: AssistantMaterial, b
 
   const originals = [...new Map([...ra.originals, ...rb.originals].map((o) => [o.translit, o])).values()];
   const originalLines = originals.map((o) => `- **${o.translit}** ${o.word}${o.strong ? ` (${o.strong})` : ''} — "${o.term}"`).join('\n');
-  const commonQuotes = async (n: number) => {
-    const out: string[] = [];
-    for (const r of commonRefs.slice(0, n)) {
-      const q = await quote(t, r.ref);
-      if (q) out.push(`${q} (citado nos dois materiais)`);
-    }
-    return out.join('\n\n');
-  };
 
-  const theme = commonTerms[0]?.entry.termo ?? commonRefs[0]?.label ?? ra.terms[0]?.entry.termo ?? '';
+  // quando os dois giram em torno do mesmo texto, ele dá o nome ao estudo
+  const top = passageList[0];
+  const theme = top && top.weight * 2 >= totalWeight && top.weight >= 3
+    ? formatReference({ book: top.book, chapter: top.chapter })
+    : commonTerms[0]?.entry.termo ?? commonRefs[0]?.label ?? ra.terms[0]?.entry.termo ?? '';
   let title = theme ? `${theme} — dois materiais` : 'Dois materiais';
   let body: string;
 
@@ -899,11 +939,11 @@ async function buildFromTwoMaterials(input: EngineInput, a: AssistantMaterial, b
       ].join('\n\n')),
     ].filter(Boolean).join('\n\n');
   } else if (input.goal === 'mensagem') {
-    const main = commonRefs[0]?.ref ?? ra.refs[0]?.ref ?? rb.refs[0]?.ref;
+    const main = top ? passageRefs(top)[0] : ra.refs[0]?.ref ?? rb.refs[0]?.ref;
     const points: string[] = [];
     for (const [i, { entry }] of commonTerms.slice(0, 3).entries()) {
-      const sa = sentencesAbout(a, entry)[0];
-      const sb = sentencesAbout(b, entry)[0];
+      const sa = sentencesAbout(a, entry, 1, used)[0];
+      const sb = sentencesAbout(b, entry, 1, used)[0];
       const refs = commonRefs.filter((r) => entry.textos.includes(keyOf(r.ref).replace(/\.$/, ''))).slice(0, 2).map((r) => r.ref);
       points.push([
         `### Ponto ${i + 1} — ${entry.termo}`,
@@ -926,22 +966,24 @@ async function buildFromTwoMaterials(input: EngineInput, a: AssistantMaterial, b
       section('Material de apoio', originalLines),
     ].filter(Boolean).join('\n\n');
   } else if (input.goal === 'resumo') {
-    const one = (r: MaterialReading) => r.parts.flatMap((p) => p.central)[0];
+    const one = (m: AssistantMaterial) => keySentences(m, 1, used)[0];
+    const oneA = one(a);
+    const oneB = one(b);
     body = [
       section('Em comum', [
         commonTerms.length ? `Doutrinas: ${commonTerms.slice(0, 5).map((x) => x.entry.termo).join(', ')}.` : '',
-        commonRefs.length ? `Textos: ${commonRefs.slice(0, 6).map((r) => `[${r.label}]`).join(', ')}.` : '',
+        passageList.length ? `Textos: ${passageList.slice(0, 4).flatMap(passageRefs).map((r) => `[${formatReference(r)}]`).join(', ')}.` : '',
       ].filter(Boolean).join('\n\n')),
-      section(`${M1}, em uma frase`, one(ra) ? `“${one(ra)!.replace(/\[|\]/g, '')}”` : ''),
-      section(`${M2}, em uma frase`, one(rb) ? `“${one(rb)!.replace(/\[|\]/g, '')}”` : ''),
+      section(`${M1}, em uma frase`, oneA ? `“${oneA.replace(/\[|\]/g, '')}”` : ''),
+      section(`${M2}, em uma frase`, oneB ? `“${oneB.replace(/\[|\]/g, '')}”` : ''),
       section('Textos-chave', await commonQuotes(Math.min(4, lim.texts))),
     ].filter(Boolean).join('\n\n');
   } else {
     body = [
       section('O que os dois têm em comum', [await commonQuotes(lim.texts), doctrinePairs.join('\n\n')].filter(Boolean).join('\n\n')),
       section('O mesmo texto, duas leituras', pairs.join('\n\n')),
-      section(`O que o ${M1} acrescenta`, adds(M1, ra, onlyA, onlyTermsA)),
-      section(`O que o ${M2} acrescenta`, adds(M2, rb, onlyB, onlyTermsB)),
+      section(`O que o ${M1} acrescenta`, adds(M1, a, onlyA, onlyTermsA)),
+      section(`O que o ${M2} acrescenta`, adds(M2, b, onlyB, onlyTermsB)),
       section('No original', originalLines),
       section('Cristo e a Nova Aliança', await typologyFor(commonRefs.length ? commonRefs : ra.refs)),
     ].filter(Boolean).join('\n\n');
