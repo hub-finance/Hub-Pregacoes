@@ -13,15 +13,17 @@ import { ExportPreview } from './ExportPreview';
 import { FilesTab } from './FilesTab';
 import { LayoutTab } from './LayoutTab';
 import { STATUS_LABEL } from './status';
+import { StudyTab } from './StudyTab';
 import { useExportDoc } from './useExportDoc';
 import '../../styles/export.css';
 
-type Tab = 'conteudo' | 'formatacao' | 'revisar' | 'arquivos';
+type Tab = 'conteudo' | 'formatacao' | 'revisar' | 'estudar' | 'arquivos';
 
 const TABS: Array<{ id: Tab; label: string }> = [
   { id: 'conteudo', label: 'Conteúdo' },
   { id: 'formatacao', label: 'Formatação' },
   { id: 'revisar', label: 'Visualizar' },
+  { id: 'estudar', label: 'Estudar' },
   { id: 'arquivos', label: 'Aprovar e gerar' },
 ];
 
@@ -179,6 +181,8 @@ export default function ExportEditorPage() {
           </div>
         </div>
       )}
+
+      {tab === 'estudar' && <StudyTab doc={render} />}
 
       {tab === 'arquivos' && <FilesTab doc={doc} flush={save} replace={replace} />}
 

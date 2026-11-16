@@ -215,16 +215,45 @@ async function gather(input: EngineInput): Promise<Gathered> {
   const refs = [...(main ? [main] : []), ...findRequestReferences(input.text)];
   const seenRef = new Set<string>();
   const keyTexts = refs.filter((r) => !seenRef.has(refKey(r)) && !!seenRef.add(refKey(r)));
+  const dict = await getTheologicalDict();
+
+  /*
+   * Capítulo inteiro ("Salmo 23", "João 3"): sem versículo não havia o que
+   * citar e o estudo saía vazio. Capítulo curto entra inteiro; o longo entra
+   * pelos versículos-chave que o dicionário conhece nele (Jo 3:16, Jo 3:3…),
+   * e não com os 36 versículos de uma vez.
+   */
+  const chapterEntries: TheologicalEntry[] = [];
+  for (let i = 0; i < keyTexts.length; i++) {
+    const r = keyTexts[i];
+    if (r.verse) continue;
+    const verses = await getChapter(input.translation, r.book, r.chapter).catch(() => [] as string[]);
+    if (!verses.length) continue;
+    const prefix = `${r.book}.${r.chapter}.`;
+    const inChapter = dict.filter((e) => e.textos.some((k) => k.startsWith(prefix)));
+    for (const e of inChapter) if (!chapterEntries.includes(e)) chapterEntries.push(e);
+    if (verses.length <= 10) {
+      keyTexts[i] = { book: r.book, chapter: r.chapter, verse: 1, verseEnd: verses.length };
+      continue;
+    }
+    const keyVerses = [...new Set(inChapter.flatMap((e) => e.textos.filter((k) => k.startsWith(prefix))))]
+      .map(osisToRef).filter((x): x is ParsedReference => !!x?.verse)
+      .sort((a, b) => a.verse! - b.verse!)
+      .slice(0, lim.texts);
+    keyTexts.splice(i, 1, ...(keyVerses.length ? keyVerses : [{ book: r.book, chapter: r.chapter, verse: 1, verseEnd: Math.min(6, verses.length) }]));
+    i += Math.max(keyVerses.length, 1) - 1;
+  }
+  for (const r of keyTexts) seenRef.add(refKey(r));
   const anchor = keyTexts.find((r) => r.verse) ?? null;
 
   /* verbetes do dicionário: pelo tema escrito e pelo versículo */
-  const dict = await getTheologicalDict();
   const words = themeWords(input.text);
   const entries: TheologicalEntry[] = matchEntries(dict, input.text, words);
   if (anchor?.verse) {
     const key = `${anchor.book}.${anchor.chapter}.${anchor.verse}`;
     for (const e of dict) if (e.textos.includes(key) && !entries.includes(e)) entries.push(e);
   }
+  for (const e of chapterEntries) if (!entries.includes(e)) entries.push(e);
   const chosen = entries.slice(0, lim.entries);
   if (chosen.length) sources.add('dicionário teológico');
 

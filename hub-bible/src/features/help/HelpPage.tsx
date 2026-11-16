@@ -258,6 +258,15 @@ const TOPICS: Topic[] = [
     ],
   },
   {
+    icon: 'book',
+    title: 'Gerar e Exportar — estudar o que foi criado',
+    steps: [
+      'Dentro de um documento, a aba "Estudar" mostra o texto para ler e estudar, na letra de leitura, sem a moldura da folha.',
+      'Toda referência bíblica do texto vira link — "Sl 23:1", "Romanos 5:1", "Jo 10.11". Um toque abre o versículo na sua Bíblia; "Abrir no leitor" leva ao capítulo.',
+      'Só vira link a referência que existe na sua tradução; as demais ficam como texto. Nada muda no PDF nem no Word.',
+    ],
+  },
+  {
     icon: 'layers',
     title: 'Guias doutrinários e a sua base doutrinária',
     steps: [
