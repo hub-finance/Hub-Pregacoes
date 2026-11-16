@@ -355,3 +355,94 @@
   border-color: var(--accent);
   color: var(--accent-contrast);
 }
+
+/* ------------------------------ aba Estudar ------------------------------ */
+/* O documento para ler e estudar: letra de leitura, referências como link. */
+.xp-study-layout.has-panel {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: flex-start;
+}
+.xp-study-layout .side-panel {
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+}
+.xp-study-main {
+  flex: 1;
+  min-width: 0;
+  max-width: 820px;
+}
+.xp-study {
+  font-family: var(--font-reader);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.xp-study > * {
+  margin: 0 0 var(--sp-3);
+}
+.xp-study > *:last-child {
+  margin-bottom: 0;
+}
+.xp-study h1 {
+  font-size: 1.4rem;
+  line-height: 1.3;
+  color: var(--accent-strong);
+  margin-bottom: var(--sp-4);
+}
+.xp-study h2 {
+  font-size: 1.15rem;
+  margin-top: var(--sp-5);
+  color: var(--accent-strong);
+}
+.xp-study h3 {
+  font-size: 1.02rem;
+  margin-top: var(--sp-4);
+}
+.xp-study ul,
+.xp-study ol {
+  padding-left: 1.4em;
+}
+.xp-study ul {
+  list-style: disc;
+}
+.xp-study ol {
+  list-style: decimal;
+}
+.xp-study li + li {
+  margin-top: 4px;
+}
+.xp-study blockquote,
+.xp-study-highlight {
+  padding: var(--sp-2) var(--sp-3);
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+}
+.xp-study blockquote p,
+.xp-study-highlight p {
+  margin: 0;
+}
+.xp-study blockquote p + p,
+.xp-study-highlight p + p {
+  margin-top: var(--sp-2);
+}
+.xp-study-ref {
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+.xp-study-table {
+  overflow-x: auto;
+}
+.xp-study-table table {
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.xp-study-table th,
+.xp-study-table td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}

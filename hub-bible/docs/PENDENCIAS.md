@@ -84,6 +84,23 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ag. ✅ Gerar e Exportar: aba "Estudar" com links nos versículos
+
+Pedido do usuário: estudar dentro do app o que foi criado, com link 🔗 nos
+versículos como no assistente. Decidido com ele: aba no documento do Gerar e
+Exportar (onde tudo chega — assistente, Gerador, Rhema), não módulo novo.
+`features/export/StudyTab.tsx` desenha o mesmo `RenderDoc` do PDF em letra
+de leitura; toda referência achada no texto (`findInlineReferences`, inclusive
+"Jo 10.11") e conferida na tradução (`validateReferences`) vira botão que
+abre o `VersePreview` — painel lateral em tela larga, folha no celular. Não
+altera o documento nem os arquivos. Teste: 22 (390 e 1280 px).
+
+**Correção achada no teste:** pedir um capítulo inteiro ao assistente sem IA
+("Salmo 23", "João 3") devolvia só o título. Agora capítulo de até 10
+versículos entra inteiro; o mais longo entra pelos versículos-chave que o
+dicionário teológico conhece nele (Jo 3:3, 3:5, 3:14, 3:16), e as doutrinas
+ligadas ao capítulo entram no estudo (`gather` em `studyEngine.ts`).
+
 ### 0af. ✅ APK direto, sem zip
 
 O zip do Artifacts (v77) deu "Não foi possível extrair" no tablet do usuário,
