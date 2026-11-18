@@ -224,7 +224,7 @@ export async function sendBackupTo(
   /* Sem indentação quando o texto bíblico vai junto: a formatação bonita custa
      dezenas de MB num arquivo que ninguém vai ler à mão. Sem as Bíblias o
      arquivo é pequeno, e aí vale deixá-lo legível. */
-  const payload = backup.translations
+  const payload = backup.translations || backup.extra
     ? JSON.stringify(backup)
     : JSON.stringify(backup, null, 2);
   const { result, path } = await target.send(

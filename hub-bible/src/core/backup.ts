@@ -37,6 +37,24 @@ export interface BackupFile {
    * não distribuído com o aplicativo.
    */
   translations?: BackupTranslations;
+  /**
+   * O resto do aparelho, quando o usuário pede a cópia completa: os arquivos
+   * importados (PDF, Word, apresentações), o Assistente bíblico, os
+   * dicionários e comentários importados e as análises do Estudo guiado.
+   */
+  extra?: BackupExtra;
+}
+
+export interface BackupExtra {
+  /** Arquivos importados, com o conteúdo em base64. */
+  attachments: unknown[];
+  dictionaries: unknown[];
+  dictionaryEntries: unknown[];
+  commentaries: unknown[];
+  commentaryEntries: unknown[];
+  aiAnalyses: unknown[];
+  /** Registros de `settings` que são dados do usuário (assistente, base doutrinária…). */
+  settings: unknown[];
 }
 
 export interface BackupOptions {
@@ -46,6 +64,50 @@ export interface BackupOptions {
    * explícita, não padrão.
    */
   includeTranslations?: boolean;
+  /**
+   * Levar tudo o que está no aparelho (ver `BackupExtra`). É o que permite
+   * passar do tablet para o notebook sem reimportar nada.
+   */
+  complete?: boolean;
+}
+
+/**
+ * Registros de `settings` que são do usuário. Os demais são marcas internas
+ * (reparos já feitos, caches) que o próprio aplicativo refaz.
+ */
+const USER_SETTING_PREFIXES = ['assistant:', 'doctrinal-pack', 'export:', 'book:'];
+
+const EXTRA_TABLES = ['dictionaries', 'dictionaryEntries', 'commentaries', 'commentaryEntries', 'aiAnalyses'] as const;
+
+/* Um arquivo (Blob) não cabe em JSON: vai como base64 e volta como Blob. */
+interface PackedBlob { __blob: string; type: string }
+
+async function packBlob(blob: Blob): Promise<PackedBlob> {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  return { __blob: btoa(binary), type: blob.type };
+}
+
+function unpackBlob(packed: PackedBlob): Blob {
+  const binary = atob(packed.__blob);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: packed.type });
+}
+
+const isPacked = (v: unknown): v is PackedBlob => !!v && typeof v === 'object' && typeof (v as PackedBlob).__blob === 'string';
+
+async function collectExtra(): Promise<BackupExtra> {
+  const attachments = await db.attachments.toArray();
+  const packed = [];
+  for (const a of attachments) packed.push({ ...a, blob: a.blob instanceof Blob ? await packBlob(a.blob) : a.blob });
+  const extra = { attachments: packed, settings: [] as unknown[] } as BackupExtra;
+  for (const name of EXTRA_TABLES) extra[name] = await db.table(name).toArray();
+  const all = await db.settings.toArray();
+  extra.settings = all.filter((r) => USER_SETTING_PREFIXES.some((p) => r.key.startsWith(p)));
+  return extra;
 }
 
 const TABLES = [
@@ -86,7 +148,17 @@ export async function createBackup(
     settings,
   };
 
-  if (options.includeTranslations) {
+  if (options.complete) {
+    const extra = await collectExtra();
+    backup.extra = extra;
+    counts.attachments = extra.attachments.length;
+    counts.dictionaries = extra.dictionaries.length;
+    counts.commentaries = extra.commentaries.length;
+    counts.aiAnalyses = extra.aiAnalyses.length;
+    counts.userSettings = extra.settings.length;
+  }
+
+  if (options.includeTranslations || options.complete) {
     const translations = await collectImportedTranslations();
     if (translations) {
       backup.translations = translations;
@@ -165,6 +237,30 @@ export async function restoreBackup(
     restored.translations = translations.meta.length;
     // o catálogo em memória guarda a lista antiga; sem isto elas não aparecem
     forgetMemoryCache();
+  }
+
+  /* O resto do aparelho, tabela por tabela: um dicionário que falhe não
+     desfaz os arquivos das apostilas. */
+  const extra = backup.extra;
+  if (extra) {
+    if (Array.isArray(extra.attachments) && extra.attachments.length) {
+      const rows = extra.attachments.map((a) => {
+        const row = a as Record<string, unknown>;
+        return isPacked(row.blob) ? { ...row, blob: unpackBlob(row.blob) } : row;
+      });
+      await db.attachments.bulkPut(rows as unknown as Parameters<typeof db.attachments.bulkPut>[0]);
+      restored.attachments = rows.length;
+    }
+    for (const name of EXTRA_TABLES) {
+      const rows = extra[name];
+      if (!Array.isArray(rows) || !rows.length) continue;
+      await db.table(name).bulkPut(rows);
+      restored[name] = rows.length;
+    }
+    if (Array.isArray(extra.settings) && extra.settings.length) {
+      await db.settings.bulkPut(extra.settings as Parameters<typeof db.settings.bulkPut>[0]);
+      restored.userSettings = extra.settings.length;
+    }
   }
 
   return { restored, settings: backup.settings };

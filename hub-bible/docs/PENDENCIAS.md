@@ -84,6 +84,37 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ak. ✅ Backup completo: levar o tablet inteiro para o notebook
+
+Pedido do usuário: o backup deve levar "tudo — Bíblia, tudo que eu fiz".
+Antes ficavam de fora:
+- os arquivos importados (PDF/Word das apostilas, cursos e sermões);
+- o Assistente bíblico;
+- os dicionários e comentários importados;
+- as análises do Estudo guiado.
+
+Agora `createBackup(settings, { complete: true })` acrescenta `extra`:
+- `attachments`, com o arquivo em base64 que volta como Blob;
+- `dictionaries`/`dictionaryEntries` e `commentaries`/`commentaryEntries`;
+- `aiAnalyses`;
+- os registros de `settings` que são do usuário (`assistant:*`,
+  `doctrinal-pack`, `export:*` e `book:*`, este para o livro que vem). As marcas
+  internas (`repair:*`) ficam fora.
+
+Com `complete`, as Bíblias importadas também vão. As chaves de IA
+(localStorage) não vão, de propósito. `restoreBackup` devolve tudo, tabela por
+tabela, e a tela aplica as configurações do arquivo (tema, letra, tamanho).
+
+Na tela, "Levar tudo (recomendado para trocar de aparelho)" vem marcado por
+padrão. As cópias automáticas dentro do app continuam leves, sem `complete`.
+
+Teste: viagem tablet → notebook em dois navegadores limpos. Chegaram a
+anotação, o estudo, o PDF idêntico byte a byte, a conversa e o material do
+assistente, a base doutrinária, o dicionário, o comentário, a Bíblia importada
+e o tema. A marca interna ficou fora e não havia chave de IA no arquivo. Pela
+tela: "Levar tudo" marcado, o arquivo baixado leva tudo e a restauração por
+"Restaurar de um arquivo" funciona.
+
 ### 0aj. ✅ Assistente: "Refazer" a última resposta da IA
 
 Pedido do usuário. Na última resposta da IA (não nas montadas sem IA, que
