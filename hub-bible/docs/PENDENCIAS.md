@@ -84,6 +84,17 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0aj. ✅ Assistente: "Refazer" a última resposta da IA
+
+Pedido do usuário. Na última resposta da IA (não nas montadas sem IA, que
+sairiam iguais) há "Refazer". Ele manda o mesmo pedido com as mesmas escolhas:
+texto, modo, profundidade, passagem, objetivo e materiais. Para isso o pedido
+passou a guardar `materialId`/`materialId2`; nas conversas antigas, o material
+é achado pelo título. A resposta nova entra no lugar da antiga, que fica em
+`previous`. "Voltar à versão anterior" troca uma pela outra, e as duas ficam
+salvas na conversa. Se a IA falhar, a resposta atual continua e o erro aparece.
+Teste: 30 (390 e 1280 px).
+
 ### 0ai. ⏳ Salmos: o título do salmo gruda no versículo 1 (analisado, aguardando o usuário)
 
 O usuário notou que, nos Salmos, "a explicação fica pegada com o versículo um".

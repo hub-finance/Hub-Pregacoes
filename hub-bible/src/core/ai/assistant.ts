@@ -416,11 +416,16 @@ export interface AssistantMessage {
   passage?: string;
   /** Pedido feito sobre um material importado: o título dele, para mostrar. */
   material?: string;
+  /** Os materiais usados no pedido, para o "Refazer" repetir as mesmas escolhas. */
+  materialId?: string;
+  materialId2?: string;
   /** Resposta: referências citadas que existem de fato na tradução. */
   validRefs?: string[];
   sources?: string[];
   /** Quem produziu: a IA ou o motor do aparelho, sem IA. Ausente = IA. */
   engine?: 'ia' | 'aparelho';
+  /** A versão anterior desta resposta, guardada pelo "Refazer". */
+  previous?: { content: string; validRefs?: string[]; sources?: string[]; at: number };
   at: number;
 }
 
