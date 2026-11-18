@@ -84,6 +84,21 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ai. ⏳ Salmos: o título do salmo gruda no versículo 1 (analisado, aguardando o usuário)
+
+O usuário notou que, nos Salmos, "a explicação fica pegada com o versículo um".
+As quatro traduções embutidas em português não trazem o título do salmo, então
+o problema vem da tradução importada dele (ARA, arquivo MyBible). Nesses
+arquivos o título ("Salmo de Davi.", "Ao mestre de canto…") vem dentro do texto
+do versículo 1, entre marcas próprias do formato. `parseVerse` (`mybible.ts`)
+tira as marcas mas mantém o conteúdo, e o título sai colado ao versículo. Não há
+cópia do arquivo dele aqui para confirmar a marca exata.
+
+Proposta: na importação, separar o título do versículo 1 e mostrá-lo acima do
+salmo, em letra menor e itálico, como os títulos de perícope (`stories`). Isso
+vale pela marca do formato e, se o arquivo não tiver marca, pelo começo típico
+dos títulos, só no versículo 1 dos Salmos. Exige reimportar a tradução.
+
 ### 0ah. ✅ Tamanho da letra, léxico grego e hebraico, e vocabulário proibido
 
 Pedidos do usuário:
@@ -104,11 +119,20 @@ Pedidos do usuário:
   - Abaixo do versículo tocado (sugestão do usuário): `passageWords` lista as
     palavras do original da passagem (dicionário teológico + Strong da
     tradução), e o verbete abre ali mesmo, sob o texto.
-- **"Restauração interior" proibida**: regra de vocabulário no prompt do
-  assistente (`assistant.ts`) e do Estudo guiado (`chatProvider.ts`). Também
-  ficam fora "cura interior", "cura das emoções", "cura da alma ferida" e "cura
-  de memórias"; no lugar delas, as palavras da Escritura (Sl 23.3, Rm 12.2,
-  2Co 5.17). O conteúdo do app não usava a expressão.
+- **Doutrinas que não entram** (bloco "DOUTRINAS E LINGUAGEM QUE NÃO ENTRAM"
+  no prompt do assistente, `assistant.ts`, e do Estudo guiado,
+  `chatProvider.ts`). Cada uma vai com a resposta bíblica:
+  - maldição hereditária;
+  - cura interior / restauração interior (e "cura das emoções" etc.);
+  - regressão;
+  - "pecador redimido" como identidade do crente;
+  - o Espírito Santo que entra e sai do cristão;
+  - autocomiseração.
+
+  Se o tema vier no pedido ou num material, a IA não o desenvolve: diz em
+  poucas linhas, com a Escritura, por que não se sustenta. O conteúdo embutido
+  do app não traz nenhuma delas (conferido). Teste: as sete marcas vão no
+  pedido à IA.
 
 Teste: 48 (24 em 390 px e 24 em 1280 px). Regressões sem falhas. O teste
 antigo do assistente passou a esperar o G4102 como link.
