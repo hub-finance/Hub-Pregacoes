@@ -4,6 +4,7 @@ import { Icon } from '../../components/Icon';
 import { ConfirmDialog, PageHeader } from '../../components/ui';
 import { Sheet } from '../../components/Sheet';
 import { SidePanel } from '../../components/SidePanel';
+import { TextSizeControl } from '../../components/TextSizeControl';
 import { useToast } from '../../components/Toast';
 import { useIsWide } from '../../hooks';
 import { READER_FONT_OPTIONS, useSettings, type ReaderFont } from '../../core/settings/SettingsContext';
@@ -28,6 +29,7 @@ import { formatReference, parseReference } from '../../core/bible/reference';
 import { VersePreview, previewLabel, type PreviewTarget } from '../bible/VersePreview';
 import { Markdown, markdownToPlain } from './Markdown';
 import { DocumentEditor } from './DocumentEditor';
+import { LexiconPanel } from './LexiconPanel';
 import { buildStudyWithoutAi } from '../../core/data/studyEngine';
 import {
   getMaterial,
@@ -104,6 +106,8 @@ export default function AssistantPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<PreviewTarget | null>(null);
+  // consulta ao léxico aberta no painel (null = fechado)
+  const [lexicon, setLexicon] = useState<string | null>(null);
   const [view, setView] = useState<'conversa' | 'documento'>('conversa');
   const goal: AssistantGoal = conv.goal ?? 'livre';
   const saveTimer = useRef<number | undefined>(undefined);
@@ -345,6 +349,7 @@ export default function AssistantPage() {
   };
 
   const openRef = useCallback((target: PreviewTarget) => setPreview(target), []);
+  const openStrong = useCallback((code: string) => setLexicon(code), []);
 
   const lastAssistantIndex = useMemo(() => {
     for (let i = conv.messages.length - 1; i >= 0; i--) if (conv.messages[i].role === 'assistant') return i;
@@ -542,17 +547,26 @@ export default function AssistantPage() {
         </form>
   );
 
-  const previewBody = preview && (
-    <VersePreview
-      target={preview}
-      translation={translation}
-      onBack={() => setPreview(null)}
-      onNavigate={() => setPreview(null)}
-    />
-  );
+  // o versículo em cima e, logo abaixo, o léxico das palavras dele
+  const previewBody = preview ? (
+    <>
+      <VersePreview
+        target={preview}
+        translation={translation}
+        onBack={() => setPreview(null)}
+        onNavigate={() => { setPreview(null); setLexicon(null); }}
+      />
+      <LexiconPanel translation={translation} query={lexicon ?? ''} onQuery={setLexicon} onRef={setPreview} passage={preview} />
+    </>
+  ) : lexicon !== null ? (
+    <LexiconPanel translation={translation} query={lexicon} onQuery={setLexicon} onRef={setPreview} />
+  ) : null;
+  const panelOpen = !!preview || lexicon !== null;
+  const panelTitle = preview ? previewLabel(preview) : 'Léxico grego e hebraico';
+  const closePanel = () => { setPreview(null); setLexicon(null); };
 
   return (
-    <div className={`page assistant-layout${isWide && preview ? ' has-panel page-wide' : ''}`}>
+    <div className={`page assistant-layout${isWide && panelOpen ? ' has-panel page-wide' : ''}`}>
       <div className="assistant-main">
       <PageHeader
         title="Assistente bíblico"
@@ -571,6 +585,11 @@ export default function AssistantPage() {
             {READER_FONT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </label>
+        <TextSizeControl />
+        <button className="btn btn-sm" onClick={() => { setPreview(null); setLexicon((q) => q ?? ''); }}>
+          <Icon name="dictionary" size={16} />
+          <span>Léxico</span>
+        </button>
         <button className="btn btn-sm" onClick={() => setHistoryOpen(true)}>
           <Icon name="list" size={16} />
           <span>Conversas{history.length ? ` (${history.length})` : ''}</span>
@@ -671,7 +690,7 @@ export default function AssistantPage() {
                     <span className="small dim truncate">{m.engine === 'aparelho' ? 'Fontes' : 'Com dados do aparelho'}: {m.sources.join(', ')}</span>
                   )}
                 </div>
-                <Markdown text={m.content} validRefs={new Set(m.validRefs ?? [])} onRef={openRef} />
+                <Markdown text={m.content} validRefs={new Set(m.validRefs ?? [])} onRef={openRef} onStrong={openStrong} />
                 <div className="row row-wrap assistant-msg-actions">
                   <button className="btn btn-ghost btn-sm" onClick={() => copyAnswer(m)}>
                     <Icon name="copy" size={16} />
@@ -712,11 +731,11 @@ export default function AssistantPage() {
       </div>
 
       {isWide ? (
-        <SidePanel open={!!preview} title={preview ? previewLabel(preview) : ''} onClose={() => setPreview(null)}>
+        <SidePanel open={panelOpen} title={panelTitle} onClose={closePanel}>
           {previewBody}
         </SidePanel>
       ) : (
-        <Sheet open={!!preview} title={preview ? previewLabel(preview) : ''} onClose={() => setPreview(null)}>
+        <Sheet open={panelOpen} title={panelTitle} onClose={closePanel}>
           {previewBody}
         </Sheet>
       )}

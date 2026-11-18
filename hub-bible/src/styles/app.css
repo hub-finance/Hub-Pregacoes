@@ -1788,3 +1788,37 @@ input.study-section-title:focus {
 .ai-key-card.in-use {
   border-left: 3px solid var(--accent);
 }
+
+/* ---------------- tamanho da letra (assistente e aba Estudar) ---------------- */
+.text-size {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+.text-size-label {
+  margin-right: var(--sp-1);
+}
+.text-size-btn {
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+  font-weight: 700;
+}
+.text-size-value {
+  min-width: 52px;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+}
+.text-size-value:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

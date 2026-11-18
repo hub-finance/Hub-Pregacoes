@@ -132,13 +132,13 @@
   margin-bottom: 0;
 }
 .md h3 {
-  font-size: 1.05rem;
+  font-size: 1.08em;
   font-weight: 700;
   margin-top: var(--sp-4);
   color: var(--accent-strong);
 }
 .md h4 {
-  font-size: 0.95rem;
+  font-size: 0.98em;
   font-weight: 700;
   margin-top: var(--sp-3);
 }
@@ -218,7 +218,7 @@
 /* o documento inteiro num campo só, como uma folha */
 .assistant-doc-text {
   min-height: 60vh;
-  font-size: 0.95rem;
+  font-size: calc(0.95rem * var(--assistant-scale, 1));
   line-height: 1.6;
   resize: vertical;
 }
@@ -241,6 +241,11 @@
 .assistant-doc-text {
   font-family: var(--font-assistant, var(--font-ui));
 }
+/* e o tamanho ("Tamanho", A− / A+): títulos em em, para acompanharem */
+.assistant-msg .md,
+.assistant-doc-preview .md {
+  font-size: calc(0.97rem * var(--assistant-scale, 1));
+}
 .assistant-font {
   display: inline-flex;
   align-items: center;
@@ -253,4 +258,74 @@
   min-width: 0;
   max-width: 230px;
   padding-block: 6px;
+}
+
+/* --------------------- léxico grego e hebraico (painel) --------------------- */
+.lexicon-below {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--border);
+}
+.lexicon-title {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--accent-strong);
+}
+.lexicon .search-bar {
+  margin: 0;
+}
+.lexicon-hit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  overflow-wrap: anywhere;
+}
+.lexicon-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-2) var(--sp-3);
+}
+.lexicon-word {
+  font-size: 1.6rem;
+  line-height: 1.2;
+  font-family: 'Noto Serif', 'Times New Roman', serif;
+}
+.lexicon-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+.lexicon-doctrine {
+  margin: 0;
+  line-height: 1.6;
+}
+.lexicon-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.lexicon-group .crossref-chip {
+  min-height: 44px;
+  cursor: pointer;
+}
+.lexicon .crossref-chip {
+  min-height: 44px;
+}
+.lexicon-occ ul {
+  margin: var(--sp-1) 0 0;
+  padding-left: 1.1em;
+  list-style: disc;
+}
+.lexicon-occ li + li {
+  margin-top: 4px;
+}
+.lexicon-builtin summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text-2);
 }

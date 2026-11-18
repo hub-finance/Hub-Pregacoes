@@ -15,6 +15,8 @@ interface Props {
   text: string;
   validRefs: Set<string>;
   onRef: (target: PreviewTarget, from: HTMLElement) => void;
+  /** Número de Strong tocado (H7965, G26): abre o léxico. Sem ele, fica texto. */
+  onStrong?: (code: string) => void;
 }
 
 type Block =
@@ -68,17 +70,25 @@ function parseBlocks(src: string): Block[] {
   return blocks;
 }
 
-const INLINE_RE = /(\*\*[^*]+\*\*|\*[^*\s][^*]*\*|\[[^\]]+\])/g;
+const INLINE_RE = /(\*\*[^*]+\*\*|\*[^*\s][^*]*\*|\[[^\]]+\]|\b[HG]\d{1,5}\b)/g;
 
-function Inline({ text, validRefs, onRef }: { text: string } & Omit<Props, 'text'>) {
+function Inline({ text, validRefs, onRef, onStrong }: { text: string } & Omit<Props, 'text'>) {
   const parts = text.split(INLINE_RE);
   const out: ReactNode[] = parts.map((part, i) => {
     if (!part) return null;
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
-      return <strong key={i}><Inline text={part.slice(2, -2)} validRefs={validRefs} onRef={onRef} /></strong>;
+      return <strong key={i}><Inline text={part.slice(2, -2)} validRefs={validRefs} onRef={onRef} onStrong={onStrong} /></strong>;
     }
     if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
       return <em key={i}>{part.slice(1, -1)}</em>;
+    }
+    if (/^[HG]\d{1,5}$/.test(part)) {
+      if (!onStrong) return <Fragment key={i}>{part}</Fragment>;
+      return (
+        <button key={i} type="button" className="ref-link" onClick={() => onStrong(part)} aria-label={`Abrir ${part} no léxico`}>
+          {part}
+        </button>
+      );
     }
     if (part.startsWith('[') && part.endsWith(']')) {
       const inner = part.slice(1, -1);
@@ -106,9 +116,9 @@ function Inline({ text, validRefs, onRef }: { text: string } & Omit<Props, 'text
   return <>{out}</>;
 }
 
-export function Markdown({ text, validRefs, onRef }: Props) {
+export function Markdown({ text, validRefs, onRef, onStrong }: Props) {
   const blocks = parseBlocks(text);
-  const inline = (t: string) => <Inline text={t} validRefs={validRefs} onRef={onRef} />;
+  const inline = (t: string) => <Inline text={t} validRefs={validRefs} onRef={onRef} onStrong={onStrong} />;
   return (
     <div className="md">
       {blocks.map((b, i) => {

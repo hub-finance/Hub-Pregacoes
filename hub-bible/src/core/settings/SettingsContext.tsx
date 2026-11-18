@@ -69,6 +69,8 @@ export interface AppSettings {
   readerFont: ReaderFont;
   /** Letra das respostas e do documento do Assistente bíblico. */
   assistantFont: ReaderFont;
+  /** Tamanho da letra no Assistente bíblico e na aba Estudar (1 = 100%). */
+  assistantScale: number;
   verseLayout: 'paragraph' | 'lines';
   /** Alinhamento do texto bíblico. */
   textAlign: 'left' | 'justify';
@@ -127,6 +129,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   readerFont: 'serif',
   // a letra que o assistente sempre teve: nada muda até o pregador escolher
   assistantFont: 'sans',
+  assistantScale: 1,
   verseLayout: 'paragraph',
   textAlign: 'left',
   dropCap: true,
@@ -224,9 +227,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       '--font-assistant',
       READER_FONT_STACK[settings.assistantFont] ?? READER_FONT_STACK.sans,
     );
+    root.style.setProperty('--assistant-scale', String(settings.assistantScale ?? 1));
     const meta = document.querySelector('meta[name="theme-color"]:not([media])');
     if (meta) meta.setAttribute('content', THEME_COLOR[resolvedTheme]);
-  }, [resolvedTheme, settings.contrast, settings.fontScale, settings.leading, settings.measure, settings.readerFont, settings.assistantFont]);
+  }, [resolvedTheme, settings.contrast, settings.fontScale, settings.leading, settings.measure, settings.readerFont, settings.assistantFont, settings.assistantScale]);
 
   useEffect(() => {
     try {

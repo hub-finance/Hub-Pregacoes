@@ -254,6 +254,8 @@ const TOPICS: Topic[] = [
       'Dois materiais juntos: com um material escolhido, o campo "Segundo material" aparece quando você tem mais de um importado. O assistente cruza os dois — primeiro os versículos que ambos citam, com uma frase de cada um; depois as doutrinas em comum; por fim o que cada um acrescenta. Quando divergem, o texto bíblico decide. Vale para estudo, mensagem, resumo e conferir.',
       'O nome do material não aparece no que o assistente escreve. Em "Materiais" você renomeia ou apaga. PDF escaneado como imagem não tem texto para ler; PDF digital e Word funcionam.',
       'Com IA, vale a mesma regra do Estudo guiado: é comentário, nunca Escritura. Confira com o texto antes de levar ao púlpito.',
+      'Letra e tamanho: no alto do assistente, "Letra" escolhe o tipo e "Tamanho" (A− / A+) aumenta ou diminui. Tocar no número volta para 100%. O tamanho vale também para a aba Estudar do Gerar e Exportar e não muda o PDF.',
+      'Léxico grego e hebraico: o botão "Léxico" consulta pela palavra em português ("graça"), pela transliteração ("charis"), pelo número de Strong ("G5485") ou pela palavra no original. Ao tocar num versículo, o léxico aparece logo abaixo, com as palavras do original daquela passagem. Os números de Strong das respostas também abrem o léxico. O que está em português vem primeiro; a definição de Strong embutida, em inglês, fica fechada no fim.',
       { to: '/assistente', label: 'Abrir o assistente', text: 'O assistente está no menu, no grupo Ministério.' },
     ],
   },
@@ -263,6 +265,7 @@ const TOPICS: Topic[] = [
     steps: [
       'Dentro de um documento, a aba "Estudar" mostra o texto para ler e estudar, na letra de leitura, sem a moldura da folha.',
       'Toda referência bíblica do texto vira link — "Sl 23:1", "Romanos 5:1", "Jo 10.11". Um toque abre o versículo na sua Bíblia; "Abrir no leitor" leva ao capítulo.',
+      '"Tamanho" (A− / A+) no alto da aba aumenta a letra — o mesmo tamanho do Assistente bíblico.',
       'Só vira link a referência que existe na sua tradução; as demais ficam como texto. Nada muda no PDF nem no Word.',
     ],
   },

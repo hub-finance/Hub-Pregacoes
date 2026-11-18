@@ -243,3 +243,27 @@ export async function findByTransliteration(word: string, limit = 2): Promise<Le
 }
 
 export { formatDefinition };
+
+/** Hebraico ou grego sem sinais vocálicos e acentos ("שָׁלוֹם" → "שלום"). */
+export function bareLemma(word: string): string {
+  return word.normalize('NFD').replace(/\p{M}/gu, '').replace(/[^\p{L}]/gu, '').toLowerCase();
+}
+
+/** Procura pela palavra escrita em hebraico ou em grego, com ou sem sinais. */
+export async function findByLemma(word: string, limit = 4): Promise<LexiconEntry[]> {
+  if (!await isLexiconAvailable()) return [];
+  const key = bareLemma(word);
+  if (!key) return [];
+  const [g, h] = await Promise.all([loadGreek(), loadHebrew()]);
+  const exact: LexiconEntry[] = [];
+  const starts: LexiconEntry[] = [];
+  for (const data of [h, g]) {
+    for (const [code, raw] of Object.entries(data)) {
+      if (!raw.l) continue;
+      const lemma = bareLemma(raw.l);
+      if (lemma === key) exact.push(expand(code, raw));
+      else if (starts.length < limit && lemma.startsWith(key)) starts.push(expand(code, raw));
+    }
+  }
+  return [...exact, ...starts].slice(0, limit);
+}

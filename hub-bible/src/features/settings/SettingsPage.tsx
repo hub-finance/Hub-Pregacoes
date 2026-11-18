@@ -130,6 +130,15 @@ export default function SettingsPage() {
             onChange={(v) => update({ assistantFont: v as ReaderFont })}
             options={READER_FONT_OPTIONS}
           />
+          <RangeInput
+            label="Tamanho da letra no Assistente bíblico e na aba Estudar"
+            value={Math.round((settings.assistantScale ?? 1) * 100)}
+            min={85}
+            max={160}
+            step={5}
+            suffix="%"
+            onChange={(v) => update({ assistantScale: v / 100 })}
+          />
           <SelectInput
             label="Disposição dos versículos"
             value={settings.verseLayout}

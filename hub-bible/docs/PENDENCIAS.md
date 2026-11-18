@@ -84,6 +84,35 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ah. ✅ Tamanho da letra, léxico grego e hebraico, e vocabulário proibido
+
+Pedidos do usuário:
+- **Tamanho da letra** no assistente e na aba Estudar: `assistantScale` em
+  `SettingsContext.tsx` (padrão 1, de 85% a 160%), variável `--assistant-scale`.
+  Controle A− / A+ (`components/TextSizeControl.tsx`) no alto das duas telas, e
+  também em Configurações. O PDF e o Word não mudam.
+- **Léxico grego e hebraico no assistente** (`core/data/lexiconLookup.ts` e
+  `features/assistant/LexiconPanel.tsx`). Aceita a palavra em português, a
+  transliteração, o número de Strong ou a palavra no original (com ou sem
+  sinais, `findByLemma`). Mostra primeiro o que está em português: dicionário
+  teológico, grupos de sentido e dicionários importados. Depois, os versículos
+  da tradução com Strong. A definição de Strong embutida, em inglês, fica num
+  "detalhes" fechado no fim.
+  - Abre pelo botão "Léxico".
+  - Abre pelos números de Strong das respostas, que viraram link (`onStrong`
+    no `Markdown`).
+  - Abaixo do versículo tocado (sugestão do usuário): `passageWords` lista as
+    palavras do original da passagem (dicionário teológico + Strong da
+    tradução), e o verbete abre ali mesmo, sob o texto.
+- **"Restauração interior" proibida**: regra de vocabulário no prompt do
+  assistente (`assistant.ts`) e do Estudo guiado (`chatProvider.ts`). Também
+  ficam fora "cura interior", "cura das emoções", "cura da alma ferida" e "cura
+  de memórias"; no lugar delas, as palavras da Escritura (Sl 23.3, Rm 12.2,
+  2Co 5.17). O conteúdo do app não usava a expressão.
+
+Teste: 48 (24 em 390 px e 24 em 1280 px). Regressões sem falhas. O teste
+antigo do assistente passou a esperar o G4102 como link.
+
 ### 0ag. ✅ Gerar e Exportar: aba "Estudar" com links nos versículos
 
 Pedido do usuário: estudar dentro do app o que foi criado, com link 🔗 nos

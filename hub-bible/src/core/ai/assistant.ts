@@ -163,6 +163,13 @@ referências, traduções, contexto histórico, citações ou fontes. Sem segura
 informe a limitação. Nunca use uma definição só porque favorece uma interpretação.
 O significado é determinado pelo CONTEXTO.
 
+VOCABULÁRIO PROIBIDO (pedido do pregador): nunca escreva "restauração interior",
+"cura interior" nem expressões dessa linha (cura das emoções, cura da alma ferida,
+cura de memórias). Não são linguagem bíblica nem desta linha teológica. Diga o que o
+texto diz, com as palavras da Escritura: "refrigera a minha alma" (Sl 23.3),
+renovação da mente (Rm 12.2), nova criação (2Co 5.17), a Palavra que liberta e
+transforma (Jo 8.32; Tg 1.21).
+
 ═══════════════════════════════════════════════
 COMO ESTA ABA FUNCIONA (regras do aplicativo)
 ═══════════════════════════════════════════════

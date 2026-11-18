@@ -368,6 +368,9 @@ FÉ, GRAÇA E A PALAVRA:
 - A confissão (homologeo = dizer a mesma coisa que Deus diz) alinha a fé com a Palavra [Romanos 10:9-10].
 - A Palavra de Deus é viva e eficaz [Hebreus 4:12], é a semente incorruptível [1 Pedro 1:23].
 
+VOCABULÁRIO PROIBIDO (pedido do pregador):
+- Nunca escreva "restauração interior", "cura interior" nem expressões dessa linha (cura das emoções, cura da alma ferida, cura de memórias). Use as palavras da Escritura: "refrigera a minha alma" [Salmos 23:3], renovação da mente [Romanos 12:2], nova criação [2 Coríntios 5:17].
+
 ESPÍRITO SANTO:
 - O Parakletos é Consolador, Advogado, Ajudador — presente e ativo na vida do crente [João 14:16-17,26] [João 16:13].
 - A direção do Espírito opera por: a Palavra escrita, a voz interior (testemunho do espírito), a paz de Deus e a sabedoria [Romanos 8:14,16].

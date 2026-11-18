@@ -375,7 +375,8 @@
 }
 .xp-study {
   font-family: var(--font-reader);
-  font-size: 1.05rem;
+  /* o mesmo "Tamanho" do Assistente bíblico */
+  font-size: calc(1.05rem * var(--assistant-scale, 1));
   line-height: 1.75;
   overflow-wrap: anywhere;
 }
@@ -386,18 +387,18 @@
   margin-bottom: 0;
 }
 .xp-study h1 {
-  font-size: 1.4rem;
+  font-size: 1.33em;
   line-height: 1.3;
   color: var(--accent-strong);
   margin-bottom: var(--sp-4);
 }
 .xp-study h2 {
-  font-size: 1.15rem;
+  font-size: 1.1em;
   margin-top: var(--sp-5);
   color: var(--accent-strong);
 }
 .xp-study h3 {
-  font-size: 1.02rem;
+  font-size: 0.97em;
   margin-top: var(--sp-4);
 }
 .xp-study ul,
@@ -429,7 +430,7 @@
   margin-top: var(--sp-2);
 }
 .xp-study-ref {
-  font-size: 0.9rem;
+  font-size: 0.86em;
   color: var(--text-2);
 }
 .xp-study-table {
@@ -437,7 +438,7 @@
 }
 .xp-study-table table {
   border-collapse: collapse;
-  font-size: 0.95rem;
+  font-size: 0.9em;
 }
 .xp-study-table th,
 .xp-study-table td {
