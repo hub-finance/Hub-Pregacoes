@@ -4,6 +4,7 @@ import { Icon } from '../../components/Icon';
 import { ConfirmDialog, PageHeader } from '../../components/ui';
 import { Sheet } from '../../components/Sheet';
 import { SidePanel } from '../../components/SidePanel';
+import { TextSizeControl } from '../../components/TextSizeControl';
 import { useToast } from '../../components/Toast';
 import { useIsWide } from '../../hooks';
 import { READER_FONT_OPTIONS, useSettings, type ReaderFont } from '../../core/settings/SettingsContext';
@@ -28,6 +29,7 @@ import { formatReference, parseReference } from '../../core/bible/reference';
 import { VersePreview, previewLabel, type PreviewTarget } from '../bible/VersePreview';
 import { Markdown, markdownToPlain } from './Markdown';
 import { DocumentEditor } from './DocumentEditor';
+import { LexiconPanel } from './LexiconPanel';
 import { buildStudyWithoutAi } from '../../core/data/studyEngine';
 import {
   getMaterial,
@@ -104,6 +106,10 @@ export default function AssistantPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<PreviewTarget | null>(null);
+  // consulta ao léxico aberta no painel (null = fechado)
+  const [lexicon, setLexicon] = useState<string | null>(null);
+  // refazendo a última resposta: o aviso de espera fala disso
+  const [redoing, setRedoing] = useState(false);
   const [view, setView] = useState<'conversa' | 'documento'>('conversa');
   const goal: AssistantGoal = conv.goal ?? 'livre';
   const saveTimer = useRef<number | undefined>(undefined);
@@ -156,6 +162,8 @@ export default function AssistantPage() {
     const userMsg: AssistantMessage = {
       role: 'user', content: request, mode, depth, passage: passage.trim() || undefined,
       material: selectedMaterial2 ? `${selectedMaterial?.title} + ${selectedMaterial2.title}` : selectedMaterial?.title,
+      materialId: selectedMaterial?.id,
+      materialId2: selectedMaterial2?.id,
       at: Date.now(),
     };
     // a pergunta aparece na hora; só entra na conversa salva com a resposta
@@ -188,6 +196,75 @@ export default function AssistantPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * Refaz a última resposta da IA com o mesmo pedido e as mesmas escolhas. A
+   * nova entra no lugar da antiga, que fica guardada para voltar.
+   */
+  const redo = async () => {
+    const last = conv.messages.length - 1;
+    const answer = conv.messages[last];
+    const asked = conv.messages[last - 1];
+    if (loading || engine !== 'ia' || answer?.role !== 'assistant' || asked?.role !== 'user') return;
+    setLoading(true);
+    setRedoing(true);
+    setError('');
+    try {
+      // conversas antigas guardaram só o título do material
+      const byTitle = (title?: string) => materials.find((m) => m.title === title)?.id;
+      const titles = asked.material?.split(' + ') ?? [];
+      const id1 = asked.materialId ?? (titles.length === 1 ? byTitle(asked.material) : byTitle(titles[0]));
+      const id2 = asked.materialId2 ?? (titles.length === 2 ? byTitle(titles[1]) : undefined);
+      const material = id1 ? await getMaterial(id1) : null;
+      if (asked.material && !material) throw new Error('O material deste pedido não está mais no aparelho.');
+      const material2 = id2 ? await getMaterial(id2) : null;
+      const fresh = await runAssistant({
+        text: asked.content,
+        mode: asked.mode ?? 'livre',
+        depth: asked.depth ?? 'auto',
+        passage: asked.passage ?? '',
+        translation,
+        history: conv.messages.slice(0, last - 1),
+        goal,
+        material,
+        material2,
+      });
+      const done: AssistantConversation = {
+        ...conv,
+        messages: [...conv.messages.slice(0, last), {
+          role: 'assistant', content: fresh.content, validRefs: fresh.validRefs, sources: fresh.sources, engine: 'ia', at: Date.now(),
+          previous: { content: answer.content, validRefs: answer.validRefs, sources: answer.sources, at: answer.at },
+        }],
+      };
+      setConv(done);
+      await saveConversation(done);
+      refreshHistory();
+      notify('Estudo refeito. Se preferir o anterior, toque em "Voltar à versão anterior".');
+      requestAnimationFrame(() => lastAnswer.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível refazer com a IA.');
+    } finally {
+      setLoading(false);
+      setRedoing(false);
+    }
+  };
+
+  /** Troca a resposta pela versão guardada (e guarda a atual, para trocar de volta). */
+  const swapVersion = async () => {
+    const last = conv.messages.length - 1;
+    const m = conv.messages[last];
+    if (!m?.previous || loading) return;
+    const done: AssistantConversation = {
+      ...conv,
+      messages: [...conv.messages.slice(0, last), {
+        ...m,
+        content: m.previous.content, validRefs: m.previous.validRefs, sources: m.previous.sources, at: m.previous.at,
+        previous: { content: m.content, validRefs: m.validRefs, sources: m.sources, at: m.at },
+      }],
+    };
+    setConv(done);
+    await saveConversation(done);
   };
 
   const startNew = () => {
@@ -345,6 +422,7 @@ export default function AssistantPage() {
   };
 
   const openRef = useCallback((target: PreviewTarget) => setPreview(target), []);
+  const openStrong = useCallback((code: string) => setLexicon(code), []);
 
   const lastAssistantIndex = useMemo(() => {
     for (let i = conv.messages.length - 1; i >= 0; i--) if (conv.messages[i].role === 'assistant') return i;
@@ -542,17 +620,26 @@ export default function AssistantPage() {
         </form>
   );
 
-  const previewBody = preview && (
-    <VersePreview
-      target={preview}
-      translation={translation}
-      onBack={() => setPreview(null)}
-      onNavigate={() => setPreview(null)}
-    />
-  );
+  // o versículo em cima e, logo abaixo, o léxico das palavras dele
+  const previewBody = preview ? (
+    <>
+      <VersePreview
+        target={preview}
+        translation={translation}
+        onBack={() => setPreview(null)}
+        onNavigate={() => { setPreview(null); setLexicon(null); }}
+      />
+      <LexiconPanel translation={translation} query={lexicon ?? ''} onQuery={setLexicon} onRef={setPreview} passage={preview} />
+    </>
+  ) : lexicon !== null ? (
+    <LexiconPanel translation={translation} query={lexicon} onQuery={setLexicon} onRef={setPreview} />
+  ) : null;
+  const panelOpen = !!preview || lexicon !== null;
+  const panelTitle = preview ? previewLabel(preview) : 'Léxico grego e hebraico';
+  const closePanel = () => { setPreview(null); setLexicon(null); };
 
   return (
-    <div className={`page assistant-layout${isWide && preview ? ' has-panel page-wide' : ''}`}>
+    <div className={`page assistant-layout${isWide && panelOpen ? ' has-panel page-wide' : ''}`}>
       <div className="assistant-main">
       <PageHeader
         title="Assistente bíblico"
@@ -571,6 +658,11 @@ export default function AssistantPage() {
             {READER_FONT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </label>
+        <TextSizeControl />
+        <button className="btn btn-sm" onClick={() => { setPreview(null); setLexicon((q) => q ?? ''); }}>
+          <Icon name="dictionary" size={16} />
+          <span>Léxico</span>
+        </button>
         <button className="btn btn-sm" onClick={() => setHistoryOpen(true)}>
           <Icon name="list" size={16} />
           <span>Conversas{history.length ? ` (${history.length})` : ''}</span>
@@ -671,7 +763,7 @@ export default function AssistantPage() {
                     <span className="small dim truncate">{m.engine === 'aparelho' ? 'Fontes' : 'Com dados do aparelho'}: {m.sources.join(', ')}</span>
                   )}
                 </div>
-                <Markdown text={m.content} validRefs={new Set(m.validRefs ?? [])} onRef={openRef} />
+                <Markdown text={m.content} validRefs={new Set(m.validRefs ?? [])} onRef={openRef} onStrong={openStrong} />
                 <div className="row row-wrap assistant-msg-actions">
                   <button className="btn btn-ghost btn-sm" onClick={() => copyAnswer(m)}>
                     <Icon name="copy" size={16} />
@@ -684,6 +776,18 @@ export default function AssistantPage() {
                     <Icon name="note" size={16} />
                     <span>Salvar como anotação</span>
                   </button>
+                  {i === conv.messages.length - 1 && m.engine !== 'aparelho' && engine === 'ia' && (
+                    <button className="btn btn-ghost btn-sm" onClick={redo} disabled={loading}>
+                      <Icon name="reset" size={16} />
+                      <span>Refazer</span>
+                    </button>
+                  )}
+                  {i === conv.messages.length - 1 && m.previous && (
+                    <button className="btn btn-ghost btn-sm" onClick={swapVersion} disabled={loading}>
+                      <Icon name="reset" size={16} />
+                      <span>Voltar à versão anterior</span>
+                    </button>
+                  )}
                 </div>
               </div>
             )
@@ -691,7 +795,7 @@ export default function AssistantPage() {
           {loading && (
             <div className="assistant-msg ai row" style={{ gap: 'var(--sp-2)' }}>
               <span className="spinner" />
-              <span className="small dim">{engine === 'ia' ? 'Estudando o texto…' : 'Montando com os dados do aparelho…'}</span>
+              <span className="small dim">{redoing ? 'Refazendo com a IA… a resposta atual continua acima até a nova chegar.' : engine === 'ia' ? 'Estudando o texto…' : 'Montando com os dados do aparelho…'}</span>
             </div>
           )}
           {conv.messages.some((m) => m.role === 'assistant' && m.engine !== 'aparelho') && (
@@ -712,11 +816,11 @@ export default function AssistantPage() {
       </div>
 
       {isWide ? (
-        <SidePanel open={!!preview} title={preview ? previewLabel(preview) : ''} onClose={() => setPreview(null)}>
+        <SidePanel open={panelOpen} title={panelTitle} onClose={closePanel}>
           {previewBody}
         </SidePanel>
       ) : (
-        <Sheet open={!!preview} title={preview ? previewLabel(preview) : ''} onClose={() => setPreview(null)}>
+        <Sheet open={panelOpen} title={panelTitle} onClose={closePanel}>
           {previewBody}
         </Sheet>
       )}

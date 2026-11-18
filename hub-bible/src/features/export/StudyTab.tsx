@@ -1,5 +1,6 @@
 import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import { Sheet } from '../../components/Sheet';
+import { TextSizeControl } from '../../components/TextSizeControl';
 import { SidePanel } from '../../components/SidePanel';
 import { useAsync, useIsWide } from '../../hooks';
 import { useSettings } from '../../core/settings/SettingsContext';
@@ -126,6 +127,9 @@ export function StudyTab({ doc }: Props) {
   return (
     <div className={`xp-study-layout${isWide && preview ? ' has-panel' : ''}`}>
       <div className="xp-study-main">
+        <div className="row row-wrap" style={{ gap: 'var(--sp-2)', marginBottom: 'var(--sp-2)' }}>
+          <TextSizeControl />
+        </div>
         <p className="small dim" style={{ margin: '0 0 var(--sp-3)' }}>
           {valid.size
             ? `Toque numa referência para ler o versículo na sua Bíblia. ${valid.size} ${valid.size === 1 ? 'referência encontrada' : 'referências encontradas'}.`
