@@ -61,14 +61,15 @@ const WHERE = {
  */
 export function BackupPanel() {
   const { notify } = useToast();
-  const { settings } = useSettings();
+  const { settings, update } = useSettings();
   const [snapshots, setSnapshots] = useState<SnapshotMeta[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [exportedAt, setExportedAt] = useState<number | null>(lastExportAt());
   const [storage, setStorage] = useState<StorageStatus | null>(null);
-  /* Levar as Bíblias importadas na cópia. Desligado por padrão porque engorda
-     muito o arquivo; ligado, é o que faz uma instalação nova nascer completa. */
-  const [withBibles, setWithBibles] = useState(false);
+  /* Levar tudo: Bíblias importadas, arquivos das apostilas, assistente,
+     dicionários e comentários. Ligado por padrão (pedido do pregador): é a
+     cópia que passa o tablet inteiro para o notebook. */
+  const [withBibles, setWithBibles] = useState(true);
   const restoreInput = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
@@ -89,6 +90,7 @@ export function BackupPanel() {
     try {
       const { result, path, records, bytes } = await sendBackupTo(targetId, settings, {
         includeTranslations: withBibles,
+        complete: withBibles,
       });
       const resumo = `${records.toLocaleString('pt-BR')} registros, ${formatBytes(bytes)}`;
       notify(
@@ -212,20 +214,21 @@ export function BackupPanel() {
           style={{ width: 22, height: 22, flex: 'none' }}
         />
         <span style={{ flex: 1, minWidth: 0 }}>
-          <span className="list-title">Levar também as Bíblias que importei</span>
+          <span className="list-title">Levar tudo (recomendado para trocar de aparelho)</span>
           <span className="list-meta">
-            Para uma instalação nova nascer completa — inclusive o aplicativo Android — sem
-            reimportar nada. O arquivo fica bem maior: cada tradução passa de 4 MB, e com números
-            Strong pode triplicar.
+            Bíblias importadas, os arquivos das apostilas e cursos (PDF, Word), o Assistente bíblico
+            (conversas e materiais), a base doutrinária, os dicionários e comentários importados e
+            as análises do Estudo guiado. Assim o notebook ou um tablet novo nasce igual a este, sem
+            reimportar nada. O arquivo fica bem maior. As chaves de IA não vão: digite-as de novo
+            no outro aparelho.
           </span>
         </span>
       </label>
 
       <p className="small muted">
-        A cópia leva favoritos, marcações, anotações, sermões, Rhema, cursos, planos e histórico.
-        Não leva os arquivos importados (PDF, Word, apresentações) — são grandes demais; guarde os
-        originais e importe de novo quando precisar. As Bíblias importadas só vão se você marcar a
-        opção acima.
+        A cópia leva sempre favoritos, marcações, anotações, sermões, Rhema, cursos, planos,
+        histórico e os documentos do Gerar e Exportar. Com "Levar tudo" marcado, leva também o
+        resto do aparelho. Desmarcado, o arquivo sai pequeno, só com os seus textos.
       </p>
 
       {/* -------------------- as cópias que ficam aqui -------------------- */}
@@ -323,6 +326,8 @@ export function BackupPanel() {
             const data = await readJsonFile(file);
             const result = await restoreBackup(data, 'merge');
             const total = Object.values(result.restored).reduce((a, b) => a + b, 0);
+            // tema, letra e tamanho do outro aparelho: o notebook fica igual ao tablet
+            if (result.settings && typeof result.settings === 'object') update(result.settings as Partial<typeof settings>);
             notify(`Backup restaurado: ${total.toLocaleString('pt-BR')} registros.`);
             await refresh();
           } catch (err) {

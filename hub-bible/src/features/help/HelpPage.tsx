@@ -306,8 +306,9 @@ const TOPICS: Topic[] = [
       '"Baixar o arquivo" guarda no próprio aparelho: no navegador vai para a pasta Download; no aplicativo Android vai para a pasta Documentos, e o aviso na tela diz onde ficou.',
       'O app também guarda sozinho as últimas seis cópias, uma a cada poucos dias. Elas servem para desfazer um engano — apagar um sermão sem querer — e ficam dentro do próprio app: no navegador somem se você limpar os dados dele; no aplicativo Android somem se você desinstalar. Nenhuma das duas substitui a cópia no Drive.',
       'Para restaurar: pelo botão Restaurar de uma cópia da lista, ou em "Restaurar de um arquivo". Nos dois casos o estado atual é gravado antes, para haver caminho de volta.',
-      'Marque "Levar também as Bíblias que importei" para que um arquivo só carregue seus sermões e as Bíblias importadas. É assim que se leva tudo do navegador para o aplicativo Android, sem reimportar tradução nenhuma — o arquivo fica bem maior, mas a instalação nova nasce completa.',
-      'As apostilas e cursos em PDF, Word e apresentação continuam de fora: não cabem num arquivo de backup. Guarde os originais e importe de novo.',
+      '"Levar tudo" já vem marcado: o arquivo leva o aparelho inteiro — sermões, anotações, Rhema, cursos, as Bíblias importadas, os arquivos das apostilas (PDF, Word), o Assistente bíblico (conversas e materiais), a base doutrinária, os dicionários e comentários importados e o tema, a letra e o tamanho. É o arquivo que leva o tablet para o notebook.',
+      'Para passar ao notebook: no tablet, "Baixar o arquivo" (ou "Salvar no Google Drive"); no notebook, abra o Farol da Palavra no navegador, vá em Configurações › Backup e privacidade e toque em "Restaurar de um arquivo". As chaves de IA não vão no arquivo: digite-as de novo no notebook.',
+      'Desmarque "Levar tudo" se quiser só uma cópia pequena, com os seus textos.',
     ],
   },
   {
