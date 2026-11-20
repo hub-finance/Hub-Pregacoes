@@ -132,11 +132,22 @@
 
 /* cabeçalho do menu: a marca, o nome e a setinha que recolhe */
 .rail-brand {
-  padding: var(--sp-2) 0 var(--sp-4) var(--sp-3);
+  gap: var(--sp-2);
+  padding: var(--sp-2) 0 var(--sp-4) var(--sp-2);
 }
+/* O nome cabe sempre numa linha: com a letra do sistema aumentada (comum no
+   tablet), ele encolhe até caber na largura do menu, em vez de quebrar
+   (`useFitOneLine` em AppLayout.tsx). */
 .rail-brand-text {
   flex: 1;
   min-width: 0;
+}
+.rail-brand-name {
+  display: block;
+  white-space: nowrap;
+  font-weight: 660;
+  letter-spacing: -0.01em;
+  font-size: 1.05rem;
 }
 .rail-toggle {
   flex: none;

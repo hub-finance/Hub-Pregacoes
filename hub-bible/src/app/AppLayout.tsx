@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BOTTOM_NAV, GROUP_LABEL, NAV_ITEMS, type NavItem } from './navigation';
 import { useOnline } from '../hooks';
@@ -46,6 +46,9 @@ function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { settings, update, resolvedTheme } = useSettings();
   const collapsed = settings.railCollapsed;
+  // o nome cabe numa linha mesmo com a letra do sistema aumentada (tablet)
+  const nameRef = useRef<HTMLSpanElement>(null);
+  useFitOneLine(nameRef, collapsed);
   const searchHere = useScopedSearch();
   const immersive = useImmersive();
 
@@ -71,11 +74,9 @@ function AppShell({ children }: { children: ReactNode }) {
           <span className="brand-mark" aria-hidden="true">
             FP
           </span>
+          {/* só o nome, numa linha (pedido do usuário): sem subtítulo */}
           <span className="rail-brand-text">
-            <span style={{ display: 'block', fontWeight: 660, letterSpacing: '-0.01em' }}>
-              Farol da Palavra
-            </span>
-            <span className="small dim">Bíblia e ministério</span>
+            <span className="rail-brand-name" ref={nameRef}>Farol da Palavra</span>
           </span>
           <button
             className="icon-btn rail-toggle"
@@ -192,4 +193,33 @@ function AppShell({ children }: { children: ReactNode }) {
       </nav>
     </div>
   );
+}
+
+/**
+ * Reduz a letra de um texto de uma linha até ele caber na largura do pai.
+ *
+ * Mede o texto já desenhado, e não calcula pela letra do CSS: no Android a
+ * letra do sistema multiplica todo texto, e só a medida real enxerga isso.
+ * Como a largura cresce na mesma proporção da letra, um ou dois passos bastam.
+ */
+function useFitOneLine(ref: React.RefObject<HTMLElement>, dep: unknown) {
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const parent = el?.parentElement;
+    if (!el || !parent) return;
+    const fit = () => {
+      el.style.fontSize = '';
+      const avail = parent.clientWidth;
+      if (!avail) return;
+      let size = parseFloat(getComputedStyle(el).fontSize);
+      for (let i = 0; i < 4 && el.scrollWidth > avail; i++) {
+        size = Math.floor(size * (avail / el.scrollWidth) * 0.97 * 10) / 10;
+        el.style.fontSize = `${size}px`;
+      }
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(parent);
+    return () => ro.disconnect();
+  }, [ref, dep]);
 }

@@ -84,6 +84,16 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0am. ✅ Menu: só "Farol da Palavra", numa linha
+
+Pedido do usuário, com print do tablet: o subtítulo "Bíblia e ministério"
+saiu, e o nome ficava em duas linhas ("Farol da" / "Palavra"), porque a letra
+do sistema Android estava aumentada. Agora `.rail-brand-name` não quebra
+linha, e `useFitOneLine` (`AppLayout.tsx`) mede o nome já desenhado e reduz
+a letra só o necessário para caber ao lado da marca e do botão de recolher.
+A medida real enxerga o aumento do sistema, que um cálculo pelo CSS não vê.
+Teste: 5 combinações de largura, letra (1×, 1,5×, 1,8×) e tema.
+
 ### 0al. ✅ "Mensagem" virou "Folha de apoio"; Dicionário com o léxico em português
 
 Pedidos e decisões do usuário (revisão do que não tinha função):
