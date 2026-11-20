@@ -10,7 +10,6 @@ import {
   exportDocument,
   GOAL_TITLE_LABEL,
   sendToExport,
-  sendToSermon,
   sendToStudy,
   type AssistantDocument,
 } from '../../core/ai/assistantDocument';
@@ -33,7 +32,7 @@ interface Props {
   onRef: (target: PreviewTarget, from: HTMLElement) => void;
 }
 
-type Busy = '' | 'pdf' | 'docx' | 'share' | 'sermon' | 'study' | 'export';
+type Busy = '' | 'pdf' | 'docx' | 'share' | 'study' | 'export';
 
 /**
  * O documento montado da conversa: um texto só, corrido, que o pregador lê,
@@ -202,25 +201,14 @@ export function DocumentEditor({
           </button>
         </div>
         <div className="row row-wrap" style={{ gap: 'var(--sp-2)' }}>
-          {doc.goal === 'mensagem' ? (
-            <button
-              className="btn btn-ghost btn-sm"
-              disabled={!canExport}
-              onClick={() => run('sermon', async () => navigate(`/sermoes/${await sendToSermon(doc, messages, translation)}`))}
-            >
-              <Icon name="sermon" size={16} />
-              <span>Continuar no Gerador</span>
-            </button>
-          ) : (
-            <button
-              className="btn btn-ghost btn-sm"
-              disabled={!canExport}
-              onClick={() => run('study', async () => navigate(`/rhema/${await sendToStudy(doc)}`))}
-            >
-              <Icon name="study" size={16} />
-              <span>Continuar no Rhema</span>
-            </button>
-          )}
+          <button
+            className="btn btn-ghost btn-sm"
+            disabled={!canExport}
+            onClick={() => run('study', async () => navigate(`/rhema/${await sendToStudy(doc)}`))}
+          >
+            <Icon name="study" size={16} />
+            <span>Continuar no Rhema</span>
+          </button>
           <button
             className="btn btn-ghost btn-sm"
             disabled={!canExport}
