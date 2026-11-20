@@ -4,6 +4,7 @@ import { Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
 import { lookupLexicon, passageWords, type LexiconHit } from '../../core/data/lexiconLookup';
 import type { PreviewTarget } from '../bible/VersePreview';
+import '../../styles/assistant.css';
 
 interface Props {
   translation: string;
@@ -99,85 +100,92 @@ export function LexiconPanel({ translation, query, onQuery, onRef, passage }: Pr
 
       <div ref={resultsRef} />
       {hits.data?.map((h) => (
-        <article key={h.code} className="card lexicon-hit">
-          <header className="lexicon-head">
-            {h.word && (
-              <span className="lexicon-word" lang={h.language === 'hebraico' ? 'he' : 'grc'} dir={h.language === 'hebraico' ? 'rtl' : 'ltr'}>
-                {h.word}
-              </span>
-            )}
-            <span className="lexicon-meta">
-              {h.translit && <em>{h.translit}</em>}
-              <span className="badge">{h.code}</span>
-              <span className="small dim">{h.language === 'hebraico' ? 'Hebraico' : 'Grego'}</span>
-              {h.pron && <span className="small dim">pronúncia: {h.pron}</span>}
-            </span>
-          </header>
-
-          {h.doctrines.map((d) => (
-            <p key={d.termo} className="lexicon-doctrine">
-              <strong>{d.termo}.</strong> {d.definicao}
-            </p>
-          ))}
-
-          {h.group && (
-            <div className="lexicon-group">
-              <p className="small" style={{ margin: 0 }}>
-                <strong>{h.group.nome}</strong> — {h.group.descricao}
-              </p>
-              <div className="crossref-list">
-                {h.group.termos.map((t) => (
-                  <button
-                    key={t.strong}
-                    type="button"
-                    className={`crossref-chip${t.strong === h.code ? ' active' : ''}`}
-                    onClick={() => onQuery(t.strong)}
-                    aria-label={`${t.translit}, ${t.sentido}`}
-                  >
-                    <span style={{ fontStyle: 'italic' }}>{t.translit}</span>
-                    <span className="dim">— {t.sentido}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {h.imported.map((d, i) => (
-            <div key={i} className="strong-detail-entry">
-              {d.topic && <span className="strong-detail-topic">{d.topic}</span>}
-              <span className="strong-detail-source">{d.dictionary}</span>
-              <div className="strong-definition" dangerouslySetInnerHTML={{ __html: d.definition }} />
-            </div>
-          ))}
-
-          {h.occurrences.length > 0 && (
-            <div className="lexicon-occ">
-              <p className="small" style={{ margin: 0, fontWeight: 600 }}>Onde aparece na sua Bíblia</p>
-              <ul>
-                {h.occurrences.map((o) => (
-                  <li key={`${o.book}.${o.chapter}.${o.verse}`}>
-                    <button
-                      type="button"
-                      className="ref-link"
-                      onClick={() => onRef({ book: o.book, chapter: o.chapter, verse: o.verse })}
-                    >
-                      {o.bookName} {o.chapter}:{o.verse}
-                    </button>{' '}
-                    <span className="small dim">{o.text.length > 120 ? `${o.text.slice(0, 120)}…` : o.text}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {h.builtin && (
-            <details className="lexicon-builtin">
-              <summary>Definição de Strong (original em inglês)</summary>
-              <div className="strong-definition" dangerouslySetInnerHTML={{ __html: h.builtin }} />
-            </details>
-          )}
-        </article>
+        <LexiconHitCard key={h.code} hit={h} onQuery={onQuery} onRef={onRef} />
       ))}
     </div>
+  );
+}
+
+/** Um verbete do léxico: o que está em português primeiro, o Strong em inglês fechado no fim. */
+export function LexiconHitCard({ hit: h, onQuery, onRef }: { hit: LexiconHit; onQuery: (q: string) => void; onRef: (t: PreviewTarget) => void }) {
+  return (
+    <article className="card lexicon-hit">
+      <header className="lexicon-head">
+        {h.word && (
+          <span className="lexicon-word" lang={h.language === 'hebraico' ? 'he' : 'grc'} dir={h.language === 'hebraico' ? 'rtl' : 'ltr'}>
+            {h.word}
+          </span>
+        )}
+        <span className="lexicon-meta">
+          {h.translit && <em>{h.translit}</em>}
+          <span className="badge">{h.code}</span>
+          <span className="small dim">{h.language === 'hebraico' ? 'Hebraico' : 'Grego'}</span>
+          {h.pron && <span className="small dim">pronúncia: {h.pron}</span>}
+        </span>
+      </header>
+
+      {h.doctrines.map((d) => (
+        <p key={d.termo} className="lexicon-doctrine">
+          <strong>{d.termo}.</strong> {d.definicao}
+        </p>
+      ))}
+
+      {h.group && (
+        <div className="lexicon-group">
+          <p className="small" style={{ margin: 0 }}>
+            <strong>{h.group.nome}</strong> — {h.group.descricao}
+          </p>
+          <div className="crossref-list">
+            {h.group.termos.map((t) => (
+              <button
+                key={t.strong}
+                type="button"
+                className={`crossref-chip${t.strong === h.code ? ' active' : ''}`}
+                onClick={() => onQuery(t.strong)}
+                aria-label={`${t.translit}, ${t.sentido}`}
+              >
+                <span style={{ fontStyle: 'italic' }}>{t.translit}</span>
+                <span className="dim">— {t.sentido}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {h.imported.map((d, i) => (
+        <div key={i} className="strong-detail-entry">
+          {d.topic && <span className="strong-detail-topic">{d.topic}</span>}
+          <span className="strong-detail-source">{d.dictionary}</span>
+          <div className="strong-definition" dangerouslySetInnerHTML={{ __html: d.definition }} />
+        </div>
+      ))}
+
+      {h.occurrences.length > 0 && (
+        <div className="lexicon-occ">
+          <p className="small" style={{ margin: 0, fontWeight: 600 }}>Onde aparece na sua Bíblia</p>
+          <ul>
+            {h.occurrences.map((o) => (
+              <li key={`${o.book}.${o.chapter}.${o.verse}`}>
+                <button
+                  type="button"
+                  className="ref-link"
+                  onClick={() => onRef({ book: o.book, chapter: o.chapter, verse: o.verse })}
+                >
+                  {o.bookName} {o.chapter}:{o.verse}
+                </button>{' '}
+                <span className="small dim">{o.text.length > 120 ? `${o.text.slice(0, 120)}…` : o.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {h.builtin && (
+        <details className="lexicon-builtin">
+          <summary>Definição de Strong (original em inglês)</summary>
+          <div className="strong-definition" dangerouslySetInnerHTML={{ __html: h.builtin }} />
+        </details>
+      )}
+    </article>
   );
 }

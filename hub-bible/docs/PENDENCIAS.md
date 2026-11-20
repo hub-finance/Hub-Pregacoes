@@ -84,6 +84,39 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0al. ✅ "Mensagem" virou "Folha de apoio"; Dicionário com o léxico em português
+
+Pedidos e decisões do usuário (revisão do que não tinha função):
+
+- **Folha de apoio** no lugar de "Mensagem" no assistente. O id interno segue
+  `mensagem`, para as conversas já salvas não se perderem. O conteúdo é o de
+  sempre, mas sem estrutura de pregação ("não coloque apelo").
+  - Formato: Texto-base, Ideia central, Pontos (com o conteúdo e os
+    versículos), Cristo e a Nova Aliança, No original, Para refletir
+    (perguntas) e Para anotar.
+  - Vale para a IA (`GOAL_HINT`/`DRAFT_SHAPE`) e para as três montagens sem IA
+    (`messageText`, material, dois materiais).
+  - O documento segue para o Rhema ("Continuar no Rhema"); `sendToSermon` saiu.
+  - No Gerar e Exportar abre como "Estudo para pequenos grupos" (com espaço
+    para anotar).
+  - Teste: 32. Os testes antigos passaram a esperar a folha.
+- **Dicionário** (`DictionaryPage.tsx`): em "Todos", vem primeiro o léxico
+  grego e hebraico em português, o mesmo do assistente (`LexiconHitCard`
+  separado em `LexiconPanel.tsx`), e depois os dicionários importados. O
+  Strong embutido, em inglês, não aparece solto: fica fechado no verbete. Com
+  um dicionário escolhido, a busca é só nele, como antes. Os versículos abrem
+  ao lado. Teste: 20.
+- **Ficam como estão (decisão do usuário):** a seção Sincronização, a Bíblia
+  em inglês (KJV), Cursos e Rhema separados, os endereços antigos que só
+  redirecionam e a antiga Biblioteca sem tela.
+- **Aguardando o usuário:** o "Estudo guiado" (aba "Análise" no painel do
+  versículo) × o Assistente. Ele perguntou se o Estudo guiado é onde abre a
+  apostila; não é: a apostila abre no Rhema ou em Cursos.
+- **Por último (pedido do usuário):** a "Biblioteca doutrinária". É um motor
+  dentro do sistema que guarda livros em PDF como memória doutrinária, procura
+  neles os trechos ligados a cada pedido e os usa com IA e sem IA, só no
+  aparelho. O livro "As doutrinas da Bíblia" entra aqui.
+
 ### 0ak. ✅ Backup completo: levar o tablet inteiro para o notebook
 
 Pedido do usuário: o backup deve levar "tudo — Bíblia, tudo que eu fiz".

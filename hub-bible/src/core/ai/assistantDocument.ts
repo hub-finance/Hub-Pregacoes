@@ -12,7 +12,7 @@ import { db, now, uid } from '../db/db';
 import { escapeHtml } from '../backup';
 import type { ExportCategory, ExportFormat, ExportLayout, SermonBlock, StudySection } from '../db/types';
 import { newBlock } from '../data/sermonContent';
-import { newSermon, newStudy, saveDoc } from '../data/documents';
+import { newStudy, saveDoc } from '../data/documents';
 import { createExportDoc, getPreferredLayout, normalizeLayout } from '../data/exportDocs';
 import { BASE_LAYOUT } from '../export/templates';
 import { buildRenderDoc } from '../export/model';
@@ -23,12 +23,17 @@ import type { AssistantMessage } from './assistant';
 
 /* ───────────────────────────── objetivos ───────────────────────────── */
 
+/**
+ * O id `mensagem` ficou por causa das conversas já salvas, mas o objetivo
+ * agora é a **Folha de apoio** (pedido do pregador): o conteúdo de sempre,
+ * sem a estrutura de pregação — sem introdução de púlpito, sem apelo.
+ */
 export type AssistantGoal = 'livre' | 'estudo' | 'mensagem' | 'resumo';
 
 export const GOAL_LABEL: Record<AssistantGoal, string> = {
   livre: 'Pergunta livre',
   estudo: 'Estudo sistemático',
-  mensagem: 'Mensagem',
+  mensagem: 'Folha de apoio',
   resumo: 'Resumo',
 };
 
@@ -36,7 +41,7 @@ export const GOAL_LABEL: Record<AssistantGoal, string> = {
 export const GOAL_TITLE_LABEL: Record<AssistantGoal, string> = {
   livre: 'Título do estudo',
   estudo: 'Título do estudo',
-  mensagem: 'Título da mensagem',
+  mensagem: 'Título da folha de apoio',
   resumo: 'Título do resumo',
 };
 
@@ -49,9 +54,11 @@ export const GOAL_HINT: Record<AssistantGoal, string> = {
     'Organize em seções com títulos "## " claros (por exemplo: texto e contexto, palavras no original, desenvolvimento doutrinário, relação com Cristo e a Nova Aliança, aplicação), ' +
     'com as partes ligadas umas às outras: o estudo é um argumento só.',
   mensagem:
-    'OBJETIVO DO TRABALHO: mensagem (pregação). O pregador está construindo uma mensagem que será exportada; ele continua sendo o autor. ' +
-    'Priorize estrutura homilética: texto principal, introdução, pontos com argumento bíblico, explicação e aplicação, transições, conclusão e apelo quando couber. ' +
-    'Use títulos "## " para cada parte e transições que liguem uma parte à seguinte.',
+    'OBJETIVO DO TRABALHO: folha de apoio — material para acompanhar a aula ou o estudo, entregue aos participantes. ' +
+    'Mantenha a profundidade e a qualidade de sempre (texto, contexto, original, doutrina, Cristo), mas NÃO use estrutura de pregação: ' +
+    'nada de introdução de sermão, apelo, chamada à frente, oração final, ilustrações de púlpito nem frases de oratória. ' +
+    'Organize com títulos "## ": Texto-base; Ideia central (uma ou duas frases); 3 a 5 pontos, cada um com a explicação e os versículos que o sustentam; ' +
+    'Cristo e a Nova Aliança, quando couber; Para refletir (3 a 5 perguntas objetivas sobre o texto); Para anotar. Linguagem clara e didática.',
   resumo:
     'OBJETIVO DO TRABALHO: resumo. Condense o essencial em poucos pontos bem escolhidos, com títulos "## " curtos e as referências que sustentam cada ponto. ' +
     'Qualidade, não quantidade.',
@@ -293,14 +300,6 @@ const plainText = (text: string) =>
     .replace(/\[([^\]]+)\]/g, '$1')
     .trim();
 
-/** Vira uma mensagem no Gerador, já em blocos. Devolve o id. */
-export async function sendToSermon(doc: AssistantDocument, messages: AssistantMessage[], translation: string): Promise<string> {
-  const { blocks } = await documentContent(doc, messages, translation);
-  const sermon = { ...newSermon(), title: doc.title, content: blocks, tags: ['assistente'] };
-  await saveDoc('sermon', sermon);
-  return sermon.id;
-}
-
 /** Vira um estudo no Rhema: uma seção livre por parte "## ". Devolve o id. */
 export async function sendToStudy(doc: AssistantDocument): Promise<string> {
   const sections: StudySection[] = [];
@@ -324,8 +323,9 @@ export async function sendToStudy(doc: AssistantDocument): Promise<string> {
 /** Abre no Gerar e Exportar, para escolher capa, tema e sumário. Devolve o id. */
 export async function sendToExport(doc: AssistantDocument, messages: AssistantMessage[], translation: string): Promise<string> {
   const { blocks, subheadings } = await documentContent(doc, messages, translation);
+  // a folha de apoio vai para o modelo com espaço para anotar
   const [category, model]: [ExportCategory, string] = doc.goal === 'mensagem'
-    ? ['pregacao', 'mensagem-completa']
+    ? ['estudo', 'pequenos-grupos']
     : ['estudo', 'tematico'];
   const created = await createExportDoc({ category, model, sourceKind: 'blank', title: doc.title });
   const structure = { pageBreaks: [], subheadings, instructorOnly: [] };

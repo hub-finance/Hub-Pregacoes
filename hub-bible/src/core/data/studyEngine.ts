@@ -565,33 +565,60 @@ async function studyText(g: Gathered, input: EngineInput): Promise<string> {
   return blocks.filter(([, body]) => body.trim()).map(([title, body], i) => section(`${i + 1}. ${title}`, body)).join('\n\n');
 }
 
+/** Espaço para o participante escrever, no fim da folha de apoio. */
+const NOTE_LINES = Array.from({ length: 4 }, () => '.'.repeat(44)).join('\n\n');
+
+/** A primeira frase de um texto (a ideia central, sem o parágrafo inteiro). */
+const firstSentence = (text: string) => (text.match(/^[\s\S]*?[.!?](?=\s|$)/)?.[0] ?? text).trim();
+
+/**
+ * Perguntas para refletir: uma por ponto, sobre o que o texto ensina, e uma
+ * para guardar a Palavra. Sem tom de lamento — a folha conduz à fé.
+ */
+function reflectQuestions(points: Array<{ concept: string; ref?: ParsedReference }>): string {
+  const qs = points.slice(0, 4).map(({ concept, ref }) =>
+    ref ? `- O que [${formatReference(ref)}] ensina sobre ${concept.charAt(0).toLowerCase()}${concept.slice(1)}?` : `- O que a Escritura ensina sobre ${concept.charAt(0).toLowerCase()}${concept.slice(1)}?`);
+  qs.push('- Qual versículo desta folha você vai guardar no coração e confessar esta semana?');
+  return qs.join('\n');
+}
+
+/**
+ * Folha de apoio (o antigo objetivo "mensagem"): o conteúdo do estudo em
+ * folha para acompanhar a aula — sem introdução de púlpito e sem apelo.
+ */
 async function messageText(g: Gathered, input: EngineInput): Promise<string> {
   const t = input.translation;
   const main = g.main ?? g.keyTexts[0];
   const points: string[] = [];
-  const steps = g.guides.flatMap((x) => x.steps).slice(0, 3);
+  const asked: Array<{ concept: string; ref?: ParsedReference }> = [];
+  const steps = g.guides.flatMap((x) => x.steps).slice(0, 4);
   if (steps.length) {
     for (const [i, s] of steps.entries()) {
       const refs = s.textos.slice(0, 2).map(osisToRef).filter(Boolean) as ParsedReference[];
-      points.push(`### Ponto ${i + 1} — ${s.conceito}\n${s.resumo}\n\n${await quotes(t, refs)}\n\n**Explicação e aplicação:** ${WRITE}`);
+      points.push(`### ${i + 1}. ${s.conceito}\n${s.resumo}\n\n${await quotes(t, refs)}`);
+      asked.push({ concept: s.conceito, ref: refs[0] });
+    }
+  } else if (g.entries.length) {
+    for (const [i, e] of g.entries.slice(0, 4).entries()) {
+      const refs = e.textos.slice(0, 2).map(osisToRef).filter(Boolean) as ParsedReference[];
+      points.push(`### ${i + 1}. ${e.termo}\n${e.definicao}\n\n${await quotes(t, refs)}`);
+      asked.push({ concept: e.termo, ref: refs[0] });
     }
   } else {
     const rest = balance(g.keyTexts.filter((r) => !main || refKey(r) !== refKey(main)), 3);
     for (const [i, r] of rest.entries()) {
-      points.push(`### Ponto ${i + 1} — ${formatReference(r)}\n${await quote(t, r)}\n\n**Explicação e aplicação:** ${WRITE}`);
+      points.push(`### ${i + 1}. ${formatReference(r)}\n${await quote(t, r)}`);
+      asked.push({ concept: 'este texto', ref: r });
     }
   }
   const parts = [
-    section('Texto principal', main ? await quote(t, main) : ''),
-    section('Introdução', [
-      g.entries[0] ? `Ponto de partida (dicionário): ${g.entries[0].definicao}` : '',
-      WRITE,
-    ].filter(Boolean).join('\n\n')),
-    section('Desenvolvimento', points.join('\n\n')),
+    section('Texto-base', main ? await quote(t, main) : ''),
+    section('Ideia central', g.entries[0] ? firstSentence(g.entries[0].definicao) : ''),
+    section('Pontos', points.join('\n\n')),
     section('Cristo e a Nova Aliança', typologySection(g)),
-    section('Aplicação', WRITE),
-    section('Conclusão e apelo', WRITE),
-    section('Material de apoio', [originalSection(g), g.entries.map((e) => e.distincao ? `**${e.termo} — distinção:** ${e.distincao}` : '').filter(Boolean).join('\n\n')].filter(Boolean).join('\n\n')),
+    section('No original', originalSection(g)),
+    section('Para refletir', reflectQuestions(asked)),
+    section('Para anotar', NOTE_LINES),
   ];
   return parts.filter(Boolean).join('\n\n');
 }
@@ -785,24 +812,27 @@ async function buildFromMaterial(input: EngineInput, material: AssistantMaterial
       ].join('\n\n')),
     ].filter(Boolean).join('\n\n');
   } else if (input.goal === 'mensagem') {
+    // folha de apoio: as partes mais ricas do material, já com o conteúdo
     const ranked = [...parts].map((p, i) => ({ p, i })).sort((a, b) => (b.p.refs.length + b.p.terms.length) - (a.p.refs.length + a.p.terms.length)).slice(0, 4).sort((a, b) => a.i - b.i);
     const points: string[] = [];
+    const asked: Array<{ concept: string; ref?: ParsedReference }> = [];
     for (const [n, { p }] of ranked.entries()) {
       points.push([
-        `### Ponto ${n + 1} — ${p.title}`,
+        `### ${n + 1}. ${p.title}`,
         p.central[0] ? authorQuote(p.central[0]) : '',
         await quotes(t, p.refs.slice(0, 2).map((r) => r.ref)),
-        `**Explicação e aplicação:** ${WRITE}`,
       ].filter(Boolean).join('\n\n'));
+      asked.push({ concept: p.title, ref: p.refs[0]?.ref });
     }
     const first = parts.find((p) => p.central.length)?.central[0];
     body = [
-      section('Texto principal', reading.refs[0] ? await quote(t, reading.refs[0].ref) : ''),
-      section('Introdução', [first ? `O material parte daqui:\n${authorQuote(first)}` : '', WRITE].filter(Boolean).join('\n\n')),
-      section('Desenvolvimento', points.join('\n\n')),
-      section('Aplicação', WRITE),
-      section('Conclusão e apelo', WRITE),
-      section('Material de apoio', [doctrineBlock(reading.terms, lim.entries), originalsBlock(reading)].filter(Boolean).join('\n\n')),
+      section('Texto-base', reading.refs[0] ? await quote(t, reading.refs[0].ref) : ''),
+      section('Ideia central', first ? authorQuote(first) : ''),
+      section('Pontos', points.join('\n\n')),
+      section('As doutrinas', doctrineBlock(reading.terms, lim.entries)),
+      section('No original', originalsBlock(reading)),
+      section('Para refletir', reflectQuestions(asked)),
+      section('Para anotar', NOTE_LINES),
     ].filter(Boolean).join('\n\n');
   } else if (input.goal === 'resumo') {
     const essentials = parts.filter((p) => p.central.length).map((p) => `- **${firstNumber + reading.parts.indexOf(p)}. ${p.title}:** “${p.central[0].replace(/\[|\]/g, '')}”`);
@@ -968,31 +998,35 @@ async function buildFromTwoMaterials(input: EngineInput, a: AssistantMaterial, b
       ].join('\n\n')),
     ].filter(Boolean).join('\n\n');
   } else if (input.goal === 'mensagem') {
+    // folha de apoio dos dois: cada doutrina em comum vira um ponto
     const main = top ? passageRefs(top)[0] : ra.refs[0]?.ref ?? rb.refs[0]?.ref;
     const points: string[] = [];
-    for (const [i, { entry }] of commonTerms.slice(0, 3).entries()) {
+    const asked: Array<{ concept: string; ref?: ParsedReference }> = [];
+    for (const [i, { entry }] of commonTerms.slice(0, 4).entries()) {
       const sa = sentencesAbout(a, entry, 1, used)[0];
       const sb = sentencesAbout(b, entry, 1, used)[0];
       const refs = commonRefs.filter((r) => entry.textos.includes(keyOf(r.ref).replace(/\.$/, ''))).slice(0, 2).map((r) => r.ref);
       points.push([
-        `### Ponto ${i + 1} — ${entry.termo}`,
+        `### ${i + 1}. ${entry.termo}`,
+        firstSentence(entry.definicao),
         sa ? quoteFrom(M1, sa) : '', sb ? quoteFrom(M2, sb) : '',
         refs.length ? await quotes(t, refs) : '',
-        `**Explicação e aplicação:** ${WRITE}`,
       ].filter(Boolean).join('\n\n'));
+      asked.push({ concept: entry.termo, ref: refs[0] ?? main });
     }
     if (!points.length) {
       for (const [i, r] of commonRefs.slice(0, 3).entries()) {
-        points.push([`### Ponto ${i + 1} — ${r.label}`, await quote(t, r.ref), `**Explicação e aplicação:** ${WRITE}`].join('\n\n'));
+        points.push([`### ${i + 1}. ${r.label}`, await quote(t, r.ref)].join('\n\n'));
+        asked.push({ concept: 'este texto', ref: r.ref });
       }
     }
     body = [
-      section('Texto principal', main ? await quote(t, main) : ''),
-      section('Introdução', WRITE),
-      section('Desenvolvimento', points.join('\n\n')),
-      section('Aplicação', WRITE),
-      section('Conclusão e apelo', WRITE),
-      section('Material de apoio', originalLines),
+      section('Texto-base', main ? await quote(t, main) : ''),
+      section('Ideia central', commonTerms[0] ? firstSentence(commonTerms[0].entry.definicao) : ''),
+      section('Pontos', points.join('\n\n')),
+      section('No original', originalLines),
+      section('Para refletir', reflectQuestions(asked)),
+      section('Para anotar', NOTE_LINES),
     ].filter(Boolean).join('\n\n');
   } else if (input.goal === 'resumo') {
     const one = (m: AssistantMaterial) => keySentences(m, 1, used)[0];

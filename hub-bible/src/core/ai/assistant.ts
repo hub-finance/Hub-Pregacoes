@@ -482,7 +482,7 @@ export async function runAssistant(input: {
 const DRAFT_SHAPE: Record<AssistantGoal, string> = {
   livre: '',
   estudo: 'Percorra do texto e do contexto às palavras no original, à doutrina, à relação com Cristo e a Nova Aliança, e à aplicação.',
-  mensagem: 'Texto principal, introdução que contextualiza e desperta interesse, pontos desenvolvidos com argumento bíblico, explicação e aplicação, conclusão e apelo quando couber. O pregador continua sendo o autor.',
+  mensagem: 'Folha de apoio para os participantes: texto-base, ideia central, 3 a 5 pontos com explicação e versículos, Cristo e a Nova Aliança quando couber, perguntas para refletir e espaço para anotar. Sem estrutura de pregação: sem introdução de púlpito, sem apelo, sem oração final.',
   resumo: 'Breve: poucos parágrafos ou pontos, só o essencial, com as referências que sustentam cada ponto.',
 };
 

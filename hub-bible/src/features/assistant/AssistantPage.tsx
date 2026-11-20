@@ -49,7 +49,7 @@ const MODES: { id: AssistantMode; label: string }[] = [
 const GOALS: { id: AssistantGoal; hint: string }[] = [
   { id: 'livre', hint: 'Tirar uma dúvida, estudar uma palavra, um versículo ou um tema.' },
   { id: 'estudo', hint: 'Estudo em seções: texto, contexto, original, doutrina, Cristo e aplicação.' },
-  { id: 'mensagem', hint: 'Pregação: texto principal, introdução, pontos, aplicação e conclusão.' },
+  { id: 'mensagem', hint: 'Para acompanhar a aula: texto-base, ideia central, pontos com versículos, perguntas para refletir e espaço para anotar.' },
   { id: 'resumo', hint: 'O essencial em poucos pontos, com os textos-chave.' },
 ];
 
@@ -59,7 +59,7 @@ type Engine = 'ia' | 'aparelho';
 const MATERIAL_REQUEST: Record<AssistantGoal | 'auditoria', string> = {
   livre: 'Estude este material.',
   estudo: 'Faça um estudo sistemático deste material.',
-  mensagem: 'Monte uma mensagem a partir deste material.',
+  mensagem: 'Monte uma folha de apoio a partir deste material.',
   resumo: 'Resuma este material.',
   auditoria: 'Confira este material: onde o autor está bem sustentado pelo texto e onde não está.',
 };

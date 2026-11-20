@@ -329,3 +329,19 @@
   font-size: 0.85rem;
   color: var(--text-2);
 }
+
+/* Dicionário: o versículo abre ao lado, como no assistente */
+.dict-layout.has-panel {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: flex-start;
+}
+.dict-main {
+  flex: 1;
+  min-width: 0;
+}
+.dict-layout .side-panel {
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+}
