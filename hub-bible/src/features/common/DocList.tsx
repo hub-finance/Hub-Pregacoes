@@ -29,6 +29,8 @@ interface Props<T extends BaseDoc> {
   /** Quando presente, a tela oferece importar um arquivo pronto (PDF/Word). */
   onImportFile?: (file: File) => Promise<void>;
   importAccept?: string;
+  /** Só os documentos desta aba (Rhema e Escola de Ministros guardam o mesmo tipo). */
+  filter?: (doc: T) => boolean;
 }
 
 /**
@@ -47,10 +49,13 @@ export function DocList<T extends BaseDoc>({
   emptyDescription,
   onImportFile,
   importAccept,
+  filter,
 }: Props<T>) {
   const navigate = useNavigate();
   const { notify } = useToast();
-  const docs = useLiveQuery(() => listDocs<T>(kind), [kind], [] as T[]);
+  const all = useLiveQuery(() => listDocs<T>(kind), [kind], [] as T[]);
+  // a aba vê só os seus (o filtro muda a cada render; o conteúdo não)
+  const docs = useMemo(() => (filter ? (all ?? []).filter(filter) : all), [all]);
   const [query, setQuery] = useState('');
 
   /* A lupa do alto da tela procura nesta lista, e não na Bíblia: quem está em

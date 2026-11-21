@@ -84,6 +84,23 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ar. ✅ Aba "Escola de Ministros", igual ao Rhema
+
+Pedido do usuário: "crie a aba Escola de Ministros igual a Rhema, só muda o
+nome": importar a apostila e dar aula no Modo Aula.
+
+Usa o mesmo documento `study`, o mesmo editor (`RhemaEditorPage`) e o mesmo
+Modo Aula. O campo novo `Study.shelf = 'escola'` não tem índice, então não
+muda o esquema do banco, e vai no backup. `DocList` ganhou `filter`: o Rhema
+esconde os da Escola, e a Escola (`EscolaPage.tsx`, rotas `/escola` e
+`/escola/:id`) mostra só os dela. O botão de voltar do editor e do Modo Aula
+leva à aba do estudo (`studyRoute`). O menu ganhou o ícone `school` (capelo),
+logo depois do Rhema. No backup, o item virou "Apostilas do Rhema e da Escola
+de Ministros (arquivos)". A Ajuda ganhou um tópico.
+
+Teste: 15 (390 e 1280 px): menu, importar PDF, Modo Aula, voltar à Escola e
+listas separadas nos dois sentidos. Testes de backup sem falhas.
+
 ### 0aq. ✅ Correção: o app fechava ao baixar o backup grande (APK)
 
 O usuário mandou print: "Farol da Palavra foi fechado forçadamente devido a

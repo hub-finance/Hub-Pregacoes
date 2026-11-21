@@ -83,7 +83,7 @@ export const BACKUP_PARTS: Array<{ id: BackupPart; label: string; hint: string; 
   { id: 'sermons', label: 'Sermões (Gerador)', hint: 'Os sermões do Gerador, com os arquivos importados neles.', off: true },
   { id: 'courses', label: 'Cursos', hint: 'Os cursos, com os arquivos de aula importados neles.', off: true },
   { id: 'bibles', label: 'Bíblias importadas', hint: 'Todas as traduções que você importou (as que vêm com o app o outro aparelho já tem).' },
-  { id: 'files', label: 'Apostilas do Rhema (arquivos)', hint: 'Os PDF e Word das apostilas do Rhema — os que abrem no Modo Aula.' },
+  { id: 'files', label: 'Apostilas do Rhema e da Escola de Ministros (arquivos)', hint: 'Os PDF e Word das apostilas — os que abrem no Modo Aula.' },
   { id: 'assistant', label: 'Assistente bíblico', hint: 'Conversas, documentos montados, materiais importados e as análises do Estudo guiado.' },
   { id: 'doctrinal', label: 'Base doutrinária', hint: 'A base que você importou para os Guias e o assistente.' },
   { id: 'dictionaries', label: 'Dicionários e comentários importados', hint: 'Os arquivos .SQLite3 ou JSON que você importou.' },

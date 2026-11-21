@@ -26,6 +26,7 @@ const SermonsPage = lazy(() => import('./features/sermons/SermonsPage'));
 const SermonEditorPage = lazy(() => import('./features/sermons/SermonEditorPage'));
 const RhemaPage = lazy(() => import('./features/rhema/RhemaPage'));
 const RhemaEditorPage = lazy(() => import('./features/rhema/RhemaEditorPage'));
+const EscolaPage = lazy(() => import('./features/rhema/EscolaPage'));
 const ClassPage = lazy(() => import('./features/common/ClassPage'));
 const CoursesPage = lazy(() => import('./features/courses/CoursesPage'));
 const CourseEditorPage = lazy(() => import('./features/courses/CourseEditorPage'));
@@ -135,6 +136,8 @@ export default function App() {
                   <Route path="/sermoes/:id" element={<SermonEditorPage />} />
                   <Route path="/rhema" element={<RhemaPage />} />
                   <Route path="/rhema/:id" element={<RhemaEditorPage />} />
+                  <Route path="/escola" element={<EscolaPage />} />
+                  <Route path="/escola/:id" element={<RhemaEditorPage />} />
                   {/* endereços antigos continuam abrindo: o módulo mudou de
                       nome, não de conteúdo */}
                   <Route path="/estudos" element={<Navigate to="/rhema" replace />} />

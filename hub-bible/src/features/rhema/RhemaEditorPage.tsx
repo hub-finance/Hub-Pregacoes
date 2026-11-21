@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Icon } from '../../components/Icon';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { EditorShell } from '../common/EditorShell';
 import { ScriptureField } from '../common/ScriptureField';
 import { DocumentViewer } from '../common/DocumentViewer';
+import { studyRoute } from '../../core/data/documents';
 import { useDocEditor } from '../common/useDocEditor';
 import { useAsync } from '../../hooks';
 import { getAttachment } from '../../core/data/attachments';
@@ -33,6 +34,7 @@ import type { Study, StudySection, StudySectionKind } from '../../core/db/types'
 export default function RhemaEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { doc, loading, dirty, saving, set } = useDocEditor<Study>('study', id);
   const [verseDraft, setVerseDraft] = useState('');
   const [addingSection, setAddingSection] = useState(false);
@@ -45,8 +47,8 @@ export default function RhemaEditorPage() {
   if (!doc) {
     return (
       <div className="page">
-        <p className="muted">Item do Rhema não encontrado.</p>
-        <button className="btn" onClick={() => navigate('/rhema')}>
+        <p className="muted">Estudo não encontrado.</p>
+        <button className="btn" onClick={() => navigate(location.pathname.startsWith('/escola') ? '/escola' : '/rhema')}>
           Voltar
         </button>
       </div>
@@ -124,7 +126,7 @@ export default function RhemaEditorPage() {
     <EditorShell
       kind="study"
       title={doc.title}
-      backTo="/rhema"
+      backTo={studyRoute(doc)}
       saving={saving}
       dirty={dirty}
       docId={doc.id}
