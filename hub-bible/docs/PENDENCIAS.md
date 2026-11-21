@@ -84,6 +84,25 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0as. ✅ Tema "Preto" — leitura à noite, com relevo
+
+Pedido do usuário, com foto de um app em fundo preto: "design nesta cor preta,
+leitura à noite… podem ter um relevo para destacar". O tema novo é `preto`.
+- **Fundo:** quase preto (`#141518`), não preto puro, pela mesma razão do
+  Escuro: no preto absoluto, a borda das letras claras vibra.
+- **Superfícies e destaque:** superfícies grafite e destaque azul-claro
+  (`#a8c7fa`).
+- **Relevo (`styles/preto.css`):** sombra escura embaixo das letras (Bíblia,
+  títulos, assistente, aba Estudar) e brilho quase invisível em cima; cartões,
+  botões e o item ativo do menu levemente elevados, e os botões afundam ao
+  toque.
+- **Onde aparece:** Configurações, o "Aa" da Bíblia e o ciclo do botão de
+  tema; alto contraste incluído.
+- **Ajuda:** agora fala em onze temas.
+
+Teste: fundo e relevo aplicados, contraste do texto de 14,9:1 e sem rolagem
+lateral.
+
 ### 0ar. ✅ Aba "Escola de Ministros", igual ao Rhema
 
 Pedido do usuário: "crie a aba Escola de Ministros igual a Rhema, só muda o

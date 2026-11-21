@@ -1,0 +1,60 @@
+/* =========================================================================
+   Preto — leitura à noite, com relevo.
+
+   O relevo é leve, para destacar sem ofuscar: as letras ganham uma sombra
+   escura logo abaixo e um brilho quase invisível acima, e os cartões e botões
+   ficam levemente elevados (borda clara em cima, sombra embaixo), como os
+   botões arredondados da referência que o pregador mandou.
+   ========================================================================= */
+
+/* as letras: a leitura da Bíblia, os títulos e o texto das telas */
+[data-theme='preto'] .reader,
+[data-theme='preto'] .page-title,
+[data-theme='preto'] .section-title,
+[data-theme='preto'] .card-title,
+[data-theme='preto'] .md,
+[data-theme='preto'] .xp-study,
+[data-theme='preto'] .assistant-doc-preview {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.9), 0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+[data-theme='preto'] .chapter-drop-cap {
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.9), 0 -1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* cartões e painéis: um degrau acima do fundo */
+[data-theme='preto'] .card,
+[data-theme='preto'] .assistant-msg.ai {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* botões: pílulas grafite em relevo, como os da referência */
+[data-theme='preto'] .btn:not(.btn-primary):not(.btn-ghost),
+[data-theme='preto'] .icon-btn,
+[data-theme='preto'] .chip {
+  background: var(--surface-2);
+  border-color: transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+[data-theme='preto'] .btn:not(.btn-primary):not(.btn-ghost):hover,
+[data-theme='preto'] .icon-btn:hover {
+  background: var(--surface-hover);
+}
+[data-theme='preto'] .btn-primary {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+/* pressionado: o relevo afunda */
+[data-theme='preto'] .btn:active,
+[data-theme='preto'] .icon-btn:active {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* menu lateral e item ativo */
+[data-theme='preto'] .rail {
+  background: #101114;
+}
+[data-theme='preto'] .rail-item.active,
+[data-theme='preto'] .rail-item.active:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 1px 2px rgba(0, 0, 0, 0.7);
+}
