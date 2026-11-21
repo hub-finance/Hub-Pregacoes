@@ -218,8 +218,7 @@ export function BackupPanel() {
           <span className="backup-part-text">
             <span className="list-title">Meus textos — sempre vão</span>
             <span className="list-meta">
-              Sermões, anotações, marcações, favoritos, Rhema, cursos, planos, histórico e os documentos do
-              Gerar e Exportar.
+              Rhema, anotações, marcações, favoritos, planos, histórico e os documentos do Gerar e Exportar.
             </span>
           </span>
         </label>
@@ -242,8 +241,8 @@ export function BackupPanel() {
           </label>
         ))}
         <p className="small muted" style={{ margin: 0 }}>
-          Para passar tudo ao notebook ou a um tablet novo, deixe tudo marcado. As chaves de IA nunca vão no
-          arquivo: digite-as de novo no outro aparelho.
+          Sermões e Cursos vêm desmarcados: marque-os quando quiser levá-los. Sem eles, restaurar o arquivo em
+          outro aparelho não apaga os sermões e cursos que já estejam lá. As chaves de IA nunca vão no arquivo.
         </p>
       </fieldset>
 
@@ -359,9 +358,9 @@ export function BackupPanel() {
 
 const PARTS_KEY = 'hub-bible:backup:parts';
 
-/** A escolha da última cópia; na primeira vez, tudo marcado. */
+/** A escolha da última cópia; na primeira vez, tudo marcado menos Sermões e Cursos. */
 function loadParts(): Record<BackupPart, boolean> {
-  const all = Object.fromEntries(BACKUP_PARTS.map((p) => [p.id, true])) as Record<BackupPart, boolean>;
+  const all = Object.fromEntries(BACKUP_PARTS.map((p) => [p.id, !p.off])) as Record<BackupPart, boolean>;
   try {
     const saved = JSON.parse(localStorage.getItem(PARTS_KEY) ?? 'null') as Partial<Record<BackupPart, boolean>> | null;
     return saved ? { ...all, ...saved } : all;

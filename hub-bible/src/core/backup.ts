@@ -77,11 +77,13 @@ export interface BackupOptions {
 }
 
 /** Os tipos de coisa que o usuário escolhe levar ou não. */
-export type BackupPart = 'bibles' | 'files' | 'assistant' | 'doctrinal' | 'dictionaries' | 'appearance';
+export type BackupPart = 'sermons' | 'courses' | 'bibles' | 'files' | 'assistant' | 'doctrinal' | 'dictionaries' | 'appearance';
 
-export const BACKUP_PARTS: Array<{ id: BackupPart; label: string; hint: string }> = [
+export const BACKUP_PARTS: Array<{ id: BackupPart; label: string; hint: string; off?: boolean }> = [
+  { id: 'sermons', label: 'Sermões (Gerador)', hint: 'Os sermões do Gerador, com os arquivos importados neles.', off: true },
+  { id: 'courses', label: 'Cursos', hint: 'Os cursos, com os arquivos de aula importados neles.', off: true },
   { id: 'bibles', label: 'Bíblias importadas', hint: 'Todas as traduções que você importou (as que vêm com o app o outro aparelho já tem).' },
-  { id: 'files', label: 'Arquivos das apostilas e cursos', hint: 'Os PDF e Word do Rhema, de Cursos e de Sermões — os que abrem no Modo Aula.' },
+  { id: 'files', label: 'Apostilas do Rhema (arquivos)', hint: 'Os PDF e Word das apostilas do Rhema — os que abrem no Modo Aula.' },
   { id: 'assistant', label: 'Assistente bíblico', hint: 'Conversas, documentos montados, materiais importados e as análises do Estudo guiado.' },
   { id: 'doctrinal', label: 'Base doutrinária', hint: 'A base que você importou para os Guias e o assistente.' },
   { id: 'dictionaries', label: 'Dicionários e comentários importados', hint: 'Os arquivos .SQLite3 ou JSON que você importou.' },
@@ -93,8 +95,12 @@ function wants(options: BackupOptions, part: BackupPart): boolean {
   if (options.complete) return true;
   if (options.parts) return !!options.parts[part];
   if (part === 'bibles') return !!options.includeTranslations;
-  return part === 'appearance';
+  // as cópias automáticas guardam sempre os sermões e os cursos
+  return part === 'appearance' || part === 'sermons' || part === 'courses';
 }
+
+/** A tabela de cada parte escolhível dos textos: sermões e cursos (`devotionals`). */
+const PART_TABLE: Partial<Record<(typeof TABLES)[number], BackupPart>> = { sermons: 'sermons', devotionals: 'courses' };
 
 
 const EXTRA_TABLES = ['dictionaries', 'dictionaryEntries', 'commentaries', 'commentaryEntries', 'aiAnalyses'] as const;
@@ -119,10 +125,22 @@ function unpackBlob(packed: PackedBlob): Blob {
 
 const isPacked = (v: unknown): v is PackedBlob => !!v && typeof v === 'object' && typeof (v as PackedBlob).__blob === 'string';
 
+/** De quem é cada arquivo: do Rhema, de um sermão ou de um curso. */
+async function attachmentOwners(): Promise<{ sermons: Set<string>; courses: Set<string> }> {
+  return {
+    sermons: new Set((await db.sermons.toCollection().primaryKeys()) as string[]),
+    courses: new Set((await db.devotionals.toCollection().primaryKeys()) as string[]),
+  };
+}
+
 async function collectExtra(want: (part: BackupPart) => boolean): Promise<BackupExtra> {
   const packed = [];
-  if (want('files')) {
-    for (const a of await db.attachments.toArray()) packed.push({ ...a, blob: a.blob instanceof Blob ? await packBlob(a.blob) : a.blob });
+  const owners = await attachmentOwners();
+  // cada arquivo vai junto com a parte a que pertence
+  const takeFile = (docId: string) =>
+    owners.sermons.has(docId) ? want('sermons') : owners.courses.has(docId) ? want('courses') : want('files');
+  for (const a of await db.attachments.toArray()) {
+    if (takeFile(a.docId)) packed.push({ ...a, blob: a.blob instanceof Blob ? await packBlob(a.blob) : a.blob });
   }
   const extra = { attachments: packed, settings: [] as unknown[] } as BackupExtra;
   for (const name of EXTRA_TABLES) {
@@ -153,7 +171,13 @@ export async function estimateBackupParts(): Promise<Record<BackupPart, PartSize
   if (ids.length) await db.books.where('translation').anyOf(ids).each((b) => { bibleBytes += json(b); });
 
   const atts = await db.attachments.toArray();
-  const fileBytes = atts.reduce((n, a) => n + Math.ceil((a.size || a.blob?.size || 0) * 1.37), 0);
+  const owners = await attachmentOwners();
+  const fileSize = (a: (typeof atts)[number]) => Math.ceil((a.size || a.blob?.size || 0) * 1.37);
+  const rhemaFiles = atts.filter((a) => !owners.sermons.has(a.docId) && !owners.courses.has(a.docId));
+  const fileBytes = rhemaFiles.reduce((n, a) => n + fileSize(a), 0);
+  const ownBytes = (ids: Set<string>) => atts.filter((a) => ids.has(a.docId)).reduce((n, a) => n + fileSize(a), 0);
+  const sermons = await db.sermons.toArray();
+  const courses = await db.devotionals.toArray();
 
   const rows = await db.settings.toArray();
   const conv = rows.find((r) => r.key === 'assistant:conversations')?.value;
@@ -177,7 +201,9 @@ export async function estimateBackupParts(): Promise<Record<BackupPart, PartSize
   const nMat = Array.isArray(mats) ? mats.length : 0;
   return {
     bibles: { bytes: bibleBytes, detail: ids.length ? plural(ids.length, 'Bíblia', 'Bíblias') : 'nenhuma importada' },
-    files: { bytes: fileBytes, detail: atts.length ? plural(atts.length, 'arquivo', 'arquivos') : 'nenhum arquivo' },
+    sermons: { bytes: json(sermons) + ownBytes(owners.sermons), detail: sermons.length ? plural(sermons.length, 'sermão', 'sermões') : 'nenhum' },
+    courses: { bytes: json(courses) + ownBytes(owners.courses), detail: courses.length ? plural(courses.length, 'curso', 'cursos') : 'nenhum' },
+    files: { bytes: fileBytes, detail: rhemaFiles.length ? plural(rhemaFiles.length, 'arquivo', 'arquivos') : 'nenhum arquivo' },
     assistant: { bytes: assistantBytes, detail: nConv || nMat ? `${plural(nConv, 'conversa', 'conversas')} e ${plural(nMat, 'material', 'materiais')}` : 'nada ainda' },
     doctrinal: { bytes: pack ? json(pack) : 0, detail: pack ? 'importada' : 'nenhuma importada' },
     dictionaries: { bytes: dictBytes, detail: dicts || coms ? `${plural(dicts, 'dicionário', 'dicionários')} e ${plural(coms, 'comentário', 'comentários')}` : 'nenhum importado' },
@@ -209,6 +235,10 @@ export async function createBackup(
   const data: Record<string, unknown[]> = {};
   const counts: Record<string, number> = {};
   for (const name of TABLES) {
+    // parte desmarcada fica fora do arquivo (e não vazia): assim restaurar
+    // não apaga os sermões ou cursos que já existam no outro aparelho
+    const part = PART_TABLE[name];
+    if (part && !wants(options, part)) continue;
     const rows = await db.table(name).toArray();
     data[name] = rows;
     counts[name] = rows.length;
@@ -224,7 +254,7 @@ export async function createBackup(
   };
 
   const want = (part: BackupPart) => wants(options, part);
-  if (want('files') || want('assistant') || want('doctrinal') || want('dictionaries')) {
+  if (want('files') || want('assistant') || want('doctrinal') || want('dictionaries') || (options.parts && (want('sermons') || want('courses')))) {
     const extra = await collectExtra(want);
     backup.extra = extra;
     counts.attachments = extra.attachments.length;
