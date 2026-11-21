@@ -163,6 +163,16 @@ const TOPICS: Topic[] = [
     ],
   },
   {
+    icon: 'school',
+    title: 'Escola de Ministros',
+    steps: [
+      'A aba Escola de Ministros funciona como o Rhema, com as apostilas da Escola guardadas à parte: o que você importa aqui não aparece no Rhema, e o do Rhema não aparece aqui.',
+      'Toque em Importar e escolha a apostila em PDF ou Word. Ela abre pronta, com o título de dentro do arquivo.',
+      'Toque em "Modo Aula" para dar a aula: a apostila em tela cheia, com a Bíblia ao lado — a mesma tela do Rhema, com a busca dentro da apostila, as anotações e os versículos vinculados.',
+      { to: '/escola', label: 'Abrir a Escola de Ministros', text: 'A Escola está no menu, no grupo Ministério.' },
+    ],
+  },
+  {
     icon: 'library',
     title: 'Cursos — o material das aulas',
     steps: [

@@ -22,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/dicionario', label: 'Dicionário', icon: 'dictionary', quick: true, group: 'principal' },
   { to: '/cursos', label: 'Cursos', icon: 'library', quick: true, group: 'ministerio' },
   { to: '/rhema', label: 'Rhema', icon: 'study', quick: true, group: 'ministerio' },
+  { to: '/escola', label: 'Escola de Ministros', shortLabel: 'Escola', icon: 'school', quick: true, group: 'ministerio' },
   { to: '/sermoes', label: 'Gerador', icon: 'sermon', quick: true, group: 'ministerio' },
   { to: '/guias', label: 'Guias Doutrinários', shortLabel: 'Guias', icon: 'layers', quick: true, group: 'ministerio' },
   { to: '/assistente', label: 'Assistente bíblico', shortLabel: 'Assistente', icon: 'bible-study', quick: true, group: 'ministerio' },

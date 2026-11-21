@@ -26,6 +26,10 @@ export const DOC_LABEL: Record<DocKind, string> = {
   doc: 'Material',
 };
 
+/** A aba de um estudo: Escola de Ministros ou Rhema. */
+export const studyRoute = (study: { shelf?: string } | null | undefined) =>
+  study?.shelf === 'escola' ? '/escola' : '/rhema';
+
 export const DOC_ROUTE: Record<DocKind, string> = {
   sermon: '/sermoes',
   study: '/rhema',

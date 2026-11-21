@@ -3,7 +3,7 @@ import { DocumentStage } from './DocumentStage';
 import { EmptyState, Spinner } from '../../components/ui';
 import { useAsync } from '../../hooks';
 import { getAttachment } from '../../core/data/attachments';
-import { getDoc } from '../../core/data/documents';
+import { getDoc, studyRoute } from '../../core/data/documents';
 import type { Devotional, Study } from '../../core/db/types';
 
 /**
@@ -24,7 +24,7 @@ export default function ClassPage() {
   const doc = useAsync(async () => {
     if (!id) return undefined;
     const study = await getDoc<Study>('study', id);
-    if (study) return { doc: study, back: '/rhema' };
+    if (study) return { doc: study, back: studyRoute(study) };
     const course = await getDoc<Devotional>('devotional', id);
     return course ? { doc: course, back: '/cursos' } : undefined;
   }, [id]);
