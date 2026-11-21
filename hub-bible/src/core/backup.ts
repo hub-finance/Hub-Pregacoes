@@ -443,3 +443,42 @@ export function readJsonFile<T = unknown>(file: File): Promise<T> {
     reader.readAsText(file);
   });
 }
+
+/**
+ * O backup como arquivo, montado em pedaços: cada Bíblia e cada arquivo vira
+ * um trecho próprio do JSON. `JSON.stringify` do backup inteiro criava um texto
+ * único de dezenas de MB — no tablet, com as Bíblias e as apostilas, isso
+ * esgotava a memória do aplicativo. O resultado é o mesmo JSON.
+ */
+export function backupToBlob(backup: BackupFile): Blob {
+  const parts: string[] = [];
+  const list = (items: unknown[]) => {
+    parts.push('[');
+    items.forEach((item, i) => parts.push((i ? ',' : '') + JSON.stringify(item)));
+    parts.push(']');
+  };
+  parts.push('{');
+  let first = true;
+  const key = (k: string) => { parts.push(`${first ? '' : ','}${JSON.stringify(k)}:`); first = false; };
+  for (const [k, v] of Object.entries(backup)) {
+    if (v === undefined) continue;
+    key(k);
+    if (k === 'translations' && v) {
+      const t = v as BackupTranslations;
+      parts.push(`{"meta":${JSON.stringify(t.meta)},"books":`);
+      list(t.books);
+      parts.push('}');
+    } else if (k === 'extra' && v) {
+      parts.push('{');
+      Object.entries(v as BackupExtra).forEach(([ek, ev], i) => {
+        parts.push(`${i ? ',' : ''}${JSON.stringify(ek)}:`);
+        list(ev);
+      });
+      parts.push('}');
+    } else {
+      parts.push(JSON.stringify(v));
+    }
+  }
+  parts.push('}');
+  return new Blob(parts, { type: 'application/json' });
+}

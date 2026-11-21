@@ -84,6 +84,33 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0aq. ✅ Correção: o app fechava ao baixar o backup grande (APK)
+
+O usuário mandou print: "Farol da Palavra foi fechado forçadamente devido a
+um erro interno" ao tocar em "Baixar o arquivo". Com as Bíblias e as
+apostilas, o backup passa de dezenas de MB. O app fazia
+`JSON.stringify` do backup inteiro (um texto único), convertia tudo para
+base64 e mandava numa só chamada `Filesystem.writeFile` à ponte do Android,
+copiando dezenas de MB várias vezes. Isso esgotava a memória, e o Android
+fechava o app.
+
+Agora:
+- `backupToBlob` (`backup.ts`) monta o mesmo JSON em pedaços, cada livro de
+  Bíblia e cada arquivo num trecho;
+- `writeInChunks` (`nativeFiles.ts`) grava em partes de 1 MB: `writeFile` na
+  primeira e `appendFile` nas seguintes. Vale para "Baixar o arquivo", para
+  "Salvar no Google Drive" e para os PDFs gerados.
+
+Teste (sem aparelho; a gravação foi simulada): backup de 35 MB com 3
+Bíblias e um PDF de 5 MB. Saiu idêntico ao `JSON.stringify` e foi gravado em
+36 partes de no máximo 1,33 MB, contra um bloco único de uns 47 MB antes. O
+arquivo saiu igual byte a byte e restaurou intacto. Regressões de backup e
+`test:export` sem falhas. Falta confirmar no tablet.
+
+Ainda a observar: restaurar um arquivo muito grande **no próprio tablet** lê o
+arquivo inteiro de uma vez (`readJsonFile`). No notebook não preocupa; no
+tablet, se fechar também, é o próximo ponto a mudar.
+
 ### 0ap. ✅ Manual de instalação no iPhone e no iPad (PDF)
 
 Pedido do usuário: o manual de instalar no iPad e no iPhone, em PDF, para
