@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<title>Farol da Palavra — Instalar no iPhone e no iPad</title>
+<style>
+@font-face { font-family: 'Source Sans'; src: url(../../public/fonts/SourceSans3-Regular.ttf); font-weight: 400; }
+@font-face { font-family: 'Source Sans'; src: url(../../public/fonts/SourceSans3-Bold.ttf); font-weight: 700; }
+@font-face { font-family: 'Source Sans'; src: url(../../public/fonts/SourceSans3-Italic.ttf); font-style: italic; }
+@font-face { font-family: 'Lora'; src: url(../../public/fonts/Lora-Bold.ttf); font-weight: 700; }
+@page { size: A4; margin: 16mm 16mm 16mm 16mm; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 11.5pt/1.5 'Source Sans', sans-serif; color: #1c2430; }
+.brand { display: flex; align-items: center; gap: 12px; padding-bottom: 10px; border-bottom: 3px solid #1f4373; }
+.brand img { width: 46px; height: 46px; border-radius: 11px; }
+.brand .name { font: 700 20pt/1.1 'Lora', serif; color: #1f4373; }
+.brand .sub { color: #5a6676; font-size: 11pt; }
+h1 { font: 700 19pt/1.2 'Lora', serif; color: #1f4373; margin: 16px 0 4px; }
+.lead { margin: 0 0 12px; color: #39424e; }
+h2 { font: 700 13.5pt/1.25 'Lora', serif; color: #1f4373; margin: 16px 0 6px; padding-bottom: 3px; border-bottom: 1px solid #c9d4e3; }
+.top { display: grid; grid-template-columns: 1fr 175px; gap: 16px; align-items: start; }
+.qr { text-align: center; border: 1px solid #c9d4e3; border-radius: 10px; padding: 8px; background: #fff; }
+.qr img { width: 130px; height: 130px; }
+.qr .addr { font-weight: 700; color: #1f4373; font-size: 9pt; white-space: nowrap; }
+.qr .hint { font-size: 8.5pt; color: #5a6676; }
+ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; }
+ol.steps > li { counter-increment: s; position: relative; padding: 0 0 8px 38px; }
+ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; background: #1f4373; color: #fff; font-weight: 700; display: grid; place-content: center; font-size: 11pt; }
+.where { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 2px; }
+.where div { background: #eef3f9; border-left: 3px solid #1f4373; border-radius: 6px; padding: 6px 10px; font-size: 10.5pt; }
+.icon { display: inline-block; vertical-align: -3px; width: 15px; height: 16px; }
+.path { font-weight: 700; color: #1f4373; }
+.note { background: #fff8e6; border-left: 3px solid #c9962b; border-radius: 6px; padding: 8px 12px; margin-top: 10px; font-size: 10.5pt; }
+table { width: 100%; border-collapse: collapse; font-size: 10.5pt; }
+td { border-top: 1px solid #dde4ee; padding: 6px 8px; vertical-align: top; }
+td:first-child { width: 38%; font-weight: 700; color: #1f4373; }
+ul { margin: 0; padding-left: 18px; }
+li + li { margin-top: 3px; }
+.page2 { break-before: page; }
+footer { margin-top: 14px; font-size: 9pt; color: #6b7685; border-top: 1px solid #dde4ee; padding-top: 6px; }
+</style></head><body>
+
+<div class="brand">
+  <img src="../../public/icons/icon-192.png" alt="">
+  <div><div class="name">Farol da Palavra</div><div class="sub">Manual de instalação — iPhone e iPad</div></div>
+</div>
+
+<div class="top">
+  <div>
+    <h1>Instalar no iPhone e no iPad</h1>
+    <p class="lead">No iPhone e no iPad o jeito é o mesmo. O Farol da Palavra não está na App Store: ele é instalado pelo <strong>Safari</strong>, em um minuto, sem cadastro e sem senha. Depois de instalado, abre em tela cheia, com ícone próprio, e funciona sem internet.</p>
+  </div>
+  <div class="qr">
+    <img src="qr.svg" alt="QR Code do endereço">
+    <div class="addr">hub-pregacoes.vercel.app</div>
+    <div class="hint">Aponte a câmera do iPhone ou do iPad</div>
+  </div>
+</div>
+
+<h2>Passo a passo</h2>
+<ol class="steps">
+  <li>Abra o <strong>Safari</strong> e entre no endereço <span class="path">hub-pregacoes.vercel.app</span> — ou aponte a câmera para o QR Code acima e toque no link que aparece. Use o Safari: é por ele que o iPhone e o iPad instalam na tela de início.</li>
+  <li>Toque no botão <strong>Compartilhar</strong>
+    <svg class="icon" viewBox="0 0 16 18" fill="none" stroke="#1f4373" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1v10M4.5 4.5 8 1l3.5 3.5"/><path d="M5 7H2.5v9.5h11V7H11"/></svg>
+    (o quadrado com a seta para cima). Ele fica em lugares diferentes:
+    <div class="where">
+      <div><strong>iPhone:</strong> na barra de baixo da tela (se a barra sumir, toque uma vez no rodapé da página).</div>
+      <div><strong>iPad:</strong> no alto, à direita, ao lado do endereço.</div>
+    </div>
+  </li>
+  <li>Na lista que abre, role para baixo e toque em <strong>“Adicionar à Tela de Início”</strong>. Se não aparecer, role a lista até o fim.</li>
+  <li>Confira o nome <strong>Farol da Palavra</strong> e toque em <strong>Adicionar</strong>. O ícone do Farol da Palavra (o farol azul) aparece na tela de início.</li>
+  <li><strong>Abra sempre pelo ícone</strong>, e não mais pelo Safari. É isso que faz o aparelho tratar o Farol da Palavra como aplicativo: tela cheia e os seus dados protegidos da limpeza que o Safari faz em sites pouco usados.</li>
+</ol>
+
+<h2>Logo depois de instalar</h2>
+<ol class="steps">
+  <li><strong>Baixe a Bíblia para usar sem internet:</strong> <span class="path">Configurações › Traduções › Baixar para uso offline</span>.</li>
+  <li><strong>Seu nome e o tema:</strong> em <span class="path">Configurações</span>, escolha como quer ser chamado, o tema, a letra e o tamanho.</li>
+  <li><strong>Chave de IA (se você usa):</strong> digite de novo em <span class="path">Configurações</span>. Ela nunca vai no backup, por segurança.</li>
+</ol>
+
+<div class="page2"></div>
+<h2>Trazer seus dados do tablet Android</h2>
+<ol class="steps">
+  <li><strong>No tablet:</strong> <span class="path">Configurações › Backup e privacidade</span>. Em “O que levar na cópia”, marque o que quer levar (Bíblias importadas, apostilas do Rhema, assistente…). Toque em <strong>“Salvar no Google Drive”</strong>.</li>
+  <li><strong>No iPhone ou iPad:</strong> abra o Google Drive e salve o arquivo no app <strong>Arquivos</strong> (Compartilhar › Salvar em Arquivos).</li>
+  <li>No Farol da Palavra: <span class="path">Configurações › Backup e privacidade › Restaurar de um arquivo</span> e escolha o arquivo. Restaurar não apaga nada que já esteja no aparelho.</li>
+</ol>
+
+<h2>No dia a dia</h2>
+<ul>
+  <li><strong>Importar apostilas, sermões e materiais:</strong> deixe os arquivos (PDF, Word) no app <strong>Arquivos</strong> ou no iCloud Drive — o botão Importar abre direto neles.</li>
+  <li><strong>Atualizações:</strong> são automáticas. Quando houver versão nova, aparece “Nova versão disponível” no alto: toque em <strong>Atualizar</strong>. Nada do que você criou se perde.</li>
+  <li><strong>Backup:</strong> de tempos em tempos, <span class="path">Configurações › Backup e privacidade › Salvar no Google Drive</span>. Se o aparelho se perder, é essa cópia que traz tudo de volta.</li>
+</ul>
+
+<h2>Se algo não funcionar</h2>
+<table>
+  <tr><td>Não aparece “Adicionar à Tela de Início”</td><td>Confira se está no <strong>Safari</strong> e role a lista do Compartilhar até o fim.</td></tr>
+  <tr><td>O PDF exportado não abre</td><td>É o bloqueio de janelas do Safari: <span class="path">Ajustes › Safari</span> e desligue “Bloquear Pop-ups”.</td></tr>
+  <tr><td>A tela apaga durante a pregação (iPad mais antigo)</td><td><span class="path">Ajustes › Tela e Brilho › Bloqueio Automático › Nunca</span>, enquanto estiver pregando.</td></tr>
+  <tr><td>A Bíblia não abre sem internet</td><td>Faltou baixar: <span class="path">Configurações › Traduções › Baixar para uso offline</span>.</td></tr>
+  <tr><td>Abriu sem os seus dados</td><td>Você abriu pelo Safari, e não pelo ícone. Cada um guarda os próprios dados: use sempre o ícone do farol.</td></tr>
+</table>
+
+<div class="note"><strong>Importante:</strong> o Farol da Palavra foi feito e conferido no Android. Ainda não foi testado num iPhone ou iPad de verdade. Se algo se comportar diferente do que está aqui, avise para ajustarmos.</div>
+
+<footer>Farol da Palavra. Tudo fica no seu aparelho: sem cadastro, sem conta, nada enviado para servidor. · hub-pregacoes.vercel.app</footer>
+</body></html>
