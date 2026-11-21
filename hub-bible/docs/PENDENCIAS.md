@@ -84,6 +84,26 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ap. ✅ Manual de instalação no iPhone e no iPad (PDF)
+
+Pedido do usuário: o manual de instalar no iPad e no iPhone, em PDF, para
+baixar. São 2 páginas A4, com as fontes e as cores do app:
+- QR Code para `https://hub-pregacoes.vercel.app/` (lido de volta do PDF
+  para conferir);
+- passo a passo pelo Safari, com onde fica o Compartilhar no iPhone e no iPad;
+- primeiros passos e como trazer os dados do tablet pelo backup;
+- dia a dia e "Se algo não funcionar";
+- o aviso de que ainda não foi testado em aparelho Apple.
+
+O PDF está em `public/manual-iphone-ipad.pdf` (o site o serve). A Ajuda tem o
+cartão "Manual de instalação — iPhone e iPad (PDF)" › Baixar PDF, que usa
+`deliverFile` e por isso funciona também no APK. A fonte do PDF está em
+`docs/manual-iphone-ipad/` (HTML + `qr.svg`); para refazer, abra o
+`manual.html` no Chromium e salve em PDF A4 com fundo.
+
+Na mesma mudança, o passo de backup na Ajuda do iPhone deixou de citar o nome
+antigo "Exportar meus dados". Teste: 6.
+
 ### 0ao. ✅ Backup: Sermões e Cursos à parte, desmarcados
 
 Pedido do usuário: "para este tipo de backup não vai cursos e sermões; só vai

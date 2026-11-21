@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/ui';
 import { Icon, type IconName } from '../../components/Icon';
 import { isNativeApp } from '../../core/platform';
+import { deliverFile } from '../../core/export/deliver';
+import { useToast } from '../../components/Toast';
 
 interface Topic {
   icon: IconName;
@@ -33,10 +36,11 @@ const TOPICS: Topic[] = [
       'Toque no botão Compartilhar (o quadrado com a seta para cima) e escolha "Adicionar à Tela de Início". Confirme em Adicionar.',
       'Abra pelo ícone que apareceu na tela de início — e não mais pelo Safari. É essa a diferença que faz o iPhone tratar o Farol da Palavra como aplicativo: tela cheia, e os seus dados protegidos da limpeza que o Safari faz em sites sem uso.',
       'Logo depois de instalar, vá em Configurações › Traduções › "Baixar para uso offline". Sem isso a Bíblia precisa de internet.',
-      'Faça o backup de vez em quando: Configurações › "Exportar meus dados". O arquivo vai para o app Arquivos. É a garantia contra perder sermões e anotações.',
+      'Faça o backup de vez em quando: Configurações › Backup e privacidade › "Salvar no Google Drive". É a garantia contra perder o que você fez.',
       'Para importar apostilas e sermões, tenha os arquivos no app Arquivos ou no iCloud Drive; o botão Importar abre direto neles.',
       'Se a exportação em PDF não abrir, é o bloqueio de pop-up do Safari: Ajustes › Safari › desligue "Bloquear Pop-ups", ou use Markdown/TXT.',
       'Em iPad com iOS anterior ao 16.4, a tela pode apagar durante a pregação. Ajustes › Tela e Brilho › Bloqueio Automático › Nunca, enquanto estiver pregando.',
+      'O passo a passo em PDF, com QR Code, está no alto desta página: "Manual de instalação — iPhone e iPad" › Baixar PDF. É o arquivo para enviar a quem vai instalar.',
       'O aplicativo ainda não foi testado em aparelho da Apple — foi feito e verificado no Android. Se algo se comportar diferente, é bom avisar.',
     ],
   },
@@ -322,6 +326,20 @@ const TOPICS: Topic[] = [
 ];
 
 export default function HelpPage() {
+  const { notify } = useToast();
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const downloadIosManual = async () => {
+    setPdfBusy(true);
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}manual-iphone-ipad.pdf`);
+      if (!res.ok) throw new Error('O manual não está disponível agora. Tente com internet.');
+      notify(await deliverFile(await res.blob(), 'Farol da Palavra - instalar no iPhone e iPad.pdf'));
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'Não foi possível baixar o manual.');
+    } finally {
+      setPdfBusy(false);
+    }
+  };
   return (
     <div className="page">
       <PageHeader
@@ -358,6 +376,20 @@ export default function HelpPage() {
             Abrir
           </a>
         )}
+      </div>
+
+      {/* O PDF de instalação no iPhone e no iPad, para enviar a quem vai
+          instalar. Sai pelo mesmo caminho dos PDFs gerados: no APK vai para a
+          pasta Documentos, sem trocar de tela. */}
+      <div className="card row" style={{ marginBottom: 'var(--sp-4)', gap: 'var(--sp-3)' }}>
+        <Icon name="download" size={22} style={{ flex: 'none', color: 'var(--accent-strong)' }} />
+        <span className="list-body" style={{ flex: 1, minWidth: 0 }}>
+          <span className="list-title">Manual de instalação — iPhone e iPad (PDF)</span>
+          <span className="list-meta">Passo a passo com QR Code, para enviar a quem vai instalar no iPhone ou no iPad.</span>
+        </span>
+        <button className="btn btn-sm" style={{ flex: 'none' }} disabled={pdfBusy} onClick={downloadIosManual}>
+          {pdfBusy ? 'Baixando…' : 'Baixar PDF'}
+        </button>
       </div>
 
       <div className="stack">
