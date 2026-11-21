@@ -1,5 +1,6 @@
 import { db, now, uid } from './db/db';
 import {
+  backupToBlob,
   createBackup,
   restoreBackup,
   type BackupFile,
@@ -224,13 +225,11 @@ export async function sendBackupTo(
   /* Sem indentação quando o texto bíblico vai junto: a formatação bonita custa
      dezenas de MB num arquivo que ninguém vai ler à mão. Sem as Bíblias o
      arquivo é pequeno, e aí vale deixá-lo legível. */
-  const payload = backup.translations || backup.extra
-    ? JSON.stringify(backup)
-    : JSON.stringify(backup, null, 2);
-  const { result, path } = await target.send(
-    new Blob([payload], { type: 'application/json' }),
-    backupFileName(),
-  );
+  // grande (com Bíblias ou arquivos): montado em pedaços, para não esgotar a memória
+  const blob = backup.translations || backup.extra
+    ? backupToBlob(backup)
+    : new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const { result, path } = await target.send(blob, backupFileName());
 
   // guarda também uma cópia local: o esforço já foi feito
   await saveSnapshot('manual', settings);
@@ -240,7 +239,7 @@ export async function sendBackupTo(
     result,
     path,
     records: Object.values(backup.counts).reduce((a, b) => a + b, 0),
-    bytes: payload.length,
+    bytes: blob.size,
   };
 }
 

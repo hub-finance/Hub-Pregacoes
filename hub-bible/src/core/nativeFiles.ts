@@ -15,6 +15,30 @@
  */
 import { isNativeApp } from './platform';
 
+/** Tamanho de cada parte gravada: pequena o bastante para a ponte com o Android. */
+const CHUNK_BYTES = 1024 * 1024;
+
+type FS = typeof import('@capacitor/filesystem').Filesystem;
+type Dir = import('@capacitor/filesystem').Directory;
+
+/**
+ * Grava o arquivo em partes de 1 MB: a primeira cria o arquivo, as seguintes
+ * são acrescentadas. Um backup com as Bíblias e as apostilas passa de dezenas
+ * de MB, e mandá-lo de uma vez à ponte do Android (em base64, copiado mais de
+ * uma vez) estourava a memória — o app era fechado à força no meio da cópia.
+ */
+export async function writeInChunks(fs: Pick<FS, 'writeFile' | 'appendFile'>, blob: Blob, path: string, directory: Dir): Promise<void> {
+  if (blob.size === 0) {
+    await fs.writeFile({ path, data: '', directory, recursive: true });
+    return;
+  }
+  for (let at = 0; at < blob.size; at += CHUNK_BYTES) {
+    const data = await toBase64(blob.slice(at, at + CHUNK_BYTES));
+    if (at === 0) await fs.writeFile({ path, data, directory, recursive: true });
+    else await fs.appendFile({ path, data, directory });
+  }
+}
+
 /**
  * O conteúdo em base64, sem o prefixo `data:`.
  *
@@ -52,11 +76,7 @@ export async function shareFileNatively(blob: Blob, filename: string): Promise<b
     import('@capacitor/share'),
   ]);
 
-  await Filesystem.writeFile({
-    path: filename,
-    data: await toBase64(blob),
-    directory: Directory.Cache,
-  });
+  await writeInChunks(Filesystem, blob, filename, Directory.Cache);
   const { uri } = await Filesystem.getUri({ path: filename, directory: Directory.Cache });
 
   try {
@@ -79,11 +99,6 @@ export async function saveFileNatively(blob: Blob, filename: string): Promise<st
   if (!isNativeApp()) return null;
 
   const { Filesystem, Directory } = await import('@capacitor/filesystem');
-  await Filesystem.writeFile({
-    path: filename,
-    data: await toBase64(blob),
-    directory: Directory.Documents,
-    recursive: true,
-  });
+  await writeInChunks(Filesystem, blob, filename, Directory.Documents);
   return `Documentos/${filename}`;
 }
