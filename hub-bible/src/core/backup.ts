@@ -69,13 +69,33 @@ export interface BackupOptions {
    * passar do tablet para o notebook sem reimportar nada.
    */
   complete?: boolean;
+  /**
+   * O que levar, escolhido pelo usuário item por item. Os textos dele
+   * (sermões, anotações, Rhema, cursos, planos…) vão sempre.
+   */
+  parts?: Partial<Record<BackupPart, boolean>>;
 }
 
-/**
- * Registros de `settings` que são do usuário. Os demais são marcas internas
- * (reparos já feitos, caches) que o próprio aplicativo refaz.
- */
-const USER_SETTING_PREFIXES = ['assistant:', 'doctrinal-pack', 'export:', 'book:'];
+/** Os tipos de coisa que o usuário escolhe levar ou não. */
+export type BackupPart = 'bibles' | 'files' | 'assistant' | 'doctrinal' | 'dictionaries' | 'appearance';
+
+export const BACKUP_PARTS: Array<{ id: BackupPart; label: string; hint: string }> = [
+  { id: 'bibles', label: 'Bíblias importadas', hint: 'Todas as traduções que você importou (as que vêm com o app o outro aparelho já tem).' },
+  { id: 'files', label: 'Arquivos das apostilas e cursos', hint: 'Os PDF e Word do Rhema, de Cursos e de Sermões — os que abrem no Modo Aula.' },
+  { id: 'assistant', label: 'Assistente bíblico', hint: 'Conversas, documentos montados, materiais importados e as análises do Estudo guiado.' },
+  { id: 'doctrinal', label: 'Base doutrinária', hint: 'A base que você importou para os Guias e o assistente.' },
+  { id: 'dictionaries', label: 'Dicionários e comentários importados', hint: 'Os arquivos .SQLite3 ou JSON que você importou.' },
+  { id: 'appearance', label: 'Configurações', hint: 'Tema, letra, tamanho e as demais escolhas do app.' },
+];
+
+/** O que entra, conforme as opções (o "complete" antigo vale como tudo marcado). */
+function wants(options: BackupOptions, part: BackupPart): boolean {
+  if (options.complete) return true;
+  if (options.parts) return !!options.parts[part];
+  if (part === 'bibles') return !!options.includeTranslations;
+  return part === 'appearance';
+}
+
 
 const EXTRA_TABLES = ['dictionaries', 'dictionaryEntries', 'commentaries', 'commentaryEntries', 'aiAnalyses'] as const;
 
@@ -99,15 +119,70 @@ function unpackBlob(packed: PackedBlob): Blob {
 
 const isPacked = (v: unknown): v is PackedBlob => !!v && typeof v === 'object' && typeof (v as PackedBlob).__blob === 'string';
 
-async function collectExtra(): Promise<BackupExtra> {
-  const attachments = await db.attachments.toArray();
+async function collectExtra(want: (part: BackupPart) => boolean): Promise<BackupExtra> {
   const packed = [];
-  for (const a of attachments) packed.push({ ...a, blob: a.blob instanceof Blob ? await packBlob(a.blob) : a.blob });
+  if (want('files')) {
+    for (const a of await db.attachments.toArray()) packed.push({ ...a, blob: a.blob instanceof Blob ? await packBlob(a.blob) : a.blob });
+  }
   const extra = { attachments: packed, settings: [] as unknown[] } as BackupExtra;
-  for (const name of EXTRA_TABLES) extra[name] = await db.table(name).toArray();
+  for (const name of EXTRA_TABLES) {
+    const take = name === 'aiAnalyses' ? want('assistant') : want('dictionaries');
+    extra[name] = take ? await db.table(name).toArray() : [];
+  }
+  // só registros do usuário; marcas internas (reparos, caches) o app refaz.
+  // `export:` e `book:` são pequenos e vão sempre que há "extra"
+  const prefixes = ['export:', 'book:', ...(want('assistant') ? ['assistant:'] : []), ...(want('doctrinal') ? ['doctrinal-pack'] : [])];
   const all = await db.settings.toArray();
-  extra.settings = all.filter((r) => USER_SETTING_PREFIXES.some((p) => r.key.startsWith(p)));
+  extra.settings = all.filter((r) => prefixes.some((p) => r.key.startsWith(p)));
   return extra;
+}
+
+export interface PartSize { bytes: number; detail: string }
+
+/**
+ * Quanto cada tipo ocupa no arquivo, para a tela mostrar antes de exportar.
+ * É uma estimativa (o JSON de cada parte), boa para dizer o que pesa.
+ */
+export async function estimateBackupParts(): Promise<Record<BackupPart, PartSize>> {
+  const json = (v: unknown) => JSON.stringify(v ?? null).length;
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+  const metas = await db.settings.where('key').startsWith('translation:meta:').toArray();
+  const ids = metas.map((r) => r.key.replace('translation:meta:', ''));
+  let bibleBytes = 0;
+  if (ids.length) await db.books.where('translation').anyOf(ids).each((b) => { bibleBytes += json(b); });
+
+  const atts = await db.attachments.toArray();
+  const fileBytes = atts.reduce((n, a) => n + Math.ceil((a.size || a.blob?.size || 0) * 1.37), 0);
+
+  const rows = await db.settings.toArray();
+  const conv = rows.find((r) => r.key === 'assistant:conversations')?.value;
+  const mats = rows.find((r) => r.key === 'assistant:materials')?.value;
+  const assistantBytes = rows.filter((r) => r.key.startsWith('assistant:')).reduce((n, r) => n + json(r), 0)
+    + json(await db.aiAnalyses.toArray());
+  const pack = rows.find((r) => r.key === 'doctrinal-pack');
+
+  const dicts = await db.dictionaries.count();
+  const coms = await db.commentaries.count();
+  // os verbetes podem ser dezenas de milhares: mede uma amostra e multiplica
+  const sample = async (table: string) => {
+    const total = await db.table(table).count();
+    if (!total) return 0;
+    const some = await db.table(table).limit(200).toArray();
+    return Math.round((json(some) / some.length) * total);
+  };
+  const dictBytes = (await sample('dictionaryEntries')) + (await sample('commentaryEntries'));
+
+  const nConv = Array.isArray(conv) ? conv.length : 0;
+  const nMat = Array.isArray(mats) ? mats.length : 0;
+  return {
+    bibles: { bytes: bibleBytes, detail: ids.length ? plural(ids.length, 'Bíblia', 'Bíblias') : 'nenhuma importada' },
+    files: { bytes: fileBytes, detail: atts.length ? plural(atts.length, 'arquivo', 'arquivos') : 'nenhum arquivo' },
+    assistant: { bytes: assistantBytes, detail: nConv || nMat ? `${plural(nConv, 'conversa', 'conversas')} e ${plural(nMat, 'material', 'materiais')}` : 'nada ainda' },
+    doctrinal: { bytes: pack ? json(pack) : 0, detail: pack ? 'importada' : 'nenhuma importada' },
+    dictionaries: { bytes: dictBytes, detail: dicts || coms ? `${plural(dicts, 'dicionário', 'dicionários')} e ${plural(coms, 'comentário', 'comentários')}` : 'nenhum importado' },
+    appearance: { bytes: 2000, detail: 'tema, letra e tamanho' },
+  };
 }
 
 const TABLES = [
@@ -145,11 +220,12 @@ export async function createBackup(
     exportedAt: new Date().toISOString(),
     counts,
     data,
-    settings,
+    settings: wants(options, 'appearance') ? settings : undefined,
   };
 
-  if (options.complete) {
-    const extra = await collectExtra();
+  const want = (part: BackupPart) => wants(options, part);
+  if (want('files') || want('assistant') || want('doctrinal') || want('dictionaries')) {
+    const extra = await collectExtra(want);
     backup.extra = extra;
     counts.attachments = extra.attachments.length;
     counts.dictionaries = extra.dictionaries.length;
@@ -158,7 +234,7 @@ export async function createBackup(
     counts.userSettings = extra.settings.length;
   }
 
-  if (options.includeTranslations || options.complete) {
+  if (want('bibles')) {
     const translations = await collectImportedTranslations();
     if (translations) {
       backup.translations = translations;

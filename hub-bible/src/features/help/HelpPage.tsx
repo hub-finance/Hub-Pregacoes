@@ -305,9 +305,8 @@ const TOPICS: Topic[] = [
       '"Baixar o arquivo" guarda no próprio aparelho: no navegador vai para a pasta Download; no aplicativo Android vai para a pasta Documentos, e o aviso na tela diz onde ficou.',
       'O app também guarda sozinho as últimas seis cópias, uma a cada poucos dias. Elas servem para desfazer um engano — apagar um sermão sem querer — e ficam dentro do próprio app: no navegador somem se você limpar os dados dele; no aplicativo Android somem se você desinstalar. Nenhuma das duas substitui a cópia no Drive.',
       'Para restaurar: pelo botão Restaurar de uma cópia da lista, ou em "Restaurar de um arquivo". Nos dois casos o estado atual é gravado antes, para haver caminho de volta.',
-      '"Levar tudo" já vem marcado: o arquivo leva o aparelho inteiro — sermões, anotações, Rhema, cursos, as Bíblias importadas, os arquivos das apostilas (PDF, Word), o Assistente bíblico (conversas e materiais), a base doutrinária, os dicionários e comentários importados e o tema, a letra e o tamanho. É o arquivo que leva o tablet para o notebook.',
-      'Para passar ao notebook: no tablet, "Baixar o arquivo" (ou "Salvar no Google Drive"); no notebook, abra o Farol da Palavra no navegador, vá em Configurações › Backup e privacidade e toque em "Restaurar de um arquivo". As chaves de IA não vão no arquivo: digite-as de novo no notebook.',
-      'Desmarque "Levar tudo" se quiser só uma cópia pequena, com os seus textos.',
+      'Em "O que levar na cópia" você escolhe item por item: Bíblias importadas, arquivos das apostilas e cursos (PDF, Word), Assistente bíblico, base doutrinária, dicionários e comentários importados e configurações. Os seus textos (sermões, anotações, Rhema, cursos, planos) vão sempre. Cada item mostra o que tem e quanto ocupa, e o app lembra a sua escolha para a próxima vez.',
+      'Para passar ao notebook: deixe tudo marcado; no tablet, "Baixar o arquivo" (ou "Salvar no Google Drive"); no notebook, abra o Farol da Palavra no navegador, vá em Configurações › Backup e privacidade e toque em "Restaurar de um arquivo". As chaves de IA não vão no arquivo: digite-as de novo no notebook.',
     ],
   },
   {

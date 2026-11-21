@@ -84,6 +84,28 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0an. ✅ Backup: escolher item por item o que levar
+
+Pedido do usuário: "levar todas as Bíblias e os tipos de coisas quero
+escolher". O "Levar tudo" virou a lista "O que levar na cópia":
+- **sempre:** Meus textos;
+- **para escolher:** Bíblias importadas, arquivos das apostilas e cursos,
+  Assistente bíblico (com as análises do Estudo guiado), base doutrinária,
+  dicionários e comentários importados, configurações.
+
+Tudo vem marcado. A escolha fica em `hub-bible:backup:parts`. Cada item
+mostra o que tem e quanto ocupa (`estimateBackupParts`; os verbetes dos
+dicionários são medidos por amostra).
+
+No núcleo, `BackupOptions.parts` e `wants()`. O antigo `complete` vale como
+tudo marcado, e as cópias automáticas continuam leves. A restauração não
+mudou: devolve o que estiver no arquivo.
+
+Teste: 22 (390 e 1280 px). O arquivo com Assistente e Dicionários
+desmarcados leva as duas Bíblias, o PDF, a base, as configurações e os
+textos, sem o que foi desmarcado; a escolha fica guardada; a restauração
+num aparelho vazio funciona. O teste do backup completo segue com 11 de 11.
+
 ### 0am. ✅ Menu: só "Farol da Palavra", numa linha
 
 Pedido do usuário, com print do tablet: o subtítulo "Bíblia e ministério"

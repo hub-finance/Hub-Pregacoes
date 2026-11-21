@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
 import { useSettings } from '../../core/settings/SettingsContext';
-import { readJsonFile, restoreBackup } from '../../core/backup';
+import { BACKUP_PARTS, estimateBackupParts, readJsonFile, restoreBackup, type BackupPart, type PartSize } from '../../core/backup';
 import {
   deleteSnapshot,
   exportOverdue,
@@ -66,10 +66,15 @@ export function BackupPanel() {
   const [busy, setBusy] = useState<string | null>(null);
   const [exportedAt, setExportedAt] = useState<number | null>(lastExportAt());
   const [storage, setStorage] = useState<StorageStatus | null>(null);
-  /* Levar tudo: Bíblias importadas, arquivos das apostilas, assistente,
-     dicionários e comentários. Ligado por padrão (pedido do pregador): é a
-     cópia que passa o tablet inteiro para o notebook. */
-  const [withBibles, setWithBibles] = useState(true);
+  /* O que levar, item por item (pedido do pregador). Tudo marcado por padrão;
+     a escolha fica guardada para a próxima cópia. */
+  const [parts, setParts] = useState<Record<BackupPart, boolean>>(loadParts);
+  const [sizes, setSizes] = useState<Record<BackupPart, PartSize> | null>(null);
+  const togglePart = (id: BackupPart, on: boolean) => {
+    const next = { ...parts, [id]: on };
+    setParts(next);
+    try { localStorage.setItem(PARTS_KEY, JSON.stringify(next)); } catch { /* sem armazenamento: vale só agora */ }
+  };
   const restoreInput = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
@@ -80,6 +85,7 @@ export function BackupPanel() {
 
   useEffect(() => {
     void refresh();
+    estimateBackupParts().then(setSizes).catch(() => setSizes(null));
   }, [refresh]);
 
   const targets = listBackupTargets();
@@ -89,8 +95,7 @@ export function BackupPanel() {
     setBusy(targetId);
     try {
       const { result, path, records, bytes } = await sendBackupTo(targetId, settings, {
-        includeTranslations: withBibles,
-        complete: withBibles,
+        parts,
       });
       const resumo = `${records.toLocaleString('pt-BR')} registros, ${formatBytes(bytes)}`;
       notify(
@@ -206,30 +211,41 @@ export function BackupPanel() {
         </span>
       </div>
 
-      <label className="card row" style={{ gap: 'var(--sp-3)', cursor: 'pointer' }}>
-        <input
-          type="checkbox"
-          checked={withBibles}
-          onChange={(e) => setWithBibles(e.target.checked)}
-          style={{ width: 22, height: 22, flex: 'none' }}
-        />
-        <span style={{ flex: 1, minWidth: 0 }}>
-          <span className="list-title">Levar tudo (recomendado para trocar de aparelho)</span>
-          <span className="list-meta">
-            Bíblias importadas, os arquivos das apostilas e cursos (PDF, Word), o Assistente bíblico
-            (conversas e materiais), a base doutrinária, os dicionários e comentários importados e
-            as análises do Estudo guiado. Assim o notebook ou um tablet novo nasce igual a este, sem
-            reimportar nada. O arquivo fica bem maior. As chaves de IA não vão: digite-as de novo
-            no outro aparelho.
+      <fieldset className="card stack backup-parts">
+        <legend className="list-title">O que levar na cópia</legend>
+        <label className="row backup-part">
+          <input type="checkbox" checked disabled />
+          <span className="backup-part-text">
+            <span className="list-title">Meus textos — sempre vão</span>
+            <span className="list-meta">
+              Sermões, anotações, marcações, favoritos, Rhema, cursos, planos, histórico e os documentos do
+              Gerar e Exportar.
+            </span>
           </span>
-        </span>
-      </label>
-
-      <p className="small muted">
-        A cópia leva sempre favoritos, marcações, anotações, sermões, Rhema, cursos, planos,
-        histórico e os documentos do Gerar e Exportar. Com "Levar tudo" marcado, leva também o
-        resto do aparelho. Desmarcado, o arquivo sai pequeno, só com os seus textos.
-      </p>
+        </label>
+        {BACKUP_PARTS.map((part) => (
+          <label key={part.id} className="row backup-part">
+            <input
+              type="checkbox"
+              checked={parts[part.id]}
+              onChange={(e) => togglePart(part.id, e.target.checked)}
+            />
+            <span className="backup-part-text">
+              <span className="list-title">{part.label}</span>
+              <span className="list-meta">
+                {part.hint}
+                {sizes && (
+                  <> <strong>{sizes[part.id].detail}{sizes[part.id].bytes > 0 && part.id !== 'appearance' ? ` · ${sizes[part.id].bytes < 1024 ? 'menos de 1 KB' : formatBytes(sizes[part.id].bytes)}` : ''}</strong></>
+                )}
+              </span>
+            </span>
+          </label>
+        ))}
+        <p className="small muted" style={{ margin: 0 }}>
+          Para passar tudo ao notebook ou a um tablet novo, deixe tudo marcado. As chaves de IA nunca vão no
+          arquivo: digite-as de novo no outro aparelho.
+        </p>
+      </fieldset>
 
       {/* -------------------- as cópias que ficam aqui -------------------- */}
       <div className="card stack" style={{ gap: 'var(--sp-3)' }}>
@@ -339,4 +355,17 @@ export function BackupPanel() {
       />
     </div>
   );
+}
+
+const PARTS_KEY = 'hub-bible:backup:parts';
+
+/** A escolha da última cópia; na primeira vez, tudo marcado. */
+function loadParts(): Record<BackupPart, boolean> {
+  const all = Object.fromEntries(BACKUP_PARTS.map((p) => [p.id, true])) as Record<BackupPart, boolean>;
+  try {
+    const saved = JSON.parse(localStorage.getItem(PARTS_KEY) ?? 'null') as Partial<Record<BackupPart, boolean>> | null;
+    return saved ? { ...all, ...saved } : all;
+  } catch {
+    return all;
+  }
 }
