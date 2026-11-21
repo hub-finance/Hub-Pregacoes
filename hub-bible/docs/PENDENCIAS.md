@@ -84,6 +84,23 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ao. ✅ Backup: Sermões e Cursos à parte, desmarcados
+
+Pedido do usuário: "para este tipo de backup não vai cursos e sermões; só vai
+a apostila do Rhema". As novas partes são `sermons` (tabela `sermons`) e
+`courses` (tabela `devotionals`), com `off: true`, ou seja, desmarcadas.
+
+O arquivo de cada anexo vai com a parte a que pertence (`attachmentOwners`).
+"Apostilas do Rhema (arquivos)" leva só os anexos que não são de sermão nem
+de curso.
+
+Parte desmarcada fica **fora** do arquivo, e não como lista vazia. Assim
+`restoreBackup`, mesmo em `replace`, não apaga os sermões e cursos do outro
+aparelho. As cópias automáticas continuam levando sermões e cursos.
+
+Teste: 9. O teste das escolhas passou a esperar 9 itens. O
+`e2e-backup-ui`, da antiga caixinha "Levar tudo", ficou obsoleto.
+
 ### 0an. ✅ Backup: escolher item por item o que levar
 
 Pedido do usuário: "levar todas as Bíblias e os tipos de coisas quero
