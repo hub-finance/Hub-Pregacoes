@@ -13,6 +13,7 @@ export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose:
     { id: 'dark', label: 'Escuro', icon: 'moon' as const },
     { id: 'azul', label: 'Noite azul', icon: 'moon' as const },
     { id: 'ministerial', label: 'Ministerial', icon: 'moon' as const },
+    { id: 'preto', label: 'Preto', icon: 'moon' as const },
     { id: 'celeste', label: 'Celeste', icon: 'sun' as const },
     { id: 'safira', label: 'Safira', icon: 'sun' as const },
     { id: 'jardim', label: 'Jardim', icon: 'sun' as const },

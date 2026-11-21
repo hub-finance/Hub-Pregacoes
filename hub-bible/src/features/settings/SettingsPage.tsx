@@ -84,6 +84,7 @@ export default function SettingsPage() {
               { value: 'jardim', label: 'Verde e branco' },
               { value: 'esmeralda', label: 'Esmeralda (creme e verde)' },
               { value: 'institucional', label: 'Institucional (claro com menu azul)' },
+              { value: 'preto', label: 'Preto (leitura à noite, com relevo)' },
             ]}
           />
           <Toggle
