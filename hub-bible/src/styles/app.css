@@ -1833,3 +1833,28 @@ input.study-section-title:focus {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* ------------------ backup: o que levar, item por item ------------------ */
+.backup-parts {
+  border: 1px solid var(--border);
+  margin: 0;
+}
+.backup-parts legend {
+  padding: 0 var(--sp-1);
+}
+.backup-part {
+  gap: var(--sp-3);
+  align-items: flex-start;
+  min-height: 44px;
+  cursor: pointer;
+}
+.backup-part input {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  margin-top: 2px;
+}
+.backup-part-text {
+  flex: 1;
+  min-width: 0;
+}
