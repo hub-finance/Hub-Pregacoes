@@ -7,6 +7,7 @@ import { db } from '../../core/db/db';
 import { categoryColor } from '../../core/categories';
 import { countHighlightsByCategory } from '../../core/data/highlights';
 import { readingStats } from '../../core/data/reading';
+import { HAS_RHEMA } from '../../core/edition';
 
 /** Painel "Minha vida ministerial" — seção 34 da especificação. */
 export default function DashboardPage() {
@@ -35,7 +36,7 @@ export default function DashboardPage() {
 
   const cards = [
     { label: 'Mensagens criadas', value: counts?.sermons ?? 0, to: '/sermoes', icon: '🎙️' },
-    { label: 'Rhema e estudos', value: counts?.studies ?? 0, to: '/rhema', icon: '📚' },
+    ...(HAS_RHEMA ? [{ label: 'Rhema e estudos', value: counts?.studies ?? 0, to: '/rhema', icon: '📚' }] : []),
     { label: 'Cursos', value: counts?.devotionals ?? 0, to: '/cursos', icon: '🙏' },
     { label: 'Capítulos lidos', value: stats.data?.distinctChapters ?? 0, to: '/biblia', icon: '📖' },
     { label: 'Dias consecutivos', value: stats.data?.streak ?? 0, to: '/planos', icon: '🔥' },

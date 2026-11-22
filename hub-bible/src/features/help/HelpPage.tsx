@@ -5,6 +5,7 @@ import { Icon, type IconName } from '../../components/Icon';
 import { isNativeApp } from '../../core/platform';
 import { deliverFile } from '../../core/export/deliver';
 import { useToast } from '../../components/Toast';
+import { HAS_RHEMA } from '../../core/edition';
 
 interface Topic {
   icon: IconName;
@@ -403,7 +404,7 @@ export default function HelpPage() {
       </div>
 
       <div className="stack">
-        {TOPICS.map((topic) => (
+        {TOPICS.filter((t) => HAS_RHEMA || !/^(Rhema|Escola de Ministros)/.test(t.title)).map((topic) => (
           <details key={topic.title} className="card help-topic">
             <summary>
               <span className="help-topic-icon">

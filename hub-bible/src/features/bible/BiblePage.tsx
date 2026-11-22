@@ -35,6 +35,7 @@ import { createNote } from '../../core/data/notes';
 import { registerReading } from '../../core/data/reading';
 import { newSermon, newStudy, saveDoc } from '../../core/data/documents';
 import { copyToClipboard } from '../../core/share/share';
+import { HAS_RHEMA } from '../../core/edition';
 
 const WORD_DOUBLE_TAP_MS = 400;
 const wordTapState = { verse: 0, index: -1, time: 0 };
@@ -790,7 +791,7 @@ export default function BiblePage() {
                 notify(ok ? 'Copiado.' : 'Não foi possível copiar.', ok ? 'default' : 'error');
               },
             },
-            { id: 'study', icon: 'study', label: 'Rhema', onClick: () => createFromSelection('study') },
+            ...(HAS_RHEMA ? [{ id: 'study', icon: 'study' as const, label: 'Rhema', onClick: () => createFromSelection('study') }] : []),
             { id: 'sermon', icon: 'sermon', label: 'Sermão', onClick: () => createFromSelection('sermon') },
           ]}
         />

@@ -15,6 +15,7 @@ import {
 } from '../../core/ai/assistantDocument';
 import type { PreviewTarget } from '../bible/VersePreview';
 import { Markdown } from './Markdown';
+import { HAS_RHEMA } from '../../core/edition';
 
 interface Props {
   doc: AssistantDocument;
@@ -201,14 +202,16 @@ export function DocumentEditor({
           </button>
         </div>
         <div className="row row-wrap" style={{ gap: 'var(--sp-2)' }}>
-          <button
-            className="btn btn-ghost btn-sm"
-            disabled={!canExport}
-            onClick={() => run('study', async () => navigate(`/rhema/${await sendToStudy(doc)}`))}
-          >
-            <Icon name="study" size={16} />
-            <span>Continuar no Rhema</span>
-          </button>
+          {HAS_RHEMA && (
+            <button
+              className="btn btn-ghost btn-sm"
+              disabled={!canExport}
+              onClick={() => run('study', async () => navigate(`/rhema/${await sendToStudy(doc)}`))}
+            >
+              <Icon name="study" size={16} />
+              <span>Continuar no Rhema</span>
+            </button>
+          )}
           <button
             className="btn btn-ghost btn-sm"
             disabled={!canExport}
