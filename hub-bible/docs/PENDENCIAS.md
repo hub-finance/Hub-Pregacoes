@@ -84,6 +84,24 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0at. ⏳ Versão derivada sem Rhema e sem Escola de Ministros (para depois)
+
+Pedido do usuário, para fazer depois: um app derivado deste, sem Rhema e sem
+Escola de Ministros, mantendo o completo como está.
+
+Plano combinado:
+- **Mesmo código e mesma base de dados.** Uma variável de build (ex.:
+  `VITE_EDICAO=reduzida`) tira Rhema e Escola do menu (`navigation.ts`), do
+  Início, das rotas (`App.tsx`), da Ajuda e dos itens do backup. O Modo Aula
+  continua para Cursos.
+- **Builds:** o `android.yml` gera os dois APKs, e o derivado tem `appId`
+  próprio (ex.: `app.hubbible.leitor.lite`) para instalar ao lado do completo,
+  cada um com os seus dados. O site do derivado seria outro projeto na Vercel.
+- **Correções valem para os dois**, sem código duplicado.
+
+A decidir com o usuário: o nome do derivado; se terá site próprio além do
+APK; se outras abas também saem.
+
 ### 0as. ✅ Tema "Preto" — leitura à noite, com relevo
 
 Pedido do usuário, com foto de um app em fundo preto: "design nesta cor preta,
