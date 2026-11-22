@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
-import { getAiProvider, isAiEnabled, type AiResponse, type AiTaskKind } from '../../core/ai/provider';
+import { getAiProvider, type AiResponse, type AiTaskKind } from '../../core/ai/provider';
 import { parseReference } from '../../core/bible/reference';
 import { bookName } from '../../core/bible/canon';
 import { getChapter } from '../../core/bible/repository';
@@ -46,7 +46,7 @@ interface VersePreview {
  * seções. As análises daqui são rápidas e ficam salvas; o assistente é onde se
  * aprofunda (com IA ou sem ela, lendo materiais, montando o documento).
  */
-function DeepenInAssistant({ reference, onNavigate, primary }: { reference: string; onNavigate: () => void; primary?: boolean }) {
+function DeepenInAssistant({ reference, onNavigate }: { reference: string; onNavigate: () => void }) {
   const navigate = useNavigate();
   const go = () => {
     onNavigate();
@@ -54,8 +54,8 @@ function DeepenInAssistant({ reference, onNavigate, primary }: { reference: stri
     navigate(`/assistente?${q.toString()}`);
   };
   return (
-    <button type="button" className={`btn${primary ? ' btn-primary' : ''} ai-deepen`} onClick={go}>
-      <Icon name="bible-study" size={18} />
+    <button type="button" className="btn btn-sm btn-ghost ai-deepen" onClick={go}>
+      <Icon name="bible-study" size={16} />
       <span>Aprofundar no assistente</span>
     </button>
   );
@@ -114,9 +114,26 @@ export function AiContent({
     return false;
   }, [reference, translation]);
 
+  // sem chave de IA a lista continua à vista (o usuário prefere assim); o toque
+  // explica o que falta em vez de esconder as análises
+  const [needsKey, setNeedsKey] = useState(false);
+
   const runTask = useCallback(async (task: AiTaskKind, forceRefresh = false) => {
     const provider = getAiProvider();
-    if (!provider) return;
+    if (!provider) {
+      // a análise salva está no aparelho: abre mesmo sem chave
+      abortRef.current = false;
+      if (!forceRefresh && (await findAnalysis(task, reference, translation).catch(() => null))) {
+        setActiveTask(task);
+        setResult(null);
+        setError('');
+        setPreview(null);
+        await loadCached(task);
+        return;
+      }
+      setNeedsKey(true);
+      return;
+    }
 
     abortRef.current = false;
     setActiveTask(task);
@@ -181,22 +198,6 @@ export function AiContent({
     return () => { cancelled = true; };
   }, [reference, translation, taskList]);
 
-  if (!isAiEnabled()) {
-    return (
-      <div className="stack" style={{ padding: 'var(--sp-4)', gap: 'var(--sp-3)' }}>
-        <p style={{ margin: 0 }}>
-          Estude <strong>{reference}</strong> no assistente bíblico: ele funciona mesmo sem IA, com o texto, o
-          contexto, o original, as referências e os guias do aparelho.
-        </p>
-        <DeepenInAssistant reference={reference} onNavigate={onNavigate} primary />
-        <p className="small dim" style={{ margin: 0 }}>
-          As análises rápidas desta aba (exegese, contexto histórico, perguntas…) usam IA. Para ativá-las, coloque a
-          sua chave em <strong>Configurações › IA — chaves de API</strong>.
-        </p>
-      </div>
-    );
-  }
-
   if (activeTask) {
     return (
       <div className="stack" style={{ padding: 'var(--sp-3)', gap: 'var(--sp-3)' }}>
@@ -230,14 +231,16 @@ export function AiContent({
             {fromCache && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
                 <span className="small dim" style={{ fontStyle: 'italic' }}>Análise salva anteriormente</span>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => runTask(activeTask, true)}
-                  style={{ marginLeft: 'auto' }}
-                >
-                  <Icon name="reset" size={14} />
-                  <span>Gerar novamente</span>
-                </button>
+                {getAiProvider() && (
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => runTask(activeTask, true)}
+                    style={{ marginLeft: 'auto' }}
+                  >
+                    <Icon name="reset" size={14} />
+                    <span>Gerar novamente</span>
+                  </button>
+                )}
               </div>
             )}
 
@@ -332,15 +335,25 @@ export function AiContent({
         ))}
       </div>
 
+      {needsKey && (
+        <div className="notice ai-needs-key" role="status">
+          <p className="small" style={{ margin: 0 }}>
+            As análises usam IA, e este aparelho ainda não tem uma chave ativa. Coloque a sua chave do ChatGPT, do
+            Claude ou do Gemini em Configurações › IA — chaves de API.
+          </p>
+          <Link className="btn btn-sm btn-primary" to="/config" onClick={onNavigate}>
+            Configurar a IA
+          </Link>
+        </div>
+      )}
+
       <p className="small dim" style={{ margin: 0, marginTop: 'var(--sp-2)' }}>
         A análise gera comentários sobre a passagem. O texto bíblico vem sempre do repositório local.
       </p>
 
       <div className="ai-deepen-box">
-        <p className="small" style={{ margin: 0 }}>
-          Quer ir além? No assistente o estudo sai em seções, pode usar os seus materiais e vira documento.
-        </p>
         <DeepenInAssistant reference={reference} onNavigate={onNavigate} />
+        <span className="small dim">Estudo em seções, com os seus materiais — também sem IA.</span>
       </div>
     </div>
   );

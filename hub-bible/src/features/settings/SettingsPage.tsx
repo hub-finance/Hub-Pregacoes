@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { TranslationManager } from './TranslationManager';
@@ -297,6 +298,9 @@ export default function SettingsPage() {
             <span style={{ flex: 1 }}>Farol da Palavra</span>
             <span className="badge">v{APP_VERSION}</span>
           </div>
+          <Link className="btn btn-sm" to="/novidades" style={{ alignSelf: 'flex-start' }}>
+            Novidades — o que mudou
+          </Link>
           <p className="small muted">
             Bíblia, estudo, devocional e sermões em um só lugar. Antes se chamava Hub Bible. Funciona offline
             e pode ser instalado na tela inicial do seu tablet ou celular.

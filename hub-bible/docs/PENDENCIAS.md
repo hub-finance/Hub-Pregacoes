@@ -84,6 +84,24 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0ay. ✅ Análise: as opções voltam ao alto, também sem chave
+
+O usuário achou pior a aba Análise do 0av ("o antigo era melhor"): no tablet
+dele não há chave de IA ativa, e a aba mostrava só o convite ao assistente.
+Agora a lista das 6 análises (4 no capítulo) fica sempre no alto. Sem chave,
+as análises já salvas abrem; as outras mostram o aviso com "Configurar a IA".
+"Aprofundar no assistente" virou botão pequeno no rodapé. Teste: 40.
+
+### 0ax. ✅ Tela de Novidades
+
+`src/core/whatsNew.ts` guarda o que mudou em cada atualização, em palavras do
+usuário. **A cada PR com mudança visível, acrescente uma entrada no topo, com
+`id` novo.** `WhatsNewPrompt` abre uma vez, depois da atualização, com o que
+não foi visto (`hub-bible:novidades:visto`); quem nunca viu recebe as duas
+últimas; quem acabou de instalar (sem `hub-bible:appearance`) não recebe nada.
+Página `#/novidades`, com atalho em Configurações › Sobre. `full: true` e
+`reducedTitle` escondem da edição 2.0 o que cita Rhema e Escola. Teste: 20.
+
 ### 0aw. ✅ Ajuda em dia, e o manual completo gerado da Ajuda
 
 - Ajuda: títulos dos Salmos (Ler a Bíblia); as duas edições do APK e qual é

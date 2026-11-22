@@ -1889,3 +1889,23 @@ input.study-section-title:focus {
   color: var(--danger);
   font-weight: 600;
 }
+
+/* ------------------------------ Novidades ------------------------------ */
+.whatsnew {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.whatsnew-title {
+  margin: 0 0 var(--sp-2);
+  font-size: 1.02rem;
+  color: var(--accent-strong);
+}
+.whatsnew-items {
+  margin: 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  line-height: 1.5;
+}
