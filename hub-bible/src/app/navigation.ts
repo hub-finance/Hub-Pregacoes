@@ -1,4 +1,5 @@
 import type { IconName } from '../components/Icon';
+import { HAS_RHEMA } from '../core/edition';
 
 /** Mapa de navegação — fonte única para menu lateral, barra inferior e Home. */
 
@@ -13,7 +14,7 @@ export interface NavItem {
   group: 'principal' | 'ministerio' | 'sistema';
 }
 
-export const NAV_ITEMS: NavItem[] = [
+const ALL_ITEMS: NavItem[] = [
   { to: '/', label: 'Início', icon: 'home', group: 'principal' },
   { to: '/biblia', label: 'Bíblia', icon: 'book', quick: true, group: 'principal' },
   { to: '/busca', label: 'Buscar', icon: 'search', quick: true, group: 'principal' },
@@ -33,6 +34,11 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/config', label: 'Configurações', icon: 'settings', quick: true, group: 'sistema' },
   { to: '/ajuda', label: 'Ajuda', icon: 'info', group: 'sistema' },
 ];
+
+/** Na edição 2.0 (reduzida), Rhema e Escola de Ministros não aparecem. */
+export const NAV_ITEMS: NavItem[] = ALL_ITEMS.filter(
+  (item) => HAS_RHEMA || (item.to !== '/rhema' && item.to !== '/escola'),
+);
 
 export const GROUP_LABEL: Record<NavItem['group'], string> = {
   principal: 'Bíblia',

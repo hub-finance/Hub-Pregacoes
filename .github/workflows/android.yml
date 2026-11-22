@@ -87,27 +87,55 @@ jobs:
         working-directory: hub-bible/android
         run: keytool -printcert -jarfile app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Anexar o APK à execução
+      - name: Guardar o APK da edição completa
+        run: |
+          mkdir -p saida
+          cp hub-bible/android/app/build/outputs/apk/debug/app-debug.apk saida/farol-da-palavra.apk
+
+      # Edição 2.0: o mesmo código, sem Rhema e sem Escola de Ministros
+      # (`HUB_EDITION=reduzida`). Outro identificador no Android
+      # (`app.hubbible.leitor.v2`): instala ao lado da completa e nunca por
+      # cima dela. Só APK — o site continua sendo a edição completa.
+      - name: Compilar o app web (edição 2.0)
+        working-directory: hub-bible
+        env:
+          HUB_BUILD: ${{ github.run_number }}
+          HUB_EDITION: reduzida
+        run: |
+          npm run build
+          rm -f dist/sw.js dist/workbox-*.js dist/registerSW.js
+          npx cap sync android
+
+      - name: Gerar o APK (edição 2.0)
+        working-directory: hub-bible/android
+        env:
+          HUB_BUILD: ${{ github.run_number }}
+          HUB_EDITION: reduzida
+        run: |
+          ./gradlew assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk ../../saida/farol-da-palavra-2.0.apk
+
+      - name: Anexar os APKs à execução
         uses: actions/upload-artifact@v4
         with:
           name: hub-bible-apk-v${{ github.run_number }}
-          path: hub-bible/android/app/build/outputs/apk/debug/app-debug.apk
+          path: saida/*.apk
           if-no-files-found: error
           retention-days: 90
 
       # O zip do Artifacts não abria no extrator de alguns tablets, e baixar dali
       # exige estar logado no GitHub. A versão (Release) entrega o .apk direto:
-      # toca e instala. O nome do arquivo é sempre o mesmo, para o link de
-      # "última versão" nunca mudar; o número fica no título da versão.
+      # toca e instala. Os nomes dos arquivos são sempre os mesmos — o link de
+      # "última versão" nunca muda, e o aviso de atualização do app procura o
+      # arquivo da própria edição pelo nome.
       - name: Publicar o APK como versão (Release)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           N: ${{ github.run_number }}
         run: |
-          cp hub-bible/android/app/build/outputs/apk/debug/app-debug.apk farol-da-palavra.apk
-          gh release create "apk-v$N" farol-da-palavra.apk \
+          gh release create "apk-v$N" saida/farol-da-palavra.apk saida/farol-da-palavra-2.0.apk \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "Farol da Palavra — APK $N" \
-            --notes "Toque em farol-da-palavra.apk para baixar e instalar. Versão $N (aparece em Configurações › Sobre)." \
+            --notes "farol-da-palavra.apk: a edição completa (1.0.$N). farol-da-palavra-2.0.apk: a edição 2.0, sem Rhema e Escola de Ministros (2.0.$N). Cada uma se atualiza só para a própria edição." \
             --latest

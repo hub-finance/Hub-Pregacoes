@@ -84,6 +84,67 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0aw. ✅ Ajuda em dia, e o manual completo gerado da Ajuda
+
+- Ajuda: títulos dos Salmos (Ler a Bíblia); as duas edições do APK e qual é
+  esta; "Aprofundar no assistente" no tópico do assistente; a folha de apoio
+  sem IA (o texto ainda falava em "esboço… e apelo"); Cursos e backup sem citar
+  o Rhema na edição 2.0 (os textos usam `HAS_RHEMA`).
+- Os tópicos saíram de `HelpPage.tsx` para `src/features/help/topics.ts` (só
+  texto). `scripts/build-manual.mjs` gera `public/manual.html` desses tópicos;
+  roda em `npm run build` (e `npm run manual:build`). O manual escrito à mão
+  estava meses atrás; os tópicos "Problemas comuns" e "O que ainda não existe",
+  que só havia nele, saíram. Teste: 27.
+
+### 0av. ✅ Estudo guiado leva ao assistente ("Aprofundar no assistente")
+
+Decisão (o usuário deixou "veja o melhor e faça"): manter as análises rápidas
+da aba "Análise" (salvas no aparelho, abrem sem gastar a API) e ligá-las ao
+assistente, em vez de substituí-las.
+- Botão "Aprofundar no assistente" no fim da lista e depois de cada análise:
+  abre `#/assistente?ref=…&pedido=…`. O assistente preenche a passagem em foco,
+  o pedido ("Estude João 3:16.") e o objetivo "Estudo sistemático", e limpa o
+  endereço. **Não envia sozinho**: com IA, enviar gasta a chave.
+- **Sem chave de IA a aba "Análise" e a ação "Análise" da seleção agora
+  aparecem** (antes sumiam, e o usuário estranhou no iPad). Levam ao assistente,
+  que funciona sem IA. O botão de exegese do capítulo, no alto, continua só com
+  IA.
+- Ajuda: dois passos novos no tópico "Estudo guiado". Teste: 38.
+
+### 0au. ✅ Aviso de "Atenção" antes de atualizar o APK, e o PDF "Como atualizar"
+
+- **Aviso de versão nova no APK** (`src/core/apkUpdate.ts`,
+  `ApkUpdatePrompt` em `src/app/UpdatePrompt.tsx`). Só no APK (no site quem
+  atualiza é o service worker): 4 s depois de abrir, consulta
+  `releases/latest` do GitHub, lê o número de `apk-vN` e compara com
+  `__HUB_BUILD__`. Oferece **só o arquivo da mesma edição** instalada
+  (`farol-da-palavra.apk` ou `farol-da-palavra-2.0.apk`). "Depois" guarda a
+  versão dispensada (`hub-bible:apk-update:dismissed`). Sem internet, nada
+  aparece. Só funciona a partir do primeiro APK compilado com este código.
+- **"Atualizar" abre "Atenção antes de atualizar"**: backup antes (com a data do
+  último backup fora do aparelho, ou o aviso em vermelho de que nunca houve),
+  instalar por cima e nunca desinstalar, permitir a fonte e tocar Atualizar,
+  conferir a versão em Sobre, e qual edição é. Botões "Fazer o backup antes"
+  (vai para Configurações) e "Baixar a versão N".
+- **PDF "Como atualizar sem perder nada"** em `public/como-atualizar.pdf`, com
+  cartão na Ajuda (usa `deliverFile`, funciona no APK). A fonte é
+  `docs/manual-atualizar/manual.html`; para refazer, imprima no Chromium em A4
+  com fundo. Não cita Rhema (o arquivo é público).
+- Ajuda: o tópico do APK deixou de dizer que não há aviso de versão nova.
+
+### 0at. ✅ Edição 2.0: sem Rhema e sem Escola de Ministros (só APK)
+
+Mesmo código, mesmo nome "Farol da Palavra".
+- `HUB_EDITION=reduzida` no build vira `__HUB_EDITION__`; `src/core/edition.ts`
+  exporta `HAS_RHEMA` e `APP_VERSION` (`1.0.N` na completa, `2.0.N` na 2.0).
+  Sem `HAS_RHEMA` saem do menu, do Início, da Ajuda, da seleção do versículo e
+  do editor os acessos ao Rhema e à Escola.
+- `android.yml` gera os dois APKs na mesma versão (Release) do GitHub:
+  `farol-da-palavra.apk` (completa, `app.hubbible.leitor`, que nunca muda) e
+  `farol-da-palavra-2.0.apk` (`app.hubbible.leitor.v2`, instala ao lado, com
+  dados próprios). O site e o iPad continuam na completa; não há site da 2.0.
+- O pedido do usuário: cada edição instalada só atualiza para ela mesma.
+
 ### 0as. ✅ Tema "Preto" — leitura à noite, com relevo
 
 Pedido do usuário, com foto de um app em fundo preto: "design nesta cor preta,
@@ -245,9 +306,6 @@ Pedidos e decisões do usuário (revisão do que não tinha função):
 - **Ficam como estão (decisão do usuário):** a seção Sincronização, a Bíblia
   em inglês (KJV), Cursos e Rhema separados, os endereços antigos que só
   redirecionam e a antiga Biblioteca sem tela.
-- **Aguardando o usuário:** o "Estudo guiado" (aba "Análise" no painel do
-  versículo) × o Assistente. Ele perguntou se o Estudo guiado é onde abre a
-  apostila; não é: a apostila abre no Rhema ou em Cursos.
 - **Por último (pedido do usuário):** a "Biblioteca doutrinária". É um motor
   dentro do sistema que guarda livros em PDF como memória doutrinária, procura
   neles os trechos ligados a cada pedido e os usa com IA e sem IA, só no
@@ -295,20 +353,31 @@ passou a guardar `materialId`/`materialId2`; nas conversas antigas, o material
 salvas na conversa. Se a IA falhar, a resposta atual continua e o erro aparece.
 Teste: 30 (390 e 1280 px).
 
-### 0ai. ⏳ Salmos: o título do salmo gruda no versículo 1 (analisado, aguardando o usuário)
+### 0ai. ✅ Salmos: o título sai do versículo 1 e vai para cima, em itálico
 
-O usuário notou que, nos Salmos, "a explicação fica pegada com o versículo um".
-As quatro traduções embutidas em português não trazem o título do salmo, então
-o problema vem da tradução importada dele (ARA, arquivo MyBible). Nesses
-arquivos o título ("Salmo de Davi.", "Ao mestre de canto…") vem dentro do texto
-do versículo 1, entre marcas próprias do formato. `parseVerse` (`mybible.ts`)
-tira as marcas mas mantém o conteúdo, e o título sai colado ao versículo. Não há
-cópia do arquivo dele aqui para confirmar a marca exata.
+O usuário mandou exemplo de outro app: o título do salmo ("Salmo de Davi
+quando fugia de Absalão, seu filho") em itálico acima do texto, e o
+versículo 1 só com o texto bíblico.
 
-Proposta: na importação, separar o título do versículo 1 e mostrá-lo acima do
-salmo, em letra menor e itálico, como os títulos de perícope (`stories`). Isso
-vale pela marca do formato e, se o arquivo não tiver marca, pelo começo típico
-dos títulos, só no versículo 1 dos Salmos. Exige reimportar a tradução.
+`core/bible/psalmTitles.ts`: `splitPsalmTitle` reconhece o começo típico de
+título, só no versículo 1 dos Salmos. São frases iniciadas por "Salmo",
+"Ao mestre de canto", "Cântico", "Oração", "Masquil", "Mictão" etc., até 4
+frases, e "Ele disse:" fecha o título do Sl 18. "Aleluia!" fica no texto.
+
+`separatePsalmTitles` tira o título, ajusta as posições dos números Strong e
+guarda o título em `pericopes` com `kind: 'superscription'` (marca
+`psalmTitlesSeparated`). Roda em dois momentos:
+- na importação (`storeTranslation`);
+- uma vez em cada tradução já importada, ao abrir o app
+  (`separateImportedPsalmTitles` em `App.tsx`), sem precisar reimportar.
+
+O leitor mostra `.psalm-title` acima do número do capítulo, depois do
+subtítulo do trecho. Busca, citações e assistente passam a ver o versículo
+sem o título.
+
+Teste: 13 títulos reais (inclusive Sl 51 e 18 longos; Sl 1 e 91 sem título;
+Sl 111 e 150 com "Aleluia"); 9 no app (importação, correção da tradução já
+importada, Strong nas palavras certas, título em itálico acima).
 
 ### 0ah. ✅ Tamanho da letra, léxico grego e hebraico, e vocabulário proibido
 
@@ -906,8 +975,8 @@ doutrinários e arquivos de referência respondendo 200.
 O tópico da IA chama-se "Estudo guiado — a IA como apoio": diz que a IA é
 suporte e não substitui oração, Palavra, direção do Espírito nem
 discernimento; que pode errar e deve ser conferida; e lista só as análises que
-existem. O tópico de sermão virou "Gerador". O `public/manual.html` **não** foi
-atualizado e ficou defasado em relação à Ajuda.
+existem. O tópico de sermão virou "Gerador". O `public/manual.html` ficou defasado em relação à Ajuda
+(resolvido em 0aw: agora é gerado dos tópicos da Ajuda).
 
 ---
 

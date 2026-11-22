@@ -1,5 +1,7 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { removeConcordanceLeftovers } from './core/legacyCleanup';
+import { separateImportedPsalmTitles } from './core/bible/psalmTitles';
+import { forgetMemoryCache } from './core/bible/repository';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AppLayout } from './app/AppLayout';
 import { UpdatePrompt } from './app/UpdatePrompt';
@@ -71,6 +73,8 @@ function useAutoBackup() {
 
     // a Concordância saiu do app: liberar o espaço que ela ocupava no aparelho
     void removeConcordanceLeftovers();
+    // a ARA importada antes desta versão tinha o título do salmo no versículo 1
+    void separateImportedPsalmTitles().then((n) => { if (n) forgetMemoryCache(); });
 
     /* No aplicativo empacotado, tirar do caminho qualquer service worker que
        tenha sobrado de uma versão anterior. Ele serviria telas antigas por cima

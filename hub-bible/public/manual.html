@@ -4,7 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Farol da Palavra — Manual de uso</title>
-<meta name="description" content="Manual completo do Farol da Palavra: leitura, sermões, Rhema, cursos, Modo Pregação, traduções e backup." />
+<meta name="description" content="Manual completo do Farol da Palavra: o mesmo conteúdo da Ajuda do aplicativo, em uma página." />
+<!-- Gerado por scripts/build-manual.mjs a partir de src/features/help/topics.ts. Não edite à mão. -->
 <style>
   :root {
     --bg: #faf8f5;
@@ -200,18 +201,13 @@
 <body>
 <div class="wrap">
 
-<!-- Link simples de propósito. A primeira versão usava `history.back()` para
-     devolver o leitor à tela exata de onde veio; só que o histórico nem sempre
-     tem o que se espera — aberto direto, o "voltar" caía numa página em branco,
-     que é o mesmo beco sem saída que este botão veio resolver. O endereço fixo
-     acerta em todos os casos. -->
 <div class="back-bar no-print">
   <a href="./index.html#/ajuda">← Voltar ao aplicativo</a>
 </div>
 
 <header class="cover">
   <div class="brand">
-    <div class="brand-mark">HB</div>
+    <div class="brand-mark">FP</div>
     <div>
       <div class="brand-name">Farol da Palavra</div>
       <div class="brand-sub">Bíblia e ministério</div>
@@ -219,741 +215,360 @@
   </div>
   <h1>Manual de uso</h1>
   <p class="lead">
-    Tudo o que o aplicativo faz, explicado passo a passo. Guarde este arquivo, imprima
-    ou envie para quem for usar o Farol da Palavra com você.
+    Tudo o que o aplicativo faz, explicado passo a passo — o mesmo conteúdo da Ajuda.
+    Guarde, imprima ou envie para quem for usar o Farol da Palavra com você.
   </p>
 </header>
 
 <nav class="toc">
   <h2>Neste manual</h2>
   <ol>
-    <li><a href="#sobre">O que é o Farol da Palavra</a></li>
-    <li><a href="#instalar">Instalar no aparelho</a></li>
-    <li><a href="#atualizar">Atualizar</a></li>
-    <li><a href="#ler">Ler a Bíblia</a></li>
-    <li><a href="#buscar">Buscar no texto</a></li>
-    <li><a href="#marcacoes">Marcações, favoritos e anotações</a></li>
-    <li><a href="#sermao">Preparar um sermão</a></li>
-    <li><a href="#importar-sermao">Importar um sermão pronto</a></li>
-    <li><a href="#rhema">Rhema — estudos e apostilas</a></li>
-    <li><a href="#cursos">Cursos — material de aula</a></li>
-    <li><a href="#pregacao">Modo Pregação e Modo Aula</a></li>
-    <li><a href="#traducoes">Traduções e direitos autorais</a></li>
-    <li><a href="#original">Palavras no original (Strong)</a></li>
-    <li><a href="#backup">Backup e seus dados</a></li>
-    <li><a href="#compartilhar">Compartilhar o aplicativo</a></li>
-    <li><a href="#problemas">Problemas comuns</a></li>
-    <li><a href="#limites">O que ainda não existe</a></li>
+    <li><a href="#instalar-no-tablet-ou-no-celular-android">Instalar no tablet ou no celular (Android)</a></li>
+    <li><a href="#usar-no-iphone-ou-no-ipad">Usar no iPhone ou no iPad</a></li>
+    <li><a href="#aplicativo-android-apk-independente-do-navegador">Aplicativo Android (APK) — independente do navegador</a></li>
+    <li><a href="#atualizar-para-a-versao-mais-nova">Atualizar para a versão mais nova</a></li>
+    <li><a href="#ler-a-biblia">Ler a Bíblia</a></li>
+    <li><a href="#buscar-no-texto">Buscar no texto</a></li>
+    <li><a href="#marcacoes-favoritos-e-anotacoes">Marcações, favoritos e anotações</a></li>
+    <li><a href="#gerador-preparar-um-sermao">Gerador — preparar um sermão</a></li>
+    <li><a href="#importar-um-sermao-que-ja-esta-pronto">Importar um sermão que já está pronto</a></li>
+    <li><a href="#rhema-estudos-e-apostilas">Rhema — estudos e apostilas</a></li>
+    <li><a href="#escola-de-ministros">Escola de Ministros</a></li>
+    <li><a href="#cursos-o-material-das-aulas">Cursos — o material das aulas</a></li>
+    <li><a href="#modo-pregacao">Modo Pregação</a></li>
+    <li><a href="#traducoes-e-direitos-autorais">Traduções e direitos autorais</a></li>
+    <li><a href="#palavras-no-original-numeros-de-strong">Palavras no original — números de Strong</a></li>
+    <li><a href="#estudo-guiado-a-ia-como-apoio">Estudo guiado — a IA como apoio</a></li>
+    <li><a href="#assistente-biblico">Assistente bíblico</a></li>
+    <li><a href="#gerar-e-exportar-estudar-o-que-foi-criado">Gerar e Exportar — estudar o que foi criado</a></li>
+    <li><a href="#guias-doutrinarios-e-a-sua-base-doutrinaria">Guias doutrinários e a sua base doutrinária</a></li>
+    <li><a href="#dicionario-lexico-embutido-e-dicionarios-importados">Dicionário — léxico embutido e dicionários importados</a></li>
+    <li><a href="#backup-dos-seus-dados">Backup dos seus dados</a></li>
+    <li><a href="#compartilhar-o-aplicativo">Compartilhar o aplicativo</a></li>
   </ol>
 </nav>
 
-<!-- ==================================================================== -->
-<section id="sobre">
-  <h2><span class="num">1</span>O que é o Farol da Palavra</h2>
-  <p class="section-lead">Uma Bíblia que também é a bancada de trabalho do ministério.</p>
-
-  <p>
-    O app Farol da Palavra reúne, num aparelho só, o que o pastor usa para estudar e pregar: a leitura
-    da Bíblia com marcações e anotações, a preparação de sermões, as apostilas e os cursos
-    que você já tem prontos, os planos de leitura e uma tela de pregação em que o material
-    fica grande e a Bíblia fica ao lado.
-  </p>
-
-  <h3>Três coisas para entender desde o começo</h3>
-  <ul>
-    <li>
-      <strong>Não é um aplicativo de loja.</strong> Ele se instala pelo navegador e passa a
-      funcionar como qualquer outro app, com ícone próprio e tela cheia.
-    </li>
-    <li>
-      <strong>Funciona sem internet.</strong> Depois de baixar a Bíblia para uso offline,
-      tudo funciona no avião, no sítio, na igreja sem sinal.
-    </li>
-    <li>
-      <strong>Seus dados são só seus.</strong> Não há cadastro, senha nem servidor. Sermões,
-      anotações e marcações ficam gravados no próprio aparelho e não saem dele. Ninguém —
-      nem quem fez o aplicativo — tem acesso ao que você escreve.
-    </li>
-  </ul>
-
-  <div class="note">
-    <span class="note-title">A outra face da mesma moeda</span>
-    <p>
-      Como nada fica em servidor, ninguém pode recuperar seus dados por você. Se o aparelho
-      se perder ou os dados do navegador forem limpos, o conteúdo vai junto. Por isso a
-      seção <a href="#backup">Backup</a> é a mais importante deste manual.
-    </p>
-  </div>
-</section>
-
-<!-- ==================================================================== -->
-<section id="instalar">
-  <h2><span class="num">2</span>Instalar no aparelho</h2>
-  <p class="section-lead">O caminho muda conforme o aparelho seja Android ou da Apple.</p>
-
-  <h3>Android — tablet ou celular</h3>
+<section id="instalar-no-tablet-ou-no-celular-android">
+  <h2><span class="num">1</span>Instalar no tablet ou no celular (Android)</h2>
   <ol class="steps">
-    <li>Abra o endereço do aplicativo no <strong>Chrome</strong>.</li>
-    <li>Toque no menu do navegador (⋮) e escolha <strong>“Instalar aplicativo”</strong> ou “Adicionar à tela inicial”.</li>
-    <li>Assim, o Farol da Palavra passa a abrir em tela cheia, com ícone próprio.</li>
-    <li>
-      Logo depois, vá em <span class="path">Configurações › Traduções › Baixar para uso offline</span>.
-      A partir daí a Bíblia inteira funciona sem internet.
-    </li>
+    <li>Abra o endereço do aplicativo no Chrome.</li>
+    <li>Toque no menu do navegador (⋮) e escolha "Instalar aplicativo" ou "Adicionar à tela inicial".</li>
+    <li>Assim, o Farol da Palavra passa a abrir em tela cheia, com ícone próprio, como um aplicativo comum.</li>
+    <li>Depois de instalado, vá em Configurações › Traduções › "Baixar para uso offline". A partir daí a Bíblia inteira funciona sem internet. Referências cruzadas, dicionário teológico e guias já ficam guardados na instalação.</li>
   </ol>
+</section>
 
-  <h3>iPhone e iPad</h3>
+<section id="usar-no-iphone-ou-no-ipad">
+  <h2><span class="num">2</span>Usar no iPhone ou no iPad</h2>
   <ol class="steps">
-    <li>
-      Abra o endereço no <strong>Safari</strong>. No iPhone e no iPad é o Safari que instala
-      aplicativos na tela de início — pelo Chrome não funciona.
-    </li>
-    <li>
-      Toque no botão <strong>Compartilhar</strong> (o quadrado com a seta para cima) e escolha
-      <strong>“Adicionar à Tela de Início”</strong>. Confirme em Adicionar.
-    </li>
-    <li>
-      Passe a abrir pelo ícone que apareceu — e não mais pelo Safari. É isso que faz o iPhone
-      tratar o Farol da Palavra como aplicativo: tela cheia, e os seus dados protegidos da limpeza
-      que o Safari faz em sites sem uso.
-    </li>
-    <li>Baixe a Bíblia para uso offline, como no Android.</li>
-    <li>
-      Para importar apostilas e sermões, tenha os arquivos no app <strong>Arquivos</strong> ou
-      no iCloud Drive; o botão Importar abre direto neles.
-    </li>
+    <li>Abra o endereço do aplicativo no Safari. No iPhone e no iPad é o Safari que instala aplicativos na tela de início.</li>
+    <li>Toque no botão Compartilhar (o quadrado com a seta para cima) e escolha "Adicionar à Tela de Início". Confirme em Adicionar.</li>
+    <li>Abra pelo ícone que apareceu na tela de início — e não mais pelo Safari. É essa a diferença que faz o iPhone tratar o Farol da Palavra como aplicativo: tela cheia, e os seus dados protegidos da limpeza que o Safari faz em sites sem uso.</li>
+    <li>Logo depois de instalar, vá em Configurações › Traduções › "Baixar para uso offline". Sem isso a Bíblia precisa de internet.</li>
+    <li>Faça o backup de vez em quando: Configurações › Backup e privacidade › "Salvar no Google Drive". É a garantia contra perder o que você fez.</li>
+    <li>Para importar apostilas e sermões, tenha os arquivos no app Arquivos ou no iCloud Drive; o botão Importar abre direto neles.</li>
+    <li>Se a exportação em PDF não abrir, é o bloqueio de pop-up do Safari: Ajustes › Safari › desligue "Bloquear Pop-ups", ou use Markdown/TXT.</li>
+    <li>Em iPad com iOS anterior ao 16.4, a tela pode apagar durante a pregação. Ajustes › Tela e Brilho › Bloqueio Automático › Nunca, enquanto estiver pregando.</li>
+    <li>O passo a passo em PDF, com QR Code, está no alto desta página: "Manual de instalação — iPhone e iPad" › Baixar PDF. É o arquivo para enviar a quem vai instalar.</li>
+    <li>O aplicativo ainda não foi testado em aparelho da Apple — foi feito e verificado no Android. Se algo se comportar diferente, é bom avisar.</li>
   </ol>
-
-  <h3>Aplicativo Android (APK) — a versão independente do navegador</h3>
-  <p>
-    Além da instalação pelo navegador, existe o <strong>APK</strong>: o mesmo aplicativo, mas com
-    <strong>armazenamento próprio</strong>. Limpar os dados do Chrome não afeta nada dentro dele.
-  </p>
-  <ul>
-    <li>O APK é gerado no GitHub, na aba <strong>Actions</strong>, e fica anexado à execução.</li>
-    <li>Baixe no tablet e instale; o Android vai pedir permissão para instalar de fora da loja.</li>
-    <li>
-      As atualizações deixam de ser automáticas: no APK, atualizar é baixar e instalar a versão
-      nova. É o preço de não depender do navegador.
-    </li>
-  </ul>
-  <div class="warn">
-    <span class="warn-title">As duas instalações não compartilham dados</span>
-    <p>
-      Você pode usar o aplicativo e a versão do navegador ao mesmo tempo — mas cada um guarda os
-      próprios sermões e anotações. Um sermão escrito num <strong>não aparece</strong> no outro.
-      Para levar de uma para a outra, use a cópia de segurança: exporte de um lado e restaure do
-      outro. Em Configurações o app diz em qual dos dois você está.
-    </p>
-  </div>
-
-  <div class="warn">
-    <span class="warn-title">Ainda não testado em aparelho da Apple</span>
-    <p>
-      O aplicativo foi feito e verificado no Android. Tudo o que ele usa é compatível com
-      iPhone e iPad, mas nenhum teste foi feito em aparelho real da Apple. Se algo se
-      comportar diferente, vale avisar.
-    </p>
-  </div>
 </section>
 
-<!-- ==================================================================== -->
-<section id="atualizar">
-  <h2><span class="num">3</span>Atualizar</h2>
-  <ul>
-    <li>A atualização é automática. Quando há versão nova, aparece o aviso <strong>“Nova versão disponível”</strong> no alto da tela — toque em Atualizar.</li>
-    <li>Se você ignorar o aviso, a atualização entra sozinha da próxima vez que abrir o aplicativo.</li>
-    <li>Para forçar: feche o aplicativo por completo (retire-o dos aplicativos recentes) e abra de novo.</li>
-    <li><strong>Nada do que você criou se perde numa atualização.</strong></li>
-  </ul>
-</section>
-
-<!-- ==================================================================== -->
-<section id="ler">
-  <h2><span class="num">4</span>Ler a Bíblia</h2>
-
-  <h3>Trocar de livro, capítulo e versículo</h3>
-  <ul>
-    <li>
-      Toque na <strong>pílula com o nome do livro</strong>. Ela acompanha a rolagem, e a mesma
-      pílula está no fim do capítulo — não é preciso voltar ao topo.
-    </li>
-    <li>
-      A escolha tem <strong>três passos</strong>: livro, capítulo e versículo. No terceiro,
-      <em>“Abrir o capítulo inteiro”</em> é o primeiro botão — o versículo é opcional e serve
-      para começar a leitura já nele, com liberdade de subir e descer dali.
-    </li>
-    <li>
-      Quem já sabe o endereço pula os três passos: escreva a referência no campo de filtrar —
-      <code>Jo 3:16</code>, <code>Sl 23:1</code>, <code>1co 13:4</code> — e toque no atalho
-      <strong>“Ir para”</strong>.
-    </li>
-  </ul>
-
-  <h3>Aparência do texto</h3>
-  <p>
-    O botão <strong>“Aa”</strong> ajusta tamanho da letra, espaçamento entre linhas, largura da
-    coluna, tema (claro/escuro), tipo de letra e alinhamento. O botão ao lado troca a tradução
-    e liga a <strong>comparação lado a lado</strong> com uma segunda versão.
-  </p>
-
-  <h3>Trabalhar com o versículo</h3>
-  <ul>
-    <li>Toque em um versículo para selecioná-lo; toque em outros para selecionar vários.</li>
-    <li>
-      Aparece a barra de ações: <strong>destacar, favoritar, anotar, compartilhar, copiar</strong>,
-      ou criar um estudo e um sermão já a partir daquele texto.
-    </li>
-  </ul>
-</section>
-
-<!-- ==================================================================== -->
-<section id="buscar">
-  <h2><span class="num">5</span>Buscar no texto</h2>
-  <div class="table-scroll">
-    <table>
-      <thead><tr><th>O que você digita</th><th>O que o app faz</th></tr></thead>
-      <tbody>
-        <tr><td><code>graça</code></td><td>Todos os versículos que contenham a palavra.</td></tr>
-        <tr><td><code>graça salvação</code></td><td>Versículos em que <em>todas</em> as palavras aparecem.</td></tr>
-        <tr><td><code>"não temas"</code></td><td>A expressão exata. O filtro “Frase exata” faz o mesmo.</td></tr>
-        <tr><td><code>João 3:16</code></td><td>Um atalho leva direto à passagem.</td></tr>
-        <tr><td><code>Sl 23:1-6</code></td><td>Intervalo de versículos.</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p>A busca pode ser restrita ao Antigo Testamento, ao Novo, ou a um livro específico.</p>
-</section>
-
-<!-- ==================================================================== -->
-<section id="marcacoes">
-  <h2><span class="num">6</span>Marcações, favoritos e anotações</h2>
-  <ul>
-    <li>
-      <strong>Marcações</strong> são grifos coloridos por tema: Promessas, Fé, Cura, Liderança
-      e outros. Você pode criar categorias suas em Configurações.
-    </li>
-    <li><strong>Favoritos</strong> guardam o versículo com categoria e uma observação sua.</li>
-    <li>
-      <strong>Anotações</strong> podem nascer de um versículo ou ser livres, e ficam ligadas ao
-      texto para sempre.
-    </li>
-  </ul>
-  <p>Tudo o que você marca aparece reunido nas telas próprias: Favoritos e Anotações.</p>
-</section>
-
-<!-- ==================================================================== -->
-<section id="sermao">
-  <h2><span class="num">7</span>Preparar um sermão</h2>
-  <p class="section-lead">O sermão é montado em blocos, como se monta no Word.</p>
-
-  <h3>Os cinco tipos de bloco</h3>
-  <div class="table-scroll">
-    <table>
-      <thead><tr><th>Bloco</th><th>Para que serve</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Seção</strong></td><td>O subtítulo com o filete. No Modo Pregação, cada Seção vira um passo.</td></tr>
-        <tr><td><strong>Parágrafo</strong></td><td>O texto corrido.</td></tr>
-        <tr><td><strong>Destaque</strong></td><td>O quadro que chama a atenção — continua destacado no púlpito.</td></tr>
-        <tr><td><strong>Citação bíblica</strong></td><td>Escreva a referência e toque em “Trazer texto”: o versículo vem do próprio aplicativo, com a referência por baixo.</td></tr>
-        <tr><td><strong>Lista</strong></td><td>Tópicos numerados ou com marcador.</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3>Como escrever</h3>
-  <ul>
-    <li>Todo sermão novo já abre com <strong>Introdução, Desenvolvimento, Conclusão e Aplicação</strong> — apague, renomeie ou acrescente as suas.</li>
-    <li>A barra do alto formata o trecho selecionado: <strong>negrito</strong>, <em>itálico</em>, sublinhado e cor. O botão de girar limpa a formatação.</li>
-    <li>Cada bloco tem os próprios botões: trocar o tipo, subir, descer, inserir outro abaixo e excluir.</li>
-    <li><strong>Enter</strong> abre um bloco novo; <strong>Shift+Enter</strong> quebra a linha dentro do mesmo bloco.</li>
-    <li>O sermão <strong>salva sozinho</strong> enquanto você escreve — não existe botão de salvar.</li>
-  </ul>
-
-  <div class="note">
-    <span class="note-title">O texto bíblico nunca é inventado</span>
-    <p>
-      Em qualquer lugar em que o sermão traz um versículo, ele vem da Bíblia instalada no
-      aplicativo. O sistema não digita nem parafraseia Escritura.
-    </p>
-  </div>
-
-  <h3>Exportar</h3>
-  <p>
-    No menu <strong>“…”</strong> você exporta em <strong>Markdown, TXT ou PDF</strong>,
-    compartilha, ou exclui. O PDF sai com o mesmo desenho da tela: título, filetes, destaques
-    e citações.
-  </p>
-</section>
-
-<!-- ==================================================================== -->
-<section id="importar-sermao">
-  <h2><span class="num">8</span>Importar um sermão pronto</h2>
-  <p class="section-lead">Para o sermão que você já escreveu e não quer digitar de novo.</p>
+<section id="aplicativo-android-apk-independente-do-navegador">
+  <h2><span class="num">3</span>Aplicativo Android (APK) — independente do navegador</h2>
   <ol class="steps">
-    <li><span class="path">Sermões › Importar</span> e escolha o arquivo.</li>
-    <li>O título vem do nome do arquivo e pode ser trocado.</li>
-    <li>
-      O documento é exibido <strong>exatamente como foi feito</strong> — fontes, negritos,
-      títulos, tabelas e quebras de página. Nada é convertido para texto simples.
-    </li>
-    <li>Ele entra na lista de sermões como qualquer outro: categoria, etiquetas, anotações, e aparece na Biblioteca Ministerial.</li>
-    <li>No Modo Pregação, o documento ocupa a tela com o cronômetro por cima, e a Bíblia pode ficar ao lado.</li>
+    <li>Além da instalação pelo navegador, existe o APK: o mesmo aplicativo, mas com armazenamento próprio. Limpar os dados do Chrome não afeta nada dentro dele.</li>
+    <li>O APK é gerado no GitHub e sai como versão (Release) do projeto, em arquivo .apk direto, sem zip: abra a versão mais recente em "Releases" e toque no arquivo da sua edição para baixar e instalar.</li>
+    <li>Cada versão traz dois arquivos: farol-da-palavra.apk é a edição completa (v1.0) e farol-da-palavra-2.0.apk é a edição 2.0, com menos abas. São dois aplicativos separados: podem ficar instalados juntos, cada um com os próprios dados, e um não substitui o outro.</li>
+    <li>Este aqui é a edição completa. Confira o número em Configurações › Sobre: começa com v1.0.</li>
+    <li>Baixe no tablet e toque no arquivo para instalar. O Android vai pedir permissão para instalar de fora da loja — é normal, porque não passa pela Play Store.</li>
+    <li>Atenção: as duas instalações NÃO compartilham dados. Um sermão escrito no aplicativo não aparece na versão do navegador, e vice-versa. Para levar de uma para a outra, exporte a cópia de um lado e restaure do outro.</li>
+    <li>Em Configurações › Backup o app diz em qual das duas você está.</li>
+    <li>No APK a atualização não entra sozinha: quando sai uma versão nova, aparece "Nova versão disponível" no alto. Toque em Atualizar, leia o aviso de Atenção e baixe a versão.</li>
+    <li>Antes de atualizar, faça o backup (Configurações › Backup e privacidade › Salvar no Google Drive). Instale sempre por cima: desinstalar o aplicativo apaga tudo o que está nele.</li>
+    <li>O aviso só oferece a mesma edição que está instalada: a completa (v1.0) atualiza para a completa, e a 2.0 para a 2.0. O passo a passo está no PDF "Como atualizar sem perder nada", no alto desta página.</li>
   </ol>
-  <p>
-    <strong>Formatos:</strong> PDF e Word <code>.docx</code>, até 35 MB. O <code>.doc</code>
-    antigo não abre — no Word, use “Salvar como” para <code>.docx</code> ou PDF.
-  </p>
 </section>
 
-<!-- ==================================================================== -->
-<section id="rhema">
-  <h2><span class="num">9</span>Rhema — estudos e apostilas</h2>
-  <p class="section-lead">Guarda duas coisas: os estudos que você escreve aqui e as apostilas que já tem prontas.</p>
-  <ul>
-    <li><span class="path">Rhema › Importar</span> — cada apostila entra como um item da lista, com categoria e etiquetas suas.</li>
-    <li>A apostila é exibida como foi feita: fontes, imagens, quadros e quebras de página.</li>
-    <li>
-      O botão <strong>“Modo Aula”</strong> abre a apostila em tela cheia com a Bíblia à esquerda
-      e o material à direita. O botão de dividir fecha a Bíblia quando você quiser só estudar.
-    </li>
-    <li>Você pode escrever observações e vincular versículos — o material continua intacto, o que é seu fica separado.</li>
-  </ul>
-  <p>
-    <strong>Formatos:</strong> PDF e Word <code>.docx</code>, até 35 MB cada. As páginas são
-    desenhadas conforme você rola, então apostilas de 60 páginas abrem sem travar.
-  </p>
-</section>
-
-<!-- ==================================================================== -->
-<section id="cursos">
-  <h2><span class="num">10</span>Cursos — material de aula</h2>
-  <ul>
-    <li>Funciona como o Rhema, para o material de aula que você já tem pronto.</li>
-    <li>
-      <span class="path">Cursos › Importar</span> — aceita <strong>PDF, Word (.docx) e
-      PowerPoint (.pptx)</strong>, até 35 MB cada.
-    </li>
-    <li>O botão “Modo Aula” abre o material com a Bíblia à esquerda — a mesma tela do Rhema.</li>
-    <li>Os devocionais que você já tinha continuam aqui: nada se perdeu, a aba só mudou de nome.</li>
-  </ul>
-  <div class="note">
-    <span class="note-title">Sobre apresentações</span>
-    <p>
-      O PDF e o Word saem idênticos ao original. O <code>.pptx</code> é reconstruído pelo
-      aplicativo e chega perto, mas pode escorregar em algum detalhe de desenho. Se um slide
-      sair diferente, salve a apresentação como PDF no PowerPoint — aí sai igualzinho.
-    </p>
-  </div>
-</section>
-
-<!-- ==================================================================== -->
-<section id="pregacao">
-  <h2><span class="num">11</span>Modo Pregação e Modo Aula</h2>
-  <p class="section-lead">Tela cheia, letra grande, poucos elementos — para o púlpito e para a sala de aula.</p>
-
-  <h3>O cronômetro</h3>
-  <p>
-    Fica no alto: 30, 40, 45 ou 50 minutos, ou tempo livre. <strong>Verde</strong> dentro do
-    tempo, <strong>âmbar</strong> nos últimos cinco minutos e <strong>vermelho</strong> quando
-    passa, mostrando quanto passou.
-  </p>
-
-  <h3>A tela dividida</h3>
-  <ul>
-    <li>O botão de dividir coloca a <strong>Bíblia à esquerda</strong> e a mensagem à direita.</li>
-    <li>
-      A Bíblia ao lado é a <strong>Bíblia inteira</strong>, não um resumo: abre onde você parou,
-      troca de livro e de tradução, mostra suas marcações e deixa marcar, favoritar e copiar
-      ali mesmo. O que você faz ali aparece no leitor, e vice-versa.
-    </li>
-    <li>
-      A <strong>linha entre as colunas é arrastável</strong>: puxe para dar mais espaço a um dos
-      lados. A posição fica gravada.
-    </li>
-    <li>No tablet as colunas ficam lado a lado; só no celular a Bíblia vai para cima, porque não cabem.</li>
-  </ul>
-
-  <h3>Tamanho e margens</h3>
-  <ul>
-    <li><strong>A-</strong> e <strong>A+</strong> ajustam só a pregação, sem mexer no leitor. Com a Bíblia ao lado, ela tem os próprios.</li>
-    <li>
-      O <strong>botão de esquadro</strong> apara as margens brancas da folha. Como a apostila é
-      A4 e quase um quarto da largura é margem, a letra fica cerca de 25% maior sem ampliar
-      nada. Se alguma página aparecer cortada, toque de novo para ver a folha inteira.
-    </li>
-  </ul>
-
-  <h3>A barra de baixo</h3>
-  <p>
-    Some sozinha depois de três segundos parada, e na hora em que você começa a rolar o
-    material. Um toque no documento traz de volta; outro recolhe. Recolhida, fica um risquinho
-    no rodapé — toque nele e ela volta.
-  </p>
-  <p><strong>A tela não apaga sozinha</strong> enquanto o Modo Pregação ou o Modo Aula estiver aberto.</p>
-</section>
-
-<!-- ==================================================================== -->
-<section id="traducoes">
-  <h2><span class="num">12</span>Traduções e direitos autorais</h2>
-
-  <h3>As que já vêm no aplicativo</h3>
-  <p>
-    Almeida, Bíblia Livre, Tradução Brasileira e Almeida 1911, em português, mais a King James
-    em inglês. Todas em <strong>domínio público</strong>, livres para usar e distribuir.
-  </p>
-
-  <h3>As que dependem da sua cópia</h3>
-  <p>
-    ACF, ARA, ARC, AS21, JFAA, KJA, KJF, NAA, NBV, NTLH, NVI, NVT, O Livro, A Mensagem e VFL
-    têm direitos autorais das editoras e <strong>não acompanham o aplicativo</strong>. Elas
-    aparecem no catálogo esperando a sua cópia.
-  </p>
-  <ul>
-    <li>
-      Tendo o arquivo, importe por <span class="path">Configurações › Traduções</span>, ou pelo
-      botão da sigla enquanto lê.
-    </li>
-    <li>
-      Se o arquivo tiver o nome da sigla (<code>ARA.json</code>, <code>NVI.json</code>…), o app
-      reconhece sozinho a qual tradução pertence.
-    </li>
-    <li>
-      <strong>O texto fica gravado só neste aparelho.</strong> Não sobe para lugar nenhum e não
-      vai junto para quem instalar o aplicativo depois.
-    </li>
-  </ul>
-
-  <h3>Módulos do MyBible e números Strong</h3>
-  <p>
-    Arquivos <code>.SQLite3</code> do MyBible entram do jeito que estão — é por aí que vem uma
-    Bíblia com <strong>números Strong</strong>. No Android os módulos ficam na pasta
-    <code>MyBible</code> da memória interna. Se a pasta não aparecer no seletor, copie o arquivo
-    para <code>Download</code> primeiro.
-  </p>
-  <p>
-    Módulos que trazem <strong>títulos de seção</strong> (&ldquo;A criação dos céus e da terra&rdquo;)
-    também os trazem para cá: eles aparecem em itálico no meio do texto, e não entram na
-    seleção nem na cópia do versículo. As traduções que vêm no aplicativo não têm esses
-    títulos — são trabalho editorial, com direitos de quem os escreveu.
-  </p>
-  <p>
-    O aviso da importação diz quantos livros entraram e a cobertura — <em>“Bíblia completa”</em>,
-    <em>“Só o Novo Testamento”</em> ou quantos livros faltam. Muitos módulos trazem só o Novo
-    Testamento.
-  </p>
-
-  <div class="warn">
-    <span class="warn-title">A regra que o aplicativo segue</span>
-    <p>
-      Uma tradução licenciada que você importou vale <strong>para você</strong>. Ela não é
-      distribuída com o aplicativo e não deve ser repassada. É o que separa “uso a minha cópia”
-      de “distribuo a Bíblia da editora”.
-    </p>
-  </div>
-</section>
-
-<!-- ==================================================================== -->
-<section id="original">
-  <h2><span class="num">13</span>Palavras no original (Strong)</h2>
-  <p class="section-lead">Ver o termo hebraico ou grego por trás de uma palavra do versículo.</p>
-
-  <p>
-    Os <strong>números de Strong</strong> são um índice antigo que dá um código a cada palavra
-    do hebraico e do grego bíblicos — <code>H430</code> para <em>elohim</em>,
-    <code>G26</code> para <em>agapē</em>. Com eles, dá para ver qual palavra original está por
-    trás de cada palavra da tradução.
-  </p>
-
-  <h3>O léxico já vem no aplicativo</h3>
-  <p>
-    O <strong>Léxico de Strong</strong> acompanha o Farol da Palavra: <strong>8.674</strong> verbetes do
-    hebraico e <strong>5.523</strong> do grego, cada um com o termo original, a transliteração, a
-    pronúncia, a derivação e a definição. Funciona offline, no aplicativo Android e no navegador,
-    sem importar nada.
-  </p>
-  <p>
-    Ele é <strong>em inglês</strong>. É o único léxico de Strong com licença que permite
-    distribuir junto com o aplicativo — os que existem em português derivam de edições protegidas.
-    Se você tiver um em português, importe o módulo
-    (<code>.dictionary.SQLite3</code>) e ele passa a aparecer <strong>antes</strong> do que vem no
-    app.
-  </p>
-
-  <h3>O que ainda precisa vir de fora</h3>
-  <p>
-    Uma <strong>Bíblia com números Strong</strong> — um módulo do MyBible que os traga. É ela que
-    liga cada palavra do versículo a um código. As traduções que acompanham o aplicativo não têm
-    essa marcação: é trabalho editorial, e não existe livre em português.
-  </p>
-  <p>
-    Ela entra de <strong>duas formas</strong>: como módulo do MyBible
-    (<code>.SQLite3</code>) ou como <strong>JSON</strong>. No JSON, basta que o texto traga a
-    marcação <code>&lt;S&gt;430&lt;/S&gt;</code> depois da palavra — o aplicativo reconhece
-    sozinho, guarda o texto limpo e os códigos ao lado. Um JSON <strong>sem</strong> marcação
-    nenhuma continua entrando exatamente como sempre entrou.
-  </p>
-  <p>
-    Bíblias e dicionários entram pelo <strong>mesmo botão</strong>:
-    <span class="path">Configurações › Importar um arquivo de tradução</span>. O próprio arquivo
-    diz o que é — você não precisa escolher.
-  </p>
-
-  <h3>Como consultar</h3>
+<section id="atualizar-para-a-versao-mais-nova">
+  <h2><span class="num">4</span>Atualizar para a versão mais nova</h2>
   <ol class="steps">
-    <li>Leia numa tradução que tenha Strong (aparece &ldquo;com números Strong&rdquo; na lista de traduções).</li>
-    <li>Toque no versículo para selecioná-lo.</li>
-    <li>Na barra de ações, toque em <strong>&ldquo;No original&rdquo;</strong>.</li>
-    <li>
-      O versículo aparece palavra por palavra, cada uma com o código. Toque numa palavra para
-      ver o termo original e a definição.
-    </li>
+    <li>A atualização é automática: quando há versão nova, aparece um aviso "Nova versão disponível" no alto da tela. Toque em Atualizar.</li>
+    <li>Se você ignorar o aviso, a atualização entra sozinha na próxima vez que abrir o aplicativo.</li>
+    <li>Se quiser forçar: feche o aplicativo por completo (retire-o dos apps recentes) e abra de novo.</li>
+    <li>Nada do que você criou se perde numa atualização — anotações, sermões e favoritos ficam no aparelho.</li>
+    <li>Isso vale para a instalação pelo navegador. No aplicativo Android (APK) o aviso também aparece, mas atualizar é baixar e instalar a versão nova por cima — veja o tópico do APK.</li>
   </ol>
-  <div class="note">
-    <span class="note-title">Crédito do léxico</span>
-    <p>
-      O texto é de James Strong (grego, 1890; hebraico, 1894), em domínio público. A transcrição
-      digital é da <strong>Open Scriptures</strong>, publicada sob licença
-      <strong>CC BY-SA</strong> — que exige o crédito. Por isso ele aparece no rodapé de cada
-      verbete, dentro do aplicativo.
-    </p>
-  </div>
-  <div class="note">
-    <span class="note-title">Por que não é só tocar na palavra no texto</span>
-    <p>
-      No tablet, uma palavra dentro do parágrafo é alvo pequeno demais — e tocar no texto já
-      quer dizer &ldquo;selecionar o versículo&rdquo;. Na folha, cada palavra vira um botão do
-      tamanho do dedo.
-    </p>
-  </div>
-  <p>
-    A ação <strong>&ldquo;No original&rdquo;</strong> só aparece quando a tradução aberta tem
-    números Strong. Nas traduções que vêm no aplicativo ela não existe, porque elas não têm essa
-    marcação.
-  </p>
 </section>
 
-<!-- ==================================================================== -->
-<section id="backup">
-  <h2><span class="num">15</span>Backup e seus dados</h2>
-  <p class="section-lead">A seção mais importante deste manual.</p>
-
-  <p>
-    Tudo o que você cria fica gravado <strong>apenas no seu aparelho</strong>, na memória do
-    navegador. Nada é enviado para servidor nenhum. Isso protege a sua privacidade — e faz do
-    backup a sua única rede de segurança.
-  </p>
-
-  <h3>Três coisas diferentes, e o que cada uma protege</h3>
-  <div class="table-scroll">
-    <table>
-      <thead><tr><th>Camada</th><th>Protege de</th><th>Não protege de</th></tr></thead>
-      <tbody>
-        <tr>
-          <td><strong>Armazenamento protegido</strong><br>(automático)</td>
-          <td>O Android apagar o app sozinho quando faltar espaço no aparelho.</td>
-          <td>Você limpar os dados do navegador, desinstalar ou perder o aparelho.</td>
-        </tr>
-        <tr>
-          <td><strong>Cópias neste aparelho</strong><br>(automáticas, as 6 últimas)</td>
-          <td>Apagar um sermão sem querer; uma restauração malfeita.</td>
-          <td>Limpar o navegador, desinstalar ou perder o aparelho — elas moram no mesmo lugar.</td>
-        </tr>
-        <tr>
-          <td><strong>Cópia fora do aparelho</strong><br>(você faz, no Drive)</td>
-          <td><strong>Tudo.</strong> É a única que sobrevive a limpar o navegador, trocar de tablet ou perdê-lo.</td>
-          <td>Nada — desde que você a faça.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <p>
-    Em <span class="path">Configurações › Backup e privacidade</span> o app mostra o estado das
-    três. A primeira o próprio aplicativo pede ao navegador quando abre; num app instalado o
-    Chrome costuma conceder sozinho.
-  </p>
-
-  <h3>Duas camadas de proteção</h3>
-  <p>
-    Em <span class="path">Configurações › Backup e privacidade</span> o app mostra, logo no
-    alto, <strong>há quanto tempo você guardou uma cópia fora do aparelho</strong>. Enquanto
-    não houver nenhuma, o aviso fica em vermelho — é de propósito.
-  </p>
-  <ul>
-    <li>
-      <strong>Salvar no Google Drive</strong> — abre a folha de compartilhamento do aparelho;
-      escolha Drive, e-mail ou o que preferir. É a cópia que salva de verdade.
-    </li>
-    <li>
-      <strong>Baixar o arquivo</strong> — guarda no próprio aparelho. No navegador vai para a
-      pasta <code>Download</code>; no <strong>aplicativo Android</strong> vai para a pasta
-      <code>Documentos</code>, e o aviso na tela diz exatamente onde ficou.
-    </li>
-    <li>
-      <strong>Cópias neste aparelho</strong> — o app guarda as seis últimas sozinho, uma a cada
-      poucos dias. Servem para desfazer um engano (apagou um sermão sem querer) e ficam
-      listadas com data e número de registros, cada uma com o botão Restaurar.
-    </li>
-  </ul>
-  <div class="warn">
-    <span class="warn-title">As cópias automáticas moram dentro do aplicativo</span>
-    <p>
-      Elas não aparecem no gerenciador de arquivos, e desaparecem junto com o app: no navegador,
-      se você limpar os dados; no <strong>aplicativo Android, se você desinstalar</strong>.
-      Por isso elas não substituem a cópia no Drive — antes de desinstalar ou trocar de
-      aparelho, use <strong>Salvar no Google Drive</strong>.
-    </p>
-  </div>
-  <ul>
-  </ul>
-
-  <h3>Levar tudo para outra instalação</h3>
-  <p>
-    Marque <strong>&ldquo;Levar também as Bíblias que importei&rdquo;</strong> antes de salvar. Aí
-    um arquivo só carrega seus sermões <em>e</em> as Bíblias que você importou — a instalação nova
-    nasce completa, sem reimportar tradução nenhuma. É o caminho para levar tudo do navegador para
-    o aplicativo Android.
-  </p>
-  <p>
-    O arquivo fica bem maior: cada tradução passa de 4 MB, e com números Strong pode triplicar.
-    Sem a opção marcada, a cópia tem poucos KB.
-  </p>
-  <div class="warn">
-    <span class="warn-title">As apostilas e os cursos continuam de fora</span>
-    <p>
-      PDFs, Word e apresentações não cabem num arquivo de backup — uma apostila sozinha passa de
-      30 MB. Guarde os arquivos originais e importe de novo na instalação nova.
-    </p>
-  </div>
-
-  <h3>Restaurar</h3>
-  <p>
-    De uma cópia da lista, pelo botão <strong>Restaurar</strong>; ou de um arquivo, em
-    <strong>Restaurar de um arquivo</strong>. Nos dois casos o app grava antes o estado atual,
-    para haver caminho de volta se você restaurar a cópia errada.
-  </p>
-
-  <div class="table-scroll">
-    <table>
-      <thead><tr><th>Entra no backup</th><th>Não entra</th></tr></thead>
-      <tbody>
-        <tr>
-          <td>Favoritos, marcações e anotações</td>
-          <td>O texto bíblico (é recarregado do aplicativo)</td>
-        </tr>
-        <tr>
-          <td>Sermões escritos, Rhema e cursos</td>
-          <td>Os arquivos importados: PDFs, Word, apresentações</td>
-        </tr>
-        <tr>
-          <td>Planos de leitura e histórico</td>
-          <td>As traduções que você importou</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <p>
-    As apostilas e as traduções importadas ficam de fora porque são grandes — uma só passa de
-    30 MB. Guarde os arquivos originais e importe de novo quando precisar.
-  </p>
-
-  <div class="warn">
-    <span class="warn-title">Sem backup, não há recuperação</span>
-    <p>
-      Se você limpar os dados do navegador, perder o aparelho ou desinstalar o aplicativo sem
-      ter exportado, o conteúdo se perde e ninguém consegue trazer de volta. Faça a cópia hoje,
-      e depois toda semana.
-    </p>
-  </div>
+<section id="ler-a-biblia">
+  <h2><span class="num">5</span>Ler a Bíblia</h2>
+  <ol class="steps">
+    <li>Toque na pílula com o nome do livro para trocar de livro ou capítulo. Ela acompanha a rolagem, e a mesma pílula está no fim do capítulo — não é preciso voltar ao topo.</li>
+    <li>A escolha tem três passos: livro, capítulo e versículo. No terceiro, "Abrir o capítulo inteiro" é o primeiro botão — escolher o versículo é opcional, e serve para começar a leitura já nele, com liberdade de subir e descer dali.</li>
+    <li>Quem já sabe o endereço pula os três passos: escreva a referência inteira no campo de filtrar — "Jo 3:16", "Sl 23:1", "1co 13:4" — e toque no atalho "Ir para".</li>
+    <li>O botão ao lado troca a tradução; ali também se liga a comparação lado a lado com uma segunda versão.</li>
+    <li>Use "Aa" para ajustar tamanho da letra, espaçamento, largura da coluna, tema e alinhamento.</li>
+    <li>Em "Aa" (ou em Configurações) há quatro tipos de letra: Serifada clássica, Lora (serifada elegante), Sem serifa moderna e Source Sans (sem serifa, bem legível). Todas funcionam sem internet.</li>
+    <li>Leitura imersiva: ao começar a rolar, o menu lateral e as barras somem de cena e a tela fica só com o texto. Um toque em qualquer espaço em branco traz tudo de volta; outro toque esconde. Rolar para cima também traz. Tocar no versículo continua sendo selecionar o versículo.</li>
+    <li>Sem o menu lateral, o botão de três traços no alto abre o menu inteiro. Se preferir as barras sempre à vista, desligue em "Aa" › Leitura imersiva.</li>
+    <li>No tablet e no computador, a setinha ao lado do nome "Farol da Palavra", no alto do menu lateral, recolhe o menu e deixa só os ícones — sobra mais largura para o texto e para o painel de comentários. Pare o dedo ou o mouse sobre um ícone para ver o nome. A outra setinha abre o menu de novo, e o app lembra a sua escolha.</li>
+    <li>São onze temas: Claro, Sépia, Esmeralda, Institucional (claro com menu azul), Azul e branco, Azul safira, Verde e branco, Escuro, Noite azul, Ministerial (azul-marinho) e Preto. O botão de tema, no alto, passa por eles em ordem — do papel ao mais escuro. A escolha completa fica em Configurações › Aparência e leitura. O Escuro é cinza-noite. O Preto é para ler à noite: quase preto (o preto puro cansa a vista), com as letras e os botões em relevo leve.</li>
+    <li>A Esmeralda é creme por dentro e verde por fora: a leitura e os cartões ficam no papel creme com destaques em verde, e a moldura do aplicativo (menu, barra do alto e barra de baixo) fica verde-escuro com menta — as cores do Hub Resumos.</li>
+    <li>Nos Salmos, o título ("Salmo de Davi, quando fugia de Absalão, seu filho") aparece acima do salmo, em itálico, separado do versículo 1 — como nas Bíblias impressas. Vale também para as traduções que você importou: o app separa o título sozinho, uma vez, sem mexer no texto.</li>
+    <li>Toque em um versículo para selecioná-lo. Toque em outros para selecionar vários de uma vez.</li>
+    <li>Com o versículo selecionado aparece a barra de ações: destacar, favoritar, anotar, compartilhar, copiar, ou criar um estudo e um sermão já a partir daquele texto.</li>
+    <li>Nas abas Comentários e Referências, toque num versículo para lê-lo ali mesmo, no painel (ou na folha, no celular): abre o capítulo com o trecho destacado, como na busca. "Voltar" retorna à lista no mesmo ponto; "Abrir no leitor" leva até ele. No comentário, as referências que dá para tocar aparecem sublinhadas.</li>
+  </ol>
 </section>
 
-<!-- ==================================================================== -->
-<section id="compartilhar">
-  <h2><span class="num">16</span>Compartilhar o aplicativo</h2>
-  <ul>
-    <li>Basta enviar o endereço para quem você quiser. Não há cadastro nem loja de aplicativos.</li>
-    <li>Cada pessoa instala e passa a ter o <strong>próprio conteúdo</strong>, separado do seu.</li>
-    <li>Quando sair versão nova, todos recebem o aviso — não é preciso reenviar nada.</li>
-    <li>
-      As traduções livres seguem junto. As que você importou, <strong>não</strong> — elas ficam
-      no seu aparelho, como deve ser.
-    </li>
-  </ul>
+<section id="buscar-no-texto">
+  <h2><span class="num">6</span>Buscar no texto</h2>
+  <ol class="steps">
+    <li>Palavra solta: encontra todos os versículos que a contenham.</li>
+    <li>Várias palavras: traz os versículos em que todas aparecem.</li>
+    <li>Expressão exata: coloque entre aspas — "não temas" — ou ligue o filtro "Frase exata".</li>
+    <li>Referência: digite "João 3:16", "1co 13" ou "Sl 23:1-6" e um atalho leva direto à passagem.</li>
+    <li>Dá para restringir a busca ao Antigo Testamento, ao Novo, ou a um livro específico.</li>
+  </ol>
 </section>
 
-<!-- ==================================================================== -->
-<section id="problemas">
-  <h2><span class="num">17</span>Problemas comuns</h2>
-  <div class="table-scroll">
-    <table>
-      <thead><tr><th>Aconteceu</th><th>O que fazer</th></tr></thead>
-      <tbody>
-        <tr>
-          <td>“Não foi possível abrir este capítulo”</td>
-          <td>A tradução escolhida não tem aquele livro — módulos só do Novo Testamento são comuns. O app leva ao primeiro livro que ela tem. Troque de tradução para ler o Antigo.</td>
-        </tr>
-        <tr>
-          <td>A Bíblia pede internet</td>
-          <td>Falta baixar para uso offline: <span class="path">Configurações › Traduções › Baixar para uso offline</span>.</td>
-        </tr>
-        <tr>
-          <td>O arquivo não aparece no seletor</td>
-          <td>Copie-o para a pasta <code>Download</code> pelo gerenciador de arquivos e importe de lá.</td>
-        </tr>
-        <tr>
-          <td>O <code>.doc</code> não abre</td>
-          <td>No Word, “Salvar como” <code>.docx</code> ou PDF.</td>
-        </tr>
-        <tr>
-          <td>A exportação em PDF não abre (iPhone)</td>
-          <td>É o bloqueio de pop-up do Safari: Ajustes › Safari › desligue “Bloquear Pop-ups”, ou exporte em Markdown/TXT.</td>
-        </tr>
-        <tr>
-          <td>A tela apaga durante a pregação (iPad antigo)</td>
-          <td>Ajustes › Tela e Brilho › Bloqueio Automático › Nunca, enquanto estiver pregando.</td>
-        </tr>
-        <tr>
-          <td>Não aparece &ldquo;No original&rdquo;</td>
-          <td>A tradução aberta não tem números Strong. Troque para uma que tenha — a lista de traduções mostra quais têm.</td>
-        </tr>
-        <tr>
-          <td>Aparece o código, mas não o significado</td>
-          <td>Falta importar um dicionário Strong (<code>.dictionary.SQLite3</code>), pelo mesmo botão das traduções.</td>
-        </tr>
-        <tr>
-          <td>A versão nova não chegou</td>
-          <td>Feche o aplicativo por completo (tire dos recentes) e abra de novo.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+<section id="marcacoes-favoritos-e-anotacoes">
+  <h2><span class="num">7</span>Marcações, favoritos e anotações</h2>
+  <ol class="steps">
+    <li>Marcações são grifos coloridos por tema: Promessas, Fé, Cura, Liderança e outros. Você pode criar categorias suas em Configurações.</li>
+    <li>Favoritos guardam o versículo com categoria e uma observação sua.</li>
+    <li>Ao compartilhar um versículo como imagem, escolha a cor do fundo logo abaixo da prévia: Noite, Papel, Sépia, Azul, Oliveira, Púrpura ou Vinho. A escolha fica guardada para as próximas.</li>
+    <li>Anotações podem nascer de um versículo ou ser livres, e ficam ligadas ao texto para sempre.</li>
+    <li>Na Bíblia, o botão redondo no canto inferior direito abre o bloco de anotações flutuante: uma janelinha por cima do texto, para escrever enquanto ouve a pregação sem sair do capítulo. Arraste pela barra do alto, puxe o canto para aumentar, e feche no X.</li>
+    <li>O bloco salva sozinho — não existe botão de salvar. O botão do livrinho escreve a referência do capítulo aberto no meio do texto; o "+" guarda a anotação e abre uma folha em branco. Ele lembra onde estava e continua de onde parou na próxima vez.</li>
+    <li>Tudo o que você marcar aparece reunido nas telas próprias. <a class="no-print" href="./index.html#/favoritos">Abrir favoritos →</a></li>
+  </ol>
 </section>
 
-<!-- ==================================================================== -->
-<section id="limites">
-  <h2><span class="num">18</span>O que ainda não existe</h2>
-  <p class="section-lead">Para você saber o que esperar — e o que não procurar.</p>
-  <ul>
-    <li>
-      <strong>Números Strong e títulos de seção nas traduções que vêm no app.</strong> Os dois
-      funcionam, mas dependem de você importar um módulo que os traga: as traduções livres
-      embutidas não têm essa marcação, e nenhum léxico bíblico em português tem licença que
-      permita embutir.
-    </li>
-    <li>
-      <strong>Sincronização entre aparelhos.</strong> Hoje cada aparelho tem os seus dados. Levar
-      de um para outro é pelo arquivo de backup. Um servidor com conta, que sincronize sozinho,
-      está planejado.
-    </li>
-    <li>
-    <li>
-      <strong>App Store (iPhone e iPad).</strong> Exige Mac e conta paga da Apple. No Android o
-      APK já existe; no Apple a instalação continua sendo pelo Safari.
-    </li>
-    <li>
-      <strong>Bloqueio por senha.</strong> Quem pegar o aparelho destravado lê suas anotações.
-    </li>
-  </ul>
+<section id="gerador-preparar-um-sermao">
+  <h2><span class="num">8</span>Gerador — preparar um sermão</h2>
+  <ol class="steps">
+    <li>O Gerador (antigo "Sermões") é o espaço de preparação ministerial. O sermão é montado em blocos: Seção (o subtítulo com o filete), Parágrafo, Destaque (o quadro que chama a atenção), Citação bíblica e Lista.</li>
+    <li>O sermão novo abre em branco. Toque em "Acrescentar" e escolha o que vai usar: Texto principal, Introdução, Desenvolvimento, Aplicações, Conclusão, Apelo — ou um bloco solto. Nada vem pronto na tela, e o sermão que não tem introdução não fica com uma caixa vazia.</li>
+    <li>A barra no alto formata o trecho que você selecionou: negrito, itálico, sublinhado e cor. O botão de girar limpa a formatação.</li>
+    <li>Cada bloco tem os seus botões: trocar o tipo, subir, descer, inserir outro abaixo e excluir. No fim da página, a barra acrescenta um bloco novo do tipo que você escolher.</li>
+    <li>No bloco Citação bíblica, escreva a referência e toque em "Trazer texto": o versículo vem do próprio aplicativo, com a referência por baixo. O texto bíblico nunca é digitado pelo sistema.</li>
+    <li>Enter abre um bloco novo; Shift+Enter quebra a linha dentro do mesmo bloco.</li>
+    <li>O "Texto principal" também vive dentro do painel: escolha-o no "Acrescentar", escreva a referência e toque em "Trazer texto". É essa primeira citação que aparece como subtítulo do sermão na lista e na abertura do Modo Pregação.</li>
+    <li>O sermão inteiro vive nesse painel único: não há mais campo separado de Texto principal nem de Observações. O que você quiser comentar entra como um bloco, no lugar onde faz sentido. O que já estava escrito nesses campos foi trazido para dentro do sermão.</li>
+    <li>O sermão salva sozinho enquanto você escreve — não existe botão de salvar.</li>
+    <li>No menu "…" você exporta em Markdown, TXT ou PDF, compartilha, ou exclui. O PDF sai com o mesmo desenho da tela: título, filetes, destaques e citações.</li>
+    <li>No Modo Pregação, cada Seção vira um passo, e o destaque continua destacado no púlpito.</li>
+  </ol>
+</section>
+
+<section id="importar-um-sermao-que-ja-esta-pronto">
+  <h2><span class="num">9</span>Importar um sermão que já está pronto</h2>
+  <ol class="steps">
+    <li>Serve para o sermão que você já escreveu em PDF ou no Word e não quer digitar de novo.</li>
+    <li>Sermões › botão Importar › escolha o arquivo. O título vem do nome do arquivo e pode ser trocado.</li>
+    <li>O documento é exibido exatamente como foi feito — fontes, negritos, títulos, tabelas e quebras de página. Nada é convertido para texto simples.</li>
+    <li>Ele entra na sua lista de sermões como qualquer outro: recebe categoria, etiquetas, e aparece na Biblioteca Ministerial.</li>
+    <li>Abaixo do documento fica o painel de blocos, em branco: é ali que você escreve o que quer acrescentar ao material importado.</li>
+    <li>No Modo Pregação, o documento ocupa a tela com o cronômetro por cima, e você ainda pode abrir a Bíblia ao lado.</li>
+    <li>Formatos aceitos: PDF e Word .docx, até 35 MB. O .doc antigo não abre — no Word, use "Salvar como" para .docx ou PDF.</li>
+    <li>O arquivo fica guardado no aparelho e funciona offline. Ao excluir o sermão, o arquivo vai junto.</li>
+  </ol>
+</section>
+
+<section id="rhema-estudos-e-apostilas">
+  <h2><span class="num">10</span>Rhema — estudos e apostilas</h2>
+  <ol class="steps">
+    <li>A aba Rhema guarda duas coisas: os estudos que você escreve aqui dentro e as apostilas que você já tem prontas em PDF.</li>
+    <li>O estudo escrito aqui é montado em seções, num painel só. Toque em "Acrescentar seção" e escolha o que quer usar: Texto principal, Introdução, Desenvolvimento, Aplicações, Conclusão ou uma Seção livre com o título que você der. Use quantas quiser, na ordem que quiser, e mova ou apague cada uma pelas setas e pelo × do cabeçalho dela.</li>
+    <li>Os estudos escritos antes desta mudança abrem com o mesmo conteúdo, já convertido em seções — inclusive o que estava em "Comentários", que vira uma seção com esse nome.</li>
+    <li>Rhema › Importar › escolha o arquivo. Cada apostila entra como um item da lista, com categoria e etiquetas suas.</li>
+    <li>A apostila é exibida exatamente como foi feita — fontes, imagens, quadros e quebras de página. Nada é convertido.</li>
+    <li>O botão "Modo Aula" abre a apostila em tela cheia com a Bíblia à esquerda e o material à direita: é a tela para dar aula. O botão de dividir fecha a Bíblia quando você quiser só estudar.</li>
+    <li>A linha entre as duas colunas é arrastável: puxe para o lado para dar mais espaço à apostila ou à Bíblia. A posição fica gravada para as próximas vezes.</li>
+    <li>A Bíblia ao lado é a Bíblia inteira, não um resumo: abre onde você parou de ler, troca de livro pelo nome no alto do painel, troca de tradução no botão da sigla, mostra as suas marcações e deixa marcar, favoritar e copiar versículo ali mesmo — o que você faz ali aparece no leitor, e o que fez no leitor aparece ali.</li>
+    <li>Os botões A- e A+ da barra de baixo aumentam a página da apostila; os do lado da Bíblia mudam só a letra dela. Cada lado tem o seu, e os dois ficam gravados.</li>
+    <li>O botão de esquadro apara as margens brancas da folha: como a apostila é A4 e quase um quarto da largura é margem, a letra fica cerca de 25% maior sem precisar ampliar nada. Se alguma página aparecer cortada, toque nele de novo para ver a folha inteira.</li>
+    <li>A barra de baixo se recolhe sozinha depois de três segundos parada, e some na hora quando você começa a rolar o material. Um toque no documento traz de volta; outro toque recolhe. Recolhida, fica um risquinho no rodapé — toque nele e ela volta.</li>
+    <li>No Modo Aula há cronômetro e a tela não apaga sozinha, igual ao Modo Pregação.</li>
+    <li>Você pode escrever suas observações, vincular versículos e criar anotações sobre a apostila — o material continua intacto, o que é seu fica separado.</li>
+    <li>Formatos aceitos: PDF e Word .docx, até 35 MB cada. As páginas são desenhadas conforme você rola, então apostilas de 60 páginas abrem sem travar.</li>
+  </ol>
+</section>
+
+<section id="escola-de-ministros">
+  <h2><span class="num">11</span>Escola de Ministros</h2>
+  <ol class="steps">
+    <li>A aba Escola de Ministros funciona como o Rhema, com as apostilas da Escola guardadas à parte: o que você importa aqui não aparece no Rhema, e o do Rhema não aparece aqui.</li>
+    <li>Toque em Importar e escolha a apostila em PDF ou Word. Ela abre pronta, com o título de dentro do arquivo.</li>
+    <li>Toque em "Modo Aula" para dar a aula: a apostila em tela cheia, com a Bíblia ao lado — a mesma tela do Rhema, com a busca dentro da apostila, as anotações e os versículos vinculados.</li>
+    <li>A Escola está no menu, no grupo Ministério. <a class="no-print" href="./index.html#/escola">Abrir a Escola de Ministros →</a></li>
+  </ol>
+</section>
+
+<section id="cursos-o-material-das-aulas">
+  <h2><span class="num">12</span>Cursos — o material das aulas</h2>
+  <ol class="steps">
+    <li>A aba Cursos guarda o material de aula que você já tem pronto: importe e ensine a partir dele, com a Bíblia ao lado.</li>
+    <li>Cursos › Importar › escolha o arquivo. Aceita PDF, Word (.docx) e apresentação do PowerPoint (.pptx), até 35 MB cada.</li>
+    <li>Com o material aberto, a lupa na barra do arquivo procura dentro dele. Numa apostila de sessenta páginas, ela lista os trechos com o número da página — toque num deles e a apostila salta até lá. Acentos não atrapalham: "oracao" acha "oração".</li>
+    <li>O botão "Modo Aula" abre o material em tela cheia com a Bíblia à esquerda — com cronômetro, divisão arrastável e a tela que não apaga.</li>
+    <li>Sobre as apresentações: o PDF e o Word saem idênticos ao original. O .pptx é reconstruído pelo aplicativo e chega perto, mas pode escorregar em algum detalhe de desenho. Se algum slide sair diferente, salve a apresentação como PDF no PowerPoint — sai igualzinho.</li>
+    <li>Os devocionais que você já tinha continuam aqui, com os mesmos campos de sempre: nada se perdeu, a aba só mudou de nome.</li>
+  </ol>
+</section>
+
+<section id="modo-pregacao">
+  <h2><span class="num">13</span>Modo Pregação</h2>
+  <ol class="steps">
+    <li>Serve para pregar com o tablet na mão: tela cheia, letra grande, poucos elementos.</li>
+    <li>Abra por um sermão preparado (o caminho completo) ou direto de um capítulo, para projetar a leitura.</li>
+    <li>O cronômetro fica no alto: escolha 30, 40, 45 ou 50 minutos, ou tempo livre. Fica verde dentro do tempo, âmbar nos últimos cinco minutos e vermelho quando passa, mostrando quanto passou.</li>
+    <li>Tela dividida: o botão de dividir coloca a Bíblia à esquerda e a mensagem à direita. O painel acompanha a referência do ponto e destaca o versículo. No tablet as duas colunas ficam lado a lado; só no celular a Bíblia vai para cima e a mensagem para baixo, porque não cabem lado a lado.</li>
+    <li>A- e A+ ajustam a letra só da pregação, sem mexer no tamanho do leitor. Com a Bíblia ao lado, ela tem o próprio A- e A+, e a linha do meio pode ser arrastada para dar mais espaço a um dos lados.</li>
+    <li>A tela não apaga sozinha enquanto o Modo Pregação estiver aberto.</li>
+  </ol>
+</section>
+
+<section id="traducoes-e-direitos-autorais">
+  <h2><span class="num">14</span>Traduções e direitos autorais</h2>
+  <ol class="steps">
+    <li>Vêm quatro traduções em português — Almeida, Bíblia Livre, Tradução Brasileira e Almeida 1911 — mais a King James em inglês. Todas em domínio público, livres para usar.</li>
+    <li>ARA, ARC, NVI, NAA, NTLH, NVT, ACF, KJA, KJF, AS21, NBV, O Livro, A Mensagem e outras têm direitos autorais e não acompanham o aplicativo — mas estão no catálogo esperando a sua cópia.</li>
+    <li>Tendo o arquivo da tradução, importe por Configurações › Traduções, ou pelo próprio botão da sigla enquanto lê. O texto é gravado só neste aparelho: não sobe para lugar nenhum e não vai junto para quem instalar o app depois.</li>
+    <li>Se o arquivo tiver o nome da sigla (ARA.json, NVI.json…), o app reconhece sozinho a qual tradução ele pertence — basta escolher o arquivo.</li>
+    <li>Módulos do MyBible (arquivos .SQLite3) também entram, do jeito que estão. É por aí que vem uma Bíblia com números Strong, como a Bíblia+: os números são guardados junto com o texto. No Android os módulos ficam na pasta MyBible da memória interna.</li>
+    <li>A importação aceita arquivos JSON em três formatos diferentes. <a class="no-print" href="./index.html#/config">Abrir configurações →</a></li>
+  </ol>
+</section>
+
+<section id="palavras-no-original-numeros-de-strong">
+  <h2><span class="num">15</span>Palavras no original — números de Strong</h2>
+  <ol class="steps">
+    <li>Os números de Strong dão um código a cada palavra do hebraico e do grego (H430 para "elohim", G26 para "agapē"). Com eles dá para ver qual palavra original está por trás da tradução.</li>
+    <li>O léxico de Strong já vem no aplicativo: 8.674 verbetes do hebraico e 5.523 do grego, com o termo original, a transliteração, a pronúncia e a definição. Funciona sem importar nada, mas precisa de internet para carregar. Os léxicos que você importar ficam no aparelho e funcionam sem internet.</li>
+    <li>Ele é em inglês — é o único com licença que permite distribuir junto. Se você tiver um léxico em português, importe o módulo (.dictionary.SQLite3) e ele passa a aparecer primeiro, antes do que vem no app.</li>
+    <li>O que ainda precisa vir de fora é a Bíblia com números Strong: as traduções que acompanham o aplicativo não os trazem, porque essa marcação é trabalho editorial e não existe livre em português.</li>
+    <li>Ela entra tanto como módulo do MyBible (.SQLite3) quanto como JSON — se o texto do JSON trouxer a marcação &lt;S&gt;430&lt;/S&gt; depois da palavra, o app reconhece sozinho. E um JSON sem marcação nenhuma continua entrando como sempre.</li>
+    <li>Bíblias e dicionários entram pelo mesmo botão, em Configurações › Traduções: o próprio arquivo diz o que é.</li>
+    <li>Para consultar: toque no versículo e escolha "No original" na barra de ações. O versículo aparece palavra por palavra; toque numa palavra para ver a definição.</li>
+    <li>A ação "No original" só aparece quando a tradução aberta tem números Strong.</li>
+    <li>Os dicionários importados ficam listados junto com as traduções. <a class="no-print" href="./index.html#/config">Abrir configurações →</a></li>
+  </ol>
+</section>
+
+<section id="estudo-guiado-a-ia-como-apoio">
+  <h2><span class="num">16</span>Estudo guiado — a IA como apoio</h2>
+  <ol class="steps">
+    <li>A IA é um suporte, como um comentário bíblico ou uma enciclopédia que você consulta. Ela não substitui a oração, a meditação na Palavra, a direção do Espírito Santo nem o seu discernimento. Ela pesquisa e organiza; quem interpreta, decide e prega é você.</li>
+    <li>A ordem de autoridade é sempre esta: primeiro a Escritura, depois o seu discernimento e a sua responsabilidade como pregador, depois o contexto da sua igreja. O que a IA escreve é sugestão, nunca revelação, doutrina fechada ou orientação pastoral definitiva.</li>
+    <li>A IA pode errar. Confira cada afirmação com o texto bíblico antes de levar ao púlpito, principalmente o que ela diz sobre palavras no hebraico e no grego.</li>
+    <li>A IA é orientada a ficar dentro da Bíblia e da sã doutrina: não usa livros fora do cânon como base, não especula sobre o mundo espiritual além do que o texto diz e não entra em numerologia, códigos ocultos, misticismo ou teorias sem fundamento. Onde a Escritura se cala, ela deve dizer que se cala. Se ainda assim aparecer algo estranho, descarte e toque em "Gerar novamente".</li>
+    <li>As análises disponíveis são: exegese do versículo, exegese do capítulo inteiro, contexto histórico, temas relacionados, referências cruzadas, perguntas de estudo e estrutura de estudo.</li>
+    <li>A Exegese é a mais completa: compara o texto nas traduções que você tem instaladas, traz as palavras-chave no original (com transliteração e número Strong), a gramática, a estrutura literária, o contexto histórico e literário, a teologia bíblica e sugestões de aplicação pastoral.</li>
+    <li>Nas palavras do original, a IA é orientada a não tirar doutrina só da raiz da palavra: o sentido vem do uso no contexto. Nas referências cruzadas, ela explica por que cada texto se liga ao outro.</li>
+    <li>Quando houver debate entre estudiosos ou incerteza, ela é orientada a dizer, e pode discordar de uma afirmação sua quando houver base bíblica para isso.</li>
+    <li>O texto bíblico exibido vem sempre do repositório local (a tradução que você está lendo), nunca do modelo. Todo comentário gerado é identificado como tal e separado visualmente do texto sagrado.</li>
+    <li>As análises são salvas no aparelho. Quando você pedir a mesma análise de novo, ela abre na hora, sem gastar a API. O botão "Gerar novamente" refaz a análise quando quiser uma versão nova.</li>
+    <li>Para ativar: Configurações › IA — chaves de API. Cada uma tem o seu lugar: ChatGPT (OpenAI), Claude (Anthropic) e Gemini (Google). Cole a chave, toque em "Testar" e escolha em "IA em uso" qual vale agora. Dá para ter as três salvas e trocar sem digitar de novo. A chave da API é cobrada à parte da assinatura do ChatGPT ou do Claude; o Gemini Flash tem plano gratuito.</li>
+    <li>A chave de API fica apenas no seu aparelho. Nenhum dado pessoal é enviado — só a passagem selecionada vai ao provedor para gerar o comentário.</li>
+    <li>Para usar: selecione um versículo e toque em "Análise" na barra de ações. Escolha o tipo de análise e aguarde. No painel lateral (tablet) ou no painel inferior (celular), a aba "Análise" também dá acesso.</li>
+    <li>Para ir além, toque em "Aprofundar no assistente", no fim da aba Análise: o Assistente bíblico abre com a passagem e o pedido já preenchidos, como estudo em seções. Lá o estudo pode usar os seus materiais e virar documento. Confira e toque em Estudar.</li>
+    <li>Sem chave de IA, a aba Análise continua aparecendo e leva direto ao assistente, que funciona sem IA com o texto, o contexto, o original, as referências e os guias do aparelho.</li>
+    <li>As referências sugeridas pelo modelo são validadas contra o cânon antes de aparecer — se o modelo inventar uma referência que não existe, ela não aparece.</li>
+    <li>Cadastre as chaves em Configurações › IA — chaves de API. <a class="no-print" href="./index.html#/config">Abrir configurações →</a></li>
+  </ol>
+</section>
+
+<section id="assistente-biblico">
+  <h2><span class="num">17</span>Assistente bíblico</h2>
+  <ol class="steps">
+    <li>Uma conversa de estudo com a IA, na linha da Palavra da Fé: você escreve o que quer ("Analise Romanos 5:1", "Qual o significado de pistis?", "Prepare uma pregação sobre justiça pela fé") e ela escolhe o caminho — explicação curta, estudo de palavra, exegese, doutrina, comparação ou esboço de pregação.</li>
+    <li>A Escritura vem primeiro. A IA segue a ordem texto → contexto → língua original → exegese → teologia bíblica → Cristo → Nova Aliança → doutrina → aplicação, distingue justificação, santificação e glorificação, e separa o que o texto diz, o que a interpretação sugere, o que a doutrina conclui e o que a aplicação propõe.</li>
+    <li>Junto com o pedido, o aplicativo manda à IA o que já está no aparelho: o texto bíblico das passagens citadas, o léxico de Strong (inclusive os que você importou), o dicionário teológico, a tipologia, as referências cruzadas e, se houver, a sua base doutrinária. Assim ela trabalha sobre material conferível, e não de memória.</li>
+    <li>"Conferir interpretação" faz uma auditoria exegética: cole uma interpretação ou um trecho da sua mensagem e a resposta vem em quatro partes — o que está correto, o que precisa ser ajustado, por quê, e a leitura mais bem sustentada pelo texto.</li>
+    <li>A profundidade pode ficar automática ou ser escolhida: objetiva ou profunda. A passagem em foco é opcional; "Onde parei" usa o capítulo em que você parou de ler.</li>
+    <li>Direto do leitor: toque no versículo › Análise › "Aprofundar no assistente". O assistente abre com a passagem, o pedido e o estudo sistemático já escolhidos; confira e toque em Estudar.</li>
+    <li>Para construir um trabalho, escolha no começo o que vai fazer: estudo sistemático, folha de apoio ou resumo. A folha de apoio é para acompanhar a aula: texto-base, ideia central, pontos com os versículos, Cristo e a Nova Aliança, perguntas para refletir e espaço para anotar — sem estrutura de pregação, sem apelo. Converse e refine; quando estiver bom, toque em "Montar documento": ele usa o texto da conversa como está, sem chamar a IA de novo, para não perder o que já ficou bom.</li>
+    <li>No documento você vê como fica, edita o texto de cima a baixo num campo só e pode pedir um ajuste à IA ("deixe a introdução mais curta"). Se quiser juntar várias respostas num texto corrido, toque em "Redigir com a IA". "Desfazer" volta a versão anterior.</li>
+    <li>Para levar para fora: Baixar PDF, Compartilhar PDF (WhatsApp, e-mail, Drive) ou Word. No APK o arquivo fica em Documentos. Os versículos citados podem entrar no fim com o texto da sua Bíblia. O arquivo sai limpo, só com o seu título e o seu texto.</li>
+    <li>O documento também segue para o Gerador (mensagem) ou para o Rhema (estudo), e "Personalizar no Gerar e Exportar" abre com capa, tema e sumário.</li>
+    <li>A letra das respostas e do documento se escolhe em "Letra", no alto da tela do assistente (ou em Configurações): as mesmas quatro opções da leitura, separadas dela.</li>
+    <li>Dá para continuar a conversa: cada nova pergunta leva as respostas anteriores. As conversas ficam salvas no aparelho, em "Conversas". Para guardar de vez, use "Salvar como anotação" — a anotação entra no backup.</li>
+    <li>As referências da resposta só viram toque quando existem de fato na sua tradução; o toque abre o versículo ao lado (tablet) ou embaixo (celular). Referência que não existe aparece como texto comum.</li>
+    <li>Funciona com ou sem IA, como o Hub Resumos. Em "Como produzir", escolha "Com IA" (usa a IA escolhida em Configurações › IA — chaves de API) ou "Sem IA — dados do aparelho". Sem chave configurada, o assistente já começa sem IA.</li>
+    <li>Sem IA, nada é inventado: o estudo é montado só com o que está no aparelho — o texto da sua Bíblia, o contexto ao redor, as referências cruzadas, o léxico, o dicionário teológico, a tipologia, os guias e a sua base doutrinária —, na ordem do prompt: texto, contexto, original, dicionário, Cristo e Nova Aliança, doutrina. A interpretação e a aplicação ficam com você.</li>
+    <li>Sem IA, a folha de apoio sai com texto-base, ideia central, pontos com os versículos, perguntas para refletir e espaço para anotar (sem estrutura de pregação), e o resumo traz o essencial com os textos-chave. Os versículos vêm dos dois Testamentos e de livros diferentes. O tema acha o verbete pela raiz da palavra ("santidade" traz Santidade de Deus e Santificação) e, se não estiver no dicionário, vira busca na Bíblia ("ansiedade"). Entram também a família de palavras do grego e do hebraico e, se você importou, o seu dicionário bíblico, os seus comentários e a concordância no original de uma Bíblia com Strong. "Conferir interpretação" sem IA traz os textos citados, o original, o dicionário e um roteiro de conferência para você concluir.</li>
+    <li>Material: importe um livro, uma apostila, um estudo ou uma mensagem em PDF ou Word ("Importar PDF ou Word", no pedido). O app divide em partes (capítulos, lições) e o material fica só neste aparelho. Com o material escolhido, toque em Estudar sem escrever nada, ou peça uma parte: "estude a parte 3".</li>
+    <li>Sem IA, o assistente lê o material e tira, literalmente: as partes, os versículos citados (com o texto da sua Bíblia), as doutrinas que aparecem (cruzadas com o dicionário), as palavras do hebraico e do grego e as frases centrais do autor, entre aspas. Monta estudo, folha de apoio, resumo ou material para conferir. Com IA, ela recebe as partes mais ligadas ao seu pedido e separa o que o autor escreveu, a análise e a aplicação.</li>
+    <li>Dois materiais juntos: com um material escolhido, o campo "Segundo material" aparece quando você tem mais de um importado. O assistente cruza os dois — primeiro os versículos que ambos citam, com uma frase de cada um; depois as doutrinas em comum; por fim o que cada um acrescenta. Quando divergem, o texto bíblico decide. Vale para estudo, folha de apoio, resumo e conferir.</li>
+    <li>O nome do material não aparece no que o assistente escreve. Em "Materiais" você renomeia ou apaga. PDF escaneado como imagem não tem texto para ler; PDF digital e Word funcionam.</li>
+    <li>Com IA, vale a mesma regra do Estudo guiado: é comentário, nunca Escritura. Confira com o texto antes de levar ao púlpito.</li>
+    <li>Refazer: embaixo da última resposta da IA, "Refazer" pede o mesmo estudo de novo, com o mesmo material, a mesma profundidade e o mesmo objetivo. A nova resposta entra no lugar da anterior; se preferir a de antes, toque em "Voltar à versão anterior" (dá para trocar quantas vezes quiser).</li>
+    <li>Letra e tamanho: no alto do assistente, "Letra" escolhe o tipo e "Tamanho" (A− / A+) aumenta ou diminui. Tocar no número volta para 100%. O tamanho vale também para a aba Estudar do Gerar e Exportar e não muda o PDF.</li>
+    <li>Léxico grego e hebraico: o botão "Léxico" consulta pela palavra em português ("graça"), pela transliteração ("charis"), pelo número de Strong ("G5485") ou pela palavra no original. Ao tocar num versículo, o léxico aparece logo abaixo, com as palavras do original daquela passagem. Os números de Strong das respostas também abrem o léxico. O que está em português vem primeiro; a definição de Strong embutida, em inglês, fica fechada no fim.</li>
+    <li>O assistente está no menu, no grupo Ministério. <a class="no-print" href="./index.html#/assistente">Abrir o assistente →</a></li>
+  </ol>
+</section>
+
+<section id="gerar-e-exportar-estudar-o-que-foi-criado">
+  <h2><span class="num">18</span>Gerar e Exportar — estudar o que foi criado</h2>
+  <ol class="steps">
+    <li>Dentro de um documento, a aba "Estudar" mostra o texto para ler e estudar, na letra de leitura, sem a moldura da folha.</li>
+    <li>Toda referência bíblica do texto vira link — "Sl 23:1", "Romanos 5:1", "Jo 10.11". Um toque abre o versículo na sua Bíblia; "Abrir no leitor" leva ao capítulo.</li>
+    <li>"Tamanho" (A− / A+) no alto da aba aumenta a letra — o mesmo tamanho do Assistente bíblico.</li>
+    <li>Só vira link a referência que existe na sua tradução; as demais ficam como texto. Nada muda no PDF nem no Word.</li>
+  </ol>
+</section>
+
+<section id="guias-doutrinarios-e-a-sua-base-doutrinaria">
+  <h2><span class="num">19</span>Guias doutrinários e a sua base doutrinária</h2>
+  <ol class="steps">
+    <li>Os Guias Doutrinários percorrem um tema passo a passo, com textos bíblicos e verbetes do dicionário teológico. Alguns já vêm no aplicativo.</li>
+    <li>Você pode importar a sua própria base doutrinária, um arquivo .json com guias: Guias Doutrinários › Importar. Os guias dela aparecem em "Da sua base", com explicação, palavras no original e aplicação.</li>
+    <li>A base fica só neste aparelho. Não acompanha o aplicativo, não vai para ninguém e não entra no backup. Guarde o arquivo e importe de novo em outro aparelho — o navegador e o APK não compartilham dados.</li>
+    <li>Com a base importada, a exegese ganha apoio dela na seção "Leitura na linha da fé": quando o versículo ou o capítulo aparece em algum guia, esse guia orienta a leitura. O Assistente bíblico também a usa quando a passagem em foco aparece num guia. A Escritura continua acima da base.</li>
+    <li>Para passar a base a um pastor da equipe, toque em "Compartilhar base": o arquivo sai pronto para WhatsApp, e-mail ou Drive, e ele importa do mesmo jeito.</li>
+    <li>"Substituir" troca pela versão de outro arquivo; "Remover" tira a base deste aparelho. O seu arquivo original continua onde estava.</li>
+    <li>Os guias também estão no menu, no grupo Ministério. <a class="no-print" href="./index.html#/guias">Abrir os guias →</a></li>
+  </ol>
+</section>
+
+<section id="dicionario-lexico-embutido-e-dicionarios-importados">
+  <h2><span class="num">20</span>Dicionário — léxico embutido e dicionários importados</h2>
+  <ol class="steps">
+    <li>Busque pela palavra em português ("paz", "graça"), pela transliteração ("shalom", "charis"), pelo número de Strong (H7965, G26) ou pela palavra no original (שלום, χάρις). Primeiro vem o léxico grego e hebraico, em português — o mesmo do Assistente bíblico: a palavra no original, a doutrina, as palavras parecidas com o sentido de cada uma. Os versículos abrem ao lado.</li>
+    <li>Depois vem o que os seus dicionários importados dizem. Se você tiver um léxico em português (módulo .dictionary.SQLite3 do MyBible ou JSON), importe-o em Configurações.</li>
+    <li>O Léxico Strong embutido (8.674 verbetes do hebraico e 5.523 do grego) é em inglês — o único com licença para vir junto com o aplicativo (domínio público, Open Scriptures, CC BY-SA). Ele aparece fechado dentro do verbete, em "Definição de Strong (original em inglês)".</li>
+    <li>Os filtros no alto da tela permitem ver só um dicionário por vez, ou todos de uma vez.</li>
+    <li>Consulte o dicionário a qualquer momento pelo menu lateral. <a class="no-print" href="./index.html#/dicionario">Abrir dicionário →</a></li>
+  </ol>
+</section>
+
+<section id="backup-dos-seus-dados">
+  <h2><span class="num">21</span>Backup dos seus dados</h2>
+  <ol class="steps">
+    <li>Tudo o que você cria fica gravado apenas no seu aparelho. Nada é enviado para servidor nenhum.</li>
+    <li>Em Configurações › Backup e privacidade o app mostra há quanto tempo você guardou uma cópia fora do aparelho. Enquanto não houver nenhuma, o aviso fica vermelho.</li>
+    <li>O app também pede ao navegador que não descarte seus dados para liberar espaço — é a linha "Armazenamento protegido". Num app instalado o Chrome costuma conceder sozinho. Isso impede o Android de apagar por conta própria, mas não impede você de limpar os dados do navegador.</li>
+    <li>"Salvar no Google Drive" abre a folha de compartilhamento do aparelho — escolha Drive, e-mail ou o que preferir. É a cópia que salva de verdade, porque sai do aparelho.</li>
+    <li>"Baixar o arquivo" guarda no próprio aparelho: no navegador vai para a pasta Download; no aplicativo Android vai para a pasta Documentos, e o aviso na tela diz onde ficou.</li>
+    <li>O app também guarda sozinho as últimas seis cópias, uma a cada poucos dias. Elas servem para desfazer um engano — apagar um sermão sem querer — e ficam dentro do próprio app: no navegador somem se você limpar os dados dele; no aplicativo Android somem se você desinstalar. Nenhuma das duas substitui a cópia no Drive.</li>
+    <li>Para restaurar: pelo botão Restaurar de uma cópia da lista, ou em "Restaurar de um arquivo". Nos dois casos o estado atual é gravado antes, para haver caminho de volta.</li>
+    <li>Em "O que levar na cópia" você escolhe item por item: Sermões (Gerador), Cursos, Bíblias importadas, apostilas do Rhema (arquivos), Assistente bíblico, base doutrinária, dicionários e comentários importados e configurações. Sermões e Cursos vêm desmarcados; os demais, marcados. Rhema, anotações, marcações, planos e histórico vão sempre. Restaurar um arquivo sem sermões ou cursos não apaga os que já estão no outro aparelho. Cada item mostra o que tem e quanto ocupa, e o app lembra a sua escolha para a próxima vez.</li>
+    <li>Para passar ao notebook: deixe tudo marcado; no tablet, "Baixar o arquivo" (ou "Salvar no Google Drive"); no notebook, abra o Farol da Palavra no navegador, vá em Configurações › Backup e privacidade e toque em "Restaurar de um arquivo". As chaves de IA não vão no arquivo: digite-as de novo no notebook.</li>
+  </ol>
+</section>
+
+<section id="compartilhar-o-aplicativo">
+  <h2><span class="num">22</span>Compartilhar o aplicativo</h2>
+  <ol class="steps">
+    <li>Basta enviar o endereço do aplicativo para quem você quiser. Não há cadastro nem instalação de loja.</li>
+    <li>Cada pessoa instala pelo Chrome e passa a ter o próprio conteúdo, separado do seu.</li>
+    <li>Quando sair uma versão nova, todos recebem o aviso de atualização — não é preciso reenviar nada.</li>
+    <li>As traduções livres podem ser distribuídas sem problema. Já uma tradução licenciada que você tenha importado vale só para você: não a repasse.</li>
+  </ol>
 </section>
 
 <footer>
@@ -968,6 +583,5 @@
 </footer>
 
 </div>
-
 </body>
 </html>

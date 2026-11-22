@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { ConfirmDialog, PageHeader } from '../../components/ui';
 import { Sheet } from '../../components/Sheet';
@@ -151,6 +151,21 @@ export default function AssistantPage() {
     : '';
 
   const passageInvalid = passage.trim() !== '' && !parseReference(passage);
+
+  // Vindo do leitor ("Aprofundar no assistente"): passagem e pedido já
+  // preenchidos, como estudo em seções. Não envia sozinho — com IA, enviar
+  // gasta a chave; o pregador confere e toca em Estudar. Os parâmetros saem do
+  // endereço para não preencher de novo ao recarregar.
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    const ref = params.get('ref');
+    if (!ref) return;
+    setPassage(ref);
+    setText(params.get('pedido') ?? '');
+    setMode('livre');
+    setConv((c) => (c.messages.length ? c : { ...c, goal: 'estudo' }));
+    setParams({}, { replace: true });
+  }, [params, setParams]);
 
   const send = async (override?: string) => {
     const typed = (override ?? text).trim();

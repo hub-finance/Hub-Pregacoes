@@ -5,3 +5,4 @@
  * — o mesmo número que vira o versionCode do APK. Fora do CI vale "0".
  */
 declare const __HUB_BUILD__: string;
+declare const __HUB_EDITION__: 'completa' | 'reduzida';

@@ -23,7 +23,8 @@ import { useSettings } from '../../core/settings/SettingsContext';
 import { db } from '../../core/db/db';
 import { bookName } from '../../core/bible/canon';
 import { formatSelection } from '../../core/bible/reference';
-import { getBook, getChapter, getChapterPericopes, getMeta, loadCatalog } from '../../core/bible/repository';
+import { getBook, getChapter, getChapterPericopes,
+  getChapterSuperscription, getMeta, loadCatalog } from '../../core/bible/repository';
 import { getChapterCrossRefs } from '../../core/bible/reference-data';
 import { verseWords } from '../../core/bible/mybible';
 import type { StrongTag } from '../../core/db/types';
@@ -34,6 +35,7 @@ import { createNote } from '../../core/data/notes';
 import { registerReading } from '../../core/data/reading';
 import { newSermon, newStudy, saveDoc } from '../../core/data/documents';
 import { copyToClipboard } from '../../core/share/share';
+import { HAS_RHEMA } from '../../core/edition';
 
 const WORD_DOUBLE_TAP_MS = 400;
 const wordTapState = { verse: 0, index: -1, time: 0 };
@@ -129,6 +131,11 @@ export default function BiblePage() {
      nas embutidas o mapa vem vazio e nada muda na tela. */
   const pericopes = useAsync(
     () => getChapterPericopes(translation, book, chapter),
+    [translation, book, chapter],
+  );
+  // o título do salmo ("Salmo de Davi…"), separado do versículo 1
+  const superscription = useAsync(
+    () => getChapterSuperscription(translation, book, chapter),
     [translation, book, chapter],
   );
 
@@ -625,6 +632,10 @@ export default function BiblePage() {
               .filter(Boolean)
               .join(' ')}
           >
+            {/* o subtítulo do 1º trecho e o título do salmo vêm antes do número
+                do capítulo: acima do texto, como na Bíblia impressa */}
+            {pericopes.data?.get(1) && <h3 className="pericope">{pericopes.data.get(1)}</h3>}
+            {superscription.data && <span className="psalm-title">{superscription.data}</span>}
             {settings.dropCap && settings.verseLayout === 'paragraph' && verses.length > 0 && (
               <span className="chapter-drop-cap" aria-hidden="true">
                 {chapter}
@@ -633,7 +644,8 @@ export default function BiblePage() {
             {verses.map((text, index) => {
               const verse = index + 1;
               const category = highlightByVerse.get(verse);
-              const heading = pericopes.data?.get(verse);
+              // o do versículo 1 já foi desenhado acima do número do capítulo
+              const heading = verse === 1 ? undefined : pericopes.data?.get(verse);
               const verseTags: StrongTag[] | undefined = chapterStrongs.data?.[index];
               const classes = [
                 'verse',
@@ -766,7 +778,7 @@ export default function BiblePage() {
             ...(selection.length === 1
               ? [{ id: 'commentary', icon: 'book' as const, label: 'Comentários', onClick: () => { if (isWide) { setVersePanelOpen(true); setPanelTab('commentary'); } else setCommentaryOpen(true); } }]
               : []),
-            ...(selection.length === 1 && isAiEnabled()
+            ...(selection.length === 1
               ? [{ id: 'ai', icon: 'sparkle' as const, label: 'Análise', onClick: () => { if (isWide) { setVersePanelOpen(true); setPanelTab('ai'); } else setAiOpen(true); } }]
               : []),
             { id: 'share', icon: 'share', label: 'Compartilhar', onClick: () => setShareOpen(true) },
@@ -779,7 +791,7 @@ export default function BiblePage() {
                 notify(ok ? 'Copiado.' : 'Não foi possível copiar.', ok ? 'default' : 'error');
               },
             },
-            { id: 'study', icon: 'study', label: 'Rhema', onClick: () => createFromSelection('study') },
+            ...(HAS_RHEMA ? [{ id: 'study', icon: 'study' as const, label: 'Rhema', onClick: () => createFromSelection('study') }] : []),
             { id: 'sermon', icon: 'sermon', label: 'Sermão', onClick: () => createFromSelection('sermon') },
           ]}
         />

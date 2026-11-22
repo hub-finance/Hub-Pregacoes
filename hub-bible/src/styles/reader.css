@@ -1526,3 +1526,33 @@
     grid-template-columns: repeat(min(var(--compare-cols, 2), 2), minmax(0, 1fr));
   }
 }
+
+/* título do salmo ("Salmo de Davi quando fugia de Absalão"): acima do texto,
+   em itálico e mais discreto que o subtítulo do trecho — não é o versículo */
+.reader-verses .psalm-title {
+  display: block;
+  /* primeira linha do capítulo: espaço interno (não se soma à margem de fora)
+     para não ficar sob a faixa do alto */
+  margin: 0 0 0.6em;
+  padding-top: 1.6em;
+  font-family: var(--font-reader);
+  font-size: 0.92em;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+
+/* "Aprofundar no assistente" no fim do Estudo guiado */
+.ai-deepen {
+  align-self: flex-start;
+  min-height: 44px;
+}
+.ai-deepen-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border);
+}

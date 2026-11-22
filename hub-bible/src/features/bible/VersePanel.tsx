@@ -4,7 +4,6 @@ import { StrongContent } from './StrongSheet';
 import { CommentaryContent } from './CommentarySheet';
 import { CrossRefContent } from './CrossRefSheet';
 import { AiContent } from './AiContent';
-import { isAiEnabled } from '../../core/ai/provider';
 
 export type VersePanelTab = 'strong' | 'commentary' | 'crossref' | 'ai';
 
@@ -45,7 +44,8 @@ export function VersePanel({
     ...(hasStrong ? [{ id: 'strong' as const, label: 'Original', icon: 'search' as const }] : []),
     { id: 'commentary', label: 'Comentários', icon: 'book' },
     { id: 'crossref', label: 'Referências', icon: 'link' },
-    ...(isAiEnabled() ? [{ id: 'ai' as const, label: 'Análise', icon: 'sparkle' as const }] : []),
+    // sempre: sem chave de IA a aba leva ao assistente, que funciona sem IA
+    { id: 'ai', label: 'Análise', icon: 'sparkle' },
   ];
 
   return (

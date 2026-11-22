@@ -5,12 +5,18 @@ apply plugin: 'com.android.application'
    linha o Groovy lê `versionCode (...) as int` como uma chamada de método
    seguida de conversão do retorno — e o retorno é nulo. */
 def hubBuild = (System.getenv("HUB_BUILD") ?: "1").toInteger()
+/* Edição: a completa (1.0) e a 2.0, sem Rhema e Escola de Ministros. Cada uma
+   tem o seu identificador, então uma nunca instala por cima da outra e cada
+   APK só atualiza a própria edição. */
+def hubReduzida = System.getenv("HUB_EDITION") == "reduzida"
+def hubAppId = hubReduzida ? "app.hubbible.leitor.v2" : "app.hubbible.leitor"
+def hubVersionName = hubReduzida ? "2.0.${hubBuild}" : "1.0.${hubBuild}"
 
 android {
     namespace "app.hubbible.leitor"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "app.hubbible.leitor"
+        applicationId hubAppId
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         /* O Android só aceita instalar por cima quando o número da versão sobe.
@@ -18,7 +24,7 @@ android {
            aparelho seguia com a versão antiga — que foi o que fez três consertos
            seguidos "não funcionarem" no tablet. */
         versionCode hubBuild
-        versionName "1.0.$hubBuild"
+        versionName hubVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

@@ -19,13 +19,13 @@ import { loadAvailableTranslations } from '../../core/bible/repository';
 import { isSyncEnabled } from '../../core/sync/syncAdapter';
 import { AiConfigPanel } from './AiConfigPanel';
 import { slugify } from '../../core/categories';
+import { APP_VERSION } from '../../core/edition';
 
 /**
  * A versão que a tela mostra. O número depois do ponto é a compilação — o mesmo
  * do APK —, para que dê para olhar para o aparelho e saber se a atualização
  * entrou, em vez de deduzir pela tela.
  */
-const APP_VERSION = `1.0.${__HUB_BUILD__}`;
 
 /** Configurações — aparência, traduções, backup, privacidade e sobre. */
 export default function SettingsPage() {

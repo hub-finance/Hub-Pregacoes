@@ -12,6 +12,8 @@ export default defineConfig({
   // e saber se a atualização entrou — e essa dúvida já custou tempo demais.
   define: {
     __HUB_BUILD__: JSON.stringify(process.env.HUB_BUILD ?? '0'),
+    // edição do app: `completa` (padrão) ou `reduzida` (sem Rhema e Escola de Ministros)
+    __HUB_EDITION__: JSON.stringify(process.env.HUB_EDITION === 'reduzida' ? 'reduzida' : 'completa'),
   },
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },
