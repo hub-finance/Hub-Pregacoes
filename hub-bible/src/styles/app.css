@@ -1904,6 +1904,7 @@ input.study-section-title:focus {
 .whatsnew-items {
   margin: 0;
   padding-left: 1.2em;
+  list-style: disc;
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
