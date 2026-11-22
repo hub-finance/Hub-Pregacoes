@@ -243,6 +243,8 @@ const TOPICS: Topic[] = [
       'Para ativar: Configurações › IA — chaves de API. Cada uma tem o seu lugar: ChatGPT (OpenAI), Claude (Anthropic) e Gemini (Google). Cole a chave, toque em "Testar" e escolha em "IA em uso" qual vale agora. Dá para ter as três salvas e trocar sem digitar de novo. A chave da API é cobrada à parte da assinatura do ChatGPT ou do Claude; o Gemini Flash tem plano gratuito.',
       'A chave de API fica apenas no seu aparelho. Nenhum dado pessoal é enviado — só a passagem selecionada vai ao provedor para gerar o comentário.',
       'Para usar: selecione um versículo e toque em "Análise" na barra de ações. Escolha o tipo de análise e aguarde. No painel lateral (tablet) ou no painel inferior (celular), a aba "Análise" também dá acesso.',
+      'Para ir além, toque em "Aprofundar no assistente", no fim da aba Análise: o Assistente bíblico abre com a passagem e o pedido já preenchidos, como estudo em seções. Lá o estudo pode usar os seus materiais e virar documento. Confira e toque em Estudar.',
+      'Sem chave de IA, a aba Análise continua aparecendo e leva direto ao assistente, que funciona sem IA com o texto, o contexto, o original, as referências e os guias do aparelho.',
       'As referências sugeridas pelo modelo são validadas contra o cânon antes de aparecer — se o modelo inventar uma referência que não existe, ela não aparece.',
       { to: '/config', label: 'Abrir configurações', text: 'Cadastre as chaves em Configurações › IA — chaves de API.' },
     ],

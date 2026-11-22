@@ -778,7 +778,7 @@ export default function BiblePage() {
             ...(selection.length === 1
               ? [{ id: 'commentary', icon: 'book' as const, label: 'Comentários', onClick: () => { if (isWide) { setVersePanelOpen(true); setPanelTab('commentary'); } else setCommentaryOpen(true); } }]
               : []),
-            ...(selection.length === 1 && isAiEnabled()
+            ...(selection.length === 1
               ? [{ id: 'ai', icon: 'sparkle' as const, label: 'Análise', onClick: () => { if (isWide) { setVersePanelOpen(true); setPanelTab('ai'); } else setAiOpen(true); } }]
               : []),
             { id: 'share', icon: 'share', label: 'Compartilhar', onClick: () => setShareOpen(true) },

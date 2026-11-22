@@ -84,6 +84,21 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0av. ✅ Estudo guiado leva ao assistente ("Aprofundar no assistente")
+
+Decisão (o usuário deixou "veja o melhor e faça"): manter as análises rápidas
+da aba "Análise" (salvas no aparelho, abrem sem gastar a API) e ligá-las ao
+assistente, em vez de substituí-las.
+- Botão "Aprofundar no assistente" no fim da lista e depois de cada análise:
+  abre `#/assistente?ref=…&pedido=…`. O assistente preenche a passagem em foco,
+  o pedido ("Estude João 3:16.") e o objetivo "Estudo sistemático", e limpa o
+  endereço. **Não envia sozinho**: com IA, enviar gasta a chave.
+- **Sem chave de IA a aba "Análise" e a ação "Análise" da seleção agora
+  aparecem** (antes sumiam, e o usuário estranhou no iPad). Levam ao assistente,
+  que funciona sem IA. O botão de exegese do capítulo, no alto, continua só com
+  IA.
+- Ajuda: dois passos novos no tópico "Estudo guiado". Teste: 38.
+
 ### 0au. ✅ Aviso de "Atenção" antes de atualizar o APK, e o PDF "Como atualizar"
 
 - **Aviso de versão nova no APK** (`src/core/apkUpdate.ts`,
@@ -279,9 +294,6 @@ Pedidos e decisões do usuário (revisão do que não tinha função):
 - **Ficam como estão (decisão do usuário):** a seção Sincronização, a Bíblia
   em inglês (KJV), Cursos e Rhema separados, os endereços antigos que só
   redirecionam e a antiga Biblioteca sem tela.
-- **Aguardando o usuário:** o "Estudo guiado" (aba "Análise" no painel do
-  versículo) × o Assistente. Ele perguntou se o Estudo guiado é onde abre a
-  apostila; não é: a apostila abre no Rhema ou em Cursos.
 - **Por último (pedido do usuário):** a "Biblioteca doutrinária". É um motor
   dentro do sistema que guarda livros em PDF como memória doutrinária, procura
   neles os trechos ligados a cada pedido e os usa com IA e sem IA, só no
