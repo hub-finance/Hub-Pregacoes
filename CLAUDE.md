@@ -133,6 +133,7 @@ Run from `hub-bible/` (or use `npm --prefix hub-bible <script>` from the root).
 | Regenerate scripture data | `npm run bible:build` |
 | Regenerate the Strong lexicon | `npm run lexicon:build` (needs network) |
 | Regenerate PWA icons | `node scripts/generate-icons.mjs` |
+| Regenerate the one-page manual (`public/manual.html`, also run by `build`) | `npm run manual:build` |
 | Test the Gerar e Exportar module | `npm run test:export` |
 
 There is **no general test suite and no linter configured.** The one automated

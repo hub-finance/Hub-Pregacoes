@@ -84,6 +84,18 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0aw. ✅ Ajuda em dia, e o manual completo gerado da Ajuda
+
+- Ajuda: títulos dos Salmos (Ler a Bíblia); as duas edições do APK e qual é
+  esta; "Aprofundar no assistente" no tópico do assistente; a folha de apoio
+  sem IA (o texto ainda falava em "esboço… e apelo"); Cursos e backup sem citar
+  o Rhema na edição 2.0 (os textos usam `HAS_RHEMA`).
+- Os tópicos saíram de `HelpPage.tsx` para `src/features/help/topics.ts` (só
+  texto). `scripts/build-manual.mjs` gera `public/manual.html` desses tópicos;
+  roda em `npm run build` (e `npm run manual:build`). O manual escrito à mão
+  estava meses atrás; os tópicos "Problemas comuns" e "O que ainda não existe",
+  que só havia nele, saíram. Teste: 27.
+
 ### 0av. ✅ Estudo guiado leva ao assistente ("Aprofundar no assistente")
 
 Decisão (o usuário deixou "veja o melhor e faça"): manter as análises rápidas
@@ -963,8 +975,8 @@ doutrinários e arquivos de referência respondendo 200.
 O tópico da IA chama-se "Estudo guiado — a IA como apoio": diz que a IA é
 suporte e não substitui oração, Palavra, direção do Espírito nem
 discernimento; que pode errar e deve ser conferida; e lista só as análises que
-existem. O tópico de sermão virou "Gerador". O `public/manual.html` **não** foi
-atualizado e ficou defasado em relação à Ajuda.
+existem. O tópico de sermão virou "Gerador". O `public/manual.html` ficou defasado em relação à Ajuda
+(resolvido em 0aw: agora é gerado dos tópicos da Ajuda).
 
 ---
 
