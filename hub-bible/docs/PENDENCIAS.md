@@ -103,6 +103,10 @@ leitura à noite… podem ter um relevo para destacar". O tema novo é `preto`.
 Teste: fundo e relevo aplicados, contraste do texto de 14,9:1 e sem rolagem
 lateral.
 
+Ajuste pedido depois, com print do tablet: os ícones do menu lateral passaram
+a usar o mesmo azul dos ícones do Início (`--accent-strong`), também no item
+ativo. Os outros temas não mudam.
+
 ### 0ar. ✅ Aba "Escola de Ministros", igual ao Rhema
 
 Pedido do usuário: "crie a aba Escola de Ministros igual a Rhema, só muda o
