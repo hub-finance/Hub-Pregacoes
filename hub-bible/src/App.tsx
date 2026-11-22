@@ -5,6 +5,7 @@ import { forgetMemoryCache } from './core/bible/repository';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AppLayout } from './app/AppLayout';
 import { UpdatePrompt } from './app/UpdatePrompt';
+import { WhatsNewPrompt } from './app/WhatsNewPrompt';
 import { Spinner } from './components/ui';
 import HomePage from './features/home/HomePage';
 import BiblePage from './features/bible/BiblePage';
@@ -22,6 +23,7 @@ registerAiProvider(createProvider());
  * primeiro carregamento leve — a Bíblia abre imediatamente.
  */
 const SearchPage = lazy(() => import('./features/search/SearchPage'));
+const WhatsNewPage = lazy(() => import('./features/whatsnew/WhatsNewPage'));
 const FavoritesPage = lazy(() => import('./features/favorites/FavoritesPage'));
 const NotesPage = lazy(() => import('./features/notes/NotesPage'));
 const SermonsPage = lazy(() => import('./features/sermons/SermonsPage'));
@@ -164,6 +166,7 @@ export default function App() {
                   <Route path="/painel" element={<DashboardPage />} />
                   <Route path="/config" element={<SettingsPage />} />
                   <Route path="/ajuda" element={<HelpPage />} />
+                  <Route path="/novidades" element={<WhatsNewPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
@@ -172,6 +175,7 @@ export default function App() {
         />
       </Routes>
       <UpdatePrompt />
+      <WhatsNewPrompt />
     </>
   );
 }
