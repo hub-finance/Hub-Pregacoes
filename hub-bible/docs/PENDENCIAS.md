@@ -313,20 +313,31 @@ passou a guardar `materialId`/`materialId2`; nas conversas antigas, o material
 salvas na conversa. Se a IA falhar, a resposta atual continua e o erro aparece.
 Teste: 30 (390 e 1280 px).
 
-### 0ai. ⏳ Salmos: o título do salmo gruda no versículo 1 (analisado, aguardando o usuário)
+### 0ai. ✅ Salmos: o título sai do versículo 1 e vai para cima, em itálico
 
-O usuário notou que, nos Salmos, "a explicação fica pegada com o versículo um".
-As quatro traduções embutidas em português não trazem o título do salmo, então
-o problema vem da tradução importada dele (ARA, arquivo MyBible). Nesses
-arquivos o título ("Salmo de Davi.", "Ao mestre de canto…") vem dentro do texto
-do versículo 1, entre marcas próprias do formato. `parseVerse` (`mybible.ts`)
-tira as marcas mas mantém o conteúdo, e o título sai colado ao versículo. Não há
-cópia do arquivo dele aqui para confirmar a marca exata.
+O usuário mandou exemplo de outro app: o título do salmo ("Salmo de Davi
+quando fugia de Absalão, seu filho") em itálico acima do texto, e o
+versículo 1 só com o texto bíblico.
 
-Proposta: na importação, separar o título do versículo 1 e mostrá-lo acima do
-salmo, em letra menor e itálico, como os títulos de perícope (`stories`). Isso
-vale pela marca do formato e, se o arquivo não tiver marca, pelo começo típico
-dos títulos, só no versículo 1 dos Salmos. Exige reimportar a tradução.
+`core/bible/psalmTitles.ts`: `splitPsalmTitle` reconhece o começo típico de
+título, só no versículo 1 dos Salmos. São frases iniciadas por "Salmo",
+"Ao mestre de canto", "Cântico", "Oração", "Masquil", "Mictão" etc., até 4
+frases, e "Ele disse:" fecha o título do Sl 18. "Aleluia!" fica no texto.
+
+`separatePsalmTitles` tira o título, ajusta as posições dos números Strong e
+guarda o título em `pericopes` com `kind: 'superscription'` (marca
+`psalmTitlesSeparated`). Roda em dois momentos:
+- na importação (`storeTranslation`);
+- uma vez em cada tradução já importada, ao abrir o app
+  (`separateImportedPsalmTitles` em `App.tsx`), sem precisar reimportar.
+
+O leitor mostra `.psalm-title` acima do número do capítulo, depois do
+subtítulo do trecho. Busca, citações e assistente passam a ver o versículo
+sem o título.
+
+Teste: 13 títulos reais (inclusive Sl 51 e 18 longos; Sl 1 e 91 sem título;
+Sl 111 e 150 com "Aleluia"); 9 no app (importação, correção da tradução já
+importada, Strong nas palavras certas, título em itálico acima).
 
 ### 0ah. ✅ Tamanho da letra, léxico grego e hebraico, e vocabulário proibido
 

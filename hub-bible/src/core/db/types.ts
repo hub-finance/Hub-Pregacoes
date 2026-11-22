@@ -327,6 +327,8 @@ export interface CachedBook {
   strongs?: StrongTag[][][];
   /** Títulos de perícope do livro, quando a tradução os traz. */
   pericopes?: Pericope[];
+  /** Os títulos dos Salmos já foram separados do versículo 1 (`psalmTitles.ts`). */
+  psalmTitlesSeparated?: boolean;
   savedAt: number;
 }
 
@@ -341,6 +343,8 @@ export interface Pericope {
   chapter: number;
   verse: number;
   title: string;
+  /** `superscription`: o título do salmo ("Salmo de Davi…"), em itálico acima do texto. */
+  kind?: 'superscription';
 }
 
 /**

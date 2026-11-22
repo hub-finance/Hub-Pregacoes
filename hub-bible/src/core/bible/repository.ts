@@ -1,3 +1,4 @@
+import { separatePsalmTitles } from './psalmTitles';
 import { db, now } from '../db/db';
 import type {
   BookMeta,
@@ -455,7 +456,7 @@ export async function storeTranslation(
   for (const canon of CANON) {
     const chapters = books[canon.osis];
     if (!chapters?.length) continue;
-    records.push({
+    const record: CachedBook = {
       key: bookKey(info.id, canon.osis),
       translation: info.id,
       book: canon.osis,
@@ -463,7 +464,10 @@ export async function storeTranslation(
       strongs: strongs?.[canon.osis],
       pericopes: pericopes?.[canon.osis],
       savedAt: now(),
-    });
+    };
+    // o título do salmo sai do versículo 1 e vira título do capítulo
+    separatePsalmTitles(record);
+    records.push(record);
     const verseCounts = chapters.map((c) => c.length);
     verses += verseCounts.reduce((a, b) => a + b, 0);
     bookMetas.push({
@@ -531,10 +535,20 @@ export async function getChapterPericopes(
   try {
     const record = await getBook(translation, book);
     for (const p of record.pericopes ?? []) {
-      if (p.chapter === chapter) map.set(p.verse, p.title);
+      if (p.chapter === chapter && p.kind !== 'superscription') map.set(p.verse, p.title);
     }
   } catch {
     // sem livro não há título: o erro de leitura já é tratado por quem lê o texto
   }
   return map;
+}
+
+/** O título do salmo ("Salmo de Davi…"), quando a tradução o traz. */
+export async function getChapterSuperscription(translation: string, book: string, chapter: number): Promise<string | null> {
+  try {
+    const record = await getBook(translation, book);
+    return record.pericopes?.find((p) => p.chapter === chapter && p.kind === 'superscription')?.title ?? null;
+  } catch {
+    return null;
+  }
 }
