@@ -54,7 +54,9 @@ const TOPICS: Topic[] = [
       'Baixe no tablet e toque no arquivo para instalar. O Android vai pedir permissão para instalar de fora da loja — é normal, porque não passa pela Play Store.',
       'Atenção: as duas instalações NÃO compartilham dados. Um sermão escrito no aplicativo não aparece na versão do navegador, e vice-versa. Para levar de uma para a outra, exporte a cópia de um lado e restaure do outro.',
       'Em Configurações › Backup o app diz em qual das duas você está.',
-      'No APK a atualização deixa de ser automática: atualizar é baixar e instalar a versão nova. É o preço de não depender do navegador.',
+      'No APK a atualização não entra sozinha: quando sai uma versão nova, aparece "Nova versão disponível" no alto. Toque em Atualizar, leia o aviso de Atenção e baixe a versão.',
+      'Antes de atualizar, faça o backup (Configurações › Backup e privacidade › Salvar no Google Drive). Instale sempre por cima: desinstalar o aplicativo apaga tudo o que está nele.',
+      'O aviso só oferece a mesma edição que está instalada: a completa (v1.0) atualiza para a completa, e a 2.0 para a 2.0. O passo a passo está no PDF "Como atualizar sem perder nada", no alto desta página.',
     ],
   },
   {
@@ -65,7 +67,7 @@ const TOPICS: Topic[] = [
       'Se você ignorar o aviso, a atualização entra sozinha na próxima vez que abrir o aplicativo.',
       'Se quiser forçar: feche o aplicativo por completo (retire-o dos apps recentes) e abra de novo.',
       'Nada do que você criou se perde numa atualização — anotações, sermões e favoritos ficam no aparelho.',
-      'Isso vale para a instalação pelo navegador. No aplicativo Android (APK) não há aviso de versão nova: lá, atualizar é baixar e instalar o APK mais recente.',
+      'Isso vale para a instalação pelo navegador. No aplicativo Android (APK) o aviso também aparece, mas atualizar é baixar e instalar a versão nova por cima — veja o tópico do APK.',
     ],
   },
   {
@@ -338,17 +340,17 @@ const TOPICS: Topic[] = [
 
 export default function HelpPage() {
   const { notify } = useToast();
-  const [pdfBusy, setPdfBusy] = useState(false);
-  const downloadIosManual = async () => {
-    setPdfBusy(true);
+  const [pdfBusy, setPdfBusy] = useState<string | null>(null);
+  const downloadPdf = async (file: string, name: string) => {
+    setPdfBusy(file);
     try {
-      const res = await fetch(`${import.meta.env.BASE_URL}manual-iphone-ipad.pdf`);
+      const res = await fetch(`${import.meta.env.BASE_URL}${file}`);
       if (!res.ok) throw new Error('O manual não está disponível agora. Tente com internet.');
-      notify(await deliverFile(await res.blob(), 'Farol da Palavra - instalar no iPhone e iPad.pdf'));
+      notify(await deliverFile(await res.blob(), name));
     } catch (err) {
       notify(err instanceof Error ? err.message : 'Não foi possível baixar o manual.');
     } finally {
-      setPdfBusy(false);
+      setPdfBusy(null);
     }
   };
   return (
@@ -398,8 +400,31 @@ export default function HelpPage() {
           <span className="list-title">Manual de instalação — iPhone e iPad (PDF)</span>
           <span className="list-meta">Passo a passo com QR Code, para enviar a quem vai instalar no iPhone ou no iPad.</span>
         </span>
-        <button className="btn btn-sm" style={{ flex: 'none' }} disabled={pdfBusy} onClick={downloadIosManual}>
-          {pdfBusy ? 'Baixando…' : 'Baixar PDF'}
+        <button
+          className="btn btn-sm"
+          style={{ flex: 'none' }}
+          disabled={pdfBusy !== null}
+          onClick={() => downloadPdf('manual-iphone-ipad.pdf', 'Farol da Palavra - instalar no iPhone e iPad.pdf')}
+        >
+          {pdfBusy === 'manual-iphone-ipad.pdf' ? 'Baixando…' : 'Baixar PDF'}
+        </button>
+      </div>
+
+      {/* Como atualizar sem perder nada: backup antes e instalar por cima.
+          Fonte em docs/manual-atualizar/. */}
+      <div className="card row" style={{ marginBottom: 'var(--sp-4)', gap: 'var(--sp-3)' }}>
+        <Icon name="warning" size={22} style={{ flex: 'none', color: 'var(--accent-strong)' }} />
+        <span className="list-body" style={{ flex: 1, minWidth: 0 }}>
+          <span className="list-title">Como atualizar sem perder nada (PDF)</span>
+          <span className="list-meta">Backup antes, instalar por cima e qual edição baixar — no Android, iPhone e iPad.</span>
+        </span>
+        <button
+          className="btn btn-sm"
+          style={{ flex: 'none' }}
+          disabled={pdfBusy !== null}
+          onClick={() => downloadPdf('como-atualizar.pdf', 'Farol da Palavra - como atualizar.pdf')}
+        >
+          {pdfBusy === 'como-atualizar.pdf' ? 'Baixando…' : 'Baixar PDF'}
         </button>
       </div>
 

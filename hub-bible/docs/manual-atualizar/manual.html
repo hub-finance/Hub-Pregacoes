@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<title>Farol da Palavra — Como atualizar</title>
+<style>
+@font-face { font-family: 'Source Sans'; src: url(../../public/fonts/SourceSans3-Regular.ttf); font-weight: 400; }
+@font-face { font-family: 'Source Sans'; src: url(../../public/fonts/SourceSans3-Bold.ttf); font-weight: 700; }
+@font-face { font-family: 'Source Sans'; src: url(../../public/fonts/SourceSans3-Italic.ttf); font-style: italic; }
+@font-face { font-family: 'Lora'; src: url(../../public/fonts/Lora-Bold.ttf); font-weight: 700; }
+@page { size: A4; margin: 16mm 16mm 16mm 16mm; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 11.5pt/1.5 'Source Sans', sans-serif; color: #1c2430; }
+.brand { display: flex; align-items: center; gap: 12px; padding-bottom: 10px; border-bottom: 3px solid #1f4373; }
+.brand img { width: 46px; height: 46px; border-radius: 11px; }
+.brand .name { font: 700 20pt/1.1 'Lora', serif; color: #1f4373; }
+.brand .sub { color: #5a6676; font-size: 11pt; }
+h1 { font: 700 19pt/1.2 'Lora', serif; color: #1f4373; margin: 16px 0 4px; }
+.lead { margin: 0 0 12px; color: #39424e; }
+h2 { font: 700 13.5pt/1.25 'Lora', serif; color: #1f4373; margin: 16px 0 6px; padding-bottom: 3px; border-bottom: 1px solid #c9d4e3; }
+.top { display: grid; grid-template-columns: 1fr 175px; gap: 16px; align-items: start; }
+.qr { text-align: center; border: 1px solid #c9d4e3; border-radius: 10px; padding: 8px; background: #fff; }
+.qr img { width: 130px; height: 130px; }
+.qr .addr { font-weight: 700; color: #1f4373; font-size: 9pt; white-space: nowrap; }
+.qr .hint { font-size: 8.5pt; color: #5a6676; }
+ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; }
+ol.steps > li { counter-increment: s; position: relative; padding: 0 0 8px 38px; }
+ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; background: #1f4373; color: #fff; font-weight: 700; display: grid; place-content: center; font-size: 11pt; }
+.where { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 2px; }
+.where div { background: #eef3f9; border-left: 3px solid #1f4373; border-radius: 6px; padding: 6px 10px; font-size: 10.5pt; }
+.icon { display: inline-block; vertical-align: -3px; width: 15px; height: 16px; }
+.path { font-weight: 700; color: #1f4373; }
+.note { background: #fff8e6; border-left: 3px solid #c9962b; border-radius: 6px; padding: 8px 12px; margin-top: 10px; font-size: 10.5pt; }
+table { width: 100%; border-collapse: collapse; font-size: 10.5pt; }
+td { border-top: 1px solid #dde4ee; padding: 6px 8px; vertical-align: top; }
+td:first-child { width: 38%; font-weight: 700; color: #1f4373; }
+ul { margin: 0; padding-left: 18px; }
+li + li { margin-top: 3px; }
+.page2 { break-before: page; }
+footer { margin-top: 14px; font-size: 9pt; color: #6b7685; border-top: 1px solid #dde4ee; padding-top: 6px; }
+
+.attention { border: 2px solid #c9622b; background: #fff4ec; border-radius: 10px; padding: 10px 14px; margin: 12px 0 6px; }
+.attention .head { display: flex; align-items: center; gap: 8px; font: 700 14pt/1.2 'Lora', serif; color: #a8481a; margin-bottom: 4px; }
+.attention ul { margin: 4px 0 0; padding-left: 1.2em; }
+.attention li { margin: 2px 0; }
+.edicoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0; }
+.edicoes div { background: #eef3f9; border-left: 3px solid #1f4373; border-radius: 6px; padding: 6px 10px; font-size: 10.5pt; }
+.edicoes b { color: #1f4373; }
+</style></head><body>
+<div class="brand">
+  <img src="../../public/icons/icon-192.png" alt="">
+  <div><div class="name">Farol da Palavra</div><div class="sub">Como atualizar o aplicativo sem perder nada</div></div>
+</div>
+
+<h1>Como atualizar</h1>
+<p class="lead">Tudo o que você cria no Farol da Palavra — sermões, anotações, estudos, apostilas e Bíblias importadas — fica guardado só no seu aparelho. Atualizar do jeito certo mantém tudo isso no lugar.</p>
+
+<div class="attention">
+  <div class="head">⚠ Atenção antes de atualizar</div>
+  <ul>
+    <li><strong>Faça o backup antes</strong>, sempre: <span class="path">Configurações › Backup e privacidade › Salvar no Google Drive</span>.</li>
+    <li><strong>Instale por cima. Nunca desinstale o aplicativo antigo:</strong> desinstalar apaga tudo o que está nele.</li>
+    <li>Baixe <strong>sempre a mesma edição</strong> que você já usa (veja abaixo).</li>
+    <li>Depois, confira a versão em <span class="path">Configurações › Sobre</span>.</li>
+  </ul>
+</div>
+
+<h2>As duas edições do aplicativo Android</h2>
+<div class="edicoes">
+  <div><b>Edição completa (v1.0.…)</b><br>A edição com todas as abas. Atualiza só para a edição completa.</div>
+  <div><b>Edição 2.0 (v2.0.…)</b><br>A edição com menos abas. Atualiza só para a edição 2.0.</div>
+</div>
+<p>Uma edição não substitui a outra: são dois aplicativos separados no aparelho, cada um com os próprios dados. Para saber qual é a sua, veja o número em <span class="path">Configurações › Sobre</span>.</p>
+
+<h2>No Android (tablet ou celular)</h2>
+<ol class="steps">
+  <li><strong>Espere o aviso.</strong> Quando houver versão nova, aparece no alto “Nova versão disponível”. Toque em <strong>Atualizar</strong>.</li>
+  <li><strong>Leia o aviso de Atenção.</strong> Ele mostra quando foi o seu último backup. Se faz tempo, toque em <strong>“Fazer o backup antes”</strong> e salve no Google Drive.</li>
+  <li><strong>Baixe a versão nova.</strong> Toque em <strong>“Baixar a versão …”</strong>. O navegador baixa o arquivo certo para a sua edição.</li>
+  <li><strong>Instale por cima.</strong> Abra o arquivo baixado. Se o Android pedir, permita instalar desta fonte e toque em <strong>Atualizar</strong>. Não desinstale nada antes.</li>
+  <li><strong>Confira.</strong> Abra o Farol da Palavra e veja em <span class="path">Configurações › Sobre</span> o número novo. Seus dados continuam lá.</li>
+</ol>
+<div class="note"><strong>Se o Android disser “App não instalado”:</strong> não desinstale. Confira se baixou a mesma edição que você usa e tente de novo. Se ainda assim não instalar, faça o backup antes de qualquer outra coisa.</div>
+
+<h2>No iPhone, no iPad e no computador</h2>
+<p>Ali o Farol da Palavra roda pelo navegador e se atualiza sozinho. Quando houver versão nova, aparece “Nova versão disponível” no alto: toque em <strong>Atualizar</strong>. Nada do que você criou se perde. Mesmo assim, faça o backup de tempos em tempos.</p>
+
+<h2>Se precisar trocar de aparelho ou reinstalar</h2>
+<ol class="steps">
+  <li>No aparelho antigo: <span class="path">Configurações › Backup e privacidade › Salvar no Google Drive</span>.</li>
+  <li>No aparelho novo, instale o Farol da Palavra e vá em <span class="path">Configurações › Backup e privacidade › Restaurar de um arquivo</span>.</li>
+  <li>Escolha o arquivo do backup. Restaurar não apaga nada que já esteja no aparelho.</li>
+</ol>
+</body></html>

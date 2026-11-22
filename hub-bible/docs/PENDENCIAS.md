@@ -84,23 +84,39 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
-### 0at. ⏳ Versão derivada sem Rhema e sem Escola de Ministros (para depois)
+### 0au. ✅ Aviso de "Atenção" antes de atualizar o APK, e o PDF "Como atualizar"
 
-Pedido do usuário, para fazer depois: um app derivado deste, sem Rhema e sem
-Escola de Ministros, mantendo o completo como está.
+- **Aviso de versão nova no APK** (`src/core/apkUpdate.ts`,
+  `ApkUpdatePrompt` em `src/app/UpdatePrompt.tsx`). Só no APK (no site quem
+  atualiza é o service worker): 4 s depois de abrir, consulta
+  `releases/latest` do GitHub, lê o número de `apk-vN` e compara com
+  `__HUB_BUILD__`. Oferece **só o arquivo da mesma edição** instalada
+  (`farol-da-palavra.apk` ou `farol-da-palavra-2.0.apk`). "Depois" guarda a
+  versão dispensada (`hub-bible:apk-update:dismissed`). Sem internet, nada
+  aparece. Só funciona a partir do primeiro APK compilado com este código.
+- **"Atualizar" abre "Atenção antes de atualizar"**: backup antes (com a data do
+  último backup fora do aparelho, ou o aviso em vermelho de que nunca houve),
+  instalar por cima e nunca desinstalar, permitir a fonte e tocar Atualizar,
+  conferir a versão em Sobre, e qual edição é. Botões "Fazer o backup antes"
+  (vai para Configurações) e "Baixar a versão N".
+- **PDF "Como atualizar sem perder nada"** em `public/como-atualizar.pdf`, com
+  cartão na Ajuda (usa `deliverFile`, funciona no APK). A fonte é
+  `docs/manual-atualizar/manual.html`; para refazer, imprima no Chromium em A4
+  com fundo. Não cita Rhema (o arquivo é público).
+- Ajuda: o tópico do APK deixou de dizer que não há aviso de versão nova.
 
-Plano combinado:
-- **Mesmo código e mesma base de dados.** Uma variável de build (ex.:
-  `VITE_EDICAO=reduzida`) tira Rhema e Escola do menu (`navigation.ts`), do
-  Início, das rotas (`App.tsx`), da Ajuda e dos itens do backup. O Modo Aula
-  continua para Cursos.
-- **Builds:** o `android.yml` gera os dois APKs, e o derivado tem `appId`
-  próprio (ex.: `app.hubbible.leitor.lite`) para instalar ao lado do completo,
-  cada um com os seus dados. O site do derivado seria outro projeto na Vercel.
-- **Correções valem para os dois**, sem código duplicado.
+### 0at. ✅ Edição 2.0: sem Rhema e sem Escola de Ministros (só APK)
 
-A decidir com o usuário: o nome do derivado; se terá site próprio além do
-APK; se outras abas também saem.
+Mesmo código, mesmo nome "Farol da Palavra".
+- `HUB_EDITION=reduzida` no build vira `__HUB_EDITION__`; `src/core/edition.ts`
+  exporta `HAS_RHEMA` e `APP_VERSION` (`1.0.N` na completa, `2.0.N` na 2.0).
+  Sem `HAS_RHEMA` saem do menu, do Início, da Ajuda, da seleção do versículo e
+  do editor os acessos ao Rhema e à Escola.
+- `android.yml` gera os dois APKs na mesma versão (Release) do GitHub:
+  `farol-da-palavra.apk` (completa, `app.hubbible.leitor`, que nunca muda) e
+  `farol-da-palavra-2.0.apk` (`app.hubbible.leitor.v2`, instala ao lado, com
+  dados próprios). O site e o iPad continuam na completa; não há site da 2.0.
+- O pedido do usuário: cada edição instalada só atualiza para ela mesma.
 
 ### 0as. ✅ Tema "Preto" — leitura à noite, com relevo
 

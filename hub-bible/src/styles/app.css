@@ -1858,3 +1858,34 @@ input.study-section-title:focus {
   flex: 1;
   min-width: 0;
 }
+
+/* ------------- atenção antes de atualizar o APK (UpdatePrompt) ------------- */
+.update-attention {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.update-attention-head {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: flex-start;
+  border-left: 4px solid #d9822b;
+  background: color-mix(in srgb, #d9822b 12%, var(--surface));
+}
+.update-attention-head .ico,
+.update-attention-head svg {
+  color: #d9822b;
+}
+.update-attention-steps {
+  margin: 0;
+  padding-left: 1.4em;
+  list-style: decimal;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  line-height: 1.5;
+}
+.update-attention-warn {
+  color: var(--danger);
+  font-weight: 600;
+}
