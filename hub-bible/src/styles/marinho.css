@@ -51,10 +51,12 @@
 [data-theme='marinho'] .rail-item .ico {
   color: var(--gold);
 }
+/* o item escolhido: só o fundo levemente dourado e a letra branca — sem o
+   filete de ouro na lateral, que o pregador achou feio */
 [data-theme='marinho'] .rail-item.active {
   color: #ffffff;
   background: rgba(206, 169, 101, 0.14);
-  box-shadow: inset 3px 0 0 var(--gold);
+  box-shadow: none;
 }
 [data-theme='marinho'] .bottom-nav {
   background: #082038;
