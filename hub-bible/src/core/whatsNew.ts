@@ -25,6 +25,16 @@ export interface WhatsNewEntry {
 
 const ENTRIES: WhatsNewEntry[] = [
   {
+    id: '2026-11-25-temas',
+    title: 'Dois temas novos',
+    items: [
+      {
+        title: 'Marinho e ouro e Preto e amarelo',
+        text: 'Em "Aa" ou em Configurações › Aparência e leitura. Saíram o Escuro, o Azul e branco e o Verde e branco; quem usava um deles passou para o mais parecido (Preto, Azul safira e Esmeralda).',
+      },
+    ],
+  },
+  {
     id: '2026-11-24-leitor',
     title: 'Leitura melhor de livros e apostilas',
     items: [

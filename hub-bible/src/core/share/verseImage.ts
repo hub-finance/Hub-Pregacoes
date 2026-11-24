@@ -15,6 +15,8 @@ export const VERSE_BACKGROUNDS = {
   dark: { label: 'Noite', bg: ['#12151b', '#1d232e'], fg: '#f1f3f7', accent: '#d7b174', dim: '#98a1b0' },
   light: { label: 'Papel', bg: ['#fbf9f6', '#f0eae0'], fg: '#1b1a17', accent: '#8a6a2f', dim: '#6d675f' },
   sepia: { label: 'Sépia', bg: ['#f7edda', '#eadcc0'], fg: '#3f321f', accent: '#8c5a24', dim: '#7b6a4d' },
+  marinho: { label: 'Marinho e ouro', bg: ['#081428', '#123064'], fg: '#f4f6fb', accent: '#d4a84f', dim: '#a7b3cb' },
+  amarelo: { label: 'Preto e amarelo', bg: ['#0a0a0b', '#1c1c20'], fg: '#f2f2f3', accent: '#f5b800', dim: '#a5a5ad' },
   azul: { label: 'Azul', bg: ['#0e1a2b', '#1b3a5c'], fg: '#e8eef7', accent: '#7cbcee', dim: '#a2b8d2' },
   oliveira: { label: 'Oliveira', bg: ['#12201a', '#1d362b'], fg: '#e9f2ec', accent: '#8fc9a4', dim: '#9db3a6' },
   purpura: { label: 'Púrpura', bg: ['#1c1230', '#2e1d48'], fg: '#f0eaf8', accent: '#c39ce8', dim: '#b0a3c4' },
