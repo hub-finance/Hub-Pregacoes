@@ -1,0 +1,172 @@
+/* =========================================================================
+   Marinho e ouro — marinho por fora, branco por dentro, dourado em destaque.
+
+   Como no Esmeralda: o conteúdo usa os tokens de tokens.css (branco, texto
+   marinho); a moldura — menu lateral, barra do alto e barra de baixo —
+   redefine os tokens só dentro dela, em marinho com ouro. O ouro aparece onde
+   chama a atenção: ícones, botões, títulos de seção, número dos versículos,
+   o versículo do dia (num cartão marinho, como o anúncio de referência).
+
+   Tudo preso a [data-theme='marinho']: nenhum outro tema muda.
+   ========================================================================= */
+
+:root[data-theme='marinho'] {
+  --gold-line: color-mix(in srgb, var(--gold) 55%, transparent);
+  --gold-grad: linear-gradient(180deg, #ddbd7c 0%, #cea965 55%, #b8904c 100%);
+}
+
+/* ------------------------- a moldura em marinho -------------------------- */
+[data-theme='marinho'] .topbar,
+[data-theme='marinho'] .rail,
+[data-theme='marinho'] .bottom-nav {
+  --bg: #082038;
+  --bg-elevated: #0b2846;
+  --surface: #0e2c4b;
+  --surface-2: #123457;
+  --surface-hover: #143a60;
+  --border: #1b3d61;
+  --text: #f5f7fb;
+  --text-2: #c9d4e3;
+  --text-3: #9fb0c7;
+  --accent: #cea965;
+  --accent-strong: #e3c88f;
+  --accent-soft: rgba(206, 169, 101, 0.16);
+  --accent-contrast: #082038;
+  color: var(--text);
+}
+[data-theme='marinho'] .topbar {
+  background: #082038;
+  backdrop-filter: none;
+  border-bottom: 1px solid var(--gold-line);
+}
+[data-theme='marinho'] .rail {
+  /* o brilho azul do anúncio, sutil, no alto do menu */
+  background: radial-gradient(120% 60% at 30% 0%, #123a63 0%, #082038 60%);
+  border-right: 1px solid var(--gold-line);
+}
+[data-theme='marinho'] .rail-group-label {
+  color: var(--gold);
+  letter-spacing: 0.12em;
+}
+[data-theme='marinho'] .rail-item .ico {
+  color: var(--gold);
+}
+/* o item escolhido: só o fundo levemente dourado e a letra branca — sem o
+   filete de ouro na lateral, que o pregador achou feio */
+[data-theme='marinho'] .rail-item.active {
+  color: #ffffff;
+  background: rgba(206, 169, 101, 0.14);
+  box-shadow: none;
+}
+[data-theme='marinho'] .bottom-nav {
+  background: #082038;
+  backdrop-filter: none;
+  border-top: 1px solid var(--gold-line);
+}
+[data-theme='marinho'] .bottom-nav-item .ico {
+  color: var(--gold);
+}
+[data-theme='marinho'] .bottom-nav-item.active .ico {
+  width: 52px;
+  border-radius: var(--r-full);
+  background: var(--gold-grad);
+  color: #082038;
+}
+[data-theme='marinho'] .bottom-nav-item.active {
+  color: var(--gold-light);
+}
+[data-theme='marinho'] .brand-mark {
+  background: var(--gold-grad);
+  color: #082038;
+}
+
+/* --------------------------- dentro: o branco ---------------------------- */
+[data-theme='marinho'] .page-title {
+  color: var(--navy);
+  font-weight: 750;
+  letter-spacing: -0.025em;
+}
+/* rótulos de seção em ouro, como "POR APENAS" no anúncio */
+[data-theme='marinho'] .app-main .section-title {
+  color: var(--accent);
+  letter-spacing: 0.12em;
+}
+/* atalhos do Início: cartão branco, ícone dourado num aro de ouro */
+[data-theme='marinho'] .quick {
+  border-color: var(--border);
+  box-shadow: var(--shadow-1);
+}
+[data-theme='marinho'] .quick:hover {
+  border-color: var(--gold);
+  box-shadow: 0 6px 18px rgba(206, 169, 101, 0.22);
+}
+[data-theme='marinho'] .quick .ico {
+  border-radius: var(--r-full);
+  background: #ffffff;
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1.5px var(--gold);
+}
+[data-theme='marinho'] .quick span {
+  color: var(--navy);
+}
+
+/* botão principal: ouro com letra marinha, como "Quero acessar" */
+[data-theme='marinho'] .btn-primary {
+  background: var(--gold-grad);
+  color: #082038;
+  font-weight: 650;
+  box-shadow: 0 2px 8px rgba(184, 144, 76, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+[data-theme='marinho'] .btn-primary:hover {
+  background: linear-gradient(180deg, #e6c98d 0%, #d4b06d 55%, #bf9852 100%);
+}
+[data-theme='marinho'] .chip.active {
+  background: var(--gold-grad);
+  border-color: transparent;
+  color: #082038;
+}
+
+/* versículo do dia: um pedaço do anúncio — cartão marinho, letra branca, ouro */
+[data-theme='marinho'] .verse-hero {
+  background: radial-gradient(110% 120% at 85% 0%, #143a63 0%, #0b2846 45%, #082038 100%);
+  border: 1px solid var(--gold-line);
+  color: #f5f7fb;
+  box-shadow: var(--shadow-2);
+}
+[data-theme='marinho'] .verse-hero::before {
+  background: radial-gradient(circle, rgba(206, 169, 101, 0.28), transparent 70%);
+}
+[data-theme='marinho'] .verse-hero .verse-hero-text {
+  color: #ffffff;
+}
+[data-theme='marinho'] .verse-hero-ref {
+  color: var(--gold);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--gold-line);
+}
+[data-theme='marinho'] .verse-hero .btn {
+  --text: #f5f7fb;
+  --text-2: #c9d4e3;
+  --surface-2: rgba(255, 255, 255, 0.08);
+  --surface-hover: rgba(255, 255, 255, 0.14);
+  color: #f5f7fb;
+}
+
+/* números e marcas em ouro */
+[data-theme='marinho'] .stat-value {
+  color: var(--accent);
+  font-weight: 700;
+}
+[data-theme='marinho'] .badge.step-num {
+  background: var(--gold-grad);
+  border-color: transparent;
+  color: #082038;
+  font-weight: 700;
+}
+[data-theme='marinho'] .verse-num {
+  color: var(--accent);
+  font-weight: 700;
+}
+[data-theme='marinho'] .chapter-drop-cap {
+  color: var(--accent);
+}

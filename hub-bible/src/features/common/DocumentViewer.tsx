@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { downloadBlob } from '../../core/share/share';
 import { formatBytes } from '../../core/data/attachments';
+import { isNativeApp } from '../../core/platform';
+import { deliverFile } from '../../core/export/deliver';
 import type { Attachment } from '../../core/db/types';
 import { useRegisterSearch } from '../../app/SearchScope';
 import {
@@ -123,10 +125,31 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<Array<DocumentHit & { node?: HTMLElement }>>([]);
   const [searching, setSearching] = useState(false);
+  const isHtml = attachment.format === 'html';
+  const frameRef = useRef<HTMLIFrameElement | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfNote, setPdfNote] = useState('');
+
+  /** A mensagem em HTML vira PDF pelo app: funciona também no APK, onde o
+      Android não imprime páginas da web. */
+  const htmlToPdf = async () => {
+    setPdfBusy(true);
+    setPdfNote('');
+    try {
+      const { htmlMessagePdf } = await import('../../core/export/htmlMessage');
+      const { blob, title } = await htmlMessagePdf(await attachment.blob.text());
+      const safe = title.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Mensagem';
+      setPdfNote(await deliverFile(blob, `${safe}.pdf`));
+    } catch (err) {
+      setPdfNote((err as Error).message || 'Não foi possível gerar o PDF.');
+    } finally {
+      setPdfBusy(false);
+    }
+  };
 
   /* A lupa do alto da tela abre esta busca. Só enquanto o material está
      desenhado: numa apostila que falhou não há o que procurar. */
-  useRegisterSearch(() => setSearchOpen(true), !dense && status === 'ready');
+  useRegisterSearch(() => setSearchOpen(true), !dense && status === 'ready' && attachment.format !== 'html');
 
   /**
    * Procura o termo e leva ao trecho.
@@ -216,7 +239,25 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
 
     (async () => {
       try {
-        if (attachment.format === 'pdf') {
+        if (attachment.format === 'html') {
+          /* A mensagem em HTML roda como foi feita (tópicos, menu, cronômetro),
+             num quadro isolado: os scripts dela funcionam, mas sem acesso aos
+             dados do app. O pedido de impressão chega por mensagem, porque o
+             quadro isolado não deixa o app chamar a impressão dele. */
+          const html = await attachment.blob.text();
+          if (cancelled) return;
+          const bridge = '<script>addEventListener("message",function(e){if(e.data==="hub-imprimir"){try{print()}catch(_){}}});<\/script>';
+          const frame = document.createElement('iframe');
+          frame.className = 'doc-html-frame';
+          frame.title = attachment.name;
+          frame.setAttribute('sandbox', 'allow-scripts allow-modals allow-popups');
+          frame.srcdoc = /<\/body>/i.test(html) ? html.replace(/<\/body>/i, `${bridge}</body>`) : html + bridge;
+          host.appendChild(frame);
+          frameRef.current = frame;
+          cleanups.push(() => {
+            frameRef.current = null;
+          });
+        } else if (attachment.format === 'pdf') {
           // a versão 4 é a que roda em Chrome de Android mais antigo; as
           // seguintes usam recursos de JavaScript que nem todo aparelho tem
           const pdfjs = await import('pdfjs-dist');
@@ -410,8 +451,26 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
           {pages ? `${pages} pág · ` : ''}
           {formatBytes(attachment.size)}
         </span>
+        {/* mensagem em HTML: tem A−/A+ e menu próprios; aqui ficam imprimir e PDF */}
+        {isHtml && !isNativeApp() && (
+          <button
+            className="btn btn-sm"
+            onClick={() => frameRef.current?.contentWindow?.postMessage('hub-imprimir', '*')}
+            aria-label="Imprimir a mensagem"
+          >
+            <Icon name="print" size={16} />
+            <span>Imprimir</span>
+          </button>
+        )}
+        {isHtml && (
+          <button className="btn btn-sm" onClick={htmlToPdf} disabled={pdfBusy} aria-label="Gerar PDF da mensagem">
+            <Icon name="download" size={16} />
+            <span>{pdfBusy ? 'Gerando…' : 'PDF'}</span>
+          </button>
+        )}
         {/* A busca vem antes do zoom: numa apostila de sessenta páginas, achar
             o trecho é o que se faz primeiro. */}
+        {!isHtml && (<>
         <button
           className={`icon-btn${searchOpen ? ' active' : ''}`}
           onClick={() => {
@@ -437,6 +496,7 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
         >
           <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>A+</span>
         </button>
+        </>)}
         <button
           className="icon-btn"
           onClick={() => downloadBlob(attachment.blob, attachment.name)}
@@ -517,6 +577,8 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
           </div>
         </div>
       )}
+
+      {pdfNote && !dense && <p className="small dim" style={{ margin: 'var(--sp-2) var(--sp-3)' }} role="status">{pdfNote}</p>}
 
       {/* nunca escondido com `display: none`: elemento escondido mede zero, e
           era por isso que a página saía sempre com a largura de reserva (640px)

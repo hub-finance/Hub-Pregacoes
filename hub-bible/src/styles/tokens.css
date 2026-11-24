@@ -1,8 +1,8 @@
 /* =========================================================================
    Hub Bible — Design tokens
    Paleta sóbria e ministerial: papel quente, tinta profunda, dourado discreto.
-   Cinco temas: light (papel), dark (noite), sepia (leitura prolongada),
-   azul (noite azul) e celeste (azul e branco).
+   Temas: claro, sépia, esmeralda, institucional, safira, noite azul,
+   ministerial, marinho e ouro, preto e preto e amarelo.
    ========================================================================= */
 
 :root {
@@ -69,36 +69,6 @@
   --shadow-2: 0 6px 20px rgba(24, 20, 14, 0.08);
   --shadow-3: 0 18px 48px rgba(24, 20, 14, 0.14);
   --overlay: rgba(20, 17, 12, 0.4);
-}
-
-/* ---------------------------------- escuro ------------------------------- */
-:root[data-theme='dark'] {
-  color-scheme: dark;
-  /* Cinza-ardósia, longe do preto. O preto puro contra texto claro cansa a
-     vista numa leitura longa — a borda das letras "vibra". Este fundo é
-     claramente cinza: descansa a vista e ainda serve para ler no escuro. */
-  --bg: #22262e;
-  --bg-elevated: #2a2f38;
-  --bg-sunken: #1b1f26;
-  --surface: #2a2f38;
-  --surface-2: #333844;
-  --surface-hover: #3d4350;
-  --border: #3a404b;
-  --border-strong: #4c5361;
-  --text: #eef0f4;
-  --text-2: #b3bac6;
-  --text-3: #8891a0;
-  --accent: #d7b174;
-  --accent-strong: #e6c68f;
-  --accent-soft: #241f16;
-  --accent-contrast: #16130d;
-  --danger: #e07a72;
-  --success: #6ec397;
-  --info: #7fb2e0;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.45);
-  --shadow-3: 0 20px 56px rgba(0, 0, 0, 0.6);
-  --overlay: rgba(0, 0, 0, 0.62);
 }
 
 /* --------------------------------- preto --------------------------------- */
@@ -255,64 +225,6 @@
   --overlay: rgba(8, 18, 32, 0.66);
 }
 
-/* ------------------------------ azul e branco ---------------------------- */
-/* Tema diurno com identidade azul: fundo claro levemente azulado, destaques
-   em azul-celeste, texto escuro. Limpo e sereno para leitura prolongada. */
-:root[data-theme='celeste'] {
-  color-scheme: light;
-  --bg: #eef4fb;
-  --bg-elevated: #f8fbff;
-  --bg-sunken: #e3edf7;
-  --surface: #f8fbff;
-  --surface-2: #e8f0fa;
-  --surface-hover: #dce8f5;
-  --border: #c5d6e8;
-  --border-strong: #a8bfd6;
-  --text: #1a2433;
-  --text-2: #445166;
-  --text-3: #7387a0;
-  --accent: #2563a8;
-  --accent-strong: #1d4e8a;
-  --accent-soft: #d6e6f5;
-  --accent-contrast: #ffffff;
-  --danger: #b23a35;
-  --success: #2f7a56;
-  --info: #2563a8;
-  --shadow-1: 0 1px 2px rgba(14, 28, 50, 0.06), 0 1px 3px rgba(14, 28, 50, 0.06);
-  --shadow-2: 0 6px 20px rgba(14, 28, 50, 0.1);
-  --shadow-3: 0 18px 48px rgba(14, 28, 50, 0.16);
-  --overlay: rgba(14, 28, 50, 0.4);
-}
-
-/* ---------------------------------- jardim ------------------------------- */
-/* Tema diurno verde e branco, espelhando o celeste: fundo levemente esverdeado,
-   acentos em verde médio, texto escuro com tom verde. Limpo e sereno. */
-:root[data-theme='jardim'] {
-  color-scheme: light;
-  --bg: #eef5f0;
-  --bg-elevated: #f7fbf8;
-  --bg-sunken: #e3efe7;
-  --surface: #f7fbf8;
-  --surface-2: #e8f2ec;
-  --surface-hover: #dceae1;
-  --border: #c0d8c8;
-  --border-strong: #a0c0ab;
-  --text: #1a2d22;
-  --text-2: #3d5545;
-  --text-3: #6d8e78;
-  --accent: #2d7d4a;
-  --accent-strong: #1c6b3a;
-  --accent-soft: #d0e8d5;
-  --accent-contrast: #ffffff;
-  --danger: #b23a35;
-  --success: #2d7d4a;
-  --info: #2d6d5a;
-  --shadow-1: 0 1px 2px rgba(14, 40, 24, 0.06), 0 1px 3px rgba(14, 40, 24, 0.06);
-  --shadow-2: 0 6px 20px rgba(14, 40, 24, 0.1);
-  --shadow-3: 0 18px 48px rgba(14, 40, 24, 0.16);
-  --overlay: rgba(14, 40, 24, 0.4);
-}
-
 /* ---------------------------------- safira ------------------------------- */
 /* Azul intermediário: mais forte que o celeste, mais claro que o noite azul.
    O acento sobe um tom ao clicar — do azul-céu ao azul-cobalto. */
@@ -369,6 +281,72 @@
   --overlay: rgba(60, 45, 20, 0.42);
 }
 
+/* ----------------------------- marinho e ouro ---------------------------- */
+/* Marinho por fora, branco por dentro, dourado em destaque — a referência que o
+   pregador trouxe (o anúncio dos "12.000 esboços": fundo marinho #082038, a
+   tela do tablet branca, ícones e botões em ouro #cea965 com letra marinha).
+   A moldura (menu, barra do alto, barra de baixo) fica em marinho.css; aqui é
+   o conteúdo, onde se lê: branco, texto marinho. O ouro dos textos é um tom
+   mais escuro que o dos botões, para ler bem sobre o branco. */
+:root[data-theme='marinho'] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-sunken: #eef2f7;
+  --surface: #ffffff;
+  --surface-2: #f4f7fb;
+  --surface-hover: #e9eff7;
+  --border: #d6dfea;
+  --border-strong: #b5c4d7;
+  --text: #0b2240;
+  --text-2: #33496a;
+  --text-3: #5a6d88;
+  --accent: #9c762a;
+  --accent-strong: #7f5f1e;
+  --accent-soft: #f7efdc;
+  --accent-contrast: #082038;
+  --gold: #cea965;
+  --gold-light: #e3c88f;
+  --navy: #082038;
+  --danger: #a8332e;
+  --success: #1f6b4f;
+  --info: #1f4a7a;
+  --shadow-1: 0 1px 2px rgba(8, 32, 56, 0.07), 0 1px 3px rgba(8, 32, 56, 0.07);
+  --shadow-2: 0 6px 20px rgba(8, 32, 56, 0.12);
+  --shadow-3: 0 18px 48px rgba(8, 32, 56, 0.2);
+  --overlay: rgba(8, 32, 56, 0.55);
+}
+
+/* ---------------------------- preto e amarelo ---------------------------- */
+/* Preto com destaques em amarelo-ouro (referência do pregador: o editor de
+   mensagens em fundo preto, com botões amarelos de letra preta). Quase preto,
+   como o tema Preto, para não cansar a vista. */
+:root[data-theme='amarelo'] {
+  color-scheme: dark;
+  --bg: #0e0e0f;
+  --bg-elevated: #161618;
+  --bg-sunken: #0a0a0b;
+  --surface: #18181b;
+  --surface-2: #202024;
+  --surface-hover: #29292e;
+  --border: #2a2a2f;
+  --border-strong: #3c3c43;
+  --text: #f2f2f3;
+  --text-2: #bdbdc3;
+  --text-3: #8b8b93;
+  --accent: #f5b800;
+  --accent-strong: #ffc933;
+  --accent-soft: #2a2410;
+  --accent-contrast: #111111;
+  --danger: #f28b82;
+  --success: #81c995;
+  --info: #f5c84a;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.7);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.7);
+  --shadow-3: 0 20px 56px rgba(0, 0, 0, 0.8);
+  --overlay: rgba(0, 0, 0, 0.72);
+}
+
 /* ------------------------------ alto contraste --------------------------- */
 :root[data-contrast='high'][data-theme='ministerial'] {
   --text: #ffffff;
@@ -394,8 +372,8 @@
   --border-strong: #7d6f55;
   --accent: #0f3f33;
 }
-:root[data-contrast='high'][data-theme='dark'],
 :root[data-contrast='high'][data-theme='azul'],
+:root[data-contrast='high'][data-theme='amarelo'],
 :root[data-contrast='high'][data-theme='preto'] {
   --text: #ffffff;
   --text-2: #dfe4ec;
@@ -404,13 +382,13 @@
   --border-strong: #6b7382;
   --accent: #ffd79a;
 }
-:root[data-contrast='high'][data-theme='celeste'] {
-  --text: #0a1628;
-  --text-2: #1e3050;
-  --text-3: #3a5070;
-  --border: #8aa4c0;
-  --border-strong: #607d9e;
-  --accent: #1a4a80;
+:root[data-contrast='high'][data-theme='marinho'] {
+  --text: #000000;
+  --text-2: #0b2240;
+  --text-3: #2c4466;
+  --border: #8ea2bd;
+  --border-strong: #5f7799;
+  --accent: #6b4f12;
 }
 :root[data-contrast='high'][data-theme='safira'] {
   --text: #0a1628;
@@ -420,18 +398,10 @@
   --border-strong: #506e90;
   --accent: #14407a;
 }
-:root[data-contrast='high'][data-theme='jardim'] {
-  --text: #0c1e14;
-  --text-2: #1a3826;
-  --text-3: #305a3e;
-  --border: #88b896;
-  --border-strong: #609a70;
-  --accent: #1a6030;
-}
 /* Só os temas de papel (claro e sépia). Os escuros e os azuis/verdes têm a
    regra própria acima — sem listá-los aqui, esta regra (mais específica por
    causa dos :not) vencia e deixava o texto preto sobre fundo escuro. */
-:root[data-contrast='high']:not([data-theme='dark']):not([data-theme='azul']):not([data-theme='celeste']):not([data-theme='jardim']):not([data-theme='safira']):not([data-theme='ministerial']):not([data-theme='esmeralda']):not([data-theme='institucional']):not([data-theme='preto']) {
+:root[data-contrast='high']:not([data-theme='marinho']):not([data-theme='azul']):not([data-theme='amarelo']):not([data-theme='safira']):not([data-theme='ministerial']):not([data-theme='esmeralda']):not([data-theme='institucional']):not([data-theme='preto']) {
   --text: #000000;
   --text-2: #2a2620;
   --text-3: #4a443b;

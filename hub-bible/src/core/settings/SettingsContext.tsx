@@ -10,7 +10,13 @@ import {
 import type { HighlightCategory } from '../categories';
 import { HIGHLIGHT_CATEGORIES } from '../categories';
 
-export type ThemeChoice = 'system' | 'light' | 'dark' | 'sepia' | 'azul' | 'ministerial' | 'celeste' | 'safira' | 'jardim' | 'esmeralda' | 'institucional' | 'preto';
+export type ThemeChoice = 'system' | 'light' | 'sepia' | 'azul' | 'ministerial' | 'safira' | 'esmeralda' | 'institucional' | 'preto' | 'marinho' | 'amarelo';
+
+/**
+ * Temas que saíram (pedido do pregador) e o mais parecido que fica no lugar:
+ * ninguém abre o app num tema que não existe mais.
+ */
+const RETIRED_THEMES: Record<string, ThemeChoice> = { dark: 'preto', celeste: 'safira', jardim: 'esmeralda' };
 
 /** O tema de fato aplicado — `system` já resolvido em claro ou escuro. */
 export type ResolvedTheme = Exclude<ThemeChoice, 'system'>;
@@ -19,15 +25,14 @@ export type ResolvedTheme = Exclude<ThemeChoice, 'system'>;
 const THEME_COLOR: Record<ResolvedTheme, string> = {
   light: '#faf8f5',
   sepia: '#f3e9d8',
-  dark: '#22262e',
   azul: '#24374f',
   ministerial: '#0f172a',
-  celeste: '#eef4fb',
   safira: '#dce8f4',
-  jardim: '#eef5f0',
   esmeralda: '#123d33',
   institucional: '#1f4373',
   preto: '#141518',
+  marinho: '#082038',
+  amarelo: '#0e0e0f',
 };
 
 /**
@@ -168,6 +173,8 @@ function migrate(merged: AppSettings, storedVersion: number): AppSettings {
       next = { ...next, compareTranslations: [next.compareTranslation] };
     }
   }
+  const retired = RETIRED_THEMES[next.theme as string];
+  if (retired) next = { ...next, theme: retired };
   return { ...next, settingsVersion: SETTINGS_VERSION };
 }
 
@@ -207,7 +214,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resolvedTheme = useMemo<ResolvedTheme>(() => {
-    if (settings.theme === 'system') return systemDark ? 'dark' : 'light';
+    if (settings.theme === 'system') return systemDark ? 'preto' : 'light';
     return settings.theme;
   }, [settings.theme, systemDark]);
 

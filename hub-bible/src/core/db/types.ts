@@ -213,7 +213,7 @@ export interface Study {
  * original; a apresentação é reconstruída a partir do arquivo — chega perto,
  * mas não é o PowerPoint desenhando.
  */
-export type AttachmentFormat = 'pdf' | 'docx' | 'pptx';
+export type AttachmentFormat = 'pdf' | 'docx' | 'pptx' | 'html';
 
 /**
  * Devocional — e, na tela, também o **Curso**: material de aula que chega
