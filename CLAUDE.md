@@ -166,6 +166,11 @@ Use `npx tsc --noEmit -p .` to type-check. The `npm run typecheck` script runs
 - Accessibility is load-bearing: minimum 44px touch targets, visible focus
   states, `aria-label` on icon-only buttons, no horizontal scroll at any width.
 - Comments explain *why*, and only where the reason is not obvious from the code.
+- **Every user-visible change gets a "Novidades" entry.** The owner asked that
+  the Novidades screen always open after an update. Add a new entry at the top
+  of `hub-bible/src/core/whatsNew.ts` (fresh `id`, plain Portuguese, where to
+  tap) in the same PR. Mark items that only exist in the complete edition
+  (Rhema, Escola) with `full: true`.
 
 ---
 

@@ -504,7 +504,7 @@ export default function AssistantPage() {
               <input
                 ref={fileInput}
                 type="file"
-                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                accept=".pdf,.docx,.doc,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 hidden
                 onChange={(e) => onPickFile(e.target.files?.[0])}
               />

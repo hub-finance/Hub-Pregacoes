@@ -25,6 +25,24 @@ export interface WhatsNewEntry {
 
 const ENTRIES: WhatsNewEntry[] = [
   {
+    id: '2026-11-24-leitor',
+    title: 'Leitura melhor de livros e apostilas',
+    items: [
+      {
+        title: 'A base doutrinária soma, não substitui',
+        text: 'Em Guias Doutrinários, "Acrescentar" junta os guias de um arquivo novo aos que você já tem; um guia repetido é atualizado. Para tirar um só, abra o guia e toque em "Remover este guia".',
+      },
+      {
+        title: 'Word antigo (.doc)',
+        text: 'No assistente, "Importar PDF ou Word" agora aceita também o .doc, o formato antigo do Word em que circulam muitos e-books.',
+      },
+      {
+        title: 'Livros mais bem divididos e mais versículos reconhecidos',
+        text: 'Os cabeçalhos repetidos das páginas saem, os capítulos são achados mesmo com o título quebrado, e referências como "Romanos 5. 17", "I Coríntios" e "SI 23" (livro escaneado) passam a ser reconhecidas.',
+      },
+    ],
+  },
+  {
     id: '2026-11-22-novidades',
     title: 'Tela de Novidades',
     items: [
