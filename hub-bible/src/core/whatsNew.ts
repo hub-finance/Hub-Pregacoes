@@ -26,8 +26,12 @@ export interface WhatsNewEntry {
 const ENTRIES: WhatsNewEntry[] = [
   {
     id: '2026-11-25-temas',
-    title: 'Dois temas novos',
+    title: 'Dois temas novos e mensagens em HTML',
     items: [
+      {
+        title: 'Mensagens em HTML',
+        text: 'Gerador, Rhema, Cursos e Escola de Ministros aceitam a mensagem em HTML (por tópicos ou página A4). Ela funciona dentro do app, também no Modo Aula: menu, tópicos, marcar onde parou. Na barra do arquivo, "PDF" gera o arquivo para imprimir ou enviar.',
+      },
       {
         title: 'Marinho e ouro e Preto e amarelo',
         text: 'Em "Aa" ou em Configurações › Aparência e leitura. Saíram o Escuro, o Azul e branco e o Verde e branco; quem usava um deles passou para o mais parecido (Preto, Azul safira e Esmeralda).',

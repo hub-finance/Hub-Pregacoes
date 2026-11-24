@@ -142,6 +142,8 @@ export const TOPICS: Topic[] = [
     icon: 'upload',
     title: 'Importar um sermão que já está pronto',
     steps: [
+      'Mensagem em HTML: o Gerador, o Rhema, Cursos e a Escola de Ministros também aceitam a mensagem montada em HTML — por tópicos (com menu, "Próximo", marcar onde parou e cronômetro) ou como página A4. Ela abre e funciona dentro do app, também no Modo Aula: toque e vá aonde quiser na mensagem. A marca de onde parou vale enquanto a mensagem está aberta.',
+      'Para imprimir ou levar em PDF: na barra do arquivo, "PDF" monta o arquivo em azul-marinho e dourado, um tópico por página (no aplicativo Android ele vai para a pasta Documentos). No navegador há também "Imprimir", com o visual de impressão da própria mensagem.',
       'Serve para o sermão que você já escreveu em PDF ou no Word e não quer digitar de novo.',
       'Sermões › botão Importar › escolha o arquivo. O título vem do nome do arquivo e pode ser trocado.',
       'O documento é exibido exatamente como foi feito — fontes, negritos, títulos, tabelas e quebras de página. Nada é convertido para texto simples.',

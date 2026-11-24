@@ -178,6 +178,16 @@ entregue ao usuário e **não fica no repositório**.
   prompt diz que a Escritura fica acima. A aba Análise do versículo continua
   pela passagem (`findGuidesForPassage`). Teste: 12 + 16 temas (10 na base, 6
   fora, sem falso positivo).
+- **Mensagens em HTML (25/11):** formato `html` em `attachments.ts` (Gerador,
+  Rhema, Cursos e Escola usam o mesmo sistema). `DocumentViewer` exibe num
+  `iframe` com `sandbox="allow-scripts allow-modals allow-popups"` — os scripts
+  da mensagem rodam (menu, tópicos, cronômetro), sem acesso aos dados do app;
+  por isso a marca de onde parou e o tamanho da letra dela não ficam salvos ao
+  fechar. "Imprimir" (só no site) manda `postMessage('hub-imprimir')` a um
+  ouvinte injetado; "PDF" (`core/export/htmlMessage.ts`) lê o bloco
+  `script#mensagem` (formato do "Modo Púlpito" do usuário) ou, sem ele, a
+  página comum (h1/h2 abrem tópicos) e monta com pdfmake em marinho e dourado
+  (`pdfFromDefinition` em `pdf.ts`). Teste: 44.
 - **Regra do usuário para os livros (24/11): ler o livro INTEIRO, do começo ao
   fim, e cobrir TODOS os assuntos que ele trata** — não trabalhar com amostra
   de frases. Na entrega, mostrar a tabela "tema → onde está no livro → em que

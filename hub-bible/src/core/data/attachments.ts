@@ -13,9 +13,10 @@ export const ACCEPTED_MIME = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/html',
 ].join(',');
 
-export const ACCEPTED_EXTENSIONS = '.pdf,.docx,.pptx';
+export const ACCEPTED_EXTENSIONS = '.pdf,.docx,.pptx,.html,.htm';
 
 /**
  * Limite por arquivo.
@@ -60,6 +61,11 @@ export function detectFormat(file: File): DetectedFile {
   ) {
     return { format: 'pptx', baseName };
   }
+  // mensagem montada em HTML (o "Modo Púlpito" do pregador, ou uma página A4):
+  // guardada inteira e exibida como veio, num quadro isolado
+  if (file.type === 'text/html' || lower.endsWith('.html') || lower.endsWith('.htm')) {
+    return { format: 'html', baseName };
+  }
   if (lower.endsWith('.ppt')) {
     throw new Error(
       'Apresentações .ppt antigas não podem ser exibidas. No PowerPoint, use "Salvar como" para .pptx ou PDF.',
@@ -70,7 +76,7 @@ export function detectFormat(file: File): DetectedFile {
       'Arquivos .doc antigos não podem ser exibidos. Abra no Word e use "Salvar como" para .docx ou PDF.',
     );
   }
-  throw new Error('Formato não suportado. Envie PDF, Word (.docx) ou apresentação (.pptx).');
+  throw new Error('Formato não suportado. Envie PDF, Word (.docx), apresentação (.pptx) ou mensagem em HTML.');
 }
 
 export async function saveAttachment(docId: string, file: File): Promise<Attachment> {
@@ -121,6 +127,10 @@ export async function removeAttachmentsOf(docId: string): Promise<void> {
  */
 export async function extractTitle(file: File, format: AttachmentFormat): Promise<string | null> {
   try {
+    if (format === 'html') {
+      const { htmlTitle } = await import('../export/htmlMessage');
+      return htmlTitle(await file.text());
+    }
     const first =
       format === 'pdf'
         ? await firstLineOfPdf(file)

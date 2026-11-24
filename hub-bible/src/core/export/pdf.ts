@@ -397,6 +397,30 @@ async function loadFonts(): Promise<Record<string, string>> {
   return vfsCache;
 }
 
+/** Monta o arquivo de uma descrição pronta, com as mesmas fontes embutidas. */
+export async function pdfFromDefinition(definition: TDocumentDefinitions): Promise<Blob> {
+  const [vfs, mod] = await Promise.all([loadFonts(), import('pdfmake/build/pdfmake')]);
+  const pdfMake = (mod as unknown as { default?: typeof mod }).default ?? mod;
+  const pdf = (pdfMake as unknown as {
+    createPdf: (
+      def: TDocumentDefinitions,
+      layouts?: unknown,
+      fonts?: TFontDictionary,
+      vfs?: Record<string, string>,
+    ) => { getBlob: (cb: (blob: Blob) => void) => unknown };
+  }).createPdf(definition, undefined, PDF_FONT_FILES, vfs);
+  return new Promise<Blob>((resolve, reject) => {
+    try {
+      const maybe = pdf.getBlob((blob) => resolve(blob));
+      if (maybe && typeof (maybe as Promise<Blob>).then === 'function') {
+        (maybe as Promise<Blob>).then(resolve, reject);
+      }
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
 export async function buildPdf(doc: RenderDoc): Promise<Blob> {
   const [vfs, mod] = await Promise.all([loadFonts(), import('pdfmake/build/pdfmake')]);
   const pdfMake = (mod as unknown as { default?: typeof mod }).default ?? mod;
