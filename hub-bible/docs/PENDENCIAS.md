@@ -178,6 +178,15 @@ entregue ao usuário e **não fica no repositório**.
   prompt diz que a Escritura fica acima. A aba Análise do versículo continua
   pela passagem (`findGuidesForPassage`). Teste: 12 + 16 temas (10 na base, 6
   fora, sem falso positivo).
+- **Para depois (pedido do usuário, "depois fazemos"): a automação.** O app
+  fazer sozinho o que foi feito à mão: em Guias Doutrinários, "Criar guias de
+  um livro" → lê o livro (PDF/Word/.doc) → um passo por capítulo (conceito do
+  título; resumo e explicação = afirmações do autor, não citações nem relatos
+  em 1ª pessoa; textos = versículos mais usados no capítulo; aplicação; termos
+  do original do dicionário). Com IA, capítulo a capítulo em JSON, com
+  palavras próprias e sem nomes. Tela "O que aprendi com este livro": nome do
+  guia (nunca o do livro), marcar/desmarcar passos, "Salvar na minha base"
+  (soma). Nada foi implementado ainda.
 
 ### 0ay. ✅ Análise: as opções voltam ao alto, também sem chave
 
