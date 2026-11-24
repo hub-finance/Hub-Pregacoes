@@ -45,7 +45,15 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
      do tempo é material na tela. Some sozinha depois de um tempo parada e
      volta com um toque no documento — com uma alça fina, sempre visível, para
      que ninguém fique preso sem saber como sair. */
-  const [chrome, setChrome] = useState(true);
+  const [chromeState, setChrome] = useState(true);
+  /* Mensagem em HTML: o toque dentro dela fica com ela e não chega aqui, então
+     a barra nunca voltaria (o pregador ficou sem o botão da Bíblia ao lado).
+     Com HTML a barra fica sempre à vista, fixa embaixo; a mensagem já tem os
+     controles dela em cima. */
+  const isHtml = attachment.format === 'html';
+  const chrome = chromeState || isHtml;
+  const letterInMessage = (dir: '+' | '-') =>
+    document.querySelector<HTMLIFrameElement>('iframe.doc-html-frame')?.contentWindow?.postMessage(`hub-letra${dir}`, '*');
   const hideTimer = useRef<number | undefined>(undefined);
 
   const hideChrome = useCallback(() => {
@@ -102,7 +110,7 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
           Bíblia caía acima do documento mesmo em tela larga */}
       <SplitLayout divided={split} left={<ScripturePane />}>
         <div
-          className="preach-stage split doc-stage"
+          className={`preach-stage split doc-stage${isHtml ? " is-html" : ""}`}
           style={{ justifyContent: 'flex-start' }}
           onPointerDown={(e) => {
             touch.current = { x: e.clientX, y: e.clientY, at: Date.now() };
@@ -143,20 +151,22 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
           {title || attachment.name}
           {pages ? ` · ${pages} pág` : ''}
         </span>
+        {/* na mensagem HTML, A−/A+ mudam a letra dela (pela ponte do quadro) */}
         <button
           className="icon-btn"
-          onClick={() => setZoom((z) => Math.max(0.5, Number((z - 0.15).toFixed(2))))}
-          aria-label="Diminuir a página"
+          onClick={() => (isHtml ? letterInMessage('-') : setZoom((z) => Math.max(0.5, Number((z - 0.15).toFixed(2)))))}
+          aria-label={isHtml ? 'Diminuir a letra da mensagem' : 'Diminuir a página'}
         >
           <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>A-</span>
         </button>
         <button
           className="icon-btn"
-          onClick={() => setZoom((z) => Math.min(3, Number((z + 0.15).toFixed(2))))}
-          aria-label="Aumentar a página"
+          onClick={() => (isHtml ? letterInMessage('+') : setZoom((z) => Math.min(3, Number((z + 0.15).toFixed(2)))))}
+          aria-label={isHtml ? 'Aumentar a letra da mensagem' : 'Aumentar a página'}
         >
           <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>A+</span>
         </button>
+        {!isHtml && (<>
         <button
           className={`icon-btn${settings.trimMargins ? ' active' : ''}`}
           onClick={() => update({ trimMargins: !settings.trimMargins })}
@@ -168,6 +178,7 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
         >
           <Icon name="crop" />
         </button>
+        </>)}
         <button
           className="icon-btn"
           onClick={() => downloadBlob(attachment.blob, attachment.name)}
