@@ -25,6 +25,16 @@ export interface WhatsNewEntry {
 
 const ENTRIES: WhatsNewEntry[] = [
   {
+    id: '2026-11-24-guia-html',
+    title: 'Passo a passo da mensagem em HTML',
+    items: [
+      {
+        title: 'Guia com as telas do app',
+        text: 'Na Ajuda, "Mensagem em HTML — passo a passo (PDF)" mostra como importar, andar pelos tópicos e assuntos, mudar o tamanho da letra da mensagem e da Bíblia, e pregar só com a mensagem ou com a Bíblia ao lado.',
+      },
+    ],
+  },
+  {
     id: '2026-11-25-temas',
     title: 'Dois temas novos e mensagens em HTML',
     items: [

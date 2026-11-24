@@ -277,6 +277,13 @@ assistente, em vez de substituí-las.
   `docs/manual-atualizar/manual.html`; para refazer, imprima no Chromium em A4
   com fundo. Não cita Rhema (o arquivo é público).
 - Ajuda: o tópico do APK deixou de dizer que não há aviso de versão nova.
+- **PDF "Mensagem em HTML — passo a passo"** em `public/mensagem-html.pdf`
+  (15 páginas 16:9, fotos reais do app com marcas douradas numeradas), cartão
+  na Ajuda. Gerado por `docs/manual-mensagem-html/gerar.mjs` (instruções no
+  topo do arquivo) sobre a edição 2.0, para o menu não mostrar Rhema/Escola.
+  A mensagem das fotos é um exemplo neutro (`conteudo-exemplo.json`, Salmo 23,
+  textos da Almeida 1911) — nunca use uma mensagem real do dono: o arquivo é
+  público. Refaça o PDF quando a tela do Gerador ou do Modo Pregação mudar.
 
 ### 0at. ✅ Edição 2.0: sem Rhema e sem Escola de Ministros (só APK)
 

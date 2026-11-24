@@ -1,0 +1,77 @@
+{
+ "titulo": "O Senhor é o meu pastor",
+ "abertura": [
+  ["fr", "**Propósito:** mostrar, a partir do Salmo 23, o cuidado de Deus em cada fase do caminho: provisão, direção, presença e esperança."],
+  ["p", "Esta é uma mensagem de exemplo, feita para mostrar como o Farol da Palavra abre uma mensagem em HTML. Os textos bíblicos são da Almeida 1911, de domínio público."],
+  ["vs", ["O Senhor é o meu pastor, nada me faltará.", "Salmos 23:1 (Almeida 1911)"]]
+ ],
+ "topicos": [
+  {"etiqueta": "INTRODUÇÃO", "titulo": "Um salmo para todas as estações", "blocos": [
+   ["p", "O Salmo 23 é um dos textos mais conhecidos das Escrituras. Ele foi lido em leitos de hospital, em cultos de gratidão e à beira de sepulturas."],
+   ["p", "Davi conhecia o trabalho de um pastor. Antes de ser rei, cuidou de ovelhas, procurou pasto, enfrentou o perigo e conduziu o rebanho de volta."],
+   ["p", "Por isso, quando diz \"O Senhor é o meu pastor\", ele fala de uma relação pessoal, e não de uma ideia distante."],
+   ["h", "O Bom Pastor"],
+   ["p", "Jesus tomou para si essa imagem e mostrou até onde vai o cuidado do pastor."],
+   ["vs", ["Eu sou o bom Pastor: o bom Pastor dá a sua vida pelas ovelhas.", "João 10:11 (Almeida 1911)"]],
+   ["h", "O caminho desta mensagem"],
+   ["b", ["Provisão: nada me faltará;", "Direção: guia-me pelas veredas da justiça;", "Presença: tu estás comigo;", "Esperança: habitarei na casa do Senhor."]],
+   ["q", ["Quem tem sido o pastor da sua vida?"]]
+  ]},
+  {"etiqueta": "1. PROVISÃO", "titulo": "Nada me faltará", "blocos": [
+   ["txt", "Salmos 23:1-2; Filipenses 4:19."],
+   ["h", "1.1. Verdes pastos"],
+   ["p", "O pastor sabe onde está o alimento. A ovelha não precisa adivinhar o caminho; precisa seguir quem conhece a terra."],
+   ["vs", ["Deitar-me faz em verdes pastos, guia-me mansamente a aguas mui quietas.", "Salmos 23:2 (Almeida 1911)"]],
+   ["p", "Deus supre o que é necessário no tempo certo, e muitas vezes por caminhos que não imaginávamos."],
+   ["h", "1.2. Descanso"],
+   ["p", "As águas tranquilas lembram que o cuidado de Deus inclui o descanso. O rebanho que só corre se cansa e se perde."],
+   ["p", "A provisão de Deus alcança o corpo, a alma e o espírito."],
+   ["vs", ["Porém o meu Deus, segundo as suas riquezas, supprirá todas as vossas necessidades em gloria, por Christo Jesus.", "Filipenses 4:19 (Almeida 1911)"]],
+   ["q", ["Você tem descansado no cuidado de Deus?"]]
+  ]},
+  {"etiqueta": "2. DIREÇÃO", "titulo": "Veredas da justiça", "blocos": [
+   ["txt", "Salmos 23:3; João 10:27."],
+   ["h", "2.1. Ele refrigera a alma"],
+   ["p", "Antes de guiar, o pastor restaura. Ele levanta a ovelha cansada e a põe de novo no caminho."],
+   ["vs", ["Refrigera a minha alma; guia-me pelas veredas da justiça, por amor do seu nome.", "Salmos 23:3 (Almeida 1911)"]],
+   ["h", "2.2. Ouvir a voz do pastor"],
+   ["p", "A direção vem de uma voz conhecida. Quanto mais perto do pastor, mais clara fica essa voz."],
+   ["vs", ["As minhas ovelhas ouvem a minha voz, e eu conheço-as, e ellas me seguem;", "João 10:27 (Almeida 1911)"]],
+   ["p", "As veredas da justiça são caminhos retos, que honram o nome de Deus."],
+   ["q", ["Que decisão você precisa entregar à direção de Deus hoje?"]]
+  ]},
+  {"etiqueta": "3. PRESENÇA", "titulo": "Tu estás comigo", "blocos": [
+   ["txt", "Salmos 23:4; Isaías 40:11."],
+   ["h", "3.1. No vale"],
+   ["p", "O salmo não promete uma vida sem vales. Promete companhia dentro deles."],
+   ["vs", ["Ainda que eu andasse pelo valle da sombra da morte, não temeria mal algum, porque tu estás comigo; a tua vara e o teu cajado me consolam.", "Salmos 23:4 (Almeida 1911)"]],
+   ["h", "3.2. Vara e cajado"],
+   ["p", "A vara protege contra o inimigo; o cajado traz de volta a ovelha que se desvia. As duas coisas consolam."],
+   ["vs", ["Como pastor apascentará o seu rebanho; entre os seus braços recolherá os cordeirinhos, e os levará no seu seio.", "Isaías 40:11 (Almeida 1911)"]],
+   ["q", ["Em que vale você precisa lembrar que o Senhor está com você?"]]
+  ]},
+  {"etiqueta": "4. HONRA", "titulo": "Uma mesa preparada", "blocos": [
+   ["txt", "Salmos 23:5."],
+   ["h", "4.1. Diante dos inimigos"],
+   ["p", "A imagem muda do campo para a casa: o pastor agora é o anfitrião que prepara a mesa."],
+   ["vs", ["Preparas uma mesa perante mim na presença dos meus inimigos, unges a minha cabeça com oleo, o meu calix trasborda.", "Salmos 23:5 (Almeida 1911)"]],
+   ["h", "4.2. O cálice transborda"],
+   ["p", "Deus não dá na medida exata do mínimo. Ele honra, unge e faz transbordar."],
+   ["p", "O que transborda alcança quem está perto. A bênção recebida se torna bênção repartida."]
+  ]},
+  {"etiqueta": "5. ESPERANÇA", "titulo": "A casa do Senhor", "blocos": [
+   ["txt", "Salmos 23:6; João 10:28; 1 Pedro 5:4."],
+   ["h", "5.1. Bondade e misericórdia"],
+   ["p", "O salmo termina olhando para a frente. Atrás de nós, como guardas, seguem a bondade e a misericórdia."],
+   ["vs", ["Certamente que a bondade e a misericordia me seguirão todos os dias da minha vida: e habitarei na casa do Senhor por longos dias.", "Salmos 23:6 (Almeida 1911)"]],
+   ["h", "5.2. Segurança eterna"],
+   ["vs", ["E dou-lhes a vida eterna, e nunca perecerão, e ninguem as arrebatará da minha mão.", "João 10:28 (Almeida 1911)"]],
+   ["p", "O caminho com o pastor tem destino: a casa do Pai."]
+  ]},
+  {"etiqueta": "", "titulo": "Conclusão", "blocos": [
+   ["p", "Provisão, direção, presença, honra e esperança: tudo começa com uma frase simples, dita com fé."],
+   ["h", "Declaração final"],
+   ["decl", "“O Senhor é o meu pastor. Ele cuida de mim, me guia e está comigo em todo vale. Eu sigo a Sua voz, e habitarei na casa do Senhor por longos dias.”"]
+  ]}
+ ]
+}

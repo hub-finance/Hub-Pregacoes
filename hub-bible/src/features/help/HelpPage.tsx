@@ -99,6 +99,24 @@ export default function HelpPage() {
         </button>
       </div>
 
+      {/* Passo a passo da mensagem em HTML, com fotos do app abrindo uma
+          mensagem de exemplo. Fonte e gerador em docs/manual-mensagem-html/. */}
+      <div className="card row" style={{ marginBottom: 'var(--sp-4)', gap: 'var(--sp-3)' }}>
+        <Icon name="download" size={22} style={{ flex: 'none', color: 'var(--accent-strong)' }} />
+        <span className="list-body" style={{ flex: 1, minWidth: 0 }}>
+          <span className="list-title">Mensagem em HTML — passo a passo (PDF)</span>
+          <span className="list-meta">Importar, tópicos e assuntos, tamanho da letra, Modo Pregação e Bíblia ao lado, com as telas do app.</span>
+        </span>
+        <button
+          className="btn btn-sm"
+          style={{ flex: 'none' }}
+          disabled={pdfBusy !== null}
+          onClick={() => downloadPdf('mensagem-html.pdf', 'Farol da Palavra - mensagem em HTML.pdf')}
+        >
+          {pdfBusy === 'mensagem-html.pdf' ? 'Baixando…' : 'Baixar PDF'}
+        </button>
+      </div>
+
       <div className="stack">
         {TOPICS.filter((t) => HAS_RHEMA || !/^(Rhema|Escola de Ministros)/.test(t.title)).map((topic) => (
           <details key={topic.title} className="card help-topic">
