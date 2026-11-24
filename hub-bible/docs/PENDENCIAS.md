@@ -188,6 +188,11 @@ entregue ao usuário e **não fica no repositório**.
   `script#mensagem` (formato do "Modo Púlpito" do usuário) ou, sem ele, a
   página comum (h1/h2 abrem tópicos) e monta com pdfmake em marinho e dourado
   (`pdfFromDefinition` em `pdf.ts`). Teste: 44.
+  **Correção (APK 95 → 96):** no Modo Pregação/Aula a barra de baixo some em 3 s
+  e volta com um toque no documento — mas o toque dentro do `iframe` não chega
+  ao app, e o pregador ficou sem o botão da Bíblia ao lado. Com HTML,
+  `DocumentStage` deixa a barra sempre à vista e fixa embaixo (sem A−/A+ e
+  aparar, que são da página PDF), e a mensagem ocupa o palco até ela. Teste: 18.
 - **Regra do usuário para os livros (24/11): ler o livro INTEIRO, do começo ao
   fim, e cobrir TODOS os assuntos que ele trata** — não trabalhar com amostra
   de frases. Na entrega, mostrar a tabela "tema → onde está no livro → em que
