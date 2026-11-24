@@ -246,7 +246,14 @@ export function DocumentViewer({ attachment, dense, zoom: outerZoom, trim, onPag
              quadro isolado não deixa o app chamar a impressão dele. */
           const html = await attachment.blob.text();
           if (cancelled) return;
-          const bridge = '<script>addEventListener("message",function(e){if(e.data==="hub-imprimir"){try{print()}catch(_){}}});<\/script>';
+          // ponte com o app: imprimir e a letra (A−/A+ da barra do Modo
+          // Pregação). Com os botões de letra da própria mensagem (#fsp/#fsm do
+          // Modo Púlpito), usa eles; numa página comum, muda a letra da página.
+          const bridge =
+            '<script>(function(){var s=1;function letra(d){var b=document.getElementById(d>0?"fsp":"fsm");' +
+            'if(b){b.click();return;}s=Math.max(0.6,Math.min(2.2,s+d*0.1));document.documentElement.style.fontSize=(s*100)+"%";}' +
+            'addEventListener("message",function(e){if(e.data==="hub-imprimir"){try{print()}catch(_){}}' +
+            'else if(e.data==="hub-letra+")letra(1);else if(e.data==="hub-letra-")letra(-1);});})();<\/script>';
           const frame = document.createElement('iframe');
           frame.className = 'doc-html-frame';
           frame.title = attachment.name;

@@ -52,6 +52,8 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
      controles dela em cima. */
   const isHtml = attachment.format === 'html';
   const chrome = chromeState || isHtml;
+  const letterInMessage = (dir: '+' | '-') =>
+    document.querySelector<HTMLIFrameElement>('iframe.doc-html-frame')?.contentWindow?.postMessage(`hub-letra${dir}`, '*');
   const hideTimer = useRef<number | undefined>(undefined);
 
   const hideChrome = useCallback(() => {
@@ -149,21 +151,22 @@ export function DocumentStage({ title, attachment, timer = true, splitByDefault 
           {title || attachment.name}
           {pages ? ` · ${pages} pág` : ''}
         </span>
-        {!isHtml && (<>
+        {/* na mensagem HTML, A−/A+ mudam a letra dela (pela ponte do quadro) */}
         <button
           className="icon-btn"
-          onClick={() => setZoom((z) => Math.max(0.5, Number((z - 0.15).toFixed(2))))}
-          aria-label="Diminuir a página"
+          onClick={() => (isHtml ? letterInMessage('-') : setZoom((z) => Math.max(0.5, Number((z - 0.15).toFixed(2)))))}
+          aria-label={isHtml ? 'Diminuir a letra da mensagem' : 'Diminuir a página'}
         >
           <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>A-</span>
         </button>
         <button
           className="icon-btn"
-          onClick={() => setZoom((z) => Math.min(3, Number((z + 0.15).toFixed(2))))}
-          aria-label="Aumentar a página"
+          onClick={() => (isHtml ? letterInMessage('+') : setZoom((z) => Math.min(3, Number((z + 0.15).toFixed(2)))))}
+          aria-label={isHtml ? 'Aumentar a letra da mensagem' : 'Aumentar a página'}
         >
           <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>A+</span>
         </button>
+        {!isHtml && (<>
         <button
           className={`icon-btn${settings.trimMargins ? ' active' : ''}`}
           onClick={() => update({ trimMargins: !settings.trimMargins })}
