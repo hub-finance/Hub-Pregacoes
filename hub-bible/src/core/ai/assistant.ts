@@ -24,7 +24,7 @@ import {
   type TheologicalEntry,
   type TypologyPair,
 } from '../bible/reference-data';
-import { buildDoctrinalBlock, findGuidesForPassage, getDoctrinalPack } from '../bible/doctrinalPack';
+import { buildDoctrinalBlock, findGuidesForRequest, getDoctrinalPack } from '../bible/doctrinalPack';
 import { GOAL_HINT, GOAL_LABEL, documentGoal, type AssistantGoal } from './assistantDocument';
 import { materialForAi, type AssistantMaterial } from '../data/assistantMaterials';
 
@@ -196,6 +196,10 @@ COMO ESTA ABA FUNCIONA (regras do aplicativo)
    Use-os como fonte principal e prefira-os à memória. O léxico embutido está em
    inglês: traduza e explique em português. A base doutrinária é material pessoal
    de estudo, não Escritura: use o entendimento dela sem citar o nome do material.
+   Ela é a linha doutrinária do pregador: quando estiver no bloco, interprete
+   dentro dela e use o vocabulário dela; havendo mais de um guia, o que vem
+   primeiro tem prioridade. A Escritura continua acima: se o texto bíblico não
+   sustentar algo da base, diga isso com respeito e mostre o texto.
 2. Não há acesso à internet. Se pedirem "pesquise fontes", investigue a partir do
    texto bíblico, dos dados do aparelho e do conhecimento geral reconhecido, e diga
    que não há consulta a fontes externas; nunca invente obras ou autores.
@@ -388,12 +392,17 @@ export async function buildAssistantContext(
   }
 
   /* 5. base doutrinária importada pelo pregador (fica só no aparelho dele) */
-  if (unique.length) {
+  // por todas as passagens e pelo tema do pedido, mesmo sem versículo
+  {
     const pack = await getDoctrinalPack().catch(() => null);
     if (pack) {
-      const block = buildDoctrinalBlock(findGuidesForPassage(pack, unique[0], !unique[0].verse));
+      const block = buildDoctrinalBlock(findGuidesForRequest(pack, unique, text));
       if (block) {
-        sections.push(`BASE DOUTRINÁRIA DO PREGADOR (material pessoal de estudo; não é Escritura):\n${block}`);
+        sections.push(
+          'BASE DOUTRINÁRIA DO PREGADOR — é a linha doutrinária dele (material pessoal de estudo; não é Escritura). ' +
+            'Interprete dentro dela; os guias vêm em ordem de prioridade.\n' +
+            block,
+        );
         sources.push('sua base doutrinária');
       }
     }

@@ -190,6 +190,73 @@ export function findGuidesForPassage(
     .slice(0, limit);
 }
 
+/* ───────────── guias que tratam do pedido: passagens e tema ───────────── */
+
+const foldWord = (w: string) => w.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+/** Raiz simples: "unção/ungido" não se juntam, mas "autoridade/autoridades", "batismo/batismos" sim. */
+const stem = (w: string) => (w.length >= 6 ? w.slice(0, 6) : w.replace(/s$/, ''));
+const STOP = new Set(
+  ('que para com como uma umas uns dos das nos nas pelo pela pelos pelas sobre entre esta este isso isto essa esse ' +
+    'qual quais quando onde porque mais menos muito muita seu sua seus suas meu minha nosso nossa voce voces ' +
+    'estude estudo estudar explique explicar fale falar mostre mostrar quero queria faca fazer monte montar ' +
+    'prepare preparar pregacao mensagem folha apoio resumo resuma diga dizer sobre biblia biblico biblica ' +
+    'texto textos versiculo versiculos capitulo livro palavra significado significa ensino ensina tema assunto ' +
+    'deus senhor jesus cristo mundo vida todo todos toda todas coisa coisas pessoa pessoas homem homens ' +
+    'dentro fora grande outro outra outros outras ainda sempre nunca hoje agora poder pode podemos').split(' '),
+);
+/** Palavras curtas que são temas por si: "fé", "amor", "cura", "paz". */
+const SHORT_THEMES = new Set(['fe', 'amor', 'cura', 'paz', 'graca', 'lei', 'ceu', 'uncao', 'ira']);
+
+function themeStems(text: string): string[] {
+  const words = (text.match(/[\p{L}]+/gu) ?? []).map(foldWord);
+  return [...new Set(words.filter((w) => (w.length >= 5 || SHORT_THEMES.has(w)) && !STOP.has(w)).map(stem))];
+}
+
+function hits(hay: string, stems: string[]): number {
+  const words = new Set((hay.match(/[\p{L}]+/gu) ?? []).map((w) => stem(foldWord(w))));
+  return stems.filter((s) => words.has(s)).length;
+}
+
+/**
+ * Os guias da base que tratam do pedido: os que usam alguma das passagens
+ * citadas e os que tratam do tema ("Estude a unção", "o que é a autoridade do
+ * crente") — mesmo sem versículo. A base é a linha doutrinária do pregador;
+ * ficar de fora num pedido por tema era o ponto fraco.
+ */
+export function findGuidesForRequest(
+  pack: DoctrinalPack,
+  refs: ParsedReference[],
+  text: string,
+  limit = 3,
+  stepsPerGuide = 3,
+): GuideMatch[] {
+  const stems = themeStems(text);
+  const scored = pack.guias.map((guide, order) => {
+    const byPassage = guide.passos.filter((s) => refs.some((r) => stepMatches(s, r, !r.verse)));
+    const titleHits = hits(guide.titulo, stems);
+    // uma palavra solta no meio do texto não basta ("mundo" em "o que está no
+    // mundo"): o tema precisa estar no título do guia ou em duas palavras do passo
+    const stepHits = guide.passos.map((s) => {
+      const n = hits(`${s.conceito} ${s.resumo}`, stems);
+      // no nome do passo vale mesmo sozinha: "Fé em Deus", "Imposição de mãos"
+      const named = hits(s.conceito, stems) > 0;
+      return n >= 2 || (n === 1 && (titleHits || named)) ? n * 2 + hits(s.explicacao, stems) : 0;
+    });
+    const byTheme = guide.passos.filter((_, i) => stepHits[i] > 0);
+    const score = byPassage.length * 4 + titleHits * 3 + Math.max(0, ...stepHits);
+    const chosen = [...new Set([...byPassage, ...byTheme.sort((a, b) => stepHits[guide.passos.indexOf(b)] - stepHits[guide.passos.indexOf(a)])])];
+    // o título bate mas nenhum passo em particular: os primeiros passos dão o panorama
+    const steps = (chosen.length ? chosen : titleHits ? guide.passos : []).slice(0, stepsPerGuide);
+    return { guide, steps, score, order };
+  });
+  return scored
+    .filter((m) => m.steps.length && m.score > 0)
+    // empate: vale a ordem da base, que é a ordem de prioridade do pregador
+    .sort((a, b) => b.score - a.score || a.order - b.order)
+    .slice(0, limit)
+    .map(({ guide, steps }) => ({ guide, steps }));
+}
+
 /** Limite para não estourar o contexto nem o custo da chamada. */
 const MAX_BLOCK_CHARS = 14000;
 

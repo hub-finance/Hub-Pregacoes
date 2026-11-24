@@ -32,7 +32,7 @@ import {
   type TheologicalEntry,
   type TypologyPair,
 } from '../bible/reference-data';
-import { findGuidesForPassage, getDoctrinalPack } from '../bible/doctrinalPack';
+import { findGuidesForRequest, getDoctrinalPack } from '../bible/doctrinalPack';
 import { validateReferences } from '../ai/provider';
 import { findRequestReferences, type AssistantDepth, type AssistantMode } from '../ai/assistant';
 import type { AssistantGoal } from '../ai/assistantDocument';
@@ -416,17 +416,26 @@ async function gather(input: EngineInput): Promise<Gathered> {
   }
   if (guides.length) sources.add('guias doutrinários');
 
+  // a base do pregador: pelas passagens do pedido (todas) e pelo tema, mesmo sem versículo
   const pack: Gathered['pack'] = [];
-  const packAnchor = anchor ?? texts[0];
-  if (packAnchor) {
-    const p = await getDoctrinalPack().catch(() => null);
-    if (p) {
-      for (const m of findGuidesForPassage(p, packAnchor, !packAnchor.verse, 2)) {
-        for (const s of m.steps.slice(0, 2)) {
-          pack.push({ titulo: m.guide.titulo, conceito: s.conceito, resumo: s.resumo, explicacao: s.explicacao, aplicacao: s.aplicacao, textos: s.textos });
-        }
+  const p = await getDoctrinalPack().catch(() => null);
+  if (p) {
+    const refs = [...(anchor ? [anchor] : []), ...texts];
+    for (const m of findGuidesForRequest(p, refs, input.text, 2, 2)) {
+      for (const s of m.steps) {
+        pack.push({ titulo: m.guide.titulo, conceito: s.conceito, resumo: s.resumo, explicacao: s.explicacao, aplicacao: s.aplicacao, textos: s.textos });
       }
-      if (pack.length) sources.add('sua base doutrinária');
+    }
+    if (pack.length) sources.add('sua base doutrinária');
+  }
+
+  // pedido só por tema: os versículos da base do pregador viram os textos do estudo
+  if (!texts.length && pack.length) {
+    const seen = new Set<string>();
+    for (const r of pack.flatMap((x) => x.textos).map(osisToRef)) {
+      if (!r || seen.has(refKey(r)) || seen.size >= 5) continue;
+      seen.add(refKey(r));
+      texts.push(r);
     }
   }
 
@@ -536,10 +545,17 @@ function guidesSection(g: Gathered): string {
       lines.push(`- **${s.conceito}:** ${s.resumo}${refs ? ` (${refs})` : ''}`);
     }
   }
-  for (const p of g.pack) {
-    lines.push(`- **${p.conceito}** (da sua base doutrinária): ${p.resumo} ${p.explicacao}${p.aplicacao ? ` Aplicação: ${p.aplicacao}` : ''}`);
-  }
   return lines.join('\n');
+}
+
+/** A linha doutrinária do pregador (a base que ele importou), na ordem de prioridade dela. */
+function packSection(g: Gathered): string {
+  return g.pack
+    .map((p) => {
+      const refs = p.textos.slice(0, 3).map(osisToRef).filter(Boolean).map((r) => `[${formatReference(r!)}]`).join(', ');
+      return `- **${p.conceito}:** ${p.resumo} ${p.explicacao}${p.aplicacao ? `\n  *Aplicação:* ${p.aplicacao}` : ''}${refs ? `\n  Textos: ${refs}` : ''}`;
+    })
+    .join('\n');
 }
 
 const section = (title: string, body: string) => (body.trim() ? `## ${title}\n${body.trim()}` : '');
@@ -556,6 +572,7 @@ async function studyText(g: Gathered, input: EngineInput): Promise<string> {
       g.cross.length ? `Referências cruzadas: ${g.cross.map((r) => `[${formatReference(r)}]`).join(', ')}.` : '',
     ].filter(Boolean).join('\n\n')],
     ['Língua original', [originalSection(g), familySection(g)].filter(Boolean).join('\n\n')],
+    ['Na sua linha doutrinária', packSection(g)],
     ['O que o dicionário diz', dictionarySection(g)],
     ['Comentários', commentsSection(g)],
     ['Cristo e a Nova Aliança', typologySection(g)],
@@ -591,7 +608,11 @@ async function messageText(g: Gathered, input: EngineInput): Promise<string> {
   const main = g.main ?? g.keyTexts[0];
   const points: string[] = [];
   const asked: Array<{ concept: string; ref?: ParsedReference }> = [];
-  const steps = g.guides.flatMap((x) => x.steps).slice(0, 4);
+  // a base do pregador vem primeiro: é a linha doutrinária dele
+  const steps = [
+    ...g.pack.map((x) => ({ conceito: x.conceito, resumo: x.resumo, textos: x.textos })),
+    ...g.guides.flatMap((x) => x.steps),
+  ].slice(0, 4);
   if (steps.length) {
     for (const [i, s] of steps.entries()) {
       const refs = s.textos.slice(0, 2).map(osisToRef).filter(Boolean) as ParsedReference[];
@@ -613,7 +634,7 @@ async function messageText(g: Gathered, input: EngineInput): Promise<string> {
   }
   const parts = [
     section('Texto-base', main ? await quote(t, main) : ''),
-    section('Ideia central', g.entries[0] ? firstSentence(g.entries[0].definicao) : ''),
+    section('Ideia central', g.pack[0] ? g.pack[0].resumo : g.entries[0] ? firstSentence(g.entries[0].definicao) : ''),
     section('Pontos', points.join('\n\n')),
     section('Cristo e a Nova Aliança', typologySection(g)),
     section('No original', originalSection(g)),
@@ -628,6 +649,7 @@ async function summaryText(g: Gathered, input: EngineInput): Promise<string> {
   const first = g.entries[0];
   const parts = [
     section('Em poucas palavras', first ? first.definicao : ''),
+    section('Na sua linha doutrinária', g.pack.slice(0, 3).map((p) => `- **${p.conceito}:** ${p.resumo}`).join('\n')),
     section('Textos-chave', await quotes(t, balance(g.keyTexts, 4))),
     section('No original', originalSection({ ...g, lexicon: g.lexicon.slice(0, 2) })),
     section('Distinção', first?.distincao ?? ''),
@@ -681,7 +703,7 @@ export async function buildStudyWithoutAi(input: EngineInput): Promise<EngineOut
   if (input.material && input.material2) return buildFromTwoMaterials(input, input.material, input.material2);
   if (input.material) return buildFromMaterial(input, input.material);
   const g = await gather(input);
-  const empty = !g.keyTexts.length && !g.entries.length && !g.lexicon.length;
+  const empty = !g.keyTexts.length && !g.entries.length && !g.lexicon.length && !g.pack.length;
   if (empty) return { content: NOTHING, validRefs: [], sources: [] };
 
   const body = input.mode === 'auditoria'
