@@ -282,33 +282,39 @@
 }
 
 /* ----------------------------- marinho e ouro ---------------------------- */
-/* Azul-marinho profundo com destaques em dourado (referência que o pregador
-   trouxe: "12.000 esboços", fundo marinho com o ouro dos títulos e botões).
-   Os botões dourados levam texto marinho, como na referência. */
+/* Marinho por fora, branco por dentro, dourado em destaque — a referência que o
+   pregador trouxe (o anúncio dos "12.000 esboços": fundo marinho #082038, a
+   tela do tablet branca, ícones e botões em ouro #cea965 com letra marinha).
+   A moldura (menu, barra do alto, barra de baixo) fica em marinho.css; aqui é
+   o conteúdo, onde se lê: branco, texto marinho. O ouro dos textos é um tom
+   mais escuro que o dos botões, para ler bem sobre o branco. */
 :root[data-theme='marinho'] {
-  color-scheme: dark;
-  --bg: #0b1a33;
-  --bg-elevated: #102447;
-  --bg-sunken: #081428;
-  --surface: #11264a;
-  --surface-2: #163059;
-  --surface-hover: #1c3a6a;
-  --border: #1f3a66;
-  --border-strong: #2d4f84;
-  --text: #f4f6fb;
-  --text-2: #c3cde0;
-  --text-3: #8e9bb6;
-  --accent: #d4a84f;
-  --accent-strong: #e6c06e;
-  --accent-soft: #2a2e2c;
-  --accent-contrast: #0b1a33;
-  --danger: #f08c86;
-  --success: #6fcf9f;
-  --info: #8fc3ef;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-3: 0 20px 56px rgba(0, 0, 0, 0.65);
-  --overlay: rgba(4, 10, 24, 0.72);
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-sunken: #eef2f7;
+  --surface: #ffffff;
+  --surface-2: #f4f7fb;
+  --surface-hover: #e9eff7;
+  --border: #d6dfea;
+  --border-strong: #b5c4d7;
+  --text: #0b2240;
+  --text-2: #33496a;
+  --text-3: #5a6d88;
+  --accent: #9c762a;
+  --accent-strong: #7f5f1e;
+  --accent-soft: #f7efdc;
+  --accent-contrast: #082038;
+  --gold: #cea965;
+  --gold-light: #e3c88f;
+  --navy: #082038;
+  --danger: #a8332e;
+  --success: #1f6b4f;
+  --info: #1f4a7a;
+  --shadow-1: 0 1px 2px rgba(8, 32, 56, 0.07), 0 1px 3px rgba(8, 32, 56, 0.07);
+  --shadow-2: 0 6px 20px rgba(8, 32, 56, 0.12);
+  --shadow-3: 0 18px 48px rgba(8, 32, 56, 0.2);
+  --overlay: rgba(8, 32, 56, 0.55);
 }
 
 /* ---------------------------- preto e amarelo ---------------------------- */
@@ -367,7 +373,6 @@
   --accent: #0f3f33;
 }
 :root[data-contrast='high'][data-theme='azul'],
-:root[data-contrast='high'][data-theme='marinho'],
 :root[data-contrast='high'][data-theme='amarelo'],
 :root[data-contrast='high'][data-theme='preto'] {
   --text: #ffffff;
@@ -376,6 +381,14 @@
   --border: #4a515e;
   --border-strong: #6b7382;
   --accent: #ffd79a;
+}
+:root[data-contrast='high'][data-theme='marinho'] {
+  --text: #000000;
+  --text-2: #0b2240;
+  --text-3: #2c4466;
+  --border: #8ea2bd;
+  --border-strong: #5f7799;
+  --accent: #6b4f12;
 }
 :root[data-contrast='high'][data-theme='safira'] {
   --text: #0a1628;

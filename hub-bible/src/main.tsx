@@ -14,6 +14,7 @@ import './styles/assistant.css';
 import './styles/esmeralda.css';
 import './styles/institucional.css';
 import './styles/preto.css';
+import './styles/marinho.css';
 import { registerReaderFonts } from './styles/fonts';
 
 registerReaderFonts();

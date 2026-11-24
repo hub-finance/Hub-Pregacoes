@@ -31,7 +31,7 @@ const THEME_COLOR: Record<ResolvedTheme, string> = {
   esmeralda: '#123d33',
   institucional: '#1f4373',
   preto: '#141518',
-  marinho: '#0b1a33',
+  marinho: '#082038',
   amarelo: '#0e0e0f',
 };
 

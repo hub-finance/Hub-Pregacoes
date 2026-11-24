@@ -12,7 +12,7 @@ export function ReaderSettingsSheet({ open, onClose }: { open: boolean; onClose:
     { id: 'sepia', label: 'Sépia', icon: 'sepia' as const },
     { id: 'azul', label: 'Noite azul', icon: 'moon' as const },
     { id: 'ministerial', label: 'Ministerial', icon: 'moon' as const },
-    { id: 'marinho', label: 'Marinho e ouro', icon: 'moon' as const },
+    { id: 'marinho', label: 'Marinho e ouro', icon: 'sun' as const },
     { id: 'preto', label: 'Preto', icon: 'moon' as const },
     { id: 'amarelo', label: 'Preto e amarelo', icon: 'moon' as const },
     { id: 'safira', label: 'Safira', icon: 'sun' as const },
