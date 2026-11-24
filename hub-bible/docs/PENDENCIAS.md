@@ -125,6 +125,28 @@ ficam no repositório):**
   "Isra e l"); os índices do fim do livro de Fee entram no último capítulo.
   Levar as mesmas correções para `hub-resumos/src/core/importers.ts`/`text.ts`.
 
+**Segundo lote (24/11): três livros de Kenneth E. Hagin** ("O Espírito dentro
+de nós e o Espírito sobre nós", "A autoridade do crente", "Compreendendo a
+unção" em .doc). **Decisão do usuário: são a doutrina dele, "sem reservas"** —
+na Biblioteca entram com prioridade máxima (acima do livro de doutrinas e de
+Fee). Feito no leitor:
+- `.doc` (Word 97–2003): `docToText` lê o Compound File e a tabela de peças;
+  41 mil palavras, igual ao LibreOffice. O seletor do assistente aceita `.doc`.
+- `normalizeReferences`: "Romanos 5. 17", "I Coríntios 14. 14", "2 REIS 3. 15"
+  viram reconhecíveis (só se a referência existir). Unção: 2 → 132 versículos.
+- Sumário: entradas seguidas com a mesma página são um título só.
+- `withoutInstitution` (assistantMaterials): frase que cita a instituição
+  ("Centro de Treinamento Bíblico RHEMA") não vira frase central nem vai à IA;
+  a palavra grega rhēma continua.
+- Doutrinas vetadas: nenhuma nos três. Atenção para a Biblioteca: "a unção se
+  foi" (unção *sobre*, para o ministério, que varia) **não** é a vetada
+  "Espírito que entra e sai" (o Espírito *dentro*, permanente). O filtro precisa
+  distinguir as duas.
+- Próximo (passo 2): as "frases centrais" de hoje são quase sempre citações
+  bíblicas. O perfil precisa separar o que o autor AFIRMA ("Quando Cristo subiu
+  aos céus, transferiu Sua autoridade à Igreja") do que ele cita, e descartar
+  ficha de edição ("Título original… Tradução…").
+
 ### 0ay. ✅ Análise: as opções voltam ao alto, também sem chave
 
 O usuário achou pior a aba Análise do 0av ("o antigo era melhor"): no tablet

@@ -85,6 +85,132 @@ interface OutlineNode {
   items?: OutlineNode[];
 }
 
+/* ───────────── Word antigo (.doc, Word 97–2003) ─────────────
+ * Muitos e-books evangélicos ainda circulam em .doc. O arquivo é um "Compound
+ * File" (uma espécie de disco dentro do arquivo); o texto fica no fluxo
+ * WordDocument, em pedaços descritos pela tabela de peças (Clx) do fluxo
+ * 0Table/1Table. Lemos só o texto — sem formatação —, que é o que o
+ * assistente usa. */
+
+function readCompoundFile(data: ArrayBuffer): Map<string, Uint8Array> {
+  const view = new DataView(data);
+  const bytes = new Uint8Array(data);
+  if (view.getUint32(0, true) !== 0xe011cfd0 || view.getUint32(4, true) !== 0xe11ab1a1) {
+    throw new Error('Este .doc não é um arquivo do Word reconhecível.');
+  }
+  const sectorSize = 1 << view.getUint16(0x1e, true);
+  const miniSize = 1 << view.getUint16(0x20, true);
+  const sectorAt = (n: number) => (n + 1) * sectorSize;
+  const u32 = (off: number) => view.getUint32(off, true);
+  // a FAT: lista de setores, a partir da DIFAT (109 no cabeçalho + encadeados)
+  const fatSectors: number[] = [];
+  for (let i = 0; i < 109; i++) {
+    const sct = u32(0x4c + i * 4);
+    if (sct < 0xfffffffa) fatSectors.push(sct);
+  }
+  let difat = u32(0x44);
+  for (let guard = 0; difat < 0xfffffffa && guard < 10000; guard++) {
+    const base = sectorAt(difat);
+    for (let i = 0; i < sectorSize / 4 - 1; i++) {
+      const sct = u32(base + i * 4);
+      if (sct < 0xfffffffa) fatSectors.push(sct);
+    }
+    difat = u32(base + sectorSize - 4);
+  }
+  const fat: number[] = [];
+  for (const sct of fatSectors) {
+    const base = sectorAt(sct);
+    for (let i = 0; i < sectorSize / 4; i++) fat.push(u32(base + i * 4));
+  }
+  const chain = (start: number, table: number[]) => {
+    const out: number[] = [];
+    for (let n = start; n < 0xfffffffa && out.length <= table.length; n = table[n]) out.push(n);
+    return out;
+  };
+  const readChain = (start: number) => {
+    const list = chain(start, fat);
+    const out = new Uint8Array(list.length * sectorSize);
+    list.forEach((n, i) => out.set(bytes.subarray(sectorAt(n), sectorAt(n) + sectorSize), i * sectorSize));
+    return out;
+  };
+  const dir = readChain(u32(0x30));
+  const dv = new DataView(dir.buffer);
+  const entries: Array<{ name: string; type: number; start: number; size: number }> = [];
+  for (let off = 0; off + 128 <= dir.length; off += 128) {
+    const len = dv.getUint16(off + 0x40, true);
+    const name = String.fromCharCode(...new Uint16Array(dir.buffer.slice(off, off + Math.max(0, len - 2))));
+    entries.push({ name, type: dir[off + 0x42], start: dv.getUint32(off + 0x74, true), size: dv.getUint32(off + 0x78, true) });
+  }
+  const root = entries[0];
+  const cutoff = u32(0x38);
+  const miniFatRaw = u32(0x3c) < 0xfffffffa ? readChain(u32(0x3c)) : new Uint8Array();
+  const miniFat = Array.from({ length: miniFatRaw.length / 4 }, (_, i) => new DataView(miniFatRaw.buffer).getUint32(i * 4, true));
+  const miniStream = root ? readChain(root.start) : new Uint8Array();
+  const streams = new Map<string, Uint8Array>();
+  for (const e of entries) {
+    if (e.type !== 2) continue;
+    if (e.size < cutoff) {
+      const list = chain(e.start, miniFat);
+      const out = new Uint8Array(list.length * miniSize);
+      list.forEach((n, i) => out.set(miniStream.subarray(n * miniSize, (n + 1) * miniSize), i * miniSize));
+      streams.set(e.name, out.subarray(0, e.size));
+    } else {
+      streams.set(e.name, readChain(e.start).subarray(0, e.size));
+    }
+  }
+  return streams;
+}
+
+export async function docToText(data: ArrayBuffer): Promise<string> {
+  const streams = readCompoundFile(data);
+  const word = streams.get('WordDocument');
+  if (!word) throw new Error('Este .doc não tem o texto do Word.');
+  const wv = new DataView(word.buffer, word.byteOffset, word.byteLength);
+  const flags = wv.getUint16(0x0a, true);
+  if (flags & 0x0100) throw new Error('Este .doc está protegido por senha.');
+  const table = streams.get(flags & 0x0200 ? '1Table' : '0Table');
+  if (!table) throw new Error('Este .doc não tem a tabela de texto do Word.');
+  const tv = new DataView(table.buffer, table.byteOffset, table.byteLength);
+  const fcClx = wv.getUint32(0x01a2, true);
+  const lcbClx = wv.getUint32(0x01a6, true);
+  // a tabela de peças: pula as entradas de formatação (0x01) até a de texto (0x02)
+  let at = fcClx;
+  while (at < fcClx + lcbClx && table[at] === 0x01) at += 3 + tv.getUint16(at + 1, true);
+  if (table[at] !== 0x02) throw new Error('Não foi possível ler o texto deste .doc.');
+  const lcb = tv.getUint32(at + 1, true);
+  const plc = at + 5;
+  const n = (lcb - 4) / 12;
+  const cp1252 = new TextDecoder('windows-1252');
+  const utf16 = new TextDecoder('utf-16le');
+  let text = '';
+  for (let i = 0; i < n; i++) {
+    const cpStart = tv.getUint32(plc + i * 4, true);
+    const cpEnd = tv.getUint32(plc + (i + 1) * 4, true);
+    const fcRaw = tv.getUint32(plc + (n + 1) * 4 + i * 8 + 2, true);
+    const chars = cpEnd - cpStart;
+    if (fcRaw & 0x40000000) {
+      const fc = (fcRaw & ~0x40000000) / 2;
+      text += cp1252.decode(word.subarray(fc, fc + chars));
+    } else {
+      text += utf16.decode(word.subarray(fcRaw, fcRaw + chars * 2));
+    }
+  }
+  // só o corpo do documento (sem notas, cabeçalhos e comentários, que vêm depois)
+  const ccpText = wv.getUint32(0x004c, true);
+  if (ccpText > 0 && ccpText < text.length) text = text.slice(0, ccpText);
+  return text
+    // campos do Word: {código \x14 resultado} — fica só o resultado
+    .replace(/\x13[^\x13\x14\x15]*\x14([^\x13\x15]*)\x15/g, '$1')
+    .replace(/\x13[^\x13\x15]*\x15/g, '')
+    .replace(/\r|\x07/g, '\n')
+    .replace(/[\x0b\x0c\x0e]/g, '\n')
+    .replace(/[\x00-\x08\x10-\x1f]/g, '')
+    .replace(/\u00a0/g, ' ')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 /**
  * Os marcadores do PDF, com a página de cada um. Quando o primeiro nível
  * tem só o título do livro, usa os itens de dentro dele.
@@ -166,6 +292,30 @@ export function stripRunningLines(pages: string[][]): string[][] {
  * "E f 2.8" e a letra maiúscula descolada da palavra ("D o mesmo", "S eletividade").
  * A abreviatura só é colada se virar uma referência que existe.
  */
+const ROMAN: Record<string, string> = { I: '1', II: '2', III: '3' };
+
+/**
+ * Referências escritas à moda antiga: "Romanos 5. 17", "I Coríntios 14. 14",
+ * "II Reis 2:9", "I Jo. 4. 4". Viram "Romanos 5.17", "1 Coríntios 14.14"… só
+ * quando o resultado é uma referência que existe — "Capítulo I. 3 pontos"
+ * fica como está.
+ */
+export function normalizeReferences(text: string): string {
+  return text.replace(
+    /(^|[^\p{L}\d])(?:(I{1,3}|[1-3])\s?)?(\p{Lu}[\p{Ll}\p{Lu}]{1,14}\.?)\s(\d{1,3})(?:([.:])\s(\d{1,3})|(:)(\d{1,3}))/gu,
+    (all, pre: string, num: string | undefined, book: string, ch: string, sep1?: string, v1?: string, sep2?: string, v2?: string) => {
+      const verse = v1 ?? v2;
+      const sep = sep1 ?? sep2;
+      const n = num ? (ROMAN[num] ?? num) : '';
+      // só mexe se havia algo a consertar: espaço depois do ponto ou número romano
+      if (!v1 && !(num && ROMAN[num])) return all;
+      const ref = `${n ? `${n} ` : ''}${book.replace(/\.$/, '')} ${ch}:${verse}`;
+      if (!parseReference(ref)) return all;
+      return `${pre}${n ? `${n} ` : ''}${book} ${ch}${sep === ':' ? ':' : '.'}${verse}`;
+    },
+  );
+}
+
 const LOOSE_CAPITAL = /(^|[^\p{L}])([B-DF-HJ-NP-TV-Z]) (?=\p{Ll})/gu;
 
 export function fixOcr(text: string): string {
@@ -308,6 +458,7 @@ function readToc(lines: string[]): { entries: string[]; end: number } | null {
   const start = tocStart(lines, limit);
   if (start < 0) return null;
   const entries: string[] = [];
+  const pages: Array<string | null> = [];
   let misses = 0;
   let end = start - 1;
   let pending = '';
@@ -315,6 +466,7 @@ function readToc(lines: string[]): { entries: string[]; end: number } | null {
     const e = tocEntry(raw);
     if (e.length >= 3 && e.length <= 160 && /\p{L}{2}/u.test(e) && !TOC_HEAD.test(e)) {
       entries.push(e);
+      pages.push(/(\d{1,4})\s*$/.exec(raw)?.[1] ?? null);
       end = at;
       misses = 0;
       return true;
@@ -349,7 +501,14 @@ function readToc(lines: string[]): { entries: string[]; end: number } | null {
     if (!push(raw, j)) misses++;
   }
   if (pending) push(pending, end + 1);
-  return entries.length >= 3 ? { entries, end } : null;
+  // um título quebrado em duas linhas do sumário, cada uma com a mesma página
+  // ("O ESPÍRITO NO INTERIOR: O ESPÍRITO SANTO … 11" / "E O NOVO NASCIMENTO … 11")
+  const merged: string[] = [];
+  entries.forEach((e, i) => {
+    if (i && pages[i] && pages[i] === pages[i - 1]) merged[merged.length - 1] += ` ${e}`;
+    else merged.push(e);
+  });
+  return merged.length >= 3 ? { entries: merged, end } : null;
 }
 
 function splitByToc(lines: string[]): Part[] | null {
@@ -515,12 +674,16 @@ export async function readMaterialFile(file: File, onProgress?: (message: string
   if (name.endsWith('.docx')) {
     format = 'docx';
     text = await docxToText(await file.arrayBuffer());
+  } else if (name.endsWith('.doc')) {
+    format = 'docx';
+    text = await docToText(await file.arrayBuffer());
   } else if (name.endsWith('.pdf') || file.type === 'application/pdf') {
     format = 'pdf';
     text = await pdfToText(await file.arrayBuffer(), (p, t) => onProgress?.(`Lendo página ${p} de ${t}…`));
   } else {
-    throw new Error('Formato não aceito. Use PDF ou Word (.docx).');
+    throw new Error('Formato não aceito. Use PDF ou Word (.docx ou .doc).');
   }
+  text = normalizeReferences(text);
   const split = splitIntoSections(text, 'Introdução');
   // a capa ou o título do documento ("Título" no Word) vira parte sem texto:
   // sai das partes e, se vier primeiro, dá o nome ao material

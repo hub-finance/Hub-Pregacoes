@@ -172,6 +172,24 @@ function countTerms(text: string, dict: TheologicalEntry[]): FoundTerm[] {
   return out.sort((a, b) => b.count - a.count);
 }
 
+/**
+ * Frase que cita a instituição de onde vem o material ("Centro de Treinamento
+ * Bíblico RHEMA", "Escola Rhema", "rhemabrasil"). Nada do que o assistente
+ * escreve pode mostrar a origem: a frase não vira citação nem vai para a IA.
+ * A palavra grega rhēma, sem esse contexto, continua.
+ */
+const INSTITUTION =
+  /rh[eē]ma\s*(?:brasil|bible|training|ministr)|(?:centro|escola|instituto|semin[aá]rio|faculdade|igreja|minist[eé]rio|treinamento)[^.!?\n]{0,40}\brh[eē]ma\b|\brh[eē]ma\b[^.!?\n]{0,20}(?:escola|centro|treinamento)/i;
+
+export function withoutInstitution(text: string): string {
+  if (!INSTITUTION.test(text)) return text;
+  return text
+    .split(/(?<=[.!?…])(\s+)/)
+    .filter((piece) => !INSTITUTION.test(piece))
+    .join('')
+    .replace(/[ \t]{2,}/g, ' ');
+}
+
 function centralSentences(text: string, dict: TheologicalEntry[], limit: number): string[] {
   const terms = dict.flatMap(termVariants);
   const scored: Array<{ s: string; score: number; at: number }> = [];
@@ -179,7 +197,7 @@ function centralSentences(text: string, dict: TheologicalEntry[], limit: number)
   for (const paragraph of text.split(/\n{2,}|\n(?=[-•])/)) {
     for (const s of sentences(paragraph)) {
       at++;
-      if (s.length < 50 || s.length > 320) continue;
+      if (s.length < 50 || s.length > 320 || INSTITUTION.test(s)) continue;
       let score = 0;
       if (findInlineReferences(s).length) score += 3;
       const p = ` ${plain(s)} `;
@@ -259,7 +277,7 @@ export function materialForAi(material: AssistantMaterial, request: string, maxC
   const chosen: Array<{ i: number; text: string }> = [];
   let used = outline.length;
   for (const { p, i } of ordered) {
-    const block = `### ${i + 1}. ${p.title}\n${p.text.trim()}`;
+    const block = `### ${i + 1}. ${p.title}\n${withoutInstitution(p.text.trim())}`;
     const room = maxChars - used;
     if (room < 1500) break;
     const text = block.length > room ? `${block.slice(0, room - 1)}…` : block;
