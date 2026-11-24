@@ -147,6 +147,20 @@ Fee). Feito no leitor:
   aos céus, transferiu Sua autoridade à Igreja") do que ele cita, e descartar
   ficha de edição ("Título original… Tradução…").
 
+**"Compreendendo a unção" fechado (24/11), a pedido do usuário:** em vez de
+esperar a Biblioteca, virou uma **base doutrinária** (.json, formato
+`hub-bible/base-doutrinaria`) com 6 guias / 22 passos — unção dentro e sobre;
+Jesus, modelo do ministério ungido; dons ministeriais; aumentar e entregar-se;
+cura; unção coletiva. Escrita com palavras próprias, sem nome do livro nem do
+autor, e com a distinção explícita "o Espírito que habita não entra e sai; o
+que varia é a manifestação da unção para o serviço". Testada: o app aceita, os
+guias abrem e o assistente sem IA usa a base em Atos 10:38. O arquivo foi
+entregue ao usuário e **não fica no repositório**.
+- **Limitação a resolver antes do próximo livro:** importar uma base
+  **substitui** a que estiver no aparelho (`importDoctrinalPack` grava por cima).
+  Com um livro por dia, a importação precisa **somar** guias (por `id`), com
+  opção de remover um guia. Fazer junto com a Biblioteca.
+
 ### 0ay. ✅ Análise: as opções voltam ao alto, também sem chave
 
 O usuário achou pior a aba Análise do 0av ("o antigo era melhor"): no tablet
