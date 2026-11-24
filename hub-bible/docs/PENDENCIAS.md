@@ -84,6 +84,47 @@ sem IA (0t); Concordância removida (0u); importação de PDF e Word (0v).
   apareciam quadradinhos); fica a transliteração. Na tela continuam.
 - **Correção:** "Nova conversa" passou a limpar a passagem em foco.
 
+### 0az. ⏳ Biblioteca doutrinária — leitor corrigido; a construir
+
+**O que o usuário quer:** que o sistema "capte de forma inteligente" os livros
+e isso influencie o assistente e a interpretação. Ele vai pôr **um livro por
+dia**. Desenho combinado:
+1. **Estante** (aba própria): importa PDF/Word; fica só no aparelho; o nome do
+   livro nunca aparece no texto gerado.
+2. **Perfil de cada livro:** por doutrina, a posição do autor (2–3 frases), os
+   versículos-base, as palavras do original e os trechos-chave com página. Com
+   IA, a IA lê; sem IA, definições, citações e frases centrais.
+3. **Tela "O que aprendi com este livro":** aceitar / ajustar / recusar cada
+   doutrina. Divergência entre livros aparece lado a lado. Doutrinas vetadas
+   são recusadas sozinhas.
+4. **Influência:** com IA, o perfil aprovado vai em todo pedido como linha
+   doutrinária (a Escritura acima); sem IA, entra em "A interpretação sugere" e
+   em "O que a sua biblioteca diz" (3–5 trechos). Na leitura, aba "Biblioteca".
+5. Backup: item próprio em "O que levar na cópia".
+
+**Decisão do usuário:** livro de doutrinas **prevalece** sobre o de Gordon Fee
+("Entendes o que lês?"). Fee entra como **método** (regras por gênero:
+epístolas, narrativas, Atos, parábolas, lei, profetas, salmos, sabedoria,
+apocalipse); nas doutrinas, vale o livro de doutrinas. Ponto de atrito
+conhecido: o capítulo de Atos (precedente histórico só é norma se o autor quis
+ensiná-lo) × doutrinas tiradas de Atos (batismo no Espírito com línguas,
+imposição de mãos).
+
+**Feito (leitor, `materialImport.ts`), testado com os dois livros reais (não
+ficam no repositório):**
+- `stripRunningLines`: cabeçalho/rodapé repetido sai antes de montar o texto
+  (o da apostila trazia o nome da instituição 33 vezes e virava título de
+  parte). A linha do sumário e a primeira ocorrência do título ficam.
+- `fixOcr`: "SI"→"Sl", "lCoríntios"→"1Coríntios", "M t 5.17"→"Mt 5.17" (só se
+  virar referência válida) e, só em livro claramente escaneado, "D o"→"Do".
+- Títulos de capítulo comparados sem espaços e em até 4 linhas; linha de
+  sumário não se emenda à seguinte.
+- Resultado: apostila 37 → 19 partes certas, 0 menções à instituição; Fee
+  11 → 16 partes (os 13 capítulos), versículos 355 → 474.
+- Falta: títulos do sumário com palavra partida pelo OCR ("dim ensões",
+  "Isra e l"); os índices do fim do livro de Fee entram no último capítulo.
+  Levar as mesmas correções para `hub-resumos/src/core/importers.ts`/`text.ts`.
+
 ### 0ay. ✅ Análise: as opções voltam ao alto, também sem chave
 
 O usuário achou pior a aba Análise do 0av ("o antigo era melhor"): no tablet
@@ -324,10 +365,7 @@ Pedidos e decisões do usuário (revisão do que não tinha função):
 - **Ficam como estão (decisão do usuário):** a seção Sincronização, a Bíblia
   em inglês (KJV), Cursos e Rhema separados, os endereços antigos que só
   redirecionam e a antiga Biblioteca sem tela.
-- **Por último (pedido do usuário):** a "Biblioteca doutrinária". É um motor
-  dentro do sistema que guarda livros em PDF como memória doutrinária, procura
-  neles os trechos ligados a cada pedido e os usa com IA e sem IA, só no
-  aparelho. O livro "As doutrinas da Bíblia" entra aqui.
+- **Em andamento:** a "Biblioteca doutrinária" — ver 0az.
 
 ### 0ak. ✅ Backup completo: levar o tablet inteiro para o notebook
 

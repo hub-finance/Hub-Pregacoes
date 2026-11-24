@@ -10,6 +10,8 @@
  * Ao corrigir algo aqui, vale olhar o mesmo trecho no Hub Resumos.
  */
 
+import { parseReference } from '../bible/reference';
+
 export const MAX_MATERIAL_BYTES = 30 * 1024 * 1024;
 
 export interface MaterialPart {
@@ -106,12 +108,87 @@ async function outlineMarks(pdf: {
   return marks;
 }
 
+/** Chave de comparação de cabeçalho: sem acento, sem números (o número da página muda). */
+const edgeKey = (line: string) => fold(line).replace(/[\d\s.·|–—-]+/g, ' ').trim();
+const EDGE = 3;
+/** Linha de sumário: "12. Sabedoria … 271", com a linha pontilhada até o número. */
+const TOC_LINE = /(?:[.·…_]\s?){4,}\s*\d{1,4}\s*$/;
+
+/**
+ * Cabeçalhos e rodapés que se repetem pelas páginas ("DOUTRINAS BÁSICAS DA
+ * BÍBLIA 148…", "FERRAMENTA BÁSICA: UMA BOA TRADUÇÃO 45", o número solto da
+ * página). Se ficassem, viravam títulos de parte falsos ou entravam no meio
+ * das frases — e às vezes trazem o nome de quem fez o material, que nunca
+ * pode aparecer no que o assistente escreve. Só sai a linha da borda da
+ * página que (a) é só número, ou (b) se repete e traz número de página, ou
+ * (c) se repete em boa parte do livro. O título de um capítulo, que aparece
+ * sem número no começo dele, fica.
+ */
+export function stripRunningLines(pages: string[][]): string[][] {
+  if (pages.length < 4) return pages;
+  const seen = new Map<string, number>();
+  const first = new Map<string, number>();
+  const edges = (lines: string[]) => {
+    const idx = lines.map((l, i) => (l.trim() ? i : -1)).filter((i) => i >= 0);
+    return [...new Set([...idx.slice(0, EDGE), ...idx.slice(-EDGE)])];
+  };
+  pages.forEach((lines, page) => {
+    const keys = new Set(edges(lines).map((i) => edgeKey(lines[i])).filter((k) => k.length >= 3));
+    for (const k of keys) {
+      seen.set(k, (seen.get(k) ?? 0) + 1);
+      if (!first.has(k)) first.set(k, page);
+    }
+  });
+  const wide = Math.max(3, Math.floor(pages.length * 0.3));
+  return pages.map((lines, page) => {
+    const drop = new Set<number>();
+    for (const i of edges(lines)) {
+      const t = lines[i].trim();
+      // a entrada do sumário tem o mesmo texto do cabeçalho do capítulo — fica
+      if (TOC_LINE.test(t)) continue;
+      if (/^\d{1,4}$/.test(t)) {
+        drop.add(i);
+        continue;
+      }
+      const key = edgeKey(t);
+      const n = seen.get(key) ?? 0;
+      // a primeira vez, sem número de página, é o título do capítulo: fica
+      if (!/\d/.test(t) && first.get(key) === page) continue;
+      if ((n >= 3 && /\d/.test(t) && t.length <= 120) || n >= wide) drop.add(i);
+    }
+    return lines.filter((_, i) => !drop.has(i));
+  });
+}
+
+/**
+ * Erros típicos de livro escaneado (OCR) que atrapalham achar os versículos e
+ * ler as frases: "SI 111.10" (Sl), "lCoríntios"/"lC o" (1Co), "M t 5.17",
+ * "E f 2.8" e a letra maiúscula descolada da palavra ("D o mesmo", "S eletividade").
+ * A abreviatura só é colada se virar uma referência que existe.
+ */
+const LOOSE_CAPITAL = /(^|[^\p{L}])([B-DF-HJ-NP-TV-Z]) (?=\p{Ll})/gu;
+
+export function fixOcr(text: string): string {
+  // "Pio X de…" é legítimo: a maiúscula só é colada quando o livro está cheio
+  // desse defeito (escaneado), e não em texto limpo
+  const loose = (text.match(LOOSE_CAPITAL) ?? []).length;
+  const damaged = loose >= 25 && loose * 2000 >= countWords(text);
+  const fixed = text
+    .replace(/\bSI (?=\d{1,3}[.:,]\d)/g, 'Sl ')
+    .replace(/(^|[\s(;—–-])l(?=\s?(?:C\s?o|Co|Cor|Cr|Jo|Pe|Rs|Sm|Tm|Ts|Re)\b|Cor[ií]ntios|Tessalonicenses|Tim[oó]teo|Pedro|Jo[aã]o|Reis|Samuel|Cr[oô]nicas)/g, '$11')
+    .replace(/(^|[^\p{L}])([1-3]?\p{Lu}) (\p{Ll}{1,2})\.? ?(\d{1,3}[.:]\d{1,3})/gu, (all, pre: string, a: string, b: string, cv: string) =>
+      parseReference(`${a}${b} ${cv.replace('.', ':')}`) ? `${pre}${a}${b} ${cv}` : all,
+    );
+  return damaged ? fixed.replace(LOOSE_CAPITAL, '$1$2') : fixed;
+}
+
 export async function pdfToText(data: ArrayBuffer, onPage?: (page: number, total: number) => void): Promise<string> {
   const pdfjs = await import('pdfjs-dist');
   const workerUrl = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
   pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
   const pdf = await pdfjs.getDocument({ data: new Uint8Array(data) }).promise;
-  const pages: string[] = [];
+  let pages: string[] = [];
+  const raw: string[][] = [];
   try {
     for (let i = 1; i <= pdf.numPages; i++) {
       onPage?.(i, pdf.numPages);
@@ -127,14 +204,18 @@ export async function pdfToText(data: ArrayBuffer, onPage?: (page: number, total
         }
       }
       if (line.trim()) lines.push(line.trimEnd());
-      // linhas quebradas no meio da frase voltam a formar o parágrafo
-      pages.push(
-        lines
-          .join('\n')
-          .replace(/-\n(?=\p{Ll})/gu, '')
-          .replace(/([^\n.!?:;])\n(?=\p{Ll})/gu, '$1 '),
-      );
+      raw.push(lines);
     }
+    // linhas quebradas no meio da frase voltam a formar o parágrafo
+    pages = stripRunningLines(raw).map((lines) =>
+      lines
+        // a entrada do sumário não se emenda à de baixo, mesmo que ela comece
+        // com minúscula (o escaneado lê "Índices" como "índices")
+        .map((l) => (TOC_LINE.test(l) ? `${l}\n` : l))
+        .join('\n')
+        .replace(/-\n(?=\p{Ll})/gu, '')
+        .replace(/([^\n.!?:;])\n(?=\p{Ll})/gu, '$1 '),
+    );
     // os marcadores do PDF (o índice clicável do livro) dizem onde cada capítulo começa
     const marks = await outlineMarks(pdf).catch(() => []);
     if (marks.length >= 3) {
@@ -151,7 +232,7 @@ export async function pdfToText(data: ArrayBuffer, onPage?: (page: number, total
   } finally {
     await pdf.destroy();
   }
-  const text = pages.join('\n\n').trim();
+  const text = fixOcr(pages.join('\n\n').trim());
   if (!text) throw new Error('Este PDF não tem texto (provavelmente é digitalizado como imagem).');
   return text;
 }
@@ -288,19 +369,31 @@ function splitByToc(lines: string[]): Part[] | null {
 function locateChapters(lines: string[], entries: string[], from: number): Part[] | null {
   const starts: Array<{ line: number; body: number; title: string }> = [];
   let cursor = from;
+  // sem espaços: no livro escaneado a palavra vem partida ("contextual mente",
+  // "Isra e l"), no sumário e no título do capítulo, cada um do seu jeito
+  const squash = (x: string) => titleKey(x).replace(/ /g, '');
   for (const entry of entries) {
-    const key = titleKey(entry);
+    const key = squash(entry);
     if (key.length < 3) continue;
     for (let k = cursor; k < lines.length; k++) {
       const t = lines[k].trim();
       if (!t || t.length > key.length + 40) continue;
-      const lk = titleKey(t);
-      const two = k + 1 < lines.length ? titleKey(`${t} ${lines[k + 1].trim()}`) : '';
-      const three = k + 2 < lines.length ? titleKey(`${t} ${lines[k + 1].trim()} ${lines[k + 2].trim()}`) : '';
+      // o título pode vir quebrado em até quatro linhas
       let body = -1;
-      if (lk === key) body = k + 1;
-      else if (two === key && lines[k + 1].trim().length <= key.length + 40) body = k + 2;
-      else if (three === key && lines[k + 1].trim().length + lines[k + 2].trim().length <= key.length + 40) body = k + 3;
+      let joined = '';
+      let size = 0;
+      for (let n = 0; n < 4 && k + n < lines.length; n++) {
+        const piece = lines[k + n].trim();
+        joined = n ? `${joined} ${piece}` : piece;
+        size += piece.length;
+        if (n && size > key.length + 40) break;
+        const got = squash(joined);
+        if (got === key) {
+          body = k + n + 1;
+          break;
+        }
+        if (!key.startsWith(got)) break;
+      }
       if (body < 0) continue;
       // "CAPÍTULO 1" numa linha e o título na seguinte: o capítulo começa no número
       let line = k;
