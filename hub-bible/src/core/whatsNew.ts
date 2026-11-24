@@ -29,6 +29,10 @@ const ENTRIES: WhatsNewEntry[] = [
     title: 'Leitura melhor de livros e apostilas',
     items: [
       {
+        title: 'O assistente segue a sua base doutrinária',
+        text: 'Agora a sua base entra também nos pedidos por tema, sem versículo ("Estude a unção", "a autoridade do crente"), e em todas as passagens do pedido. Sem IA aparece "Na sua linha doutrinária"; com IA, ela orienta a interpretação.',
+      },
+      {
         title: 'A base doutrinária soma, não substitui',
         text: 'Em Guias Doutrinários, "Acrescentar" junta os guias de um arquivo novo aos que você já tem; um guia repetido é atualizado. Para tirar um só, abra o guia e toque em "Remover este guia".',
       },

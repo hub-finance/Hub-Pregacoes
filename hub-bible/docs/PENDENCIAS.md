@@ -168,6 +168,25 @@ entregue ao usuário e **não fica no repositório**.
   João 7:38. O livro de Fee não entrou: é método, fica para a Biblioteca.
 - **Próximos livros:** cada um vira um .json com ids próprios (prefixo do
   tema) e é importado com "Acrescentar".
+- **A base influencia o assistente (24/11):** `findGuidesForRequest` (em
+  `doctrinalPack.ts`) acha guias por **todas** as passagens do pedido e pelo
+  **tema** (título do guia, ou duas palavras do passo, ou o nome do passo;
+  palavras genéricas como "mundo" e "poder" não contam). Sem IA: seção "Na sua
+  linha doutrinária", pontos da Folha de apoio e do Resumo vêm da base, e um
+  pedido só por tema usa os versículos dos guias. Com IA: o bloco vai com
+  "interprete dentro dela; os guias vêm em ordem de prioridade" e a regra 1 do
+  prompt diz que a Escritura fica acima. A aba Análise do versículo continua
+  pela passagem (`findGuidesForPassage`). Teste: 12 + 16 temas (10 na base, 6
+  fora, sem falso positivo).
+- **Para depois (pedido do usuário, "depois fazemos"): a automação.** O app
+  fazer sozinho o que foi feito à mão: em Guias Doutrinários, "Criar guias de
+  um livro" → lê o livro (PDF/Word/.doc) → um passo por capítulo (conceito do
+  título; resumo e explicação = afirmações do autor, não citações nem relatos
+  em 1ª pessoa; textos = versículos mais usados no capítulo; aplicação; termos
+  do original do dicionário). Com IA, capítulo a capítulo em JSON, com
+  palavras próprias e sem nomes. Tela "O que aprendi com este livro": nome do
+  guia (nunca o do livro), marcar/desmarcar passos, "Salvar na minha base"
+  (soma). Nada foi implementado ainda.
 
 ### 0ay. ✅ Análise: as opções voltam ao alto, também sem chave
 
