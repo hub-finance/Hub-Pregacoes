@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>O Senhor é o meu pastor</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&family=Inter:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* Modo Púlpito v1 — tema "Azul, branco e dourado"
+   tela: fundo branco, títulos azul-marinho, detalhes dourados | impressão: azul-marinho #1E2A3E + laranja #B5541B, Calibri, A4
+   O conteúdo fica no bloco JSON id="mensagem" — para outra mensagem, basta trocar esse bloco. */
+:root{color-scheme:light;--bg:#ffffff;--soft:#f4f6fa;--soft2:#e9edf4;--ink:#1d2433;--mute:#667085;--navy:#1E2A3E;--blue:#24427a;--gold:#b8892a;--goldl:#f3e7c8;--ok:#1f8a4c;--warn:#c0392b;--fs:19px}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 var(--fs)/1.6 Inter,system-ui,sans-serif;overflow:hidden;display:flex;flex-direction:column}
+button,select{font:inherit;color:inherit}
+.top{display:flex;gap:10px;align-items:stretch;padding:10px max(3vw,10px);background:var(--navy)}
+.box{background:#2a3954;border-radius:14px;padding:6px 12px;display:flex;flex-direction:column;justify-content:center;color:#fff}
+.lab{font-size:12px;color:#aeb8ca;line-height:1.2}
+.big{font:800 26px/1.1 Montserrat,sans-serif;font-variant-numeric:tabular-nums}
+#tmr .big{color:#e8c46a}#tmr.over .big{color:#ff8a7a}
+.trow{display:flex;align-items:center;gap:8px}
+.ib{min-width:44px;min-height:44px;border:0;border-radius:12px;background:var(--soft2);color:var(--navy);cursor:pointer;display:grid;place-items:center;font-weight:600;padding:0 10px}
+.top .ib{background:#2a3954;color:#fff}
+.ib.gold,.top .ib.gold{background:var(--gold);color:#fff;border-radius:50%;padding:0}
+.ib:focus-visible,select:focus-visible,.chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.sp{flex:1}
+.bar{display:flex;align-items:center;gap:10px;padding:8px max(3vw,10px);font-size:14px;color:var(--mute);border-bottom:1px solid var(--soft2);flex-wrap:wrap}
+.chip{margin-left:auto;background:var(--soft);border:0;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer;color:var(--ink);font-size:14px;max-width:70%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip b{color:var(--navy)}
+#back{display:none;background:var(--gold);color:#fff;border:0;border-radius:999px;padding:8px 14px;min-height:40px;font-size:14px;font-weight:600;cursor:pointer}
+#back.on{display:inline-block}
+#deck{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+#deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:start;overflow-y:auto;padding:12px max(5vw,18px) 120px}
+.wrap{max-width:860px;margin:0 auto}
+.kick{font:800 clamp(26px,4.4vw,40px)/1.08 Montserrat,sans-serif;color:var(--navy);text-transform:uppercase;margin:10px 0 14px;padding-bottom:12px;border-bottom:3px solid var(--gold);text-wrap:balance}
+.tag{display:inline-block;background:var(--gold);color:#fff;font:800 13px/1 Montserrat,sans-serif;letter-spacing:.04em;padding:6px 10px;border-radius:6px;margin-top:10px}
+h2{font:800 clamp(22px,3.4vw,32px)/1.15 Montserrat,sans-serif;color:var(--navy);margin:10px 0 18px;text-wrap:balance}
+h3{font:600 1.02em/1.3 Montserrat,sans-serif;color:var(--blue);margin:28px 0 10px;padding-left:12px;border-left:4px solid var(--gold)}
+.k{cursor:pointer;border-radius:10px;transition:box-shadow .2s,background .2s}
+.k.mark{box-shadow:0 0 0 3px var(--gold);background:#fffaf0}
+p{margin:0 0 16px}
+b{color:var(--navy);font-weight:700}
+ul{list-style:none;padding:0;margin:0 0 16px}
+ul.bl li{position:relative;padding:6px 10px 6px 26px;margin:0 0 4px}
+ul.bl li::before{content:"";position:absolute;left:8px;top:.95em;width:8px;height:8px;background:var(--gold);border-radius:2px}
+.txt{font-size:.8em;color:var(--mute);border-bottom:1px dotted #c5cbd6;padding:4px 0 8px;margin:0 0 16px}
+.txt strong{color:var(--gold)}
+.vs{border-left:4px solid var(--gold);background:var(--soft);border-radius:4px 12px 12px 4px;padding:14px 18px;margin:0 0 16px;font-style:italic;color:#2a3140}
+.vs span{display:block;font-style:normal;font-weight:700;color:var(--gold);font-size:.8em;margin-top:6px}
+.fr{background:var(--goldl);border-left:4px solid var(--gold);border-radius:4px 12px 12px 4px;padding:14px 18px;margin:0 0 16px;color:var(--navy);font-weight:600}
+.qs{border:2px solid var(--navy);border-radius:12px;padding:12px 16px;margin:0 0 16px}
+.qs p{margin:4px 0;font-weight:700;color:var(--navy)}
+.qs p::before{content:"? ";color:var(--gold);font-weight:800}
+.decl{background:var(--navy);color:#fff;border-left:6px solid var(--gold);border-radius:6px 14px 14px 6px;padding:20px 22px;font-style:italic;font-weight:600;line-height:1.7}
+.fab{position:fixed;right:max(4vw,16px);bottom:22px;width:60px;height:60px;font-size:26px;box-shadow:0 6px 20px #1e2a3e40}
+.prev{right:calc(max(4vw,16px) + 72px)}
+.menu{position:fixed;inset:0;background:#0f172acc;display:none;align-items:flex-end;justify-content:center;z-index:9}
+.menu.on{display:flex}
+.sheet{background:#fff;width:min(640px,100%);border-radius:20px 20px 0 0;padding:18px;max-height:85vh;overflow:auto}
+.sheet button.it{display:block;width:100%;text-align:left;background:transparent;border:0;padding:10px;min-height:44px;border-radius:10px;cursor:pointer;font-size:16px;color:var(--ink)}
+.sheet button.sub2{padding-left:28px;font-size:14px;color:var(--mute);min-height:36px}
+.sheet button.cur{background:var(--soft);color:var(--navy);font-weight:700}
+.set{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;font-size:15px}
+select{background:var(--soft2);border:0;border-radius:10px;padding:10px;min-height:44px;font-size:16px}
+.note{font-size:13px;color:var(--mute);margin-top:14px}
+@media(max-width:600px){.big{font-size:21px}.top{gap:6px}.box{padding:6px 9px}}
+@media(prefers-reduced-motion:reduce){#deck{scroll-behavior:auto}}
+/* ---------- IMPRESSÃO / PDF (A4, azul-marinho + laranja) ---------- */
+@page{size:A4;margin:18mm 16mm}
+@media print{
+ :root{--fs:12pt;--gold:#B5541B;--goldl:#F4F5F7;--soft:#F4F5F7}
+ html,body{height:auto;overflow:visible;font-family:Calibri,Carlito,Arial,sans-serif;display:block}
+ .top,.bar,.fab,.menu{display:none!important}
+ #deck{display:block;overflow:visible}.slide{overflow:visible;padding:0}.wrap{max-width:none}
+ .kick{font-family:Calibri,Arial,sans-serif;font-size:22pt;text-transform:none}
+ h2{font-family:Calibri,Arial,sans-serif;font-size:16pt;break-after:avoid}
+ h3{font-family:Calibri,Arial,sans-serif;font-size:14pt;break-after:avoid}
+ .tag{font-family:Calibri,Arial,sans-serif}
+ .vs,.fr,.qs,.decl,li{break-inside:avoid}
+ .vs{margin-left:18px}
+ .k.mark{box-shadow:none;background:none}
+ .slide+.slide{break-before:page}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="box"><span class="lab">Hora atual</span><span class="big" id="clock">--:--</span></div>
+  <div class="box" id="tmr"><span class="lab" id="tlab">Tempo da mensagem</span>
+    <div class="trow"><span class="big" id="tval">00:00</span>
+      <button class="ib gold" id="tgo" aria-label="Iniciar ou pausar cronômetro" style="min-width:36px;min-height:36px">▶</button></div></div>
+  <span class="sp"></span>
+  <button class="ib" id="fsm" aria-label="Diminuir letra">A−</button>
+  <button class="ib" id="fsp" aria-label="Aumentar letra">A+</button>
+  <button class="ib" id="cfg" aria-label="Mapa e ajustes">☰</button>
+</header>
+<div class="bar"><span id="pos"></span><button id="back">↩ Voltar ao ponto</button><button class="chip" id="nxt"></button></div>
+<main id="deck"></main>
+<button class="ib fab prev" id="bp" aria-label="Tópico anterior">‹</button>
+<button class="ib gold fab" id="bn" aria-label="Próximo tópico">›</button>
+<div class="menu" id="menu"><div class="sheet">
+  <div id="list"></div>
+  <div class="set"><label for="meta">Meta</label>
+    <select id="meta"><option>30</option><option selected>40</option><option>45</option><option>50</option><option value="0">Livre</option></select>
+    <button class="ib" id="trs">Zerar</button>
+    <button class="ib" id="clr">Limpar marca</button>
+    <button class="ib" id="full">Tela cheia</button>
+    <button class="ib" id="prt">Imprimir / PDF</button></div>
+  <p class="note">Toque num parágrafo para marcar onde parou; "Voltar ao ponto" leva você de volta. Teclado: ← → trocam de tópico, espaço inicia/pausa o cronômetro, M volta à marca.</p>
+</div></div>
+
+<!-- ===== CONTEÚDO DA MENSAGEM (o gerador substitui só este bloco) =====
+Tópico: {"etiqueta":"...", "titulo":"...", "blocos":[...]}. Blocos: p, h (subtítulo), b (lista simples), txt (textos de referência),
+vs ([texto, referência]), fr (frase de impacto), q (perguntas [..]), decl (declaração final). **texto** = negrito.
+"abertura" = blocos exibidos no início, antes do primeiro tópico. -->
+<script type="application/json" id="mensagem">{"titulo": "O Senhor é o meu pastor", "abertura": [["fr", "**Propósito:** mostrar, a partir do Salmo 23, o cuidado de Deus em cada fase do caminho: provisão, direção, presença e esperança."], ["p", "Esta é uma mensagem de exemplo, feita para mostrar como o Farol da Palavra abre uma mensagem em HTML. Os textos bíblicos são da Almeida 1911, de domínio público."], ["vs", ["O Senhor é o meu pastor, nada me faltará.", "Salmos 23:1 (Almeida 1911)"]]], "topicos": [{"etiqueta": "INTRODUÇÃO", "titulo": "Um salmo para todas as estações", "blocos": [["p", "O Salmo 23 é um dos textos mais conhecidos das Escrituras. Ele foi lido em leitos de hospital, em cultos de gratidão e à beira de sepulturas."], ["p", "Davi conhecia o trabalho de um pastor. Antes de ser rei, cuidou de ovelhas, procurou pasto, enfrentou o perigo e conduziu o rebanho de volta."], ["p", "Por isso, quando diz \"O Senhor é o meu pastor\", ele fala de uma relação pessoal, e não de uma ideia distante."], ["h", "O Bom Pastor"], ["p", "Jesus tomou para si essa imagem e mostrou até onde vai o cuidado do pastor."], ["vs", ["Eu sou o bom Pastor: o bom Pastor dá a sua vida pelas ovelhas.", "João 10:11 (Almeida 1911)"]], ["h", "O caminho desta mensagem"], ["b", ["Provisão: nada me faltará;", "Direção: guia-me pelas veredas da justiça;", "Presença: tu estás comigo;", "Esperança: habitarei na casa do Senhor."]], ["q", ["Quem tem sido o pastor da sua vida?"]]]}, {"etiqueta": "1. PROVISÃO", "titulo": "Nada me faltará", "blocos": [["txt", "Salmos 23:1-2; Filipenses 4:19."], ["h", "1.1. Verdes pastos"], ["p", "O pastor sabe onde está o alimento. A ovelha não precisa adivinhar o caminho; precisa seguir quem conhece a terra."], ["vs", ["Deitar-me faz em verdes pastos, guia-me mansamente a aguas mui quietas.", "Salmos 23:2 (Almeida 1911)"]], ["p", "Deus supre o que é necessário no tempo certo, e muitas vezes por caminhos que não imaginávamos."], ["h", "1.2. Descanso"], ["p", "As águas tranquilas lembram que o cuidado de Deus inclui o descanso. O rebanho que só corre se cansa e se perde."], ["p", "A provisão de Deus alcança o corpo, a alma e o espírito."], ["vs", ["Porém o meu Deus, segundo as suas riquezas, supprirá todas as vossas necessidades em gloria, por Christo Jesus.", "Filipenses 4:19 (Almeida 1911)"]], ["q", ["Você tem descansado no cuidado de Deus?"]]]}, {"etiqueta": "2. DIREÇÃO", "titulo": "Veredas da justiça", "blocos": [["txt", "Salmos 23:3; João 10:27."], ["h", "2.1. Ele refrigera a alma"], ["p", "Antes de guiar, o pastor restaura. Ele levanta a ovelha cansada e a põe de novo no caminho."], ["vs", ["Refrigera a minha alma; guia-me pelas veredas da justiça, por amor do seu nome.", "Salmos 23:3 (Almeida 1911)"]], ["h", "2.2. Ouvir a voz do pastor"], ["p", "A direção vem de uma voz conhecida. Quanto mais perto do pastor, mais clara fica essa voz."], ["vs", ["As minhas ovelhas ouvem a minha voz, e eu conheço-as, e ellas me seguem;", "João 10:27 (Almeida 1911)"]], ["p", "As veredas da justiça são caminhos retos, que honram o nome de Deus."], ["q", ["Que decisão você precisa entregar à direção de Deus hoje?"]]]}, {"etiqueta": "3. PRESENÇA", "titulo": "Tu estás comigo", "blocos": [["txt", "Salmos 23:4; Isaías 40:11."], ["h", "3.1. No vale"], ["p", "O salmo não promete uma vida sem vales. Promete companhia dentro deles."], ["vs", ["Ainda que eu andasse pelo valle da sombra da morte, não temeria mal algum, porque tu estás comigo; a tua vara e o teu cajado me consolam.", "Salmos 23:4 (Almeida 1911)"]], ["h", "3.2. Vara e cajado"], ["p", "A vara protege contra o inimigo; o cajado traz de volta a ovelha que se desvia. As duas coisas consolam."], ["vs", ["Como pastor apascentará o seu rebanho; entre os seus braços recolherá os cordeirinhos, e os levará no seu seio.", "Isaías 40:11 (Almeida 1911)"]], ["q", ["Em que vale você precisa lembrar que o Senhor está com você?"]]]}, {"etiqueta": "4. HONRA", "titulo": "Uma mesa preparada", "blocos": [["txt", "Salmos 23:5."], ["h", "4.1. Diante dos inimigos"], ["p", "A imagem muda do campo para a casa: o pastor agora é o anfitrião que prepara a mesa."], ["vs", ["Preparas uma mesa perante mim na presença dos meus inimigos, unges a minha cabeça com oleo, o meu calix trasborda.", "Salmos 23:5 (Almeida 1911)"]], ["h", "4.2. O cálice transborda"], ["p", "Deus não dá na medida exata do mínimo. Ele honra, unge e faz transbordar."], ["p", "O que transborda alcança quem está perto. A bênção recebida se torna bênção repartida."]]}, {"etiqueta": "5. ESPERANÇA", "titulo": "A casa do Senhor", "blocos": [["txt", "Salmos 23:6; João 10:28; 1 Pedro 5:4."], ["h", "5.1. Bondade e misericórdia"], ["p", "O salmo termina olhando para a frente. Atrás de nós, como guardas, seguem a bondade e a misericórdia."], ["vs", ["Certamente que a bondade e a misericordia me seguirão todos os dias da minha vida: e habitarei na casa do Senhor por longos dias.", "Salmos 23:6 (Almeida 1911)"]], ["h", "5.2. Segurança eterna"], ["vs", ["E dou-lhes a vida eterna, e nunca perecerão, e ninguem as arrebatará da minha mão.", "João 10:28 (Almeida 1911)"]], ["p", "O caminho com o pastor tem destino: a casa do Pai."]]}, {"etiqueta": "", "titulo": "Conclusão", "blocos": [["p", "Provisão, direção, presença, honra e esperança: tudo começa com uma frase simples, dita com fé."], ["h", "Declaração final"], ["decl", "“O Senhor é o meu pastor. Ele cuida de mim, me guia e está comigo em todo vale. Eu sigo a Sua voz, e habitarei na casa do Senhor por longos dias.”"]]}]}</script>
+
+<script>
+{
+const M=JSON.parse(document.getElementById("mensagem").textContent),S=M.topicos,N=S.length;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rich=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+let K=0;const heads=[];
+const blk=([k,v],ti)=>{const id="k"+(K++),a=c=>`class="k${c?" "+c:""}" data-k="${id}" id="${id}"`;
+ switch(k){
+ case"p":return`<p ${a()}>${rich(v)}</p>`;
+ case"h":heads.push([ti,id,v]);return`<h3 id="${id}">${esc(v)}</h3>`;
+ case"b":return`<ul class="bl">${v.map((x,j)=>`<li class="k" id="${id}-${j}">${rich(x)}</li>`).join("")}</ul>`;
+ case"txt":return`<div class="txt"><strong>Textos:</strong> ${esc(v)}</div>`;
+ case"vs":return`<div ${a("vs")}>${rich(v[0])}<span>— ${esc(v[1])}</span></div>`;
+ case"fr":return`<div ${a("fr")}>${rich(v)}</div>`;
+ case"q":return`<div ${a("qs")}>${v.map(x=>`<p>${rich(x)}</p>`).join("")}</div>`;
+ case"decl":return`<div ${a("decl")}>${rich(v)}</div>`;
+ default:return"";}};
+const label=s=>(s.etiqueta?s.etiqueta+" — ":"")+s.titulo;
+document.title=M.titulo+" — Modo Púlpito";
+$("deck").innerHTML=S.map((s,i)=>`<section class="slide" id="t${i+1}"><div class="wrap">${i===0?`<div class="kick">${esc(M.titulo)}</div>${(M.abertura||[]).map(b=>blk(b,0)).join("")}`:""}${s.etiqueta?`<span class="tag">${esc(s.etiqueta)}</span>`:""}<h2>${esc(s.titulo)}</h2>${s.blocos.map(b=>blk(b,i)).join("")}</div></section>`).join("");
+const slides=[...$("deck").children];let cur=0;
+const go=i=>{i=Math.max(0,Math.min(N-1,i));slides[i].scrollIntoView({behavior:"smooth",inline:"start",block:"nearest"});};
+const jump=id=>{const el=$(id);if(!el)return;go(slides.indexOf(el.closest(".slide")));setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"center",inline:"nearest"}),380);};
+const upd=()=>{$("pos").textContent=`Tópico ${cur+1} de ${N}`;$("nxt").innerHTML=cur<N-1?`Próximo: <b>${esc(label(S[cur+1]))}</b> ▾`:`<b>Último tópico</b> ▾`;
+ $("list").innerHTML=S.map((s,i)=>`<button class="it ${i===cur?"cur":""}" data-t="${i}">${esc(label(s))}</button>`+heads.filter(h=>h[0]===i).map(h=>`<button class="it sub2" data-j="${h[1]}">${esc(h[2])}</button>`).join("")).join("");};
+const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting&&e.intersectionRatio>.6){cur=slides.indexOf(e.target);upd();}},{root:$("deck"),threshold:[.6]});
+slides.forEach(s=>io.observe(s));upd();
+const store=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}return null};
+const key="mp-mark-"+M.titulo;let mark=store(key);
+const paintMark=()=>{document.querySelectorAll(".k.mark").forEach(e=>e.classList.remove("mark"));if(mark&&$(mark))$(mark).classList.add("mark");$("back").classList.toggle("on",!!mark);};paintMark();
+$("deck").onclick=e=>{const k=e.target.closest(".k");if(!k)return;mark=mark===k.id?null:k.id;store(key,mark);paintMark();};
+$("back").onclick=()=>mark&&jump(mark);
+$("clr").onclick=()=>{mark=null;store(key,null);paintMark();};
+$("bn").onclick=()=>go(cur+1);$("bp").onclick=()=>go(cur-1);
+$("nxt").onclick=$("cfg").onclick=()=>$("menu").classList.add("on");
+$("menu").onclick=e=>{if(e.target.id==="menu"){$("menu").classList.remove("on");return;}const b=e.target.closest("[data-t],[data-j]");if(!b)return;$("menu").classList.remove("on");b.dataset.j?jump(b.dataset.j):go(+b.dataset.t);};
+let fs=+store("mp-fs")||19;const setFs=v=>{fs=Math.max(15,Math.min(30,v));document.documentElement.style.setProperty("--fs",fs+"px");store("mp-fs",String(fs));};setFs(fs);
+$("fsm").onclick=()=>setFs(fs-1);$("fsp").onclick=()=>setFs(fs+1);
+const two=n=>String(n).padStart(2,"0");
+let meta=+(store("mp-meta")??40),run=false,acc=0,t0=0;$("meta").value=String(meta);
+const show=()=>{const s=Math.floor((acc+(run?Date.now()-t0:0))/1000);$("tval").textContent=(s>=3600?Math.floor(s/3600)+":":"")+two(Math.floor(s/60)%60)+":"+two(s%60);
+ $("tmr").classList.toggle("over",meta>0&&s>=meta*60);$("tlab").textContent="Tempo da mensagem · "+(meta?"meta "+meta+" min":"livre");
+ const d=new Date();$("clock").textContent=two(d.getHours())+":"+two(d.getMinutes());};
+const tog=async()=>{if(run){acc+=Date.now()-t0;run=false;$("tgo").textContent="▶";}else{t0=Date.now();run=true;$("tgo").textContent="❚❚";try{await navigator.wakeLock?.request("screen")}catch(e){}}show();};
+$("tgo").onclick=tog;$("trs").onclick=()=>{run=false;acc=0;$("tgo").textContent="▶";show();};
+$("meta").onchange=e=>{meta=+e.target.value;store("mp-meta",String(meta));show();};
+$("full").onclick=()=>{try{document.documentElement.requestFullscreen?.().catch(()=>{})}catch(e){}};
+$("prt").onclick=()=>{$("menu").classList.remove("on");try{window.print()}catch(e){}};
+setInterval(show,500);show();
+addEventListener("keydown",e=>{if(e.target.tagName==="SELECT")return;if(e.key==="ArrowRight")go(cur+1);else if(e.key==="ArrowLeft")go(cur-1);else if(e.key===" "){e.preventDefault();tog();}else if(e.key==="m"||e.key==="M"){mark&&jump(mark);}else if(e.key==="Escape")$("menu").classList.remove("on");});
+}
+</script>
+</body>
+</html>
