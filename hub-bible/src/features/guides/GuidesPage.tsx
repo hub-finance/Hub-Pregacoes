@@ -11,6 +11,7 @@ import {
   getDoctrinalPack,
   importDoctrinalPack,
   removeDoctrinalPack,
+  removePackGuide,
   type PackGuide,
   type PackStep,
 } from '../../core/bible/doctrinalPack';
@@ -147,7 +148,8 @@ function GuideDetail({ guide, onBack }: { guide: DoctrinalGuide; onBack: () => v
   );
 }
 
-function PackGuideDetail({ guide, onBack }: { guide: PackGuide; onBack: () => void }) {
+function PackGuideDetail({ guide, onBack, onRemove }: { guide: PackGuide; onBack: () => void; onRemove: () => void }) {
+  const [confirm, setConfirm] = useState(false);
   return (
     <div className="page">
       <DetailHeader title={guide.titulo} lead={guide.descricao} onBack={onBack} />
@@ -157,6 +159,21 @@ function PackGuideDetail({ guide, onBack }: { guide: PackGuide; onBack: () => vo
           <PackStepCard key={step.conceito} step={step} index={i} />
         ))}
       </div>
+      <button className="btn btn-sm btn-ghost" style={{ marginTop: 'var(--sp-4)' }} onClick={() => setConfirm(true)}>
+        <Icon name="trash" size={18} />
+        Remover este guia
+      </button>
+      <ConfirmDialog
+        open={confirm}
+        title="Remover este guia?"
+        message="Só este guia sai da sua base; os outros continuam. Dá para importar o arquivo de novo depois."
+        confirmLabel="Remover"
+        onCancel={() => setConfirm(false)}
+        onConfirm={() => {
+          setConfirm(false);
+          onRemove();
+        }}
+      />
     </div>
   );
 }
@@ -194,15 +211,29 @@ export default function GuidesPage() {
   const packGuide = selected?.startsWith('pack:')
     ? pack.data?.guias.find((g) => `pack:${g.id}` === selected)
     : null;
-  if (packGuide) return <PackGuideDetail guide={packGuide} onBack={() => setSelected(null)} />;
+  if (packGuide) {
+    return (
+      <PackGuideDetail
+        guide={packGuide}
+        onBack={() => setSelected(null)}
+        onRemove={async () => {
+          await removePackGuide(packGuide.id);
+          notify(`"${packGuide.titulo}" saiu da sua base.`);
+          setSelected(null);
+          pack.reload();
+        }}
+      />
+    );
+  }
   const guide = selected ? data?.find((g) => g.id === selected) : null;
   if (guide) return <GuideDetail guide={guide} onBack={() => setSelected(null)} />;
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
     try {
-      const imported = await importDoctrinalPack(file);
-      notify(`${imported.nome}: ${imported.guias.length} guias importados neste aparelho.`);
+      const { pack: merged, added, updated } = await importDoctrinalPack(file);
+      const parts = [added && `${added} ${added === 1 ? 'guia acrescentado' : 'guias acrescentados'}`, updated && `${updated} ${updated === 1 ? 'atualizado' : 'atualizados'}`].filter(Boolean);
+      notify(`${parts.join(', ') || 'Nada novo no arquivo'}. A base tem ${merged.guias.length} guias.`);
       pack.reload();
     } catch (err) {
       notify((err as Error).message, 'error');
@@ -254,11 +285,12 @@ export default function GuidesPage() {
               Compartilhar base
             </button>
             <button className="btn btn-sm" onClick={() => fileInput.current?.click()}>
-              Substituir
+              <Icon name="upload" size={18} />
+              Acrescentar
             </button>
             <button className="btn btn-sm btn-ghost" onClick={() => setConfirmRemove(true)}>
               <Icon name="trash" size={18} />
-              Remover
+              Remover tudo
             </button>
           </div>
         ) : (
@@ -303,8 +335,8 @@ export default function GuidesPage() {
 
       <ConfirmDialog
         open={confirmRemove}
-        title="Remover a base doutrinária?"
-        message="Os guias importados saem deste aparelho e a exegese deixa de usá-los. O seu arquivo continua onde estava; dá para importar de novo."
+        title="Remover a base doutrinária inteira?"
+        message="Todos os guias importados saem deste aparelho e a exegese deixa de usá-los. Para tirar um só, abra o guia e toque em “Remover este guia”. O seu arquivo continua onde estava; dá para importar de novo."
         confirmLabel="Remover"
         onCancel={() => setConfirmRemove(false)}
         onConfirm={async () => {

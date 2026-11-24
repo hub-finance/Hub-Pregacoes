@@ -29,6 +29,10 @@ const ENTRIES: WhatsNewEntry[] = [
     title: 'Leitura melhor de livros e apostilas',
     items: [
       {
+        title: 'A base doutrinária soma, não substitui',
+        text: 'Em Guias Doutrinários, "Acrescentar" junta os guias de um arquivo novo aos que você já tem; um guia repetido é atualizado. Para tirar um só, abra o guia e toque em "Remover este guia".',
+      },
+      {
         title: 'Word antigo (.doc)',
         text: 'No assistente, "Importar PDF ou Word" agora aceita também o .doc, o formato antigo do Word em que circulam muitos e-books.',
       },

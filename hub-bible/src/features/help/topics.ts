@@ -305,6 +305,7 @@ export const TOPICS: Topic[] = [
     steps: [
       'Os Guias Doutrinários percorrem um tema passo a passo, com textos bíblicos e verbetes do dicionário teológico. Alguns já vêm no aplicativo.',
       'Você pode importar a sua própria base doutrinária, um arquivo .json com guias: Guias Doutrinários › Importar. Os guias dela aparecem em "Da sua base", com explicação, palavras no original e aplicação.',
+      'A base cresce aos poucos: cada arquivo importado depois do primeiro é somado aos guias que já estão no aparelho ("Acrescentar"). Um guia que já existe é atualizado, sem duplicar. Para tirar um guia só, abra-o e toque em "Remover este guia"; "Remover tudo" apaga a base inteira deste aparelho.',
       'A base fica só neste aparelho. Não acompanha o aplicativo, não vai para ninguém e não entra no backup. Guarde o arquivo e importe de novo em outro aparelho — o navegador e o APK não compartilham dados.',
       'Com a base importada, a exegese ganha apoio dela na seção "Leitura na linha da fé": quando o versículo ou o capítulo aparece em algum guia, esse guia orienta a leitura. O Assistente bíblico também a usa quando a passagem em foco aparece num guia. A Escritura continua acima da base.',
       'Para passar a base a um pastor da equipe, toque em "Compartilhar base": o arquivo sai pronto para WhatsApp, e-mail ou Drive, e ele importa do mesmo jeito.',

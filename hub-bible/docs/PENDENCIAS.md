@@ -156,10 +156,18 @@ autor, e com a distinção explícita "o Espírito que habita não entra e sai; 
 que varia é a manifestação da unção para o serviço". Testada: o app aceita, os
 guias abrem e o assistente sem IA usa a base em Atos 10:38. O arquivo foi
 entregue ao usuário e **não fica no repositório**.
-- **Limitação a resolver antes do próximo livro:** importar uma base
-  **substitui** a que estiver no aparelho (`importDoctrinalPack` grava por cima).
-  Com um livro por dia, a importação precisa **somar** guias (por `id`), com
-  opção de remover um guia. Fazer junto com a Biblioteca.
+- **Resolvido:** `importDoctrinalPack` agora **soma** (guia novo entra, mesmo
+  `id` atualiza) e devolve `{pack, added, updated}`; `removePackGuide(id)` tira
+  um guia só. Na tela: "Acrescentar", "Remover tudo" e, no guia, "Remover este
+  guia". Teste: 30.
+- **Base entregue (24/11): "Minha base doutrinária", 15 guias / 54 passos** —
+  Unção (6), O Espírito dentro e sobre nós (3), A autoridade do crente (3) e
+  Doutrinas Básicas (3: sã doutrina; inspiração e confiabilidade; os seis
+  fundamentos de Hebreus 6). Usuário não tinha base importada. Arquivo fora do
+  repositório; o assistente sem IA usa a base em Efésios 1:20, Hebreus 6:1 e
+  João 7:38. O livro de Fee não entrou: é método, fica para a Biblioteca.
+- **Próximos livros:** cada um vira um .json com ids próprios (prefixo do
+  tema) e é importado com "Acrescentar".
 
 ### 0ay. ✅ Análise: as opções voltam ao alto, também sem chave
 

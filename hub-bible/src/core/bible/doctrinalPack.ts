@@ -91,16 +91,55 @@ export async function getDoctrinalPack(): Promise<DoctrinalPack | null> {
   return (row?.value as DoctrinalPack | undefined) ?? null;
 }
 
-export async function importDoctrinalPack(file: File): Promise<DoctrinalPack> {
+export interface PackImport {
+  pack: DoctrinalPack;
+  added: number;
+  updated: number;
+}
+
+/**
+ * Soma os guias do arquivo aos que já estão no aparelho: guia novo entra,
+ * guia com o mesmo `id` é atualizado, os outros ficam. O usuário monta a base
+ * aos poucos — um livro por dia —, e importar um não pode apagar os outros.
+ */
+export async function importDoctrinalPack(file: File): Promise<PackImport> {
   let raw: unknown;
   try {
     raw = JSON.parse(await file.text());
   } catch {
     throw new Error('Não foi possível ler o arquivo. Ele precisa ser o .json da base doutrinária.');
   }
-  const pack = validatePack(raw);
+  const incoming = validatePack(raw);
+  const current = await getDoctrinalPack();
+  if (!current) {
+    await db.settings.put({ key: STORAGE_KEY, value: incoming });
+    return { pack: incoming, added: incoming.guias.length, updated: 0 };
+  }
+  const guias = [...current.guias];
+  let added = 0;
+  let updated = 0;
+  for (const g of incoming.guias) {
+    const at = guias.findIndex((x) => x.id === g.id);
+    if (at >= 0) {
+      guias[at] = g;
+      updated++;
+    } else {
+      guias.push(g);
+      added++;
+    }
+  }
+  const pack: DoctrinalPack = { ...current, versao: Math.max(current.versao, incoming.versao), guias };
   await db.settings.put({ key: STORAGE_KEY, value: pack });
-  return pack;
+  return { pack, added, updated };
+}
+
+/** Tira um guia só da base; sem guias, a base sai inteira. */
+export async function removePackGuide(id: string): Promise<void> {
+  const current = await getDoctrinalPack();
+  if (!current) return;
+  const guias = current.guias.filter((g) => g.id !== id);
+  if (guias.length) await db.settings.put({ key: STORAGE_KEY, value: { ...current, guias } });
+  else await removeDoctrinalPack();
 }
 
 /** O arquivo para passar a outra pessoa, no mesmo formato que se importa. */
