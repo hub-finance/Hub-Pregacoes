@@ -178,6 +178,15 @@ entregue ao usuário e **não fica no repositório**.
   prompt diz que a Escritura fica acima. A aba Análise do versículo continua
   pela passagem (`findGuidesForPassage`). Teste: 12 + 16 temas (10 na base, 6
   fora, sem falso positivo).
+- **Regra do usuário para os livros (24/11): ler o livro INTEIRO, do começo ao
+  fim, e cobrir TODOS os assuntos que ele trata** — não trabalhar com amostra
+  de frases. Na entrega, mostrar a tabela "tema → onde está no livro → em que
+  guia entrou" e dizer o que ficou de fora e por quê. O Doutrinas Básicas vol. 1
+  foi feito por amostra e ficou incompleto (pecado/queda, salvação,
+  regeneração, Espírito Santo, últimas coisas, criação–queda–redenção–
+  glorificação): **refazer amanhã (25/11)**, lendo tudo; ids `doutrina-*` para
+  atualizar sem duplicar. Deus, justificação e santificação quase não aparecem
+  no vol. 1 — pedir os volumes seguintes.
 - **Para depois (pedido do usuário, "depois fazemos"): a automação.** O app
   fazer sozinho o que foi feito à mão: em Guias Doutrinários, "Criar guias de
   um livro" → lê o livro (PDF/Word/.doc) → um passo por capítulo (conceito do
