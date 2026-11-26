@@ -39,6 +39,15 @@ O que falta, na ordem combinada:
    anotação, Gerador ou Rhema, que entram. Avaliar com o usuário se conversas
    e materiais devem entrar (materiais podem ser grandes).
 
+**Para a próxima atualização (pedido de 24/11):** marca-texto **Creme** na
+Bíblia. O dono gostou do creme dourado das mensagens em HTML (`#f3e7c8`).
+Atenção: o marca-texto pinta a cor a 26% (`reader.css`, `.hl` com
+`color-mix`). Com `#f3e7c8` ele some no branco e no sépia. Usar um creme mais
+forte, perto de `#e9c987`, para que a 26% dê o creme visível, e conferir nos
+temas claros, no Marinho (conteúdo branco), no Preto e no Preto e amarelo.
+Entra como categoria nova em `HIGHLIGHT_CATEGORIES` (`src/core/categories.ts`)
+e como token `--hl-creme` em `tokens.css`, com entrada em Novidades.
+
 Pendências anteriores que continuam abertas:
 
 - **Piscada escura ao desbloquear o tablet** — ver "Retomar daqui (05/11)":
