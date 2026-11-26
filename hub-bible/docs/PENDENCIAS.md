@@ -48,6 +48,27 @@ temas claros, no Marinho (conteúdo branco), no Preto e no Preto e amarelo.
 Entra como categoria nova em `HIGHLIGHT_CATEGORIES` (`src/core/categories.ts`)
 e como token `--hl-creme` em `tokens.css`, com entrada em Novidades.
 
+**Para outro dia (pedido de 26/11): "Gerar em HTML" no assistente.** Quando
+o dono gostar de um estudo feito pelo assistente bíblico, ele toca num botão
+e o app monta o HTML pronto, em um de dois formatos:
+- **mensagem por tópicos**: o modelo do Gerador, com menu, "Próximo",
+  marcar onde parou e cronômetro;
+- **apostila em página A4**: para o Rhema, a Escola e Estudos.
+
+O HTML vai direto para a aba escolhida (Gerador, Estudos, Rhema ou Escola)
+e abre no Modo Pregação ou no Modo Aula como qualquer HTML importado.
+
+Base: o modelo por tópicos lê o conteúdo de um bloco JSON
+(`script#mensagem`, com `titulo`, `abertura` e `topicos[].blocos` dos tipos
+`p`, `vs`, `h`, `b`, `q`, `fr`, `txt` e `decl`). Ver
+`docs/manual-mensagem-html/exemplo-mensagem.html` e
+`src/core/export/htmlMessage.ts`.
+
+Regras:
+- os versículos vêm da Bíblia do aparelho, nunca da IA;
+- o texto da IA continua marcado como comentário;
+- sem nome de livro, autor ou instituição no texto gerado.
+
 Pendências anteriores que continuam abertas:
 
 - **Piscada escura ao desbloquear o tablet** — ver "Retomar daqui (05/11)":
