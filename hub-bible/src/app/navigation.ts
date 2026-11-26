@@ -21,6 +21,7 @@ const ALL_ITEMS: NavItem[] = [
   { to: '/favoritos', label: 'Favoritos', icon: 'star', quick: true, group: 'principal' },
   { to: '/anotacoes', label: 'Anotações', icon: 'note', quick: true, group: 'principal' },
   { to: '/dicionario', label: 'Dicionário', icon: 'dictionary', quick: true, group: 'principal' },
+  { to: '/estudos', label: 'Estudos', icon: 'folder', quick: true, group: 'ministerio' },
   { to: '/cursos', label: 'Cursos', icon: 'library', quick: true, group: 'ministerio' },
   { to: '/rhema', label: 'Rhema', icon: 'study', quick: true, group: 'ministerio' },
   { to: '/escola', label: 'Escola de Ministros', shortLabel: 'Escola', icon: 'school', quick: true, group: 'ministerio' },

@@ -29,6 +29,8 @@ interface Props<T extends BaseDoc> {
   /** Quando presente, a tela oferece importar um arquivo pronto (PDF/Word). */
   onImportFile?: (file: File) => Promise<void>;
   importAccept?: string;
+  /** Nome de um item, quando não é o do tipo (Estudos e Escola guardam `study`). */
+  itemLabel?: string;
   /** Só os documentos desta aba (Rhema e Escola de Ministros guardam o mesmo tipo). */
   filter?: (doc: T) => boolean;
 }
@@ -50,6 +52,7 @@ export function DocList<T extends BaseDoc>({
   onImportFile,
   importAccept,
   filter,
+  itemLabel,
 }: Props<T>) {
   const navigate = useNavigate();
   const { notify } = useToast();
@@ -162,11 +165,11 @@ export function DocList<T extends BaseDoc>({
       {!filtered.length ? (
         <EmptyState
           icon={icon}
-          title={`Nenhum ${DOC_LABEL[kind].toLowerCase()} encontrado`}
+          title={`Nenhum ${(itemLabel ?? DOC_LABEL[kind]).toLowerCase()} encontrado`}
           description={emptyDescription}
           action={
             <button className="btn btn-primary btn-sm" onClick={startNew}>
-              Criar {DOC_LABEL[kind].toLowerCase()}
+              Criar {(itemLabel ?? DOC_LABEL[kind]).toLowerCase()}
             </button>
           }
         />
@@ -210,7 +213,7 @@ export function DocList<T extends BaseDoc>({
 
       <ConfirmDialog
         open={!!removing}
-        title={`Excluir ${DOC_LABEL[kind].toLowerCase()}`}
+        title={`Excluir ${(itemLabel ?? DOC_LABEL[kind]).toLowerCase()}`}
         message={`"${removing?.title || 'Sem título'}" e suas anotações vinculadas serão removidos.`}
         onCancel={() => setRemoving(null)}
         onConfirm={async () => {

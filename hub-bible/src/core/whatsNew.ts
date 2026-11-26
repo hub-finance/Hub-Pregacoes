@@ -25,6 +25,16 @@ export interface WhatsNewEntry {
 
 const ENTRIES: WhatsNewEntry[] = [
   {
+    id: '2026-11-26-estudos',
+    title: 'Nova aba Estudos',
+    items: [
+      {
+        title: 'Material de apoio para estudar e pregar',
+        text: 'No menu, acima de Cursos: Estudos guarda apostilas, estudos e mensagens prontas em PDF, Word ou HTML. Toque em Importar, ou em Novo para escrever. Abre com a Bíblia ao lado no Modo Aula.',
+      },
+    ],
+  },
+  {
     id: '2026-11-26-groq-modelos',
     title: 'Groq corrigida',
     items: [

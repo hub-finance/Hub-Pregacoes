@@ -142,7 +142,7 @@ export const TOPICS: Topic[] = [
     icon: 'upload',
     title: 'Importar um sermão que já está pronto',
     steps: [
-      'Mensagem em HTML: o Gerador, o Rhema, Cursos e a Escola de Ministros também aceitam a mensagem montada em HTML — por tópicos (com menu, "Próximo", marcar onde parou e cronômetro) ou como página A4. Ela abre e funciona dentro do app, também no Modo Aula: toque e vá aonde quiser na mensagem. A marca de onde parou vale enquanto a mensagem está aberta.',
+      'Mensagem em HTML: o Gerador, Estudos, o Rhema, Cursos e a Escola de Ministros também aceitam a mensagem montada em HTML — por tópicos (com menu, "Próximo", marcar onde parou e cronômetro) ou como página A4. Ela abre e funciona dentro do app, também no Modo Aula: toque e vá aonde quiser na mensagem. A marca de onde parou vale enquanto a mensagem está aberta.',
       'Para imprimir ou levar em PDF: na barra do arquivo, "PDF" monta o arquivo em azul-marinho e dourado, um tópico por página (no aplicativo Android ele vai para a pasta Documentos). No navegador há também "Imprimir", com o visual de impressão da própria mensagem.',
       'Serve para o sermão que você já escreveu em PDF ou no Word e não quer digitar de novo.',
       'Sermões › botão Importar › escolha o arquivo. O título vem do nome do arquivo e pode ser trocado.',
@@ -182,6 +182,16 @@ export const TOPICS: Topic[] = [
       'Toque em Importar e escolha a apostila em PDF ou Word. Ela abre pronta, com o título de dentro do arquivo.',
       'Toque em "Modo Aula" para dar a aula: a apostila em tela cheia, com a Bíblia ao lado — a mesma tela do Rhema, com a busca dentro da apostila, as anotações e os versículos vinculados.',
       { to: '/escola', label: 'Abrir a Escola de Ministros', text: 'A Escola está no menu, no grupo Ministério.' },
+    ],
+  },
+  {
+    icon: 'folder',
+    title: 'Estudos — material de apoio',
+    steps: [
+      'A aba Estudos, acima de Cursos, guarda o material de apoio para estudar e preparar a pregação: apostilas, estudos e mensagens prontas.',
+      'Estudos › Importar › escolha o arquivo. Aceita PDF, Word e HTML (por tópicos ou página A4). Ou toque em "Novo" e escreva o estudo no app.',
+      'Com o material aberto, a lupa procura dentro dele, e "Modo Aula" abre em tela cheia com a Bíblia ao lado, como no Gerador e nos Cursos.',
+      'O que está em Estudos fica só em Estudos: não se mistura com os Cursos nem com as outras abas.',
     ],
   },
   {

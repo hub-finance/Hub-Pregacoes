@@ -31,6 +31,7 @@ const SermonEditorPage = lazy(() => import('./features/sermons/SermonEditorPage'
 const RhemaPage = lazy(() => import('./features/rhema/RhemaPage'));
 const RhemaEditorPage = lazy(() => import('./features/rhema/RhemaEditorPage'));
 const EscolaPage = lazy(() => import('./features/rhema/EscolaPage'));
+const EstudosPage = lazy(() => import('./features/studies/EstudosPage'));
 const ClassPage = lazy(() => import('./features/common/ClassPage'));
 const CoursesPage = lazy(() => import('./features/courses/CoursesPage'));
 const CourseEditorPage = lazy(() => import('./features/courses/CourseEditorPage'));
@@ -46,13 +47,7 @@ const ExportPage = lazy(() => import('./features/export/ExportPage'));
 const ExportEditorPage = lazy(() => import('./features/export/ExportEditorPage'));
 const AssistantPage = lazy(() => import('./features/assistant/AssistantPage'));
 
-/** `/estudos/:id` de antes do nome Rhema continua abrindo o mesmo documento. */
-function LegacyStudyRedirect() {
-  const { id } = useParams();
-  return <Navigate to={`/rhema/${id}`} replace />;
-}
-
-/** O mesmo para os devocionais, que agora vivem na aba Cursos. */
+/** Os devocionais agora vivem na aba Cursos: os endereços antigos continuam abrindo. */
 function LegacyDevotionalRedirect() {
   const { id } = useParams();
   return <Navigate to={`/cursos/${id}`} replace />;
@@ -146,8 +141,11 @@ export default function App() {
                   <Route path="/escola/:id" element={<RhemaEditorPage />} />
                   {/* endereços antigos continuam abrindo: o módulo mudou de
                       nome, não de conteúdo */}
-                  <Route path="/estudos" element={<Navigate to="/rhema" replace />} />
-                  <Route path="/estudos/:id" element={<LegacyStudyRedirect />} />
+                  {/* /estudos era o endereço antigo do Rhema; agora é a aba
+                      Estudos. Um link antigo para um estudo continua abrindo:
+                      o editor é o mesmo, e o "voltar" segue a aba do estudo. */}
+                  <Route path="/estudos" element={<EstudosPage />} />
+                  <Route path="/estudos/:id" element={<RhemaEditorPage />} />
                   <Route path="/cursos" element={<CoursesPage />} />
                   <Route path="/cursos/:id" element={<CourseEditorPage />} />
                   <Route path="/devocionais" element={<Navigate to="/cursos" replace />} />

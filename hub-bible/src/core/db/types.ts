@@ -176,10 +176,11 @@ export interface Study {
   id: ID;
   userId: ID;
   /**
-   * Em qual aba o estudo mora: ausente = Rhema; `escola` = Escola de Ministros.
+   * Em qual aba o estudo mora: ausente = Rhema; `escola` = Escola de Ministros;
+   * `estudos` = Estudos (material de apoio para estudar e pregar).
    * Campo sem índice: não muda o esquema do banco, e o backup leva junto.
    */
-  shelf?: 'escola';
+  shelf?: 'escola' | 'estudos';
   title: string;
   theme: string;
   mainText: string;
