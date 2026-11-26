@@ -48,22 +48,6 @@ temas claros, no Marinho (conteúdo branco), no Preto e no Preto e amarelo.
 Entra como categoria nova em `HIGHLIGHT_CATEGORIES` (`src/core/categories.ts`)
 e como token `--hl-creme` em `tokens.css`, com entrada em Novidades.
 
-**Para a semana que vem (pedido de 26/11) — sistema da igreja, não o Farol:**
-o dono vai mexer no sistema da igreja (com uma área de ADM), que também foi
-feito com o Claude. O código dele **não está neste repositório**: nem
-"Decisões" nem as abas novas existem aqui. Antes de começar, pedir o nome do
-repositório e acrescentá-lo à sessão. O que ele pediu:
-- **Sai:** a aba Decisões.
-- **Entram:** Centro de Cura, Rhema e GC Coordenação Geral.
-- **Esferas de atuação:** cada pastor vê e cuida só da sua esfera. Isso pede
-  login, papéis e permissões no servidor do sistema da igreja. O Farol não
-  tem conta nem servidor e assim deve continuar.
-- **Abas do ADM** que vão ser acopladas ao sistema da igreja (ele vai dizer
-  quais).
-- Lembrar: no Farol, nada público pode mostrar que um material é do Rhema.
-  Se a aba Rhema do sistema da igreja for pública, combinar com ele o que
-  aparece.
-
 Pendências anteriores que continuam abertas:
 
 - **Piscada escura ao desbloquear o tablet** — ver "Retomar daqui (05/11)":
