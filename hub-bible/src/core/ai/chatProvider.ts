@@ -8,7 +8,7 @@
 
 import type { AiProvider, AiRequest, AiResponse, AiSegment, AiTaskKind } from './provider';
 import { AI_DISCLAIMER, validateReferences } from './provider';
-import { loadAiConfig, type AiProviderId } from './config';
+import { loadAiConfig, saveGroqModels, type AiProviderId } from './config';
 import { loadAvailableTranslations, getChapter } from '../bible/repository';
 import { parseReference } from '../bible/reference';
 import { bookName } from '../bible/canon';
@@ -587,7 +587,7 @@ const PROVIDER_DEFAULTS: Record<Exclude<AiProviderId, 'none'>, string> = {
   openai: 'gpt-4.1-mini',
   gemini: 'gemini-3.8-flash',
   anthropic: 'claude-sonnet-5-5',
-  groq: 'llama-3.3-70b-versatile',
+  groq: 'openai/gpt-oss-120b',
 };
 
 type ApiCaller = (apiKey: string, model: string, system: string, turns: ChatTurn[], maxTokens: number) => Promise<string>;
@@ -680,6 +680,28 @@ export async function chatComplete(system: string, turns: ChatTurn[], maxTokens:
 }
 
 /**
+ * Pergunta à Groq quais modelos de texto estão no ar para esta chave e guarda
+ * a lista. Ficam de fora os de áudio, de moderação e os agentes.
+ */
+export async function fetchGroqModels(apiKey: string): Promise<string[]> {
+  const res = await fetch('https://api.groq.com/openai/v1/models', {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+  if (!res.ok) {
+    if (res.status === 401) throw new Error('Chave de API inválida. Verifique nas Configurações.');
+    throw new Error(`Erro na API Groq (${res.status}). Tente novamente.`);
+  }
+  const data = await res.json();
+  const ids: string[] = (Array.isArray(data?.data) ? data.data : [])
+    .filter((m: { id?: unknown; active?: boolean }) => typeof m.id === 'string' && m.active !== false)
+    .map((m: { id: string }) => m.id)
+    .filter((id: string) => !/whisper|tts|guard|playai|orpheus|embed|distil|compound|allam/i.test(id))
+    .sort();
+  if (ids.length) saveGroqModels(ids);
+  return ids;
+}
+
+/**
  * Testa uma chave sem precisar colocá-la em uso: um pedido curtíssimo ao
  * provedor. Erros voltam com as mesmas mensagens em português de sempre.
  */
@@ -689,7 +711,9 @@ export async function testAiKey(providerId: Exclude<AiProviderId, 'none'>, apiKe
     model || PROVIDER_DEFAULTS[providerId],
     'Responda apenas com a palavra: ok',
     [{ role: 'user', content: 'Teste de conexão do Farol da Palavra.' }],
-    16,
+    // os modelos que raciocinam (GPT OSS, Qwen) gastam tokens pensando antes
+    // de responder; com 16 a resposta viria vazia
+    providerId === 'groq' ? 512 : 16,
   );
   if (!reply.trim()) throw new Error('O provedor respondeu vazio. Confira o modelo escolhido.');
 }

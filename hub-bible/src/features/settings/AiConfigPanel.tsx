@@ -5,14 +5,15 @@ import {
   loadAiSettings,
   saveAiSettings,
   DEFAULT_MODELS,
-  MODEL_OPTIONS,
+  modelOptionsFor,
+  pickGroqModel,
   PROVIDER_IDS,
   type AiProviderId,
   type AiSettings,
   type ProviderKey,
 } from '../../core/ai/config';
 import { registerAiProvider } from '../../core/ai/provider';
-import { createProvider, testAiKey } from '../../core/ai/chatProvider';
+import { createProvider, fetchGroqModels, testAiKey } from '../../core/ai/chatProvider';
 
 const NAMES: Record<ProviderKey, string> = {
   openai: 'ChatGPT (OpenAI)',
@@ -71,8 +72,18 @@ export function AiConfigPanel() {
   const test = async (id: ProviderKey) => {
     setTesting(id);
     try {
-      await testAiKey(id, settings.keys[id] ?? '', settings.models[id]);
-      notify(`${NAMES[id]}: conexão funcionando!`);
+      let model = settings.models[id];
+      if (id === 'groq') {
+        // a Groq troca os modelos com frequência: confere a lista real antes
+        const ids = await fetchGroqModels(settings.keys[id] ?? '');
+        const current = model || DEFAULT_MODELS.groq;
+        if (ids.length && !ids.includes(current)) {
+          model = pickGroqModel(ids);
+          if (model) setModel(id, model);
+        }
+      }
+      await testAiKey(id, settings.keys[id] ?? '', model);
+      notify(`${NAMES[id]}: conexão funcionando!${model && model !== settings.models[id] ? ` Modelo escolhido: ${model.replace(/^[^/]+\//, '')}.` : ''}`);
     } catch (err) {
       notify(`${NAMES[id]}: ${err instanceof Error ? err.message : 'erro ao testar.'}`, 'error');
     } finally {
@@ -114,7 +125,7 @@ export function AiConfigPanel() {
               label="Modelo"
               value={settings.models[id] || DEFAULT_MODELS[id]}
               onChange={(v) => setModel(id, v)}
-              options={MODEL_OPTIONS[id]}
+              options={modelOptionsFor(id)}
             />
             <div className="row row-wrap" style={{ gap: 'var(--sp-2)' }}>
               <button className="btn btn-sm" disabled={!saved || testing !== null} onClick={() => test(id)}>

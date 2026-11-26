@@ -25,6 +25,16 @@ export interface WhatsNewEntry {
 
 const ENTRIES: WhatsNewEntry[] = [
   {
+    id: '2026-11-26-groq-modelos',
+    title: 'Groq corrigida',
+    items: [
+      {
+        title: 'Modelos da Groq em dia',
+        text: 'Ao tocar em "Testar" no cartão Groq, o app pergunta à própria Groq quais modelos estão no ar e escolhe um que funciona. Acabou o "Modelo não encontrado".',
+      },
+    ],
+  },
+  {
     id: '2026-11-26-groq',
     title: 'Groq como opção de IA',
     items: [
