@@ -26,9 +26,9 @@ export const DOC_LABEL: Record<DocKind, string> = {
   doc: 'Material',
 };
 
-/** A aba de um estudo: Escola de Ministros ou Rhema. */
+/** A aba de um estudo: Estudos, Escola de Ministros ou Rhema. */
 export const studyRoute = (study: { shelf?: string } | null | undefined) =>
-  study?.shelf === 'escola' ? '/escola' : '/rhema';
+  study?.shelf === 'estudos' ? '/estudos' : study?.shelf === 'escola' ? '/escola' : '/rhema';
 
 export const DOC_ROUTE: Record<DocKind, string> = {
   sermon: '/sermoes',
@@ -195,6 +195,8 @@ export interface LibraryEntry {
   updatedAt: number;
   favorite?: boolean;
   searchBlob: string;
+  /** Endereço próprio, quando não é o da aba do tipo (Estudos, Escola). */
+  path?: string;
 }
 
 const blob = (...parts: Array<string | undefined | string[]>) =>
@@ -228,8 +230,9 @@ export async function loadLibrary(): Promise<LibraryEntry[]> {
     ...studies.map((s) => ({
       id: s.id,
       kind: 'study' as const,
-      title: s.title || 'Rhema sem título',
-      category: s.category || 'Rhema',
+      title: s.title || (s.shelf === 'estudos' ? 'Estudo sem título' : 'Rhema sem título'),
+      category: s.category || (s.shelf === 'estudos' ? 'Estudos' : 'Rhema'),
+      path: s.shelf ? `${studyRoute(s)}/${s.id}` : undefined,
       subtitle: [s.theme, s.mainText].filter(Boolean).join(' · '),
       tags: s.tags,
       updatedAt: s.updatedAt,

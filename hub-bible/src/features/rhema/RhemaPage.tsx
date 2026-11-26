@@ -51,7 +51,7 @@ export default function RhemaPage() {
       emptyDescription="Escreva um estudo — ou importe uma apostila em PDF e ensine com a Bíblia ao lado."
       onImportFile={importFile}
       importAccept={`${ACCEPTED_MIME},${ACCEPTED_EXTENSIONS}`}
-      filter={(s) => s.shelf !== 'escola'}
+      filter={(s) => !s.shelf}
     />
   );
 }

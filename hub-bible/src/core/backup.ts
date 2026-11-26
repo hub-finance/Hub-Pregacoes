@@ -85,7 +85,7 @@ export const BACKUP_PARTS: Array<{ id: BackupPart; label: string; hint: string; 
   { id: 'courses', label: 'Cursos', hint: 'Os cursos, com os arquivos de aula importados neles.', off: true },
   { id: 'bibles', label: 'Bíblias importadas', hint: 'Todas as traduções que você importou (as que vêm com o app o outro aparelho já tem).' },
   HAS_RHEMA
-    ? { id: 'files', label: 'Apostilas do Rhema e da Escola de Ministros (arquivos)', hint: 'Os PDF e Word das apostilas — os que abrem no Modo Aula.' }
+    ? { id: 'files', label: 'Apostilas de Estudos, do Rhema e da Escola de Ministros (arquivos)', hint: 'Os PDF, Word e HTML das apostilas — os que abrem no Modo Aula.' }
     : { id: 'files', label: 'Arquivos importados (PDF, Word)', hint: 'Os PDF e Word importados que não são de sermões nem de cursos.' },
   { id: 'assistant', label: 'Assistente bíblico', hint: 'Conversas, documentos montados, materiais importados e as análises do Estudo guiado.' },
   { id: 'doctrinal', label: 'Base doutrinária', hint: 'A base que você importou para os Guias e o assistente.' },

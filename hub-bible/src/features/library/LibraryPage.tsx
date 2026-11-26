@@ -108,7 +108,7 @@ export default function LibraryPage() {
                 navigate(
                   entry.kind === 'doc'
                     ? `/biblioteca/material/${entry.id}`
-                    : `${DOC_ROUTE[entry.kind]}/${entry.id}`,
+                    : entry.path ?? `${DOC_ROUTE[entry.kind]}/${entry.id}`,
                 )
               }
             >

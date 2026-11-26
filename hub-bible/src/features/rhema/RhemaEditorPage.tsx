@@ -48,7 +48,7 @@ export default function RhemaEditorPage() {
     return (
       <div className="page">
         <p className="muted">Estudo não encontrado.</p>
-        <button className="btn" onClick={() => navigate(location.pathname.startsWith('/escola') ? '/escola' : '/rhema')}>
+        <button className="btn" onClick={() => navigate(`/${location.pathname.split('/')[1] || 'rhema'}`)}>
           Voltar
         </button>
       </div>
