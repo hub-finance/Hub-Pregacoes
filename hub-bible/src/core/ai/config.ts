@@ -25,7 +25,7 @@ export const DEFAULT_MODELS: Record<Exclude<AiProviderId, 'none'>, string> = {
   openai: 'gpt-4.1-mini',
   gemini: 'gemini-3.8-flash',
   anthropic: 'claude-sonnet-5-5',
-  groq: 'llama-3.3-70b-versatile',
+  groq: 'openai/gpt-oss-120b',
 };
 
 export const MODEL_OPTIONS: Record<Exclude<AiProviderId, 'none'>, Array<{ value: string; label: string }>> = {
@@ -46,14 +46,52 @@ export const MODEL_OPTIONS: Record<Exclude<AiProviderId, 'none'>, Array<{ value:
     { value: 'claude-opus-5-5', label: 'Claude Opus 5.5 (mais capaz)' },
     { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (econômico)' },
   ],
-  // A Groq não tem modelo próprio: roda modelos abertos, muito rápido.
+  // A Groq troca os modelos com frequência: esta lista é só o ponto de
+  // partida. Ao tocar em "Testar", a lista real vem da própria Groq
+  // (`fetchGroqModels`) e substitui esta.
   groq: [
-    { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B (recomendado, gratuito)' },
-    { value: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B (mais capaz)' },
-    { value: 'qwen/qwen3-32b', label: 'Qwen3 32B' },
-    { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (mais rápido)' },
+    { value: 'openai/gpt-oss-120b', label: 'GPT OSS 120B' },
+    { value: 'openai/gpt-oss-20b', label: 'GPT OSS 20B' },
   ],
 };
+
+const GROQ_MODELS_KEY = 'hub-bible:ai-models:groq';
+
+/** Modelos que a Groq informou da última vez, guardados no aparelho. */
+export function savedGroqModels(): string[] {
+  try {
+    const list = JSON.parse(localStorage.getItem(GROQ_MODELS_KEY) ?? '[]');
+    return Array.isArray(list) ? list.filter((m) => typeof m === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveGroqModels(ids: string[]): void {
+  try {
+    localStorage.setItem(GROQ_MODELS_KEY, JSON.stringify(ids));
+  } catch {
+    /* sem armazenamento: a lista fixa continua valendo */
+  }
+}
+
+/** Preferência para texto em português: o maior primeiro. */
+export function pickGroqModel(ids: string[]): string | undefined {
+  const order = [/gpt-oss-120b/i, /qwen/i, /llama-4|llama-3\.3-70b/i, /gpt-oss/i, /llama/i];
+  for (const re of order) {
+    const hit = ids.find((id) => re.test(id));
+    if (hit) return hit;
+  }
+  return ids[0];
+}
+
+export function modelOptionsFor(id: ProviderKey): Array<{ value: string; label: string }> {
+  if (id !== 'groq') return MODEL_OPTIONS[id];
+  const ids = savedGroqModels();
+  if (!ids.length) return MODEL_OPTIONS.groq;
+  const best = pickGroqModel(ids);
+  return ids.map((m) => ({ value: m, label: `${m.replace(/^[^/]+\//, '')}${m === best ? ' (recomendado)' : ''}` }));
+}
 
 /**
  * O que fica guardado: uma chave e um modelo para cada provedor (o pregador
