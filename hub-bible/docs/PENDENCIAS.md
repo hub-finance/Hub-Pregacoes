@@ -55,8 +55,9 @@ e o app monta o HTML pronto, em um de dois formatos:
   marcar onde parou e cronômetro;
 - **apostila em página A4**: para o Rhema, a Escola e Estudos.
 
-O HTML vai direto para a aba escolhida (Gerador, Estudos, Rhema ou Escola)
-e abre no Modo Pregação ou no Modo Aula como qualquer HTML importado.
+**Destino (decisão do dono):** o HTML vai para **Estudos** por padrão. Só
+vai para outra aba (Gerador, Rhema ou Escola) quando ele escolher na hora.
+Abre no Modo Pregação ou no Modo Aula como qualquer HTML importado.
 
 Base: o modelo por tópicos lê o conteúdo de um bloco JSON
 (`script#mensagem`, com `titulo`, `abertura` e `topicos[].blocos` dos tipos
