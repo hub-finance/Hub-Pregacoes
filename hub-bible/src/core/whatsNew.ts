@@ -25,6 +25,16 @@ export interface WhatsNewEntry {
 
 const ENTRIES: WhatsNewEntry[] = [
   {
+    id: '2026-11-26-groq',
+    title: 'Groq como opção de IA',
+    items: [
+      {
+        title: 'Mais uma IA com plano gratuito',
+        text: 'Em Configurações › IA — chaves de API há agora o cartão Groq. Crie a chave em console.groq.com, cole, toque em "Testar" e depois em "Usar esta". É muito rápida; em português o Gemini ainda escreve melhor.',
+      },
+    ],
+  },
+  {
     id: '2026-11-24-guia-html',
     title: 'Passo a passo da mensagem em HTML',
     items: [

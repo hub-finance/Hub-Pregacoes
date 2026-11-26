@@ -478,33 +478,45 @@ export interface ChatTurn {
   content: string;
 }
 
-async function callOpenAi(apiKey: string, model: string, system: string, turns: ChatTurn[], maxTokens: number): Promise<string> {
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: 'system', content: system },
-        ...turns.map((t) => ({ role: t.role, content: t.content })),
-      ],
-      temperature: 0.4,
-      max_tokens: maxTokens,
-    }),
-  });
-  if (!res.ok) {
-    if (res.status === 401) throw new Error('Chave de API inválida. Verifique nas Configurações.');
-    if (res.status === 429) throw new Error('Limite de uso atingido. Aguarde alguns minutos.');
-    if (res.status === 503 || res.status === 502) throw new Error('Serviço temporariamente indisponível. Tente novamente em alguns minutos.');
-    if (res.status === 404) throw new Error('Modelo não encontrado. Verifique o nome do modelo nas Configurações.');
-    throw new Error(`Erro na API OpenAI (${res.status}). Tente novamente.`);
-  }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? '';
+/**
+ * Formato de chat da OpenAI, que a Groq também segue: muda só o endereço,
+ * o nome no erro e, na Groq, o teto de resposta (o plano gratuito limita os
+ * tokens por minuto, e um pedido que reserva resposta longa demais é recusado).
+ */
+function openAiCompatible(url: string, name: string, maxTokensCap?: number) {
+  return async (apiKey: string, model: string, system: string, turns: ChatTurn[], maxTokens: number): Promise<string> => {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: system },
+          ...turns.map((t) => ({ role: t.role, content: t.content })),
+        ],
+        temperature: 0.4,
+        max_tokens: maxTokensCap ? Math.min(maxTokens, maxTokensCap) : maxTokens,
+      }),
+    });
+    if (!res.ok) {
+      if (res.status === 401) throw new Error('Chave de API inválida. Verifique nas Configurações.');
+      if (res.status === 413) throw new Error(`Pedido grande demais para o seu plano no ${name}. Tente um trecho menor ou outra IA.`);
+      if (res.status === 429) throw new Error('Limite de uso atingido. Aguarde alguns minutos.');
+      if (res.status === 503 || res.status === 502) throw new Error('Serviço temporariamente indisponível. Tente novamente em alguns minutos.');
+      if (res.status === 404) throw new Error('Modelo não encontrado. Verifique o nome do modelo nas Configurações.');
+      throw new Error(`Erro na API ${name} (${res.status}). Tente novamente.`);
+    }
+    const data = await res.json();
+    // alguns modelos abertos devolvem o raciocínio entre <think>; não é resposta
+    return String(data.choices?.[0]?.message?.content ?? '').replace(/<think>[\s\S]*?<\/think>\s*/g, '');
+  };
 }
+
+const callOpenAi = openAiCompatible('https://api.openai.com/v1/chat/completions', 'OpenAI');
+const callGroq = openAiCompatible('https://api.groq.com/openai/v1/chat/completions', 'Groq', 6000);
 
 async function callGemini(apiKey: string, model: string, system: string, turns: ChatTurn[], maxTokens: number): Promise<string> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -568,12 +580,14 @@ const PROVIDER_LABELS: Record<Exclude<AiProviderId, 'none'>, string> = {
   openai: 'OpenAI',
   gemini: 'Google Gemini',
   anthropic: 'Anthropic Claude',
+  groq: 'Groq',
 };
 
 const PROVIDER_DEFAULTS: Record<Exclude<AiProviderId, 'none'>, string> = {
   openai: 'gpt-4.1-mini',
   gemini: 'gemini-3.8-flash',
   anthropic: 'claude-sonnet-5-5',
+  groq: 'llama-3.3-70b-versatile',
 };
 
 type ApiCaller = (apiKey: string, model: string, system: string, turns: ChatTurn[], maxTokens: number) => Promise<string>;
@@ -581,6 +595,7 @@ type ApiCaller = (apiKey: string, model: string, system: string, turns: ChatTurn
 function getApiCaller(providerId: Exclude<AiProviderId, 'none'>): ApiCaller {
   if (providerId === 'openai') return callOpenAi;
   if (providerId === 'anthropic') return callAnthropic;
+  if (providerId === 'groq') return callGroq;
   return callGemini;
 }
 

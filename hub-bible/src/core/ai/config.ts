@@ -7,7 +7,7 @@
 
 const STORAGE_KEY = 'hub-bible:ai-config';
 
-export type AiProviderId = 'openai' | 'gemini' | 'anthropic' | 'none';
+export type AiProviderId = 'openai' | 'gemini' | 'anthropic' | 'groq' | 'none';
 
 export interface AiConfig {
   provider: AiProviderId;
@@ -25,6 +25,7 @@ export const DEFAULT_MODELS: Record<Exclude<AiProviderId, 'none'>, string> = {
   openai: 'gpt-4.1-mini',
   gemini: 'gemini-3.8-flash',
   anthropic: 'claude-sonnet-5-5',
+  groq: 'llama-3.3-70b-versatile',
 };
 
 export const MODEL_OPTIONS: Record<Exclude<AiProviderId, 'none'>, Array<{ value: string; label: string }>> = {
@@ -45,6 +46,13 @@ export const MODEL_OPTIONS: Record<Exclude<AiProviderId, 'none'>, Array<{ value:
     { value: 'claude-opus-5-5', label: 'Claude Opus 5.5 (mais capaz)' },
     { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (econômico)' },
   ],
+  // A Groq não tem modelo próprio: roda modelos abertos, muito rápido.
+  groq: [
+    { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B (recomendado, gratuito)' },
+    { value: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B (mais capaz)' },
+    { value: 'qwen/qwen3-32b', label: 'Qwen3 32B' },
+    { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (mais rápido)' },
+  ],
 };
 
 /**
@@ -54,7 +62,7 @@ export const MODEL_OPTIONS: Record<Exclude<AiProviderId, 'none'>, Array<{ value:
  * (`{ provider, apiKey, model }`) é lido e convertido sem perder a chave.
  */
 export type ProviderKey = Exclude<AiProviderId, 'none'>;
-export const PROVIDER_IDS: ProviderKey[] = ['openai', 'anthropic', 'gemini'];
+export const PROVIDER_IDS: ProviderKey[] = ['openai', 'anthropic', 'gemini', 'groq'];
 
 export interface AiSettings {
   provider: AiProviderId;

@@ -18,18 +18,21 @@ const NAMES: Record<ProviderKey, string> = {
   openai: 'ChatGPT (OpenAI)',
   anthropic: 'Claude (Anthropic)',
   gemini: 'Gemini (Google)',
+  groq: 'Groq (modelos abertos)',
 };
 
 const PLACEHOLDER: Record<ProviderKey, string> = {
   openai: 'sk-...',
   anthropic: 'sk-ant-...',
   gemini: 'AIza...',
+  groq: 'gsk_...',
 };
 
 const WHERE: Record<ProviderKey, string> = {
   openai: 'Crie a chave em platform.openai.com (API keys). A API é cobrada à parte da assinatura do ChatGPT: precisa de créditos na conta.',
   anthropic: 'Crie a chave em console.anthropic.com (API keys). A API é cobrada à parte da assinatura do Claude: precisa de créditos na conta.',
   gemini: 'Crie a chave em aistudio.google.com (Get API key). O Gemini Flash tem plano gratuito.',
+  groq: 'Crie a chave em console.groq.com (API Keys). Tem plano gratuito, com limite de uso por minuto e por dia. Roda modelos abertos: muito rápido, mas em português e em teologia fica abaixo do Gemini e do Claude.',
 };
 
 const hasKey = (s: AiSettings, id: ProviderKey) => (s.keys[id] ?? '').trim().length > 8;
